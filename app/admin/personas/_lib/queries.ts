@@ -30,7 +30,7 @@ export async function fetchPersonas(params: PersonasQueryParams) {
   let query = supabase
     .from('personas')
     .select(
-      `id, nombre, apellido, numero_documento, email_principal, telefono_principal, estado, deleted_at, created_at, personas_atributos(atributo_slug, activo)`,
+      `id, nombre, apellido, numero_documento, email_principal, telefono_principal, estado, deleted_at, created_at, personas_atributos!personas_atributos_persona_id_fkey(atributo_slug, activo)`,
       { count: 'exact' }
     )
 
@@ -74,7 +74,7 @@ export async function fetchPersonaById(id: string) {
     .from('personas')
     .select(`
       *,
-      personas_atributos(id, atributo_slug, valor, activo, fecha_inicio, fecha_fin, created_at),
+      personas_atributos!personas_atributos_persona_id_fkey(id, atributo_slug, valor, activo, fecha_inicio, fecha_fin, created_at),
       personas_vinculos_origen:personas_vinculos!personas_vinculos_persona_origen_id_fkey(
         id, tipo_vinculo_slug, activo, fecha_inicio, notas,
         destino:personas!personas_vinculos_persona_destino_id_fkey(id, nombre, apellido, numero_documento)
@@ -83,7 +83,7 @@ export async function fetchPersonaById(id: string) {
         id, tipo_vinculo_slug, activo, fecha_inicio, notas,
         origen:personas!personas_vinculos_persona_origen_id_fkey(id, nombre, apellido, numero_documento)
       ),
-      personas_padrones(id, padron_id, estado_padron_id, tipo_socio_id, numero_socio, fecha_alta, activo,
+      personas_padrones!personas_padrones_persona_id_fkey(id, padron_id, estado_padron_id, tipo_socio_id, numero_socio, fecha_alta, activo,
         padron:padrones(id, nombre, slug)
       )
     `)
