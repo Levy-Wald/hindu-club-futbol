@@ -23,7 +23,7 @@ interface PersonaRef {
   id: string
   nombre: string
   apellido: string
-  dni: string | null
+  numero_documento: string | null
 }
 
 interface Vinculo {
@@ -39,6 +39,7 @@ interface Vinculo {
 interface CatalogoVinculo {
   slug: string
   nombre: string
+  categoria: string
 }
 
 interface TabVinculosProps {
@@ -64,10 +65,10 @@ export function TabVinculos({ personaId, vinculosOrigen, vinculosDestino, catalo
       const supabase = createClient()
       const { data } = await supabase
         .from('personas')
-        .select('id, nombre, apellido, dni')
+        .select('id, nombre, apellido, numero_documento')
         .is('deleted_at', null)
         .neq('id', personaId)
-        .or(`nombre.ilike.%${searchQuery}%,apellido.ilike.%${searchQuery}%,dni.ilike.%${searchQuery}%`)
+        .or(`nombre.ilike.%${searchQuery}%,apellido.ilike.%${searchQuery}%,numero_documento.ilike.%${searchQuery}%`)
         .limit(10)
       setSearchResults(data ?? [])
     }, 300)
@@ -111,7 +112,7 @@ export function TabVinculos({ personaId, vinculosOrigen, vinculosDestino, catalo
           <CardTitle className="text-lg">Agregar vínculo</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Tipo de vínculo</Label>
               <Select value={tipoSlug} onValueChange={(v) => setTipoSlug(v ?? '')}>
@@ -155,7 +156,7 @@ export function TabVinculos({ personaId, vinculosOrigen, vinculosDestino, catalo
                           className="w-full px-3 py-2 text-left text-sm hover:bg-accent"
                           onClick={() => { setSelectedPersona(p); setSearchResults([]) }}
                         >
-                          {p.apellido}, {p.nombre} {p.dni ? `(${p.dni})` : ''}
+                          {p.apellido}, {p.nombre} {p.numero_documento ? `(${p.numero_documento})` : ''}
                         </button>
                       ))}
                     </div>

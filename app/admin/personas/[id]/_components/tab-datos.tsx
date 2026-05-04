@@ -23,18 +23,16 @@ interface TabDatosProps {
     id: string
     nombre: string
     apellido: string
-    dni: string | null
-    tipo_documento: string | null
-    email: string | null
-    email_secundario: string | null
-    telefono: string | null
+    tipo_documento: string
+    numero_documento: string
+    email_principal: string | null
+    telefono_principal: string | null
     whatsapp: string | null
     fecha_nacimiento: string | null
     genero: string | null
     nacionalidad: string | null
-    estado_civil: string | null
-    profesion: string | null
-    notas: string | null
+    profesion_ocupacion: string | null
+    notas_internas: string | null
   }
 }
 
@@ -43,18 +41,16 @@ export function TabDatos({ persona }: TabDatosProps) {
   const [form, setForm] = useState<EditarPersonaInput>({
     nombre: persona.nombre,
     apellido: persona.apellido,
-    dni: persona.dni ?? '',
-    tipo_documento: persona.tipo_documento ?? 'dni',
-    email: persona.email ?? '',
-    email_secundario: persona.email_secundario ?? '',
-    telefono: persona.telefono ?? '',
+    tipo_documento: persona.tipo_documento,
+    numero_documento: persona.numero_documento,
+    email_principal: persona.email_principal ?? '',
+    telefono_principal: persona.telefono_principal ?? '',
     whatsapp: persona.whatsapp ?? '',
     fecha_nacimiento: persona.fecha_nacimiento ?? '',
     genero: persona.genero ?? '',
     nacionalidad: persona.nacionalidad ?? '',
-    estado_civil: persona.estado_civil ?? '',
-    profesion: persona.profesion ?? '',
-    notas: persona.notas ?? '',
+    profesion_ocupacion: persona.profesion_ocupacion ?? '',
+    notas_internas: persona.notas_internas ?? '',
   })
 
   function update(field: keyof EditarPersonaInput, value: string) {
@@ -78,7 +74,7 @@ export function TabDatos({ persona }: TabDatosProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="nombre">Nombre *</Label>
               <Input id="nombre" value={form.nombre} onChange={(e) => update('nombre', e.target.value)} required />
@@ -89,10 +85,10 @@ export function TabDatos({ persona }: TabDatosProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="dni">DNI</Label>
-              <Input id="dni" value={form.dni} onChange={(e) => update('dni', e.target.value)} />
+              <Label htmlFor="numero_documento">Documento *</Label>
+              <Input id="numero_documento" value={form.numero_documento} onChange={(e) => update('numero_documento', e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="tipo_documento">Tipo doc.</Label>
@@ -104,38 +100,35 @@ export function TabDatos({ persona }: TabDatosProps) {
                   <SelectItem value="dni">DNI</SelectItem>
                   <SelectItem value="pasaporte">Pasaporte</SelectItem>
                   <SelectItem value="cedula">Cédula</SelectItem>
+                  <SelectItem value="otro">Otro</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={form.email} onChange={(e) => update('email', e.target.value)} />
+              <Label htmlFor="email_principal">Email</Label>
+              <Input id="email_principal" type="email" value={form.email_principal} onChange={(e) => update('email_principal', e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email_secundario">Email secundario</Label>
-              <Input id="email_secundario" type="email" value={form.email_secundario} onChange={(e) => update('email_secundario', e.target.value)} />
+              <Label htmlFor="telefono_principal">Teléfono</Label>
+              <Input id="telefono_principal" value={form.telefono_principal} onChange={(e) => update('telefono_principal', e.target.value)} />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="telefono">Teléfono</Label>
-              <Input id="telefono" value={form.telefono} onChange={(e) => update('telefono', e.target.value)} />
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="whatsapp">WhatsApp</Label>
               <Input id="whatsapp" value={form.whatsapp} onChange={(e) => update('whatsapp', e.target.value)} />
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="fecha_nacimiento">Fecha nac.</Label>
               <Input id="fecha_nacimiento" type="date" value={form.fecha_nacimiento} onChange={(e) => update('fecha_nacimiento', e.target.value)} />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="genero">Género</Label>
               <Select value={form.genero} onValueChange={(v) => update('genero', v ?? '')}>
@@ -145,31 +138,25 @@ export function TabDatos({ persona }: TabDatosProps) {
                 <SelectContent>
                   <SelectItem value="masculino">Masculino</SelectItem>
                   <SelectItem value="femenino">Femenino</SelectItem>
+                  <SelectItem value="no_binario">No binario</SelectItem>
                   <SelectItem value="otro">Otro</SelectItem>
-                  <SelectItem value="no_especifica">No especifica</SelectItem>
+                  <SelectItem value="prefiere_no_decir">Prefiere no decir</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="nacionalidad">Nacionalidad</Label>
               <Input id="nacionalidad" value={form.nacionalidad} onChange={(e) => update('nacionalidad', e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="estado_civil">Estado civil</Label>
-              <Input id="estado_civil" value={form.estado_civil} onChange={(e) => update('estado_civil', e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="profesion">Profesión</Label>
-              <Input id="profesion" value={form.profesion} onChange={(e) => update('profesion', e.target.value)} />
+              <Label htmlFor="profesion_ocupacion">Profesión</Label>
+              <Input id="profesion_ocupacion" value={form.profesion_ocupacion} onChange={(e) => update('profesion_ocupacion', e.target.value)} />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notas">Notas</Label>
-            <Textarea id="notas" value={form.notas} onChange={(e) => update('notas', e.target.value)} rows={3} />
+            <Label htmlFor="notas_internas">Notas internas</Label>
+            <Textarea id="notas_internas" value={form.notas_internas} onChange={(e) => update('notas_internas', e.target.value)} rows={3} />
           </div>
 
           <Button type="submit" disabled={loading}>

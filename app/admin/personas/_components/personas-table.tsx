@@ -32,9 +32,9 @@ interface Persona {
   id: string
   nombre: string
   apellido: string
-  dni: string | null
-  email: string | null
-  telefono: string | null
+  numero_documento: string | null
+  email_principal: string | null
+  telefono_principal: string | null
   estado: string
   deleted_at: string | null
   created_at: string
@@ -51,13 +51,14 @@ interface PersonasTableProps {
 const ATRIBUTO_COLORS: Record<string, string> = {
   admin_sistema: 'bg-red-500/10 text-red-500',
   admin_tenant: 'bg-orange-500/10 text-orange-500',
+  admin_padron: 'bg-amber-500/10 text-amber-500',
   jugador: 'bg-blue-500/10 text-blue-500',
   capitan: 'bg-yellow-500/10 text-yellow-500',
   dt: 'bg-green-500/10 text-green-500',
   dirigente: 'bg-purple-500/10 text-purple-500',
-  socio_padron: 'bg-teal-500/10 text-teal-500',
+  socio: 'bg-teal-500/10 text-teal-500',
+  staff: 'bg-indigo-500/10 text-indigo-500',
   padre_tutor: 'bg-pink-500/10 text-pink-500',
-  jugador_fusion: 'bg-indigo-500/10 text-indigo-500',
 }
 
 export function PersonasTable({ personas, total, page, pageSize }: PersonasTableProps) {
@@ -109,14 +110,43 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border">
+      {/* Mobile cards */}
+      <div className="sm:hidden space-y-2">
+        {personas.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">No se encontraron personas.</p>
+        ) : (
+          personas.map((p) => (
+            <Link
+              key={p.id}
+              href={`/admin/personas/${p.id}`}
+              className={`block rounded-lg border p-3 ${p.deleted_at ? 'opacity-50' : ''}`}
+            >
+              <div className="flex items-center gap-3">
+                <PersonaAvatar nombre={p.nombre} apellido={p.apellido} className="h-9 w-9" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{p.apellido}, {p.nombre}</p>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {p.numero_documento ?? '—'} · {p.email_principal ?? '—'}
+                  </p>
+                </div>
+                <Badge variant={p.deleted_at ? 'destructive' : 'default'} className="shrink-0">
+                  {p.deleted_at ? 'eliminada' : p.estado}
+                </Badge>
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-12" />
               <TableHead>{sortButton('apellido', 'Nombre')}</TableHead>
-              <TableHead>{sortButton('dni', 'DNI')}</TableHead>
-              <TableHead>{sortButton('email', 'Email')}</TableHead>
+              <TableHead>{sortButton('numero_documento', 'Documento')}</TableHead>
+              <TableHead>Email</TableHead>
               <TableHead>Atributos</TableHead>
               <TableHead>{sortButton('estado', 'Estado')}</TableHead>
               <TableHead className="w-12" />
@@ -140,8 +170,8 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
                       {p.apellido}, {p.nombre}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{p.dni ?? '—'}</TableCell>
-                  <TableCell className="text-muted-foreground">{p.email ?? '—'}</TableCell>
+                  <TableCell className="text-muted-foreground">{p.numero_documento ?? '—'}</TableCell>
+                  <TableCell className="text-muted-foreground">{p.email_principal ?? '—'}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {p.personas_atributos
@@ -211,7 +241,7 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
               Anterior
             </Button>
             <span className="text-sm text-muted-foreground">
-              Página {page} de {totalPages}
+              {page} / {totalPages}
             </span>
             <Button
               variant="outline"

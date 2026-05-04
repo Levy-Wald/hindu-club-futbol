@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { fetchPersonas, fetchCatalogoAtributos, fetchPadrones } from './_lib/queries'
+import { fetchPersonas, fetchCatalogoAtributos } from './_lib/queries'
 import { PersonasTable } from './_components/personas-table'
 import { SearchBar } from './_components/search-bar'
 import { PersonasFilters } from './_components/personas-filters'
@@ -18,13 +18,11 @@ export default async function PersonasPage({ searchParams }: PageProps) {
   const sortDir = (params.dir ?? 'asc') as 'asc' | 'desc'
   const estados = params.estados?.split(',').filter(Boolean) ?? []
   const atributos = params.atributos?.split(',').filter(Boolean) ?? []
-  const padrones = params.padrones?.split(',').filter(Boolean) ?? []
   const verEliminadas = params.eliminadas === '1'
 
-  const [{ data: personas, total }, catalogoAtributos, catalogoPadrones] = await Promise.all([
-    fetchPersonas({ search, page, pageSize, sortBy, sortDir, estados, atributos, padrones, verEliminadas }),
+  const [{ data: personas, total }, catalogoAtributos] = await Promise.all([
+    fetchPersonas({ search, page, pageSize, sortBy, sortDir, estados, atributos, verEliminadas }),
     fetchCatalogoAtributos(),
-    fetchPadrones(),
   ])
 
   return (
@@ -34,14 +32,13 @@ export default async function PersonasPage({ searchParams }: PageProps) {
         <CrearPersonaSheet />
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <Suspense>
           <SearchBar />
         </Suspense>
         <Suspense>
           <PersonasFilters
             atributos={catalogoAtributos.map((a) => ({ value: a.slug, label: a.nombre }))}
-            padrones={catalogoPadrones.map((p) => ({ value: p.id, label: p.nombre }))}
           />
         </Suspense>
       </div>

@@ -8,7 +8,6 @@ export interface PersonasQueryParams {
   sortDir?: 'asc' | 'desc'
   estados?: string[]
   atributos?: string[]
-  padrones?: string[]
   verEliminadas?: boolean
 }
 
@@ -21,7 +20,6 @@ export async function fetchPersonas(params: PersonasQueryParams) {
     sortDir = 'asc',
     estados = [],
     atributos = [],
-    // padrones filter: requiere join con personas_padrones, implementar en sprint futuro
     verEliminadas = false,
   } = params
 
@@ -32,28 +30,24 @@ export async function fetchPersonas(params: PersonasQueryParams) {
   let query = supabase
     .from('personas')
     .select(
-      `*, personas_atributos(atributo_slug, activo)`,
+      `id, nombre, apellido, numero_documento, email_principal, telefono_principal, estado, deleted_at, created_at, personas_atributos(atributo_slug, activo)`,
       { count: 'exact' }
     )
 
-  // Soft delete filter
   if (!verEliminadas) {
     query = query.is('deleted_at', null)
   }
 
-  // Search
   if (search) {
     query = query.or(
-      `nombre.ilike.%${search}%,apellido.ilike.%${search}%,dni.ilike.%${search}%,email.ilike.%${search}%`
+      `nombre.ilike.%${search}%,apellido.ilike.%${search}%,numero_documento.ilike.%${search}%,email_principal.ilike.%${search}%`
     )
   }
 
-  // Estado filter
   if (estados.length > 0) {
     query = query.in('estado', estados)
   }
 
-  // Sort
   query = query.order(sortBy, { ascending: sortDir === 'asc' })
   query = query.range(from, to)
 
@@ -61,7 +55,6 @@ export async function fetchPersonas(params: PersonasQueryParams) {
 
   if (error) throw error
 
-  // Client-side filter para atributos (Supabase no soporta filter en relaciones anidadas fácilmente)
   let filtered = data ?? []
   if (atributos.length > 0) {
     filtered = filtered.filter((p) =>
@@ -84,13 +77,13 @@ export async function fetchPersonaById(id: string) {
       personas_atributos(id, atributo_slug, valor, activo, fecha_inicio, fecha_fin, created_at),
       personas_vinculos_origen:personas_vinculos!personas_vinculos_persona_origen_id_fkey(
         id, tipo_vinculo_slug, activo, fecha_inicio, notas,
-        destino:personas!personas_vinculos_persona_destino_id_fkey(id, nombre, apellido, dni)
+        destino:personas!personas_vinculos_persona_destino_id_fkey(id, nombre, apellido, numero_documento)
       ),
       personas_vinculos_destino:personas_vinculos!personas_vinculos_persona_destino_id_fkey(
         id, tipo_vinculo_slug, activo, fecha_inicio, notas,
-        origen:personas!personas_vinculos_persona_origen_id_fkey(id, nombre, apellido, dni)
+        origen:personas!personas_vinculos_persona_origen_id_fkey(id, nombre, apellido, numero_documento)
       ),
-      personas_padrones(id, padron_id, estado_slug, tipo_socio_slug, numero_socio, fecha_alta,
+      personas_padrones(id, padron_id, estado_padron_id, tipo_socio_id, numero_socio, fecha_alta, activo,
         padron:padrones(id, nombre, slug)
       )
     `)
@@ -116,8 +109,9 @@ export async function fetchCatalogoAtributos() {
 export async function fetchCatalogoVinculos() {
   const supabase = await createClient()
   const { data, error } = await supabase
-    .from('catalogo_vinculos')
-    .select('slug, nombre')
+    .from('catalogo_tipos_vinculo')
+    .select('slug, nombre, categoria')
+    .eq('activo', true)
     .order('nombre')
 
   if (error) throw error
@@ -136,13 +130,37 @@ export async function fetchPadrones() {
   return data ?? []
 }
 
+export async function fetchEstadosPadron() {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('catalogo_estados_padron')
+    .select('id, slug, nombre')
+    .eq('activo', true)
+    .order('orden')
+
+  if (error) throw error
+  return data ?? []
+}
+
+export async function fetchTiposSocio() {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('catalogo_tipos_socio')
+    .select('id, slug, nombre')
+    .eq('activo', true)
+    .order('orden')
+
+  if (error) throw error
+  return data ?? []
+}
+
 export async function searchPersonas(query: string, excludeId?: string) {
   const supabase = await createClient()
   let q = supabase
     .from('personas')
-    .select('id, nombre, apellido, dni')
+    .select('id, nombre, apellido, numero_documento')
     .is('deleted_at', null)
-    .or(`nombre.ilike.%${query}%,apellido.ilike.%${query}%,dni.ilike.%${query}%`)
+    .or(`nombre.ilike.%${query}%,apellido.ilike.%${query}%,numero_documento.ilike.%${query}%`)
     .limit(10)
 
   if (excludeId) {

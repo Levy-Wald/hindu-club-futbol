@@ -32,24 +32,18 @@ export async function crearPersona(input: CrearPersonaInput) {
   const supabase = await createClient()
   const values = parsed.data
 
-  // Limpiar strings vacíos a null
   const clean = {
     tenant_id: TENANT_ID,
     nombre: values.nombre.trim(),
     apellido: values.apellido.trim(),
-    dni: values.dni?.trim() || null,
     tipo_documento: values.tipo_documento,
-    email: values.email?.trim() || null,
-    email_secundario: values.email_secundario?.trim() || null,
-    telefono: values.telefono?.trim() || null,
+    numero_documento: values.numero_documento.trim(),
+    email_principal: values.email_principal?.trim() || null,
+    telefono_principal: values.telefono_principal?.trim() || null,
     whatsapp: values.whatsapp?.trim() || null,
     fecha_nacimiento: values.fecha_nacimiento || null,
     genero: values.genero || null,
     nacionalidad: values.nacionalidad || null,
-    estado_civil: values.estado_civil || null,
-    profesion: values.profesion?.trim() || null,
-    notas: values.notas?.trim() || null,
-    fuente_origen: 'manual' as const,
   }
 
   const { data, error } = await supabase
@@ -59,8 +53,8 @@ export async function crearPersona(input: CrearPersonaInput) {
     .single()
 
   if (error) {
-    if (error.code === '23505' && error.message.includes('personas_tenant_dni')) {
-      return formatResult(false, `Ya existe una persona con DNI ${clean.dni} en este tenant.`)
+    if (error.code === '23505' && error.message.includes('numero_documento')) {
+      return formatResult(false, `Ya existe una persona con ese documento en este tenant.`)
     }
     return formatResult(false, error.message)
   }
@@ -81,18 +75,16 @@ export async function editarPersona(id: string, input: EditarPersonaInput) {
   const clean = {
     nombre: values.nombre.trim(),
     apellido: values.apellido.trim(),
-    dni: values.dni?.trim() || null,
     tipo_documento: values.tipo_documento,
-    email: values.email?.trim() || null,
-    email_secundario: values.email_secundario?.trim() || null,
-    telefono: values.telefono?.trim() || null,
+    numero_documento: values.numero_documento.trim(),
+    email_principal: values.email_principal?.trim() || null,
+    telefono_principal: values.telefono_principal?.trim() || null,
     whatsapp: values.whatsapp?.trim() || null,
     fecha_nacimiento: values.fecha_nacimiento || null,
     genero: values.genero || null,
     nacionalidad: values.nacionalidad || null,
-    estado_civil: values.estado_civil || null,
-    profesion: values.profesion?.trim() || null,
-    notas: values.notas?.trim() || null,
+    profesion_ocupacion: values.profesion_ocupacion?.trim() || null,
+    notas_internas: values.notas_internas?.trim() || null,
   }
 
   const { error } = await supabase
@@ -101,8 +93,8 @@ export async function editarPersona(id: string, input: EditarPersonaInput) {
     .eq('id', id)
 
   if (error) {
-    if (error.code === '23505' && error.message.includes('personas_tenant_dni')) {
-      return formatResult(false, `Ya existe otra persona con DNI ${clean.dni}.`)
+    if (error.code === '23505' && error.message.includes('numero_documento')) {
+      return formatResult(false, `Ya existe otra persona con ese documento.`)
     }
     return formatResult(false, error.message)
   }
@@ -116,7 +108,11 @@ export async function softDeletePersona(id: string) {
   const supabase = await createClient()
   const { error } = await supabase
     .from('personas')
-    .update({ deleted_at: new Date().toISOString(), estado: 'baja', fecha_baja: new Date().toISOString().split('T')[0] })
+    .update({
+      deleted_at: new Date().toISOString(),
+      estado: 'baja',
+      fecha_baja: new Date().toISOString().split('T')[0],
+    })
     .eq('id', id)
 
   if (error) return formatResult(false, error.message)
@@ -129,7 +125,12 @@ export async function restaurarPersona(id: string) {
   const supabase = await createClient()
   const { error } = await supabase
     .from('personas')
-    .update({ deleted_at: null, estado: 'activo', fecha_baja: null, motivo_baja: null })
+    .update({
+      deleted_at: null,
+      estado: 'activo',
+      fecha_baja: null,
+      motivo_baja_slug: null,
+    })
     .eq('id', id)
 
   if (error) return formatResult(false, error.message)
@@ -249,8 +250,8 @@ export async function asignarPadron(input: AsignarPadronInput) {
       tenant_id: TENANT_ID,
       persona_id: values.persona_id,
       padron_id: values.padron_id,
-      estado_slug: values.estado_slug,
-      tipo_socio_slug: values.tipo_socio_slug || null,
+      estado_padron_id: values.estado_padron_id,
+      tipo_socio_id: values.tipo_socio_id || null,
       numero_socio: values.numero_socio?.trim() || null,
     })
 
@@ -269,7 +270,7 @@ export async function quitarDePadron(personaPadronId: string, personaId: string)
   const supabase = await createClient()
   const { error } = await supabase
     .from('personas_padrones')
-    .update({ estado_slug: 'baja', fecha_baja: new Date().toISOString().split('T')[0] })
+    .update({ activo: false, fecha_baja: new Date().toISOString().split('T')[0] })
     .eq('id', personaPadronId)
 
   if (error) return formatResult(false, error.message)

@@ -16,31 +16,29 @@ interface FilterOption {
 
 interface PersonasFiltersProps {
   atributos: FilterOption[]
-  padrones: FilterOption[]
 }
 
 const ESTADOS: FilterOption[] = [
   { value: 'activo', label: 'Activo' },
   { value: 'pausado', label: 'Pausado' },
   { value: 'baja', label: 'Baja' },
+  { value: 'suspendido', label: 'Suspendido' },
   { value: 'pendiente_revision', label: 'Pendiente revisión' },
 ]
 
-export function PersonasFilters({ atributos, padrones }: PersonasFiltersProps) {
+export function PersonasFilters({ atributos }: PersonasFiltersProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
   const currentEstados = searchParams.get('estados')?.split(',').filter(Boolean) ?? []
   const currentAtributos = searchParams.get('atributos')?.split(',').filter(Boolean) ?? []
-  const currentPadrones = searchParams.get('padrones')?.split(',').filter(Boolean) ?? []
   const verEliminadas = searchParams.get('eliminadas') === '1'
 
   const [estados, setEstados] = useState<string[]>(currentEstados)
   const [atributosSelected, setAtributosSelected] = useState<string[]>(currentAtributos)
-  const [padronesSelected, setPadronesSelected] = useState<string[]>(currentPadrones)
   const [eliminadas, setEliminadas] = useState(verEliminadas)
 
-  const activeCount = estados.length + atributosSelected.length + padronesSelected.length + (eliminadas ? 1 : 0)
+  const activeCount = estados.length + atributosSelected.length + (eliminadas ? 1 : 0)
 
   const applyFilters = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString())
@@ -52,19 +50,15 @@ export function PersonasFilters({ atributos, padrones }: PersonasFiltersProps) {
     if (atributosSelected.length > 0) params.set('atributos', atributosSelected.join(','))
     else params.delete('atributos')
 
-    if (padronesSelected.length > 0) params.set('padrones', padronesSelected.join(','))
-    else params.delete('padrones')
-
     if (eliminadas) params.set('eliminadas', '1')
     else params.delete('eliminadas')
 
     router.push(`/admin/personas?${params.toString()}`)
-  }, [estados, atributosSelected, padronesSelected, eliminadas, searchParams, router])
+  }, [estados, atributosSelected, eliminadas, searchParams, router])
 
   const clearFilters = useCallback(() => {
     setEstados([])
     setAtributosSelected([])
-    setPadronesSelected([])
     setEliminadas(false)
     router.push('/admin/personas')
   }, [router])
@@ -116,23 +110,6 @@ export function PersonasFilters({ atributos, padrones }: PersonasFiltersProps) {
                       onCheckedChange={() => setAtributosSelected(toggleValue(atributosSelected, a.value))}
                     />
                     {a.label}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <Separator />
-
-            <div>
-              <h4 className="font-medium text-sm mb-2">Padrón</h4>
-              <div className="space-y-1.5">
-                {padrones.map((p) => (
-                  <label key={p.value} className="flex items-center gap-2 text-sm cursor-pointer">
-                    <Checkbox
-                      checked={padronesSelected.includes(p.value)}
-                      onCheckedChange={() => setPadronesSelected(toggleValue(padronesSelected, p.value))}
-                    />
-                    {p.label}
                   </label>
                 ))}
               </div>

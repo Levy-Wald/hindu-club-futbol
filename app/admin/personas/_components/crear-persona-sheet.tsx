@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Sheet,
   SheetContent,
@@ -28,29 +27,44 @@ import type { CrearPersonaInput } from '../_lib/schemas'
 const INITIAL: CrearPersonaInput = {
   nombre: '',
   apellido: '',
-  dni: '',
   tipo_documento: 'dni',
-  email: '',
-  telefono: '',
+  numero_documento: '',
+  email_principal: '',
+  telefono_principal: '',
   whatsapp: '',
   fecha_nacimiento: '',
   genero: '',
   nacionalidad: '',
-  profesion: '',
-  notas: '',
 }
 
 export function CrearPersonaSheet() {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState<CrearPersonaInput>(INITIAL)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   function update(field: keyof CrearPersonaInput, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
+    setErrors((prev) => ({ ...prev, [field]: '' }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setErrors({})
+
+    if (!form.nombre.trim()) {
+      setErrors((prev) => ({ ...prev, nombre: 'El nombre es obligatorio' }))
+      return
+    }
+    if (!form.apellido.trim()) {
+      setErrors((prev) => ({ ...prev, apellido: 'El apellido es obligatorio' }))
+      return
+    }
+    if (!form.numero_documento.trim()) {
+      setErrors((prev) => ({ ...prev, numero_documento: 'El documento es obligatorio' }))
+      return
+    }
+
     setLoading(true)
     const result = await crearPersona(form)
     setLoading(false)
@@ -76,7 +90,7 @@ export function CrearPersonaSheet() {
         <SheetHeader>
           <SheetTitle>Nueva persona</SheetTitle>
           <SheetDescription>
-            Completá los datos. Solo nombre y apellido son obligatorios.
+            Completá los datos básicos. Nombre, apellido y documento son obligatorios.
           </SheetDescription>
         </SheetHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
@@ -87,8 +101,8 @@ export function CrearPersonaSheet() {
                 id="nombre"
                 value={form.nombre}
                 onChange={(e) => update('nombre', e.target.value)}
-                required
               />
+              {errors.nombre && <p className="text-sm text-destructive">{errors.nombre}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="apellido">Apellido *</Label>
@@ -96,19 +110,20 @@ export function CrearPersonaSheet() {
                 id="apellido"
                 value={form.apellido}
                 onChange={(e) => update('apellido', e.target.value)}
-                required
               />
+              {errors.apellido && <p className="text-sm text-destructive">{errors.apellido}</p>}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="dni">DNI</Label>
+              <Label htmlFor="numero_documento">Documento *</Label>
               <Input
-                id="dni"
-                value={form.dni}
-                onChange={(e) => update('dni', e.target.value)}
+                id="numero_documento"
+                value={form.numero_documento}
+                onChange={(e) => update('numero_documento', e.target.value)}
               />
+              {errors.numero_documento && <p className="text-sm text-destructive">{errors.numero_documento}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="tipo_documento">Tipo doc.</Label>
@@ -120,28 +135,29 @@ export function CrearPersonaSheet() {
                   <SelectItem value="dni">DNI</SelectItem>
                   <SelectItem value="pasaporte">Pasaporte</SelectItem>
                   <SelectItem value="cedula">Cédula</SelectItem>
+                  <SelectItem value="otro">Otro</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email_principal">Email</Label>
             <Input
-              id="email"
+              id="email_principal"
               type="email"
-              value={form.email}
-              onChange={(e) => update('email', e.target.value)}
+              value={form.email_principal}
+              onChange={(e) => update('email_principal', e.target.value)}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="telefono">Teléfono</Label>
+              <Label htmlFor="telefono_principal">Teléfono</Label>
               <Input
-                id="telefono"
-                value={form.telefono}
-                onChange={(e) => update('telefono', e.target.value)}
+                id="telefono_principal"
+                value={form.telefono_principal}
+                onChange={(e) => update('telefono_principal', e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -173,39 +189,21 @@ export function CrearPersonaSheet() {
                 <SelectContent>
                   <SelectItem value="masculino">Masculino</SelectItem>
                   <SelectItem value="femenino">Femenino</SelectItem>
+                  <SelectItem value="no_binario">No binario</SelectItem>
                   <SelectItem value="otro">Otro</SelectItem>
-                  <SelectItem value="no_especifica">No especifica</SelectItem>
+                  <SelectItem value="prefiere_no_decir">Prefiere no decir</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="nacionalidad">Nacionalidad</Label>
-              <Input
-                id="nacionalidad"
-                value={form.nacionalidad}
-                onChange={(e) => update('nacionalidad', e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="profesion">Profesión</Label>
-              <Input
-                id="profesion"
-                value={form.profesion}
-                onChange={(e) => update('profesion', e.target.value)}
-              />
-            </div>
-          </div>
-
           <div className="space-y-2">
-            <Label htmlFor="notas">Notas</Label>
-            <Textarea
-              id="notas"
-              value={form.notas}
-              onChange={(e) => update('notas', e.target.value)}
-              rows={3}
+            <Label htmlFor="nacionalidad">Nacionalidad</Label>
+            <Input
+              id="nacionalidad"
+              value={form.nacionalidad}
+              onChange={(e) => update('nacionalidad', e.target.value)}
+              placeholder="AR"
             />
           </div>
 

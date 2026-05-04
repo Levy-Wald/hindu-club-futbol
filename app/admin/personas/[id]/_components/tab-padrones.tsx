@@ -20,10 +20,11 @@ import { asignarPadron, quitarDePadron } from '../../_actions'
 interface PersonaPadron {
   id: string
   padron_id: string
-  estado_slug: string
-  tipo_socio_slug: string | null
+  estado_padron_id: string | null
+  tipo_socio_id: string | null
   numero_socio: string | null
   fecha_alta: string | null
+  activo: boolean
   padron: {
     id: string
     nombre: string
@@ -38,36 +39,54 @@ interface PadronDisponible {
   tipo: string
 }
 
+interface EstadoPadron {
+  id: string
+  slug: string
+  nombre: string
+}
+
+interface TipoSocio {
+  id: string
+  slug: string
+  nombre: string
+}
+
 interface TabPadronesProps {
   personaId: string
   personaPadrones: PersonaPadron[]
   padronesDisponibles: PadronDisponible[]
+  estadosPadron: EstadoPadron[]
+  tiposSocio: TipoSocio[]
 }
 
-export function TabPadrones({ personaId, personaPadrones, padronesDisponibles }: TabPadronesProps) {
+export function TabPadrones({ personaId, personaPadrones, padronesDisponibles, estadosPadron, tiposSocio }: TabPadronesProps) {
   const [padronId, setPadronId] = useState('')
+  const [estadoPadronId, setEstadoPadronId] = useState('')
+  const [tipoSocioId, setTipoSocioId] = useState('')
   const [numeroSocio, setNumeroSocio] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // No mostrar padrones donde ya está inscripto (activo)
   const inscriptos = new Set(
-    personaPadrones.filter((pp) => pp.estado_slug === 'activo').map((pp) => pp.padron_id)
+    personaPadrones.filter((pp) => pp.activo).map((pp) => pp.padron_id)
   )
   const disponibles = padronesDisponibles.filter((p) => !inscriptos.has(p.id))
 
   async function handleAsignar() {
-    if (!padronId) return
+    if (!padronId || !estadoPadronId) return
     setLoading(true)
     const result = await asignarPadron({
       persona_id: personaId,
       padron_id: padronId,
-      estado_slug: 'activo',
+      estado_padron_id: estadoPadronId,
+      tipo_socio_id: tipoSocioId || undefined,
       numero_socio: numeroSocio || undefined,
     })
     setLoading(false)
     if (result.ok) {
       toast.success(result.message)
       setPadronId('')
+      setEstadoPadronId('')
+      setTipoSocioId('')
       setNumeroSocio('')
     } else {
       toast.error(result.message)
@@ -80,8 +99,8 @@ export function TabPadrones({ personaId, personaPadrones, padronesDisponibles }:
     else toast.error(result.message)
   }
 
-  const activos = personaPadrones.filter((pp) => pp.estado_slug === 'activo')
-  const inactivos = personaPadrones.filter((pp) => pp.estado_slug !== 'activo')
+  const activos = personaPadrones.filter((pp) => pp.activo)
+  const inactivos = personaPadrones.filter((pp) => !pp.activo)
 
   return (
     <div className="space-y-4">
@@ -90,7 +109,7 @@ export function TabPadrones({ personaId, personaPadrones, padronesDisponibles }:
           <CardTitle className="text-lg">Inscribir en padrón</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Padrón</Label>
               <Select value={padronId} onValueChange={(v) => setPadronId(v ?? '')}>
@@ -107,6 +126,38 @@ export function TabPadrones({ personaId, personaPadrones, padronesDisponibles }:
               </Select>
             </div>
             <div className="space-y-2">
+              <Label>Estado</Label>
+              <Select value={estadoPadronId} onValueChange={(v) => setEstadoPadronId(v ?? '')}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {estadosPadron.map((e) => (
+                    <SelectItem key={e.id} value={e.id}>
+                      {e.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Tipo socio (opcional)</Label>
+              <Select value={tipoSocioId} onValueChange={(v) => setTipoSocioId(v ?? '')}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {tiposSocio.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label>N° socio (opcional)</Label>
               <Input
                 value={numeroSocio}
@@ -115,7 +166,7 @@ export function TabPadrones({ personaId, personaPadrones, padronesDisponibles }:
               />
             </div>
           </div>
-          <Button onClick={handleAsignar} disabled={!padronId || loading}>
+          <Button onClick={handleAsignar} disabled={!padronId || !estadoPadronId || loading}>
             <Plus className="mr-1 h-4 w-4" />
             Inscribir
           </Button>
@@ -166,7 +217,7 @@ export function TabPadrones({ personaId, personaPadrones, padronesDisponibles }:
               {inactivos.map((pp) => (
                 <div key={pp.id} className="flex items-center gap-3 border rounded-md p-3 opacity-50">
                   <span className="text-sm">{pp.padron.nombre}</span>
-                  <Badge variant="secondary">{pp.estado_slug}</Badge>
+                  <Badge variant="secondary">baja</Badge>
                 </div>
               ))}
             </div>

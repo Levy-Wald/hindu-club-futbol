@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { fetchPersonaById, fetchCatalogoAtributos, fetchCatalogoVinculos, fetchPadrones } from '../_lib/queries'
+import { fetchPersonaById, fetchCatalogoAtributos, fetchCatalogoVinculos, fetchPadrones, fetchEstadosPadron, fetchTiposSocio } from '../_lib/queries'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -9,7 +9,7 @@ import { TabDatos } from './_components/tab-datos'
 import { TabAtributos } from './_components/tab-atributos'
 import { TabVinculos } from './_components/tab-vinculos'
 import { TabPadrones } from './_components/tab-padrones'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, History } from 'lucide-react'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -25,10 +25,12 @@ export default async function PersonaDetallePage({ params }: PageProps) {
     notFound()
   }
 
-  const [catalogoAtributos, catalogoVinculos, padrones] = await Promise.all([
+  const [catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio] = await Promise.all([
     fetchCatalogoAtributos(),
     fetchCatalogoVinculos(),
     fetchPadrones(),
+    fetchEstadosPadron(),
+    fetchTiposSocio(),
   ])
 
   return (
@@ -45,13 +47,19 @@ export default async function PersonaDetallePage({ params }: PageProps) {
             {persona.apellido}, {persona.nombre}
           </h1>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            {persona.dni && <span>DNI: {persona.dni}</span>}
-            {persona.email && <span>· {persona.email}</span>}
+            {persona.numero_documento && <span>Doc: {persona.numero_documento}</span>}
+            {persona.email_principal && <span>· {persona.email_principal}</span>}
             <Badge variant={persona.deleted_at ? 'destructive' : 'default'}>
               {persona.deleted_at ? 'eliminada' : persona.estado}
             </Badge>
           </div>
         </div>
+        <Link href={`/admin/personas/${persona.id}/historial`} className="ml-auto">
+          <Button variant="outline" size="sm">
+            <History className="mr-2 h-4 w-4" />
+            Historial
+          </Button>
+        </Link>
       </div>
 
       <Tabs defaultValue="datos">
@@ -67,9 +75,6 @@ export default async function PersonaDetallePage({ params }: PageProps) {
           </TabsTrigger>
           <TabsTrigger value="vinculos">Vínculos</TabsTrigger>
           <TabsTrigger value="padrones">Padrones</TabsTrigger>
-          <TabsTrigger value="equipos" disabled>
-            Equipos
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="datos" className="mt-4">
@@ -98,13 +103,9 @@ export default async function PersonaDetallePage({ params }: PageProps) {
             personaId={persona.id}
             personaPadrones={persona.personas_padrones ?? []}
             padronesDisponibles={padrones}
+            estadosPadron={estadosPadron}
+            tiposSocio={tiposSocio}
           />
-        </TabsContent>
-
-        <TabsContent value="equipos" className="mt-4">
-          <p className="text-muted-foreground text-sm">
-            Asignación a equipos disponible en Sprint 4.
-          </p>
         </TabsContent>
       </Tabs>
     </div>
