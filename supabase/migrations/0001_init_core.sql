@@ -429,12 +429,23 @@ ALTER TABLE personas_padrones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
 
 -- Función helper para obtener tenant del usuario actual
+-- SECURITY DEFINER: bypasea RLS para evitar recursión infinita
+-- (personas tiene policy que llama a get_tenant_actual())
 CREATE OR REPLACE FUNCTION get_tenant_actual()
-RETURNS uuid LANGUAGE sql STABLE AS $$
+RETURNS uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
   SELECT tenant_id FROM personas
   WHERE user_id = auth.uid() AND deleted_at IS NULL
   LIMIT 1;
 $$;
+
+REVOKE EXECUTE ON FUNCTION get_tenant_actual() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION get_tenant_actual() FROM anon;
+GRANT EXECUTE ON FUNCTION get_tenant_actual() TO authenticated;
 
 -- Catálogos: lectura pública para builtin, filtro por tenant para custom
 CREATE POLICY catalogo_atributos_read ON catalogo_atributos
