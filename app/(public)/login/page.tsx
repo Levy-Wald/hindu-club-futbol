@@ -1,4 +1,4 @@
-import { MagicLinkForm } from '@/components/auth/magic-link-form'
+import { LoginForm } from '@/components/auth/login-form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function LoginPage() {
@@ -12,7 +12,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <MagicLinkForm />
+          <LoginForm />
         </CardContent>
       </Card>
     </div>
