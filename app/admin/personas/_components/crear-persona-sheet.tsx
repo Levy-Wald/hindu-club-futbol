@@ -80,11 +80,9 @@ export function CrearPersonaSheet() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger>
-        <Button size="sm">
-          <Plus className="mr-2 h-4 w-4" />
-          Nueva persona
-        </Button>
+      <SheetTrigger render={<Button size="sm" />}>
+        <Plus className="mr-2 h-4 w-4" />
+        Nueva persona
       </SheetTrigger>
       <SheetContent className="overflow-y-auto sm:max-w-lg">
         <SheetHeader>

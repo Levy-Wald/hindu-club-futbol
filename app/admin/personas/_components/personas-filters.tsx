@@ -70,16 +70,14 @@ export function PersonasFilters({ atributos }: PersonasFiltersProps) {
   return (
     <div className="flex items-center gap-2">
       <Popover>
-        <PopoverTrigger>
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <Filter className="h-4 w-4" />
-            Filtros
-            {activeCount > 0 && (
-              <Badge variant="secondary" className="ml-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center">
-                {activeCount}
-              </Badge>
-            )}
-          </Button>
+        <PopoverTrigger render={<Button variant="outline" size="sm" className="gap-1.5" />}>
+          <Filter className="h-4 w-4" />
+          Filtros
+          {activeCount > 0 && (
+            <Badge variant="secondary" className="ml-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center">
+              {activeCount}
+            </Badge>
+          )}
         </PopoverTrigger>
         <PopoverContent className="w-80" align="start">
           <div className="space-y-4">
