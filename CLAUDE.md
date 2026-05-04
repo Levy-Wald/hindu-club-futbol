@@ -19,9 +19,9 @@ Plataforma SaaS multi-tenant para gestión de clubes deportivos.
 
 ## Stack obligatorio
 
-- Next.js 15 con App Router (NO Pages Router)
+- Next.js 16 con App Router (NO Pages Router)
 - TypeScript estricto (`strict: true`)
-- Tailwind 3 + shadcn/ui
+- Tailwind 4 + shadcn/ui
 - Supabase (Postgres + Auth + Storage)
 - pnpm (NO npm, NO yarn)
 - Vercel para deploy
