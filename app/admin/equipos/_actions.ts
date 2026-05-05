@@ -58,6 +58,8 @@ export async function editarEquipo(
     activo?: boolean
     color_principal?: string
     color_secundario?: string
+    entidad_id?: string | null
+    torneo?: string | null
   }
 ) {
   const supabase = await createClient()
@@ -70,6 +72,8 @@ export async function editarEquipo(
   if (input.activo !== undefined) updates.activo = input.activo
   if (input.color_principal !== undefined) updates.color_principal = input.color_principal || null
   if (input.color_secundario !== undefined) updates.color_secundario = input.color_secundario || null
+  if (input.entidad_id !== undefined) updates.entidad_id = input.entidad_id || null
+  if (input.torneo !== undefined) updates.torneo = input.torneo || null
 
   const { error } = await supabase
     .from('equipos')
@@ -210,4 +214,41 @@ export async function buscarPersonas(query: string) {
   }
 
   return { ok: true, data: data ?? [] }
+}
+
+// --- ACTUALIZAR INDUMENTARIA ---
+
+export async function actualizarIndumentaria(
+  equipoId: string,
+  indumentaria: Record<string, { descripcion?: string; foto_url?: string }>
+) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('equipos')
+    .update({ indumentaria })
+    .eq('id', equipoId)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return formatResult(false, error.message)
+
+  revalidatePath(`/admin/equipos/${equipoId}`)
+  return formatResult(true, 'Indumentaria actualizada')
+}
+
+// --- ACTUALIZAR FOTO EQUIPO ---
+
+export async function actualizarFotoEquipo(equipoId: string, fotoUrl: string | null) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('equipos')
+    .update({ foto_equipo_url: fotoUrl })
+    .eq('id', equipoId)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return formatResult(false, error.message)
+
+  revalidatePath(`/admin/equipos/${equipoId}`)
+  return formatResult(true, 'Foto del equipo actualizada')
 }

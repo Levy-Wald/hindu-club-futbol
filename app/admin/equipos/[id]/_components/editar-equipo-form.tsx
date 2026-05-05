@@ -45,6 +45,8 @@ interface Equipo {
   color_principal: string | null
   color_secundario: string | null
   categoria_id: string | null
+  entidad_id: string | null
+  torneo: string | null
 }
 
 interface Categoria {
@@ -55,12 +57,19 @@ interface Categoria {
   edad_max: number | null
 }
 
+interface Federacion {
+  id: string
+  nombre: string
+  tipo: string
+}
+
 interface EditarEquipoFormProps {
   equipo: Equipo
   categorias: Categoria[]
+  federaciones: Federacion[]
 }
 
-export function EditarEquipoForm({ equipo, categorias }: EditarEquipoFormProps) {
+export function EditarEquipoForm({ equipo, categorias, federaciones }: EditarEquipoFormProps) {
   const [isPending, startTransition] = useTransition()
   const [nombre, setNombre] = useState(equipo.nombre)
   const [disciplina, setDisciplina] = useState(equipo.disciplina_slug)
@@ -69,6 +78,8 @@ export function EditarEquipoForm({ equipo, categorias }: EditarEquipoFormProps) 
   const [colorPrincipal, setColorPrincipal] = useState(equipo.color_principal ?? '')
   const [colorSecundario, setColorSecundario] = useState(equipo.color_secundario ?? '')
   const [categoriaId, setCategoriaId] = useState(equipo.categoria_id ?? '')
+  const [entidadId, setEntidadId] = useState(equipo.entidad_id ?? '')
+  const [torneo, setTorneo] = useState(equipo.torneo ?? '')
 
   const categoriasFiltered = categorias.filter((c) => c.disciplina_slug === disciplina)
   const selectedCategoria = categorias.find((c) => c.id === categoriaId)
@@ -89,6 +100,8 @@ export function EditarEquipoForm({ equipo, categorias }: EditarEquipoFormProps) 
         categoria_equipo_id: categoriaId || null,
         color_principal: colorPrincipal || undefined,
         color_secundario: colorSecundario || undefined,
+        entidad_id: entidadId || null,
+        torneo: torneo || null,
       })
 
       if (result.ok) {
@@ -166,6 +179,35 @@ export function EditarEquipoForm({ equipo, categorias }: EditarEquipoFormProps) 
             Edades habilitadas: {selectedCategoria.edad_min} a {selectedCategoria.edad_max} años
           </p>
         )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Federación / Liga</Label>
+          <Select value={entidadId} onValueChange={(v) => setEntidadId(v ?? '')}>
+            <SelectTrigger>
+              <SelectValue placeholder="Seleccionar federación" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Sin federación</SelectItem>
+              {federaciones.map((f) => (
+                <SelectItem key={f.id} value={f.id}>
+                  {f.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="torneo">Torneo</Label>
+          <Input
+            id="torneo"
+            value={torneo}
+            onChange={(e) => setTorneo(e.target.value)}
+            placeholder="Ej: Liga +28 2026"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

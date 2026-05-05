@@ -2,13 +2,15 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { ArrowLeft, Calendar, Info, Shield, Users } from 'lucide-react'
-import { fetchEquipoDetalle, fetchRolesEquipo, fetchCategoriasEquipo } from '../_lib/queries'
+import { ArrowLeft, Calendar, Info, Users, Shirt, Settings, Trophy, Building2, Image } from 'lucide-react'
+import { fetchEquipoDetalle, fetchRolesEquipo, fetchCategoriasEquipo, fetchEntidadesFederaciones } from '../_lib/queries'
 import { Plantel } from './_components/plantel'
 import { EditarEquipoForm } from './_components/editar-equipo-form'
 import { EquipoComposicion } from './_components/equipo-composicion'
 import { HorariosPanel } from './_components/horarios-panel'
+import { IndumentariaPanel } from './_components/indumentaria-panel'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -17,12 +19,13 @@ interface PageProps {
 export default async function EquipoDetallePage({ params }: PageProps) {
   const { id } = await params
 
-  let equipo, roles, categorias
+  let equipo, roles, categorias, federaciones
   try {
-    ;[equipo, roles, categorias] = await Promise.all([
+    ;[equipo, roles, categorias, federaciones] = await Promise.all([
       fetchEquipoDetalle(id),
       fetchRolesEquipo(),
       fetchCategoriasEquipo(),
+      fetchEntidadesFederaciones(),
     ])
   } catch {
     notFound()
@@ -35,6 +38,8 @@ export default async function EquipoDetallePage({ params }: PageProps) {
     edad_min: number | null
     edad_max: number | null
   } | null
+
+  const entidad = equipo.entidad as unknown as { id: string; nombre: string; tipo: string; logo_url: string | null } | null
 
   const miembros = equipo.miembros as unknown as Array<{
     id: string
@@ -50,6 +55,9 @@ export default async function EquipoDetallePage({ params }: PageProps) {
       apellido: string
       numero_documento: string | null
       email_principal: string | null
+      telefono_principal: string | null
+      whatsapp: string | null
+      foto_perfil_url: string | null
     } | null
   }>
 
@@ -64,6 +72,7 @@ export default async function EquipoDetallePage({ params }: PageProps) {
 
   const rolesJugador = roles.filter((r) => r.categoria === 'deportivo')
   const rolesStaff = roles.filter((r) => r.categoria === 'staff')
+  const todosRoles = [...rolesJugador, ...rolesStaff]
 
   const miembrosJugadores = miembros.filter((m) =>
     rolesJugador.some((r) => r.slug === m.rol_equipo_slug)
@@ -71,6 +80,8 @@ export default async function EquipoDetallePage({ params }: PageProps) {
   const miembrosStaff = miembros.filter((m) =>
     rolesStaff.some((r) => r.slug === m.rol_equipo_slug)
   )
+
+  const indumentaria = (equipo.indumentaria ?? {}) as Record<string, { descripcion?: string; foto_url?: string }>
 
   return (
     <div className="space-y-6">
@@ -82,20 +93,27 @@ export default async function EquipoDetallePage({ params }: PageProps) {
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              {equipo.color_principal && (
-                <div className="h-4 w-4 rounded-full border shrink-0" style={{ backgroundColor: equipo.color_principal }} />
-              )}
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            {equipo.escudo_url ? (
+              <img src={equipo.escudo_url} alt="Escudo" className="h-10 w-10 rounded-md object-contain shrink-0" />
+            ) : equipo.color_principal ? (
+              <div className="h-10 w-10 rounded-md border shrink-0 flex items-center justify-center" style={{ backgroundColor: equipo.color_principal }}>
+                <Trophy className="h-5 w-5 text-white/80" />
+              </div>
+            ) : null}
+            <div className="min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold truncate">{equipo.nombre}</h1>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-muted-foreground">
-              {categoria && <span>{categoria.nombre_display}</span>}
-              <span>{equipo.disciplina_slug}</span>
-              {equipo.modalidad && <span>({equipo.modalidad})</span>}
-              {categoria?.edad_min != null && categoria?.edad_max != null && (
-                <span className="text-xs">· {categoria.edad_min}–{categoria.edad_max} años</span>
-              )}
+              <div className="flex flex-wrap items-center gap-2 mt-0.5 text-sm text-muted-foreground">
+                {categoria && <span>{categoria.nombre_display}</span>}
+                <span className="capitalize">{equipo.disciplina_slug}</span>
+                {equipo.modalidad && <span>({equipo.modalidad})</span>}
+                {equipo.torneo && (
+                  <span className="flex items-center gap-1">
+                    <Trophy className="h-3 w-3" />
+                    {equipo.torneo}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <Badge variant={equipo.activo ? 'default' : 'secondary'}>
@@ -106,70 +124,109 @@ export default async function EquipoDetallePage({ params }: PageProps) {
 
       {/* Tabs */}
       <Tabs defaultValue="info">
-        <TabsList variant="line" className="w-full justify-start overflow-x-auto">
-          <TabsTrigger value="info">
-            <Info className="h-4 w-4" />
-            <span className="hidden sm:inline">Info</span>
-          </TabsTrigger>
-          <TabsTrigger value="plantel">
-            <Users className="h-4 w-4" />
-            <span className="hidden sm:inline">Plantel</span>
-          </TabsTrigger>
-          <TabsTrigger value="staff">
-            <Shield className="h-4 w-4" />
-            <span className="hidden sm:inline">Staff</span>
-          </TabsTrigger>
-          <TabsTrigger value="horarios">
-            <Calendar className="h-4 w-4" />
-            <span className="hidden sm:inline">Horarios</span>
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+          <TabsList variant="line" className="inline-flex w-max sm:w-full sm:justify-start">
+            <TabsTrigger value="info">
+              <Info className="h-4 w-4" />
+              <span className="hidden sm:inline">Info</span>
+            </TabsTrigger>
+            <TabsTrigger value="jugadores">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Jugadores</span>
+            </TabsTrigger>
+            <TabsTrigger value="plantel">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Plantel completo</span>
+            </TabsTrigger>
+            <TabsTrigger value="indumentaria">
+              <Shirt className="h-4 w-4" />
+              <span className="hidden sm:inline">Indumentaria</span>
+            </TabsTrigger>
+            <TabsTrigger value="horarios">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Horarios</span>
+            </TabsTrigger>
+            <TabsTrigger value="config">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Configuración</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Info Tab */}
         <TabsContent value="info">
           <div className="space-y-6 pt-4">
-            {/* Team Composition */}
+            {/* Foto del equipo */}
+            {equipo.foto_equipo_url && (
+              <Card>
+                <CardContent className="p-0">
+                  <img
+                    src={equipo.foto_equipo_url}
+                    alt={`Foto ${equipo.nombre}`}
+                    className="w-full h-48 sm:h-64 object-cover rounded-lg"
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Federación y torneo */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Federación y competencia
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Federación / Liga</p>
+                    {entidad ? (
+                      <Link href={`/admin/externos/${entidad.id}`} className="text-sm font-medium hover:underline">
+                        {entidad.nombre}
+                      </Link>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Sin federación asignada</p>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Torneo</p>
+                    <p className="text-sm font-medium">{equipo.torneo || 'Sin torneo asignado'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Disciplina</p>
+                    <p className="text-sm font-medium capitalize">{equipo.disciplina_slug}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Categoría</p>
+                    <p className="text-sm font-medium">{categoria?.nombre_display || 'Sin categoría'}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Composición del equipo */}
             <EquipoComposicion miembros={miembros} roles={roles} />
 
             {/* Stats */}
-            <div className="rounded-lg border p-4 space-y-3">
-              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Resumen</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <StatCard label="Jugadores" value={miembrosJugadores.length} />
-                <StatCard label="Staff" value={miembrosStaff.length} />
-                <StatCard label="Horarios" value={horarios.length} />
-                <StatCard label="Total miembros" value={miembros.length} />
-              </div>
-            </div>
-
-            {/* Edit Form */}
-            <div className="rounded-lg border p-4 space-y-3">
-              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Configuración</h3>
-              <EditarEquipoForm
-                equipo={{
-                  id: equipo.id,
-                  nombre: equipo.nombre,
-                  disciplina_slug: equipo.disciplina_slug,
-                  modalidad: equipo.modalidad,
-                  activo: equipo.activo,
-                  color_principal: equipo.color_principal ?? null,
-                  color_secundario: equipo.color_secundario ?? null,
-                  categoria_id: equipo.categoria_id ?? null,
-                }}
-                categorias={categorias.map((c) => ({
-                  id: c.id,
-                  nombre_display: c.nombre_display,
-                  disciplina_slug: c.disciplina_slug,
-                  edad_min: (c as unknown as { edad_min: number | null }).edad_min,
-                  edad_max: (c as unknown as { edad_max: number | null }).edad_max,
-                }))}
-              />
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Resumen</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <StatCard label="Jugadores" value={miembrosJugadores.length} />
+                  <StatCard label="Staff" value={miembrosStaff.length} />
+                  <StatCard label="Horarios" value={horarios.length} />
+                  <StatCard label="Total miembros" value={miembros.length} />
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
-        {/* Plantel Tab */}
-        <TabsContent value="plantel">
+        {/* Jugadores Tab */}
+        <TabsContent value="jugadores">
           <div className="pt-4">
             <Plantel
               equipoId={equipo.id}
@@ -180,14 +237,25 @@ export default async function EquipoDetallePage({ params }: PageProps) {
           </div>
         </TabsContent>
 
-        {/* Staff Tab */}
-        <TabsContent value="staff">
+        {/* Plantel completo Tab (jugadores + staff) */}
+        <TabsContent value="plantel">
           <div className="pt-4">
             <Plantel
               equipoId={equipo.id}
-              miembros={miembrosStaff}
-              roles={rolesStaff}
-              tipo="staff"
+              miembros={miembros}
+              roles={todosRoles}
+              tipo="jugador"
+            />
+          </div>
+        </TabsContent>
+
+        {/* Indumentaria Tab */}
+        <TabsContent value="indumentaria">
+          <div className="pt-4">
+            <IndumentariaPanel
+              equipoId={equipo.id}
+              indumentaria={indumentaria}
+              fotoEquipoUrl={equipo.foto_equipo_url ?? null}
             />
           </div>
         </TabsContent>
@@ -196,6 +264,34 @@ export default async function EquipoDetallePage({ params }: PageProps) {
         <TabsContent value="horarios">
           <div className="pt-4">
             <HorariosPanel equipoId={equipo.id} horarios={horarios} />
+          </div>
+        </TabsContent>
+
+        {/* Config Tab */}
+        <TabsContent value="config">
+          <div className="space-y-6 pt-4">
+            <EditarEquipoForm
+              equipo={{
+                id: equipo.id,
+                nombre: equipo.nombre,
+                disciplina_slug: equipo.disciplina_slug,
+                modalidad: equipo.modalidad,
+                activo: equipo.activo,
+                color_principal: equipo.color_principal ?? null,
+                color_secundario: equipo.color_secundario ?? null,
+                categoria_id: equipo.categoria_id ?? null,
+                entidad_id: equipo.entidad_id ?? null,
+                torneo: equipo.torneo ?? null,
+              }}
+              categorias={categorias.map((c) => ({
+                id: c.id,
+                nombre_display: c.nombre_display,
+                disciplina_slug: c.disciplina_slug,
+                edad_min: (c as unknown as { edad_min: number | null }).edad_min,
+                edad_max: (c as unknown as { edad_max: number | null }).edad_max,
+              }))}
+              federaciones={federaciones}
+            />
           </div>
         </TabsContent>
       </Tabs>

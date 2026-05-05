@@ -56,8 +56,9 @@ export async function fetchEquipoDetalle(id: string) {
   const { data: equipo, error } = await supabase
     .from('equipos')
     .select(
-      `id, nombre, disciplina_slug, modalidad, activo, color_principal, color_secundario, categoria_id, created_at, updated_at, metadata,
-       categorias_equipo!categoria_id(id, nombre_display, disciplina_slug, modalidad, tipo_categoria, valor, edad_min, edad_max)`
+      `id, nombre, disciplina_slug, modalidad, activo, color_principal, color_secundario, categoria_id, escudo_url, foto_url, foto_equipo_url, indumentaria, torneo, entidad_id, created_at, updated_at, metadata,
+       categorias_equipo!categoria_id(id, nombre_display, disciplina_slug, modalidad, tipo_categoria, valor, edad_min, edad_max),
+       entidad:entidades!entidad_id(id, nombre, tipo, logo_url)`
     )
     .eq('id', id)
     .eq('tenant_id', TENANT_ID)
@@ -69,7 +70,7 @@ export async function fetchEquipoDetalle(id: string) {
     .from('personas_equipos')
     .select(
       `id, persona_id, rol_equipo_slug, dorsal, posicion, fecha_inicio, fecha_fin, activo, notas,
-       personas!persona_id(id, nombre, apellido, numero_documento, email_principal)`
+       personas!persona_id(id, nombre, apellido, numero_documento, email_principal, telefono_principal, whatsapp, foto_perfil_url)`
     )
     .eq('equipo_id', id)
     .eq('tenant_id', TENANT_ID)
@@ -101,6 +102,21 @@ export async function fetchCategoriasEquipo() {
     .eq('tenant_id', TENANT_ID)
     .eq('activa', true)
     .order('orden', { ascending: true })
+
+  if (error) throw error
+  return data ?? []
+}
+
+export async function fetchEntidadesFederaciones() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('entidades')
+    .select('id, nombre, tipo')
+    .eq('tenant_id', TENANT_ID)
+    .eq('activo', true)
+    .in('tipo', ['federacion', 'liga', 'asociacion'])
+    .order('nombre', { ascending: true })
 
   if (error) throw error
   return data ?? []
