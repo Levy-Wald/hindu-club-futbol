@@ -1,0 +1,24 @@
+import { fetchEquipos, fetchCategoriasEquipo } from './_lib/queries'
+import { EquiposTable } from './_components/equipos-table'
+import { CrearEquipoDialog } from './_components/crear-equipo-dialog'
+
+export default async function EquiposPage() {
+  const [equipos, categorias] = await Promise.all([
+    fetchEquipos(),
+    fetchCategoriasEquipo(),
+  ])
+
+  // Extract unique disciplinas from categorias
+  const disciplinas = [...new Set(categorias.map((c) => c.disciplina_slug))].sort()
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold">Equipos</h1>
+        <CrearEquipoDialog categorias={categorias} disciplinas={disciplinas} />
+      </div>
+
+      <EquiposTable equipos={equipos} />
+    </div>
+  )
+}
