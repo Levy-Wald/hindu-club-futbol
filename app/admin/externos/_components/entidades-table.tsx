@@ -1,8 +1,9 @@
 'use client'
 
-import { useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Table,
   TableBody,
@@ -17,6 +18,8 @@ import { toggleActivoEntidad } from '../_actions'
 import { useVistasColumns } from '@/components/ui/vistas-panel'
 import { EXTERNOS_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
 import { EditarEntidadDialog } from './editar-entidad-dialog'
+import { SelectionBar } from '@/components/ui/selection-bar'
+import type { ExportData } from '@/lib/export/formats'
 
 interface Entidad {
   id: string
@@ -48,6 +51,24 @@ export const ENTIDADES_COLUMN_DEFS = ENTIDADES_COLUMNS
 export function EntidadesTable({ entidades }: EntidadesTableProps) {
   const { isVisible } = useVistasColumns('entidades-columns', EXTERNOS_DEFAULT_COLUMNS)
   const [isPending, startTransition] = useTransition()
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n })
+  }
+  function selectAll() { setSelected(new Set(entidades.map((e) => e.id))) }
+  function clearSelection() { setSelected(new Set()) }
+  const allSelected = entidades.length > 0 && selected.size === entidades.length
+
+  function getExportData(): ExportData | null {
+    const items = entidades.filter((e) => selected.has(e.id))
+    if (items.length === 0) return null
+    return {
+      headers: ['Nombre', 'Tipo', 'Teléfono', 'Email', 'Sitio web', 'CUIT', 'Activo'],
+      rows: items.map((e) => [e.nombre, e.tipo, e.telefono ?? '', e.email ?? '', e.sitio_web ?? '', e.cuit ?? '', e.activo ? 'Sí' : 'No']),
+      filename: `entidades_seleccion_${new Date().toISOString().split('T')[0]}`,
+    }
+  }
 
   function handleToggle(id: string) {
     startTransition(async () => {
@@ -105,6 +126,9 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox checked={allSelected} onCheckedChange={() => allSelected ? clearSelection() : selectAll()} />
+              </TableHead>
               <TableHead>Nombre</TableHead>
               {isVisible('tipo') && <TableHead>Tipo</TableHead>}
               {isVisible('telefono') && <TableHead>Teléfono</TableHead>}
@@ -124,7 +148,10 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
               </TableRow>
             ) : (
               entidades.map((e) => (
-                <TableRow key={e.id} className={!e.activo ? 'opacity-50' : ''}>
+                <TableRow key={e.id} className={`${!e.activo ? 'opacity-50' : ''} ${selected.has(e.id) ? 'bg-muted/50' : ''}`}>
+                  <TableCell>
+                    <Checkbox checked={selected.has(e.id)} onCheckedChange={() => toggleSelect(e.id)} />
+                  </TableCell>
                   <TableCell className="font-medium">{e.nombre}</TableCell>
                   {isVisible('tipo') && (
                     <TableCell>
@@ -163,6 +190,14 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      <SelectionBar
+        count={selected.size}
+        total={entidades.length}
+        onSelectAll={selectAll}
+        onClear={clearSelection}
+        getData={getExportData}
+      />
     </div>
   )
 }

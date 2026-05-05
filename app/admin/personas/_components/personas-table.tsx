@@ -1,9 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Table,
   TableBody,
@@ -21,9 +23,11 @@ import {
 import { PersonaAvatar } from './persona-avatar'
 import { useVistasColumns } from '@/components/ui/vistas-panel'
 import { PERSONAS_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
+import { SelectionBar } from '@/components/ui/selection-bar'
 import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, RotateCcw, CirclePause, CirclePlay } from 'lucide-react'
 import { softDeletePersona, restaurarPersona, cambiarEstadoPersona } from '../_actions'
 import { toast } from 'sonner'
+import type { ExportData } from '@/lib/export/formats'
 
 interface Atributo {
   atributo_slug: string
@@ -71,6 +75,43 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
   const searchParams = useSearchParams()
   const { isVisible } = useVistasColumns('personas-columns', PERSONAS_DEFAULT_COLUMNS)
   const totalPages = Math.ceil(total / pageSize)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function selectAll() {
+    setSelected(new Set(personas.map((p) => p.id)))
+  }
+
+  function clearSelection() {
+    setSelected(new Set())
+  }
+
+  const allSelected = personas.length > 0 && selected.size === personas.length
+
+  function getExportData(): ExportData | null {
+    const items = personas.filter((p) => selected.has(p.id))
+    if (items.length === 0) return null
+    return {
+      headers: ['Apellido', 'Nombre', 'Documento', 'Email', 'Teléfono', 'Estado'],
+      rows: items.map((p) => [
+        p.apellido,
+        p.nombre,
+        p.numero_documento ?? '',
+        p.email_principal ?? '',
+        p.telefono_principal ?? '',
+        p.estado,
+      ]),
+      filename: `personas_seleccion_${new Date().toISOString().split('T')[0]}`,
+    }
+  }
 
   function handleSort(column: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -155,6 +196,12 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={allSelected}
+                  onCheckedChange={() => allSelected ? clearSelection() : selectAll()}
+                />
+              </TableHead>
               <TableHead className="w-12" />
               <TableHead>{sortButton('apellido', 'Nombre')}</TableHead>
               {isVisible('numero_documento') && <TableHead>{sortButton('numero_documento', 'Documento')}</TableHead>}
@@ -177,7 +224,13 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
               </TableRow>
             ) : (
               personas.map((p) => (
-                <TableRow key={p.id} className={p.deleted_at ? 'opacity-50' : ''}>
+                <TableRow key={p.id} className={`${p.deleted_at ? 'opacity-50' : ''} ${selected.has(p.id) ? 'bg-muted/50' : ''}`}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selected.has(p.id)}
+                      onCheckedChange={() => toggleSelect(p.id)}
+                    />
+                  </TableCell>
                   <TableCell>
                     <PersonaAvatar nombre={p.nombre} apellido={p.apellido} className="h-8 w-8" />
                   </TableCell>
@@ -258,6 +311,14 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
           </TableBody>
         </Table>
       </div>
+
+      <SelectionBar
+        count={selected.size}
+        total={personas.length}
+        onSelectAll={selectAll}
+        onClear={clearSelection}
+        getData={getExportData}
+      />
 
       {/* Paginación */}
       <div className="flex items-center justify-between">

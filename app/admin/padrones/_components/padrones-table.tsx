@@ -1,8 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Table,
   TableBody,
@@ -22,6 +24,8 @@ import { toggleActivoPadron } from '../_actions'
 import { toast } from 'sonner'
 import { useVistasColumns } from '@/components/ui/vistas-panel'
 import { PADRONES_LIST_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
+import { SelectionBar } from '@/components/ui/selection-bar'
+import type { ExportData } from '@/lib/export/formats'
 import type { PadronConConteo } from '../_lib/queries'
 
 interface PadronesTableProps {
@@ -48,6 +52,24 @@ const TIPO_LABELS: Record<string, string> = {
 
 export function PadronesTable({ padrones }: PadronesTableProps) {
   const { isVisible } = useVistasColumns('padrones-columns', PADRONES_LIST_DEFAULT_COLUMNS)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n })
+  }
+  function selectAll() { setSelected(new Set(padrones.map((p) => p.id))) }
+  function clearSelection() { setSelected(new Set()) }
+  const allSelected = padrones.length > 0 && selected.size === padrones.length
+
+  function getExportData(): ExportData | null {
+    const items = padrones.filter((p) => selected.has(p.id))
+    if (items.length === 0) return null
+    return {
+      headers: ['Nombre', 'Tipo', 'Disciplina', 'Miembros activos', 'Estado'],
+      rows: items.map((p) => [p.nombre, p.tipo ?? '', p.disciplina_slug ?? '', String(p.miembros_activos), p.activo ? 'Activo' : 'Inactivo']),
+      filename: `padrones_seleccion_${new Date().toISOString().split('T')[0]}`,
+    }
+  }
 
   async function handleToggle(id: string) {
     const result = await toggleActivoPadron(id)
@@ -89,6 +111,9 @@ export function PadronesTable({ padrones }: PadronesTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox checked={allSelected} onCheckedChange={() => allSelected ? clearSelection() : selectAll()} />
+              </TableHead>
               <TableHead>Nombre</TableHead>
               {isVisible('tipo') && <TableHead>Tipo</TableHead>}
               {isVisible('miembros') && <TableHead className="text-center">Miembros</TableHead>}
@@ -106,7 +131,10 @@ export function PadronesTable({ padrones }: PadronesTableProps) {
               </TableRow>
             ) : (
               padrones.map((p) => (
-                <TableRow key={p.id} className={!p.activo ? 'opacity-50' : ''}>
+                <TableRow key={p.id} className={`${!p.activo ? 'opacity-50' : ''} ${selected.has(p.id) ? 'bg-muted/50' : ''}`}>
+                  <TableCell>
+                    <Checkbox checked={selected.has(p.id)} onCheckedChange={() => toggleSelect(p.id)} />
+                  </TableCell>
                   <TableCell>
                     <Link href={`/admin/padrones/${p.id}`} className="font-medium hover:underline">
                       {p.nombre}
@@ -149,6 +177,14 @@ export function PadronesTable({ padrones }: PadronesTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      <SelectionBar
+        count={selected.size}
+        total={padrones.length}
+        onSelectAll={selectAll}
+        onClear={clearSelection}
+        getData={getExportData}
+      />
 
       {/* Footer count */}
       <p className="text-sm text-muted-foreground">

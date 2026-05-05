@@ -1,7 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Table,
   TableBody,
@@ -13,6 +15,8 @@ import {
 import { Users } from 'lucide-react'
 import { useVistasColumns } from '@/components/ui/vistas-panel'
 import { EQUIPOS_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
+import { SelectionBar } from '@/components/ui/selection-bar'
+import type { ExportData } from '@/lib/export/formats'
 
 interface Equipo {
   id: string
@@ -42,6 +46,25 @@ export const EQUIPOS_COLUMN_DEFS = EQUIPOS_COLUMNS
 
 export function EquiposTable({ equipos }: EquiposTableProps) {
   const { isVisible } = useVistasColumns('equipos-columns', EQUIPOS_DEFAULT_COLUMNS)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n })
+  }
+  function selectAll() { setSelected(new Set(equipos.map((e) => e.id))) }
+  function clearSelection() { setSelected(new Set()) }
+  const allSelected = equipos.length > 0 && selected.size === equipos.length
+
+  function getExportData(): ExportData | null {
+    const items = equipos.filter((e) => selected.has(e.id))
+    if (items.length === 0) return null
+    return {
+      headers: ['Nombre', 'Disciplina', 'Modalidad', 'Categoría', 'Activo', 'Miembros'],
+      rows: items.map((e) => [e.nombre, e.disciplina_slug, e.modalidad ?? '', e.categoria_nombre, e.activo ? 'Sí' : 'No', String(e.miembros_count)]),
+      filename: `equipos_seleccion_${new Date().toISOString().split('T')[0]}`,
+    }
+  }
+
   return (
     <div className="space-y-4">
       {/* Mobile cards */}
@@ -82,6 +105,9 @@ export function EquiposTable({ equipos }: EquiposTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox checked={allSelected} onCheckedChange={() => allSelected ? clearSelection() : selectAll()} />
+              </TableHead>
               <TableHead>Nombre</TableHead>
               {isVisible('categoria') && <TableHead>Categoría</TableHead>}
               {isVisible('disciplina') && <TableHead>Disciplina</TableHead>}
@@ -100,7 +126,10 @@ export function EquiposTable({ equipos }: EquiposTableProps) {
               </TableRow>
             ) : (
               equipos.map((e) => (
-                <TableRow key={e.id} className={!e.activo ? 'opacity-50' : ''}>
+                <TableRow key={e.id} className={`${!e.activo ? 'opacity-50' : ''} ${selected.has(e.id) ? 'bg-muted/50' : ''}`}>
+                  <TableCell>
+                    <Checkbox checked={selected.has(e.id)} onCheckedChange={() => toggleSelect(e.id)} />
+                  </TableCell>
                   <TableCell>
                     <Link href={`/admin/equipos/${e.id}`} className="font-medium hover:underline">
                       {e.nombre}
@@ -140,6 +169,14 @@ export function EquiposTable({ equipos }: EquiposTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      <SelectionBar
+        count={selected.size}
+        total={equipos.length}
+        onSelectAll={selectAll}
+        onClear={clearSelection}
+        getData={getExportData}
+      />
     </div>
   )
 }
