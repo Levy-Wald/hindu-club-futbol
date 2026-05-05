@@ -219,7 +219,7 @@ export function ExportDialog({ persona, form, open, onOpenChange }: ExportDialog
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Exportar datos de persona</DialogTitle>
           <DialogDescription>
@@ -227,10 +227,10 @@ export function ExportDialog({ persona, form, open, onOpenChange }: ExportDialog
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-4">
           <Button variant="outline" size="sm" onClick={selectAll}>Seleccionar todo</Button>
           <Button variant="outline" size="sm" onClick={selectNone}>Deseleccionar todo</Button>
-          <span className="text-sm text-muted-foreground ml-auto pt-1.5">
+          <span className="text-sm text-muted-foreground ml-auto pt-1.5 w-full sm:w-auto text-right">
             {selected.size} de {allFieldKeys.length} campos
           </span>
         </div>
@@ -251,7 +251,7 @@ export function ExportDialog({ persona, form, open, onOpenChange }: ExportDialog
                     {mod.label}
                   </Label>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pl-7">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5 pl-7">
                   {mod.fields.map((f) => (
                     <label key={f.key} className="flex items-center gap-2 text-sm cursor-pointer">
                       <Checkbox
@@ -267,7 +267,7 @@ export function ExportDialog({ persona, form, open, onOpenChange }: ExportDialog
           })}
         </div>
 
-        <div className="flex gap-2 pt-4 border-t mt-4">
+        <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t mt-4">
           <Button onClick={handleExportCSV} disabled={selected.size === 0} className="flex-1">
             <Download className="mr-2 h-4 w-4" />
             Exportar CSV

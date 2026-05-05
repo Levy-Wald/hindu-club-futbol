@@ -10,7 +10,7 @@ export interface SeccionProps {
 export function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={`space-y-1.5 ${className ?? ''}`}>
-      <Label className="text-sm text-muted-foreground">{label}</Label>
+      <Label className="text-sm font-medium text-muted-foreground dark:text-muted-foreground/90">{label}</Label>
       {children}
     </div>
   )

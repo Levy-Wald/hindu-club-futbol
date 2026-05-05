@@ -19,6 +19,7 @@ import { SeccionMembresia } from './secciones/membresia'
 import { SeccionNotas } from './secciones/notas'
 import { SeccionSalud } from './secciones/salud'
 import { SeccionFichaTotal } from './secciones/ficha-total'
+import { SeccionDocumentos } from './secciones/documentos'
 import { TabAtributos } from './tab-atributos'
 import { TabVinculos } from './tab-vinculos'
 import { TabPadrones } from './tab-padrones'
@@ -103,9 +104,23 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
   return (
     <>
       <Tabs defaultValue="identidad">
-        {/* ACTION BAR + TABS */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <TabsList className="flex-wrap h-auto gap-1">
+        {/* ACTION BAR — sticky on mobile for easy access */}
+        <div className="sticky top-[57px] z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-4 px-4 py-2 border-b sm:relative sm:top-auto sm:z-auto sm:bg-transparent sm:backdrop-blur-none sm:mx-0 sm:px-0 sm:py-0 sm:border-b-0 mb-3 sm:mb-0">
+          <div className="flex items-center gap-2 justify-end">
+            <Button variant="outline" size="sm" onClick={() => setExportOpen(true)}>
+              <Download className="mr-2 h-3.5 w-3.5" />
+              <span className="hidden xs:inline">Exportar</span>
+            </Button>
+            <Button size="sm" onClick={handleSubmit} disabled={loading}>
+              {loading ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-2 h-3.5 w-3.5" />}
+              Guardar cambios
+            </Button>
+          </div>
+        </div>
+
+        {/* TABS — horizontally scrollable on mobile */}
+        <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+          <TabsList className="inline-flex w-max sm:flex-wrap sm:w-auto h-auto gap-1">
             <TabsTrigger value="identidad">Identidad</TabsTrigger>
             <TabsTrigger value="contacto">Contacto</TabsTrigger>
             <TabsTrigger value="direccion">Dirección</TabsTrigger>
@@ -115,6 +130,7 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
             <TabsTrigger value="profesional">Profesional</TabsTrigger>
             <TabsTrigger value="educacion">Educación</TabsTrigger>
             <TabsTrigger value="membresia">Membresía</TabsTrigger>
+            <TabsTrigger value="documentos">Documentos</TabsTrigger>
             <TabsTrigger value="notas">Notas</TabsTrigger>
             <TabsTrigger value="roles">
               Roles
@@ -128,16 +144,6 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
             <TabsTrigger value="padrones">Padrones</TabsTrigger>
             <TabsTrigger value="ficha">Ficha total</TabsTrigger>
           </TabsList>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button variant="outline" size="sm" onClick={() => setExportOpen(true)}>
-              <Download className="mr-2 h-3.5 w-3.5" />
-              Exportar
-            </Button>
-            <Button size="sm" onClick={handleSubmit} disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-2 h-3.5 w-3.5" />}
-              Guardar cambios
-            </Button>
-          </div>
         </div>
 
         {/* DATA SECTIONS — all share form state */}
@@ -167,6 +173,9 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
         </TabsContent>
         <TabsContent value="membresia" className="mt-4">
           <SeccionMembresia form={form} update={update} s={s} />
+        </TabsContent>
+        <TabsContent value="documentos" className="mt-4">
+          <SeccionDocumentos personaId={persona.id as string} tenantId={persona.tenant_id as string} fotoPerfilUrl={(persona.foto_perfil_url as string) || undefined} />
         </TabsContent>
         <TabsContent value="notas" className="mt-4">
           <SeccionNotas form={form} update={update} s={s} />
