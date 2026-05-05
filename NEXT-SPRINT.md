@@ -1,4 +1,4 @@
-# Proximo Sprint: 7 — Mi Perfil + Mi Equipo (vista jugador)
+# Proximo Sprint: 8 — Páginas públicas + Branding + Pre-inscripción
 
 ## Para el humano o agente que va a trabajar
 
@@ -6,56 +6,52 @@ Lee estos archivos antes de empezar:
 1. `CLAUDE.md` — reglas del proyecto, stack, convenciones
 2. `MASTER-GAPS.md` — roadmap completo de 15 sprints, estado actual
 3. `docs/WORKFLOW.md` — checklist pre/post desarrollo
-4. `docs/MENORES-TUTORES.md` — spec de menores/tutores (aplica a este sprint)
-5. Este archivo — que hacer ahora
+4. Este archivo — que hacer ahora
 
 ---
 
 ## Contexto rapido
 
-**Estado actual:** Sprints 1-6 completos + UX transversal.
-**Proximo:** Sprint 7.
+**Estado actual:** Sprints 1-7 completos + UX transversal.
+**Proximo:** Sprint 8.
 
 ---
 
-## Que hay que hacer en Sprint 7
+## Que hay que hacer en Sprint 8
 
 ### Objetivo
-Vistas personales para el usuario logueado: su perfil, sus equipos, y para tutores vista de hijos.
+Páginas públicas de equipos/club, branding configurable por tenant, y flujo de pre-inscripción online.
 
 ### Entregables
 
-#### 1. Pagina /mi-perfil
-- Datos personales del user logueado (read + edit limitado)
-- Mis equipos (donde estoy asignado)
-- Mis padrones
-- Mis documentos medicos (upload a storage privado)
+#### 1. Páginas públicas /equipos/[id] (sin auth)
+- Vista pública de equipo: nombre, categoría, disciplina, torneo, foto, plantel
+- Solo datos que el admin marcó como públicos
+- SEO friendly (metadata, og:image)
+- Diseño responsive, mobile-first
 
-#### 2. Pagina /mi-equipo
-- Vista segun rol del usuario (jugador, DT, staff)
-- Jugador: ve su equipo, plantel, horarios, proximo entrenamiento
-- DT/Staff: ve equipos que dirige, planteles, horarios
-- Widgets: proxima actividad, referentes del equipo
+#### 2. Branding Studio
+- Configuración visual del tenant: logo, colores primario/secundario, nombre visible
+- Preview en vivo de cómo se ve
+- Se guarda en tabla `tenants` (campos: logo_url, color_primario, color_secundario, nombre_display)
+- Se aplica a páginas públicas y exports PDF membretado
 
-#### 3. Vista de hijos para tutores
-- Si el usuario tiene atributo padre_tutor, ver fichas de hijos
-- Puede ver datos del hijo, equipo, horarios, documentos
-- Puede editar datos del hijo (con limitaciones)
-- Ver docs/MENORES-TUTORES.md para spec completo
+#### 3. Form pre-inscripción pública
+- Form público accesible sin login
+- Campos configurables por tenant (nombre, apellido, DNI, email, teléfono, disciplina, categoría, mensaje)
+- Crea registro en tabla `pre_inscripciones` con estado `pendiente`
+- Flujo admin: revisar, aprobar (crea persona), rechazar (con motivo)
+- Estados: pendiente, aprobada, rechazada, vencida
 
-#### 4. Vehiculos heredados (spec de menores)
-- Al vincular padre->hijo, vehiculos del padre se auto-asignan
-- Hijo ve vehiculos como "Vehiculo de [Padre]" (read-only)
-- Requiere campo propietario_id y tipo en personas_vehiculos
-
-#### 5. Validacion "menor necesita tutor"
-- Menor sin tutor vinculado -> estado pendiente_revision
-- No puede estar activo en equipo sin tutor
+#### 4. Tabla pre_inscripciones
+- Migration con campos: datos del form, estado, motivo_rechazo, persona_id (si aprobada), reviewed_by, reviewed_at
+- RLS por tenant
 
 ### Archivos relevantes
-- `app/admin/personas/[id]/page.tsx` — ficha persona
-- `app/admin/equipos/[id]/page.tsx` — detalle equipo
-- `docs/MENORES-TUTORES.md` — spec completo
+- `app/(public)/` — rutas sin auth
+- `app/admin/` — panel admin
+- `lib/export/template.ts` — ya usa branding para PDF membretado
+- `components/layout/sidebar.tsx` — menú admin
 
 ---
 
@@ -74,9 +70,8 @@ Vistas personales para el usuario logueado: su perfil, sus equipos, y para tutor
 ## Vision global
 
 ```
-Sprints 1-6:  ████████████████████████████████ HECHO
-Sprint 7:     ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ <- ESTAS ACA (mi perfil, mi equipo)
-Sprint 8:     ░░░░░░░░░░░░░░░░░░ (landing, branding, pre-inscripcion)
+Sprints 1-7:  ████████████████████████████████████ HECHO
+Sprint 8:     ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ <- ESTAS ACA (landing, branding, pre-inscripcion)
 Sprints 9-11: ░░░░░░░░░░░░░░░░░░ (cajas, operaciones, empleados)
 Sprints 12-14:░░░░░░░░░░░░░░░░░░ (comunicaciones, API/MCP, conectores)
 Sprint 15:    ░░░░░░░░░░░░░░░░░░ (hardening -> HINDU LIVE)

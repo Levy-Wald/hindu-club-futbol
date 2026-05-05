@@ -348,8 +348,8 @@ Esto garantiza que la documentacion siempre refleja el estado real del proyecto.
 
 ## Progreso actual
 
-Sprints 1-4 del plan original de 15: COMPLETADOS + UX transversal.
-Sprint pendiente: 5 (Vínculos + Tutores/Padres + Bajas).
+Sprints 1-7 del plan original de 15: COMPLETADOS + UX transversal.
+Sprint pendiente: 8 (Páginas públicas + Branding + Pre-inscripción).
 Ver `NEXT-SPRINT.md` para instrucciones exactas de qué hacer ahora.
 Ver `MASTER-GAPS.md` para roadmap completo.
 
@@ -361,10 +361,10 @@ Ver `MASTER-GAPS.md` para roadmap completo.
 | 2 | ABM Personas + Vista Global | HECHO |
 | 3 | Padrones + Importación masiva | HECHO |
 | 4 | Equipos + Categorías + Horarios + Asignaciones | HECHO |
-| 5 | Vínculos + Tutores/Padres + Bajas | PENDIENTE ← PRÓXIMO |
-| 6 | Externos + Federaciones + Fusiones | PARCIAL |
-| 7 | Mi Perfil + Mi Equipo (vista jugador) | PENDIENTE |
-| 8 | Páginas públicas + Branding + Pre-inscripción | PENDIENTE |
+| 5 | Vínculos + Tutores/Padres + Bajas | HECHO |
+| 6 | Entidades + Federaciones + Fusiones | HECHO |
+| 7 | Mi Perfil + Mi Equipo + Calendario/Eventos | HECHO |
+| 8 | Páginas públicas + Branding + Pre-inscripción | PENDIENTE ← PRÓXIMO |
 | 9 | Cajas + Movimientos + Productos | PENDIENTE |
 | 10 | Operaciones deportivas avanzadas | PENDIENTE |
 | 11 | Empleados + Contratos + Liquidaciones | PENDIENTE |
@@ -378,6 +378,6 @@ Post-LIVE: bot WA, Capitán Oliver, más disciplinas, countries, app móvil.
 ---
 
 **Última actualización:** 2026-05-05
-**Versión:** Sprints 1-4 completos + UX transversal
+**Versión:** Sprints 1-7 completos + UX transversal
 **Plan:** 15 sprints hasta Hindu LIVE
 **Owner:** Yair Levy Wald

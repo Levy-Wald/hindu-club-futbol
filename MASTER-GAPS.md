@@ -5,9 +5,9 @@ Alineado al plan original de 15 sprints → Hindu LIVE.
 
 ---
 
-## Estado actual: Sprint 6 COMPLETADO + UX transversal + Ajustes post-validación
+## Estado actual: Sprint 7 COMPLETADO + UX transversal + Ajustes post-validación
 
-Los primeros 6 sprints del plan original están completos.
+Los primeros 7 sprints del plan original están completos.
 Adicionalmente se implementó un bloque de UX transversal (no planificado originalmente) que mejora la experiencia en todos los módulos existentes.
 
 ### Ajustes post-validación (después de Sprint 6)
@@ -101,14 +101,27 @@ Aplicado a personas, padrones, equipos, externos:
 
 ---
 
+### Sprint 7 — Mi Perfil + Mi Equipo + Calendario/Eventos (HECHO)
+
+- [x] Página /admin/mi-perfil (datos personales del user logueado, edición limitada)
+- [x] Tarjeta jugador con foto, datos deportivos (pie, altura, peso, edad)
+- [x] Página /admin/mi-equipo según rol del usuario (jugador, DT, staff)
+- [x] Plantel completo con info de contacto, posición, dorsal
+- [x] Calendario/Eventos: sistema de eventos con fecha real (no solo día de semana)
+- [x] Crear eventos con recurrencia estilo Google Calendar (diario, semanal, quincenal, mensual × N repeticiones o hasta fecha)
+- [x] Editar eventos desde admin (Equipos > Calendario) y desde Mi Equipo (DT, capitanes, delegados, preparadores)
+- [x] Vista calendario semanal con navegación por semanas
+- [x] Vista lista cronológica de próximos eventos
+- [x] Descarga ICS para agregar eventos a calendarios externos (Google, iCloud, Outlook, Yahoo)
+- [x] Indumentaria: upload de fotos + descripción por tipo
+- [x] Foto de equipo: upload y visualización
+- [x] Export plantel a PNG (html-to-image)
+- [x] Aptos médicos (upload a storage privado)
+- [x] Migration `20260505220000_eventos_calendario.sql` aplicada (campos: fecha, titulo, hora_citacion, descripcion)
+
+---
+
 ## Sprints PENDIENTES
-
-### Sprint 7 — Mi Perfil + Mi Equipo (vista jugador)
-
-- [ ] Página /mi-perfil (datos personales del user logueado)
-- [ ] Documentos médicos (upload a storage privado)
-- [ ] Página /mi-equipo según rol del usuario
-- [ ] Widgets: próxima actividad, referentes del equipo
 
 ### Sprint 8 — Páginas públicas + Branding + Pre-inscripción
 
@@ -200,6 +213,10 @@ Aplicado a personas, padrones, equipos, externos:
 8. **"Dar de baja"** diferido al ERP (Sprint 9+). Por ahora: Desactivar/Activar simple
 9. **UX unificado**: nombres clickeables → detalle, acciones en DropdownMenu, no botones inline
 10. **"Externos" renombrado a "Entidades"** en UI (URLs siguen siendo `/admin/externos`)
+11. **Calendario/Eventos** reemplaza "Horarios": eventos con fecha real, `dia_semana` auto-computado desde `fecha` para backward compat
+12. **Recurrencia estilo Google Calendar**: genera filas individuales por fecha (no regla abstracta)
+13. **Edición de eventos por rol**: DT, capitán, subcapitán, delegado, preparador_fisico, ayudante_campo pueden editar desde Mi Equipo
+14. **ICS download client-side**: genera archivos .ics para integración con calendarios externos
 
 ---
 
@@ -259,13 +276,13 @@ La diferencia entre clientes es CONFIGURACIÓN, no CÓDIGO:
 
 ## Tiempo estimado restante hasta Hindu LIVE
 
-Sprints 7-15 = 9 sprints pendientes.
-Estimado: 70-100 horas agente + 12-18 horas validación Yair.
-Calendario: 4-6 semanas a 4-6h/día.
+Sprints 8-15 = 8 sprints pendientes.
+Estimado: 60-90 horas agente + 10-16 horas validación Yair.
+Calendario: 3-5 semanas a 4-6h/día.
 
 ---
 
 **Última actualización:** 2026-05-05
-**Próximo sprint:** 7 (Mi Perfil + Mi Equipo)
+**Próximo sprint:** 8 (Páginas públicas + Branding + Pre-inscripción)
 **Instrucciones:** ver `NEXT-SPRINT.md`
 **Owner:** Yair Levy Wald
