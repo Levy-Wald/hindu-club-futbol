@@ -15,9 +15,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { Plus, X, Search } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Plus, X, Search, CalendarDays, MessageSquare } from 'lucide-react'
 import { asignarVinculo, desactivarVinculo } from '../../_actions'
 import { createClient } from '@/lib/supabase/client'
+import { getVinculoLabel } from '@/lib/vinculos/labels'
 
 interface PersonaRef {
   id: string
@@ -181,24 +183,48 @@ export function TabVinculos({ personaId, vinculosOrigen, vinculosDestino, catalo
             <p className="text-sm text-muted-foreground">Sin vínculos registrados.</p>
           ) : (
             <div className="space-y-2">
-              {todosVinculos.map((v) => (
-                <div key={v.id} className="flex items-center justify-between border rounded-md p-3">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline">{v.tipo_vinculo_slug}</Badge>
-                    {v.persona && (
-                      <Link
-                        href={`/admin/personas/${v.persona.id}`}
-                        className="text-sm font-medium hover:underline"
-                      >
-                        {v.persona.apellido}, {v.persona.nombre}
-                      </Link>
-                    )}
+              {todosVinculos.map((v) => {
+                const label = getVinculoLabel(
+                  v.tipo_vinculo_slug,
+                  v.direccion === 'origen' ? 'directo' : 'inverso'
+                )
+                return (
+                  <div key={v.id} className="flex items-center justify-between border rounded-md p-3">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline">{label}</Badge>
+                      {v.persona && (
+                        <Link
+                          href={`/admin/personas/${v.persona.id}`}
+                          className="text-sm font-medium hover:underline"
+                        >
+                          {v.persona.apellido}, {v.persona.nombre}
+                        </Link>
+                      )}
+                      {v.fecha_inicio && (
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <CalendarDays className="h-3 w-3" />
+                          {new Date(v.fecha_inicio).toLocaleDateString('es-AR')}
+                        </span>
+                      )}
+                      {v.notas && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="max-w-xs text-sm">{v.notas}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDesactivar(v.id)}>
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDesactivar(v.id)}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </CardContent>

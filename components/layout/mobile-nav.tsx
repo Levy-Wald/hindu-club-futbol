@@ -15,6 +15,8 @@ import {
   Wallet,
   MessageSquare,
   Settings,
+  UserCheck,
+  UserX,
 } from 'lucide-react'
 
 const bottomNavItems = [
@@ -27,6 +29,8 @@ const bottomNavItems = [
 const fullMenuItems = [
   { label: 'Dashboard', href: '/admin', icon: DashIcon },
   { label: 'Personas', href: '/admin/personas', icon: UsersIcon },
+  { label: 'Tutores', href: '/admin/tutores', icon: UserCheck },
+  { label: 'Bajas', href: '/admin/bajas', icon: UserX },
   { label: 'Padrones', href: '/admin/padrones', icon: PadronesIcon },
   { label: 'Equipos', href: '/admin/equipos', icon: Shield },
   { label: 'Externos', href: '/admin/externos', icon: Building2 },
