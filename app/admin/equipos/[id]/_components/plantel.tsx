@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/table'
 import { useVistasColumns } from '@/components/ui/vistas-panel'
 import { SelectionBar } from '@/components/ui/selection-bar'
+import Link from 'next/link'
 import { UserPlus, UserMinus, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { agregarMiembro, quitarMiembro, buscarPersonas } from '../../_actions'
@@ -407,7 +408,11 @@ export function Plantel({ equipoId, miembros, roles, tipo }: PlantelProps) {
                   />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">
-                      {persona ? `${persona.apellido}, ${persona.nombre}` : m.persona_id}
+                      {persona ? (
+                        <Link href={`/admin/personas/${persona.id}`} className="hover:underline">
+                          {persona.apellido}, {persona.nombre}
+                        </Link>
+                      ) : m.persona_id}
                     </p>
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground mt-0.5">
                       {!isStaff && m.dorsal !== null && <span>#{m.dorsal}</span>}
@@ -491,7 +496,11 @@ export function Plantel({ equipoId, miembros, roles, tipo }: PlantelProps) {
                       </TableCell>
                     )}
                     <TableCell className="font-medium">
-                      {persona ? `${persona.apellido}, ${persona.nombre}` : m.persona_id}
+                      {persona ? (
+                        <Link href={`/admin/personas/${persona.id}`} className="hover:underline">
+                          {persona.apellido}, {persona.nombre}
+                        </Link>
+                      ) : m.persona_id}
                     </TableCell>
                     {isStaff && isVisible('rol') && (
                       <TableCell>

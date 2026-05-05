@@ -66,7 +66,7 @@ export async function fetchHorariosEquipo(equipoId: string) {
     .from('equipos_horarios')
     .select(`
       id, dia_semana, hora_inicio, hora_fin, tipo_actividad, activo,
-      sede:sedes!sede_id(id, nombre),
+      sede:sedes!sede_id(id, nombre, direccion),
       cancha:canchas!cancha_id(id, nombre)
     `)
     .eq('equipo_id', equipoId)

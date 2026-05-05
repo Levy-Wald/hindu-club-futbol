@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -17,7 +18,8 @@ import {
   Star,
   MessageCircle,
   UserCheck,
-  CreditCard,
+  Navigation,
+  ExternalLink,
 } from 'lucide-react'
 import { TarjetaJugador } from './tarjeta-jugador'
 import { ExportPlantel } from './export-plantel'
@@ -30,7 +32,6 @@ interface MiEquipoClientProps {
 }
 
 const DIAS = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
-const DIAS_CORTO = ['', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
 const ROLES_STAFF = ['dt', 'preparador_fisico', 'kinesiologo', 'delegado', 'ayudante_campo', 'masajista', 'utilero']
 const ROLES_REFERENTES = ['capitan', 'subcapitan']
@@ -60,27 +61,54 @@ const INDUMENTARIA_LABELS: Record<string, string> = {
 
 const INDUMENTARIA_ORDER = ['titular', 'suplente', 'arquero_titular', 'arquero_suplente', 'dia_club', 'dia_visitante']
 
+function buildEquipoData(equipo: Record<string, unknown>) {
+  return {
+    nombre: equipo.nombre as string,
+    escudo_url: equipo.escudo_url as string | null,
+    color_principal: equipo.color_principal as string | null,
+    color_secundario: equipo.color_secundario as string | null,
+    disciplina: equipo.disciplina_slug as string,
+    categoria: (equipo.categoria as { nombre_display: string } | null)?.nombre_display ?? null,
+    torneo: equipo.torneo as string | null,
+  }
+}
+
+function buildJugadorData(j: Record<string, unknown>) {
+  const p = j.persona as Record<string, unknown>
+  return {
+    nombre: p?.nombre as string || '',
+    apellido: p?.apellido as string || '',
+    dorsal: j.dorsal as number | null,
+    posicion: j.posicion as string | null,
+    rol: (j.rol_equipo_slug as string) || 'jugador',
+    foto_url: p?.foto_perfil_url as string | null,
+  }
+}
+
 export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEquipoClientProps) {
   const staff = plantel.filter((p) => ROLES_STAFF.includes(p.rol_equipo_slug as string))
   const referentes = plantel.filter((p) => ROLES_REFERENTES.includes(p.rol_equipo_slug as string))
-  const jugadores = plantel.filter(
-    (p) => !ROLES_STAFF.includes(p.rol_equipo_slug as string) && !ROLES_REFERENTES.includes(p.rol_equipo_slug as string)
-  )
+  // Jugadores = todos menos staff (capitán y referentes SÍ son jugadores)
+  const jugadores = plantel.filter((p) => !ROLES_STAFF.includes(p.rol_equipo_slug as string))
 
   const indumentaria = equipo.indumentaria as Record<string, { descripcion?: string; foto_url?: string }> | null
   const fotoEquipo = equipo.foto_equipo_url as string | null
 
-  // Agrupar horarios por tipo
-  const horariosEntrenamiento = horarios.filter((h) => (h.tipo_actividad as string) === 'entrenamiento')
-  const horariosPartido = horarios.filter((h) => (h.tipo_actividad as string) === 'partido')
-  const horariosOtros = horarios.filter(
-    (h) => (h.tipo_actividad as string) !== 'entrenamiento' && (h.tipo_actividad as string) !== 'partido'
+  // Agrupar horarios por tipo (deduplicar por id)
+  const horariosUnicos = deduplicarPorId(horarios)
+  const horariosEntrenamiento = horariosUnicos.filter((h) => (h.tipo_actividad as string) === 'entrenamiento')
+  const horariosPartido = horariosUnicos.filter((h) =>
+    ['partido', 'partido_local', 'partido_visitante'].includes(h.tipo_actividad as string)
+  )
+  const horariosOtros = horariosUnicos.filter(
+    (h) => !['entrenamiento', 'partido', 'partido_local', 'partido_visitante'].includes(h.tipo_actividad as string)
   )
 
-  // Próxima actividad: buscar el horario más cercano al día actual
   const hoy = new Date()
-  const diaHoy = hoy.getDay() === 0 ? 7 : hoy.getDay() // lunes=1, domingo=7
-  const proximaActividad = getProximaActividad(horarios, diaHoy)
+  const diaHoy = hoy.getDay() === 0 ? 7 : hoy.getDay()
+  const proximaActividad = getProximaActividad(horariosUnicos, diaHoy)
+
+  const equipoData = buildEquipoData(equipo)
 
   return (
     <div className="space-y-4">
@@ -97,7 +125,7 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
         </Card>
       ) : null}
 
-      {/* 1. PRÓXIMA ACTIVIDAD — widget destacado */}
+      {/* 1. PRÓXIMA ACTIVIDAD */}
       <Card className="border-2 border-primary/20 bg-primary/5">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
@@ -107,36 +135,74 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
         </CardHeader>
         <CardContent>
           {proximaActividad ? (
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-2xl font-bold">
-                  {DIAS[proximaActividad.dia_semana as number]}
-                </p>
-                <div className="flex items-center gap-2">
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1.5">
+                  <p className="text-2xl font-bold">
+                    {DIAS[proximaActividad.dia_semana as number]}
+                  </p>
                   <Badge variant="default" className="capitalize">
-                    {proximaActividad.tipo_actividad as string}
+                    {formatTipoActividad(proximaActividad.tipo_actividad as string)}
                   </Badge>
-                  {(() => {
-                    const sede = proximaActividad.sede as Record<string, unknown> | null
-                    const cancha = proximaActividad.cancha as Record<string, unknown> | null
-                    return (sede || cancha) ? (
-                      <span className="text-sm text-muted-foreground flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {sede ? (sede.nombre as string) : ''}
-                        {cancha ? ` - ${cancha.nombre as string}` : ''}
-                      </span>
-                    ) : null
-                  })()}
+                </div>
+                <div className="text-right">
+                  <p className="text-3xl font-bold font-mono tabular-nums">
+                    {(proximaActividad.hora_inicio as string)?.slice(0, 5)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    hasta {(proximaActividad.hora_fin as string)?.slice(0, 5)}
+                  </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-3xl font-bold font-mono tabular-nums">
-                  {(proximaActividad.hora_inicio as string)?.slice(0, 5)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  hasta {(proximaActividad.hora_fin as string)?.slice(0, 5)}
-                </p>
-              </div>
+
+              {/* Ubicación y links de navegación */}
+              {(() => {
+                const sede = proximaActividad.sede as Record<string, unknown> | null
+                const cancha = proximaActividad.cancha as Record<string, unknown> | null
+                if (!sede && !cancha) return null
+                const nombreLugar = [
+                  sede ? (sede.nombre as string) : '',
+                  cancha ? (cancha.nombre as string) : '',
+                ].filter(Boolean).join(' · ')
+                const direccionObj = sede?.direccion as Record<string, unknown> | null
+                const direccion = direccionObj
+                  ? [direccionObj.calle, direccionObj.numero, direccionObj.ciudad].filter(Boolean).join(' ') || null
+                  : null
+                const searchQuery = encodeURIComponent(direccion || nombreLugar)
+                return (
+                  <div className="border-t border-primary/10 pt-3 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium">{nombreLugar}</p>
+                        {direccion ? (
+                          <p className="text-xs text-muted-foreground">{direccion}</p>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${searchQuery}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs bg-background border rounded-md px-3 py-1.5 hover:bg-muted transition-colors"
+                      >
+                        <Navigation className="h-3 w-3" />
+                        Google Maps
+                      </a>
+                      <a
+                        href={`https://waze.com/ul?q=${searchQuery}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs bg-background border rounded-md px-3 py-1.5 hover:bg-muted transition-colors"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Waze
+                      </a>
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">Sin actividades programadas</p>
@@ -144,7 +210,7 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
         </CardContent>
       </Card>
 
-      {/* 2. HORARIOS — entrenamientos y partidos */}
+      {/* 2. HORARIOS */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
@@ -153,52 +219,25 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {horarios.length === 0 ? (
+          {horariosUnicos.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sin horarios cargados</p>
           ) : (
             <>
               {horariosEntrenamiento.length > 0 ? (
-                <div>
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                    Entrenamientos
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {horariosEntrenamiento.map((h) => (
-                      <HorarioCard key={h.id as string} horario={h} />
-                    ))}
-                  </div>
-                </div>
+                <HorariosGroup label="Entrenamientos" horarios={horariosEntrenamiento} />
               ) : null}
               {horariosPartido.length > 0 ? (
-                <div>
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                    Partidos
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {horariosPartido.map((h) => (
-                      <HorarioCard key={h.id as string} horario={h} />
-                    ))}
-                  </div>
-                </div>
+                <HorariosGroup label="Partidos" horarios={horariosPartido} />
               ) : null}
               {horariosOtros.length > 0 ? (
-                <div>
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                    Otras actividades
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {horariosOtros.map((h) => (
-                      <HorarioCard key={h.id as string} horario={h} />
-                    ))}
-                  </div>
-                </div>
+                <HorariosGroup label="Otras actividades" horarios={horariosOtros} />
               ) : null}
             </>
           )}
         </CardContent>
       </Card>
 
-      {/* 3. INDUMENTARIA */}
+      {/* 3. INDUMENTARIA — siempre muestra los 6 tipos */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
@@ -207,35 +246,32 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {indumentaria && Object.keys(indumentaria).length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              {INDUMENTARIA_ORDER.map((tipo) => {
-                const data = indumentaria[tipo]
-                if (!data) return null
-                return (
-                  <div key={tipo} className="border rounded-lg p-3 text-center space-y-2">
-                    {data.foto_url ? (
-                      <img
-                        src={data.foto_url}
-                        alt={INDUMENTARIA_LABELS[tipo] || tipo}
-                        className="w-full h-20 sm:h-24 object-contain rounded"
-                      />
-                    ) : (
-                      <div className="w-full h-20 sm:h-24 bg-muted rounded flex items-center justify-center">
-                        <Shirt className="h-8 w-8 text-muted-foreground/30" />
-                      </div>
-                    )}
-                    <p className="text-xs font-semibold">{INDUMENTARIA_LABELS[tipo] || tipo}</p>
-                    {data.descripcion ? (
-                      <p className="text-xs text-muted-foreground leading-tight">{data.descripcion}</p>
-                    ) : null}
-                  </div>
-                )
-              })}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Sin indumentaria cargada</p>
-          )}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {INDUMENTARIA_ORDER.map((tipo) => {
+              const data = indumentaria?.[tipo]
+              return (
+                <div key={tipo} className="border rounded-lg p-3 text-center space-y-2">
+                  {data?.foto_url ? (
+                    <img
+                      src={data.foto_url}
+                      alt={INDUMENTARIA_LABELS[tipo]}
+                      className="w-full h-20 sm:h-24 object-contain rounded"
+                    />
+                  ) : (
+                    <div className="w-full h-20 sm:h-24 bg-muted rounded flex items-center justify-center">
+                      <Shirt className="h-8 w-8 text-muted-foreground/30" />
+                    </div>
+                  )}
+                  <p className="text-xs font-semibold">{INDUMENTARIA_LABELS[tipo]}</p>
+                  {data?.descripcion ? (
+                    <p className="text-xs text-muted-foreground leading-tight">{data.descripcion}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground/50 italic">Sin cargar</p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </CardContent>
       </Card>
 
@@ -254,6 +290,7 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
                 <PersonaCardCompleta
                   key={r.id as string}
                   miembro={r}
+                  equipo={equipoData}
                   destacado
                 />
               ))}
@@ -276,7 +313,7 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
           {staff.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {staff.map((s) => (
-                <PersonaCardCompleta key={s.id as string} miembro={s} />
+                <PersonaCardCompleta key={s.id as string} miembro={s} equipo={equipoData} />
               ))}
             </div>
           ) : (
@@ -303,9 +340,7 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
                 <p className="text-sm font-semibold">{equipo.torneo as string}</p>
                 <p className="text-xs text-muted-foreground capitalize">
                   {equipo.disciplina_slug as string}
-                  {(equipo.categoria as { nombre_display: string } | null)?.nombre_display
-                    ? ` · ${(equipo.categoria as { nombre_display: string }).nombre_display}`
-                    : ''}
+                  {equipoData.categoria ? ` · ${equipoData.categoria}` : ''}
                 </p>
               </div>
               <Badge variant="default" className="shrink-0">En curso</Badge>
@@ -314,7 +349,7 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
         </Card>
       ) : null}
 
-      {/* 7. PLANTEL COMPLETO — tabla con todos los datos de contacto */}
+      {/* 7. PLANTEL — jugadores + referentes (NO staff) */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
@@ -322,14 +357,7 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
             Plantel ({jugadores.length} jugadores)
           </CardTitle>
           <ExportPlantel
-            equipo={{
-              nombre: equipo.nombre as string,
-              escudo_url: equipo.escudo_url as string | null,
-              color_principal: equipo.color_principal as string | null,
-              disciplina: equipo.disciplina_slug as string,
-              categoria: (equipo.categoria as { nombre_display: string } | null)?.nombre_display ?? null,
-              torneo: equipo.torneo as string | null,
-            }}
+            equipo={equipoData}
             plantel={plantel.map((m) => ({
               id: m.id as string,
               rol_equipo_slug: m.rol_equipo_slug as string,
@@ -365,6 +393,9 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
                 .map((j) => {
                   const p = j.persona as Record<string, unknown>
                   if (!p) return null
+                  const personaId = p.id as string
+                  const isReferente = ROLES_REFERENTES.includes(j.rol_equipo_slug as string)
+
                   return (
                     <div key={j.id as string} className="flex items-center gap-3 border rounded-lg p-3 hover:bg-muted/50 transition-colors">
                       {/* Dorsal */}
@@ -386,9 +417,18 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
+                        <Link
+                          href={`/admin/personas/${personaId}`}
+                          className="text-sm font-medium truncate hover:underline block"
+                        >
                           {p.apellido as string}, {p.nombre as string}
-                        </p>
+                          {isReferente ? (
+                            <Badge variant="default" className="ml-2 text-[10px] h-4 align-middle">
+                              <Star className="h-2.5 w-2.5 mr-0.5" />
+                              {ROL_LABELS[j.rol_equipo_slug as string]}
+                            </Badge>
+                          ) : null}
+                        </Link>
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                           {p.whatsapp ? (
                             <a
@@ -428,23 +468,8 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
                           <Badge variant="secondary" className="text-xs">{j.posicion as string}</Badge>
                         ) : null}
                         <TarjetaJugador
-                          jugador={{
-                            nombre: p.nombre as string,
-                            apellido: p.apellido as string,
-                            dorsal: j.dorsal as number | null,
-                            posicion: j.posicion as string | null,
-                            rol: (j.rol_equipo_slug as string) || 'jugador',
-                            foto_url: p.foto_perfil_url as string | null,
-                          }}
-                          equipo={{
-                            nombre: equipo.nombre as string,
-                            escudo_url: equipo.escudo_url as string | null,
-                            color_principal: equipo.color_principal as string | null,
-                            color_secundario: equipo.color_secundario as string | null,
-                            disciplina: equipo.disciplina_slug as string,
-                            categoria: (equipo.categoria as { nombre_display: string } | null)?.nombre_display ?? null,
-                            torneo: equipo.torneo as string | null,
-                          }}
+                          jugador={buildJugadorData(j)}
+                          equipo={equipoData}
                         />
                       </div>
                     </div>
@@ -460,45 +485,86 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
 
 /* ─── Sub-componentes ─── */
 
+function HorariosGroup({ label, horarios }: { label: string; horarios: Array<Record<string, unknown>> }) {
+  return (
+    <div>
+      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+        {label}
+      </h4>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {horarios.map((h) => (
+          <HorarioCard key={h.id as string} horario={h} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function HorarioCard({ horario }: { horario: Record<string, unknown> }) {
   const sede = horario.sede as Record<string, unknown> | null
   const cancha = horario.cancha as Record<string, unknown> | null
+  const direccionObj = sede?.direccion as Record<string, unknown> | null
+  const direccion = direccionObj
+    ? [direccionObj.calle, direccionObj.numero, direccionObj.ciudad].filter(Boolean).join(' ') || null
+    : null
+  const nombreLugar = [
+    sede ? (sede.nombre as string) : '',
+    cancha ? (cancha.nombre as string) : '',
+  ].filter(Boolean).join(' · ')
 
   return (
-    <div className="flex items-center justify-between border rounded-lg p-3">
-      <div className="space-y-0.5">
-        <p className="text-sm font-semibold">{DIAS[horario.dia_semana as number]}</p>
-        {(sede || cancha) ? (
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            <MapPin className="h-3 w-3" />
-            {sede ? (sede.nombre as string) : ''}
-            {cancha ? ` · ${cancha.nombre as string}` : ''}
-          </p>
-        ) : null}
+    <div className="border rounded-lg p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="space-y-0.5">
+          <p className="text-sm font-semibold">{DIAS[horario.dia_semana as number]}</p>
+          <Badge variant="outline" className="text-[10px] capitalize">
+            {formatTipoActividad(horario.tipo_actividad as string)}
+          </Badge>
+        </div>
+        <div className="text-right">
+          <span className="text-sm font-mono tabular-nums font-medium">
+            {(horario.hora_inicio as string)?.slice(0, 5)}
+          </span>
+          <span className="text-xs text-muted-foreground"> – </span>
+          <span className="text-sm font-mono tabular-nums font-medium">
+            {(horario.hora_fin as string)?.slice(0, 5)}
+          </span>
+        </div>
       </div>
-      <div className="text-right">
-        <span className="text-sm font-mono tabular-nums font-medium">
-          {(horario.hora_inicio as string)?.slice(0, 5)}
-        </span>
-        <span className="text-xs text-muted-foreground"> – </span>
-        <span className="text-sm font-mono tabular-nums font-medium">
-          {(horario.hora_fin as string)?.slice(0, 5)}
-        </span>
-      </div>
+      {nombreLugar ? (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <MapPin className="h-3 w-3 shrink-0" />
+          <span className="truncate">{nombreLugar}</span>
+          {(direccion || nombreLugar) ? (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccion || nombreLugar)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-auto shrink-0 hover:text-foreground"
+              title="Ver en Google Maps"
+            >
+              <Navigation className="h-3 w-3" />
+            </a>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   )
 }
 
 function PersonaCardCompleta({
   miembro,
+  equipo,
   destacado = false,
 }: {
   miembro: Record<string, unknown>
+  equipo: ReturnType<typeof buildEquipoData>
   destacado?: boolean
 }) {
   const p = miembro.persona as Record<string, unknown>
   if (!p) return null
 
+  const personaId = p.id as string
   const rolLabel = ROL_LABELS[miembro.rol_equipo_slug as string] || (miembro.rol_equipo_slug as string)?.replace(/_/g, ' ')
 
   return (
@@ -511,14 +577,21 @@ function PersonaCardCompleta({
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold truncate">
+          <Link
+            href={`/admin/personas/${personaId}`}
+            className="text-sm font-semibold truncate hover:underline block"
+          >
             {p.nombre as string} {p.apellido as string}
-          </p>
+          </Link>
           <Badge variant={destacado ? 'default' : 'secondary'} className="text-xs mt-0.5 capitalize">
             {destacado ? <Star className="h-3 w-3 mr-1" /> : null}
             {rolLabel}
           </Badge>
         </div>
+        <TarjetaJugador
+          jugador={buildJugadorData(miembro)}
+          equipo={equipo}
+        />
       </div>
 
       <div className="space-y-1.5">
@@ -558,17 +631,29 @@ function PersonaCardCompleta({
 
 /* ─── Helpers ─── */
 
+function formatTipoActividad(tipo: string): string {
+  return tipo.replace(/_/g, ' ')
+}
+
+function deduplicarPorId(arr: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+  const seen = new Set<string>()
+  return arr.filter((item) => {
+    const id = item.id as string
+    if (seen.has(id)) return false
+    seen.add(id)
+    return true
+  })
+}
+
 function getProximaActividad(
   horarios: Array<Record<string, unknown>>,
   diaHoy: number
 ): Record<string, unknown> | null {
   if (horarios.length === 0) return null
 
-  // Buscar la próxima actividad a partir de hoy
   const horariosOrdenados = [...horarios].sort((a, b) => {
     const dA = a.dia_semana as number
     const dB = b.dia_semana as number
-    // Normalizar relativo a hoy
     const distA = dA >= diaHoy ? dA - diaHoy : 7 - diaHoy + dA
     const distB = dB >= diaHoy ? dB - diaHoy : 7 - diaHoy + dB
     if (distA !== distB) return distA - distB
