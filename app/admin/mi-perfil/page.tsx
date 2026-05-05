@@ -1,31 +1,55 @@
 import { redirect } from 'next/navigation'
-import { fetchMiPersona, fetchMisEquipos, fetchMisPadrones, fetchMisVinculos } from './_lib/queries'
-import { MiPerfilClient } from './_components/mi-perfil-client'
+import { Badge } from '@/components/ui/badge'
+import { PersonaAvatar } from '../personas/_components/persona-avatar'
+import { PersonaEditor } from '../personas/[id]/_components/persona-editor'
+import { fetchCatalogoAtributos, fetchCatalogoVinculos, fetchPadrones, fetchEstadosPadron, fetchTiposSocio, fetchCategoriasEquipo } from '../personas/_lib/queries'
+import { fetchMiPersonaCompleta } from './_lib/queries'
 
 export default async function MiPerfilPage() {
-  const persona = await fetchMiPersona()
+  const persona = await fetchMiPersonaCompleta()
 
   if (!persona) {
     redirect('/login')
   }
 
-  const [equipos, padrones, vinculos] = await Promise.all([
-    fetchMisEquipos(persona.id),
-    fetchMisPadrones(persona.id),
-    fetchMisVinculos(persona.id),
+  const [catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio, categoriasEquipo] = await Promise.all([
+    fetchCatalogoAtributos(),
+    fetchCatalogoVinculos(),
+    fetchPadrones(),
+    fetchEstadosPadron(),
+    fetchTiposSocio(),
+    fetchCategoriasEquipo(),
   ])
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Mi perfil</h1>
-        <p className="text-sm text-muted-foreground">Tus datos personales y membresías</p>
+    <div className="space-y-4">
+      {/* HEADER */}
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-4 px-4 sm:px-6 py-3 border-b -mt-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <PersonaAvatar nombre={persona.nombre} apellido={persona.apellido} className="h-9 w-9 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-sm sm:text-base font-bold truncate">
+              Mi perfil
+            </h1>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="truncate">{persona.apellido}, {persona.nombre}</span>
+              <Badge variant="default" className="text-[10px] h-4 shrink-0">
+                {persona.estado}
+              </Badge>
+            </div>
+          </div>
+        </div>
       </div>
-      <MiPerfilClient
+
+      <PersonaEditor
         persona={persona}
-        equipos={equipos}
-        padrones={padrones}
-        vinculos={vinculos}
+        catalogoAtributos={catalogoAtributos}
+        catalogoVinculos={catalogoVinculos}
+        padronesDisponibles={padrones}
+        estadosPadron={estadosPadron}
+        tiposSocio={tiposSocio}
+        categoriasEquipo={categoriasEquipo}
+        modo="mi-perfil"
       />
     </div>
   )

@@ -5,8 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { Loader2, Save, Download } from 'lucide-react'
+import { Loader2, Save, Download, Lock } from 'lucide-react'
 import { editarPersona } from '../../_actions'
+import { editarMiPerfil, solicitarCambioDatos } from '@/app/admin/mi-perfil/_actions'
 import type { EditarPersonaInput } from '../../_lib/schemas'
 import { SeccionIdentidad } from './secciones/identidad'
 import { SeccionContacto } from './secciones/contacto'
@@ -35,6 +36,18 @@ interface PersonaEditorProps {
   estadosPadron: { id: string; slug: string; nombre: string }[]
   tiposSocio: { id: string; slug: string; nombre: string }[]
   categoriasEquipo: { id: string; nombre_display: string; edad_min?: number | null; edad_max?: number | null }[]
+  modo?: 'admin' | 'mi-perfil'
+}
+
+// Campos que se bloquean en mi-perfil una vez que tienen valor
+const CAMPOS_IDENTIDAD_BLOQUEADOS: (keyof EditarPersonaInput)[] = [
+  'numero_documento', 'cuil_cuit', 'nombre_completo_legal',
+]
+
+const LABELS_CAMPOS: Record<string, string> = {
+  numero_documento: 'Número de documento',
+  cuil_cuit: 'CUIL/CUIT',
+  nombre_completo_legal: 'Nombre legal completo',
 }
 
 function init(p: Record<string, unknown>): EditarPersonaInput {
@@ -81,12 +94,20 @@ function init(p: Record<string, unknown>): EditarPersonaInput {
   }
 }
 
-export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, padronesDisponibles, estadosPadron, tiposSocio, categoriasEquipo }: PersonaEditorProps) {
+export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, padronesDisponibles, estadosPadron, tiposSocio, categoriasEquipo, modo = 'admin' }: PersonaEditorProps) {
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState<EditarPersonaInput>(() => init(persona))
   const [exportOpen, setExportOpen] = useState(false)
+  const [solicitudLoading, setSolicitudLoading] = useState<string | null>(null)
+
+  const esMiPerfil = modo === 'mi-perfil'
+  // En mi-perfil, los campos de identidad se bloquean si ya tienen valor
+  const tieneDatosIdentidad = !!(persona.numero_documento || persona.cuil_cuit)
+  const camposBloqueados = esMiPerfil && tieneDatosIdentidad
 
   function update(field: keyof EditarPersonaInput, value: string | number | boolean | null) {
+    // En mi-perfil, no permitir editar campos bloqueados
+    if (camposBloqueados && CAMPOS_IDENTIDAD_BLOQUEADOS.includes(field)) return
     setForm((prev) => ({ ...prev, [field]: value ?? '' }))
   }
 
@@ -96,8 +117,32 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
 
   async function handleSubmit() {
     setLoading(true)
-    const result = await editarPersona(persona.id as string, form)
+    let result
+    if (esMiPerfil) {
+      // En mi-perfil, filtrar campos bloqueados antes de enviar
+      const datosEditables = { ...form }
+      if (camposBloqueados) {
+        for (const campo of CAMPOS_IDENTIDAD_BLOQUEADOS) {
+          delete (datosEditables as Record<string, unknown>)[campo]
+        }
+      }
+      result = await editarMiPerfil(datosEditables as Record<string, unknown>)
+    } else {
+      result = await editarPersona(persona.id as string, form)
+    }
     setLoading(false)
+    if (result.ok) toast.success(result.message)
+    else toast.error(result.message)
+  }
+
+  async function handleSolicitarCambio(campo: keyof EditarPersonaInput) {
+    const valorActual = (persona[campo] as string) || ''
+    const valorNuevo = prompt(`Nuevo valor para ${LABELS_CAMPOS[campo] || campo}:`)
+    if (!valorNuevo?.trim()) return
+
+    setSolicitudLoading(campo)
+    const result = await solicitarCambioDatos(campo, valorActual, valorNuevo.trim())
+    setSolicitudLoading(null)
     if (result.ok) toast.success(result.message)
     else toast.error(result.message)
   }
@@ -130,22 +175,54 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
             <TabsTrigger value="profesional">Profesional</TabsTrigger>
             <TabsTrigger value="club">Club</TabsTrigger>
             <TabsTrigger value="documentos">Documentos</TabsTrigger>
-            <TabsTrigger value="roles">
-              Roles
-              {atributosActivos > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 min-w-5 rounded-full px-1 text-xs">
-                  {atributosActivos}
-                </Badge>
-              )}
-            </TabsTrigger>
+            {!esMiPerfil && (
+              <TabsTrigger value="roles">
+                Roles
+                {atributosActivos > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 min-w-5 rounded-full px-1 text-xs">
+                    {atributosActivos}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            )}
             <TabsTrigger value="vinculos">Vínculos</TabsTrigger>
-            <TabsTrigger value="padrones">Padrones</TabsTrigger>
+            {!esMiPerfil && <TabsTrigger value="padrones">Padrones</TabsTrigger>}
             <TabsTrigger value="ficha">Ficha total</TabsTrigger>
           </TabsList>
         </div>
 
         {/* PERSONAL: identidad + contacto + dirección */}
         <TabsContent value="personal" className="mt-4 space-y-4">
+          {camposBloqueados && (
+            <div className="border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-200">
+                <Lock className="h-4 w-4" />
+                Datos de identidad protegidos
+              </div>
+              <p className="text-xs text-amber-700 dark:text-amber-300">
+                Los campos de documento, CUIL/CUIT y nombre legal no se pueden editar directamente.
+                Para modificarlos, enviá una solicitud de cambio que será revisada por un administrador.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {CAMPOS_IDENTIDAD_BLOQUEADOS.map((campo) => {
+                  const valor = (persona[campo] as string) || ''
+                  if (!valor) return null
+                  return (
+                    <Button
+                      key={campo}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7"
+                      disabled={solicitudLoading === campo}
+                      onClick={() => handleSolicitarCambio(campo)}
+                    >
+                      {solicitudLoading === campo ? 'Enviando...' : `Cambiar ${LABELS_CAMPOS[campo]}`}
+                    </Button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
           <SeccionIdentidad form={form} update={update} s={s} />
           <SeccionContacto form={form} update={update} s={s} />
           <SeccionDireccion form={form} update={update} s={s} />
