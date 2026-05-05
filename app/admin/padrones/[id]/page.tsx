@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { fetchPadronDetalle } from '../_lib/queries'
+import { fetchEstadosPadron, fetchTiposSocio } from '../../personas/_lib/queries'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -12,6 +13,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { ArrowLeft, Users } from 'lucide-react'
+import { AgregarMiembroDialog } from './_components/agregar-miembro-dialog'
+import { ImportarMiembrosDialog } from './_components/importar-miembros-dialog'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -29,12 +32,17 @@ const TIPO_LABELS: Record<string, string> = {
 export default async function PadronDetallePage({ params }: PageProps) {
   const { id } = await params
 
-  let padron
-  try {
-    padron = await fetchPadronDetalle(id)
-  } catch {
+  const [padronResult, estadosPadron, tiposSocio] = await Promise.all([
+    fetchPadronDetalle(id).catch(() => null),
+    fetchEstadosPadron(),
+    fetchTiposSocio(),
+  ])
+
+  if (!padronResult) {
     notFound()
   }
+
+  const padron = padronResult
 
   const miembrosActivos = padron.miembros.filter((m) => m.activo)
   const miembrosInactivos = padron.miembros.filter((m) => !m.activo)
@@ -58,10 +66,26 @@ export default async function PadronDetallePage({ params }: PageProps) {
               </Badge>
             </div>
           </div>
-          <div className="flex items-center gap-1 text-sm text-muted-foreground shrink-0">
-            <Users className="h-4 w-4" />
-            <span>{miembrosActivos.length}</span>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Users className="h-4 w-4" />
+              <span>{miembrosActivos.length}</span>
+            </div>
           </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-2 mt-2">
+          <AgregarMiembroDialog
+            padronId={padron.id}
+            estadosPadron={estadosPadron}
+            tiposSocio={tiposSocio}
+          />
+          <ImportarMiembrosDialog
+            padronId={padron.id}
+            estadosPadron={estadosPadron}
+            tiposSocio={tiposSocio}
+          />
         </div>
       </div>
 
@@ -84,7 +108,7 @@ export default async function PadronDetallePage({ params }: PageProps) {
                   <div className="min-w-0 flex-1">
                     <p className="font-medium truncate">{m.apellido}, {m.nombre}</p>
                     <p className="text-sm text-muted-foreground truncate">
-                      {m.numero_socio ? `#${m.numero_socio}` : '—'} · {m.tipo_socio ?? '—'} · {m.estado_padron ?? '—'}
+                      {m.numero_socio ? `#${m.numero_socio}` : '\u2014'} · {m.tipo_socio ?? '\u2014'} · {m.estado_padron ?? '\u2014'}
                     </p>
                   </div>
                   {m.fecha_alta && (
@@ -124,13 +148,13 @@ export default async function PadronDetallePage({ params }: PageProps) {
                         {m.apellido}, {m.nombre}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{m.numero_documento ?? '—'}</TableCell>
-                    <TableCell>{m.numero_socio ?? '—'}</TableCell>
-                    <TableCell>{m.tipo_socio ?? '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{m.numero_documento ?? '\u2014'}</TableCell>
+                    <TableCell>{m.numero_socio ?? '\u2014'}</TableCell>
+                    <TableCell>{m.tipo_socio ?? '\u2014'}</TableCell>
                     <TableCell>
-                      <Badge variant="default">{m.estado_padron ?? '—'}</Badge>
+                      <Badge variant="default">{m.estado_padron ?? '\u2014'}</Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{m.fecha_alta ?? '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{m.fecha_alta ?? '\u2014'}</TableCell>
                   </TableRow>
                 ))
               )}
@@ -158,7 +182,7 @@ export default async function PadronDetallePage({ params }: PageProps) {
                   <div className="min-w-0 flex-1">
                     <p className="font-medium truncate">{m.apellido}, {m.nombre}</p>
                     <p className="text-sm text-muted-foreground truncate">
-                      {m.numero_socio ? `#${m.numero_socio}` : '—'} · {m.tipo_socio ?? '—'}
+                      {m.numero_socio ? `#${m.numero_socio}` : '\u2014'} · {m.tipo_socio ?? '\u2014'}
                     </p>
                   </div>
                 </div>
@@ -187,13 +211,13 @@ export default async function PadronDetallePage({ params }: PageProps) {
                         {m.apellido}, {m.nombre}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{m.numero_documento ?? '—'}</TableCell>
-                    <TableCell>{m.numero_socio ?? '—'}</TableCell>
-                    <TableCell>{m.tipo_socio ?? '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{m.numero_documento ?? '\u2014'}</TableCell>
+                    <TableCell>{m.numero_socio ?? '\u2014'}</TableCell>
+                    <TableCell>{m.tipo_socio ?? '\u2014'}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">{m.estado_padron ?? 'baja'}</Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{m.fecha_alta ?? '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{m.fecha_alta ?? '\u2014'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

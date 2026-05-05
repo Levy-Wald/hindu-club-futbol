@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,6 +23,27 @@ import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { crearEquipo } from '../_actions'
 
+const DISCIPLINAS = [
+  { value: 'hockey', label: 'Hockey' },
+  { value: 'futbol', label: 'Futbol' },
+  { value: 'rugby', label: 'Rugby' },
+  { value: 'natacion', label: 'Natacion' },
+  { value: 'tenis', label: 'Tenis' },
+  { value: 'padel', label: 'Padel' },
+  { value: 'basquet', label: 'Basquet' },
+  { value: 'voley', label: 'Voley' },
+  { value: 'handball', label: 'Handball' },
+  { value: 'atletismo', label: 'Atletismo' },
+  { value: 'gimnasia', label: 'Gimnasia' },
+  { value: 'otro', label: 'Otro' },
+]
+
+const MODALIDADES = [
+  { value: 'M', label: 'Masculino' },
+  { value: 'F', label: 'Femenino' },
+  { value: 'mixto', label: 'Mixto' },
+]
+
 interface Categoria {
   id: string
   nombre_display: string
@@ -33,7 +55,7 @@ interface CrearEquipoDialogProps {
   disciplinas: string[]
 }
 
-export function CrearEquipoDialog({ categorias, disciplinas }: CrearEquipoDialogProps) {
+export function CrearEquipoDialog({ categorias }: CrearEquipoDialogProps) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [nombre, setNombre] = useState('')
@@ -41,8 +63,16 @@ export function CrearEquipoDialog({ categorias, disciplinas }: CrearEquipoDialog
   const [disciplina, setDisciplina] = useState<string>('')
   const [modalidad, setModalidad] = useState<string>('')
 
+  const filteredCategorias = disciplina
+    ? categorias.filter((c) => c.disciplina_slug === disciplina)
+    : categorias
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!nombre.trim() || !disciplina) {
+      toast.error('Nombre y disciplina son obligatorios.')
+      return
+    }
 
     startTransition(async () => {
       const result = await crearEquipo({
@@ -77,9 +107,9 @@ export function CrearEquipoDialog({ categorias, disciplinas }: CrearEquipoDialog
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="nombre">Nombre</Label>
+            <Label htmlFor="eq-nombre">Nombre</Label>
             <Input
-              id="nombre"
+              id="eq-nombre"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
               placeholder="Ej: Hockey Damas Primera"
@@ -87,60 +117,66 @@ export function CrearEquipoDialog({ categorias, disciplinas }: CrearEquipoDialog
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="disciplina">Disciplina</Label>
-            <Select value={disciplina} onValueChange={(v) => setDisciplina(v ?? '')}>
-              <SelectTrigger id="disciplina">
-                <SelectValue placeholder="Seleccionar disciplina" />
-              </SelectTrigger>
-              <SelectContent>
-                {disciplinas.map((d) => (
-                  <SelectItem key={d} value={d}>
-                    {d}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Disciplina *</Label>
+              <Select value={disciplina} onValueChange={(v) => { setDisciplina(v ?? ''); setCategoriaId('') }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DISCIPLINAS.map((d) => (
+                    <SelectItem key={d.value} value={d.value}>
+                      {d.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Modalidad</Label>
+              <Select value={modalidad} onValueChange={(v) => setModalidad(v ?? '')}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MODALIDADES.map((m) => (
+                    <SelectItem key={m.value} value={m.value}>
+                      {m.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="categoria">Categoria</Label>
-            <Select value={categoriaId} onValueChange={(v) => setCategoriaId(v ?? '')}>
-              <SelectTrigger id="categoria">
-                <SelectValue placeholder="Seleccionar categoria (opcional)" />
-              </SelectTrigger>
-              <SelectContent>
-                {categorias.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.nombre_display}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {filteredCategorias.length > 0 && (
+            <div className="space-y-2">
+              <Label>Categoria</Label>
+              <Select value={categoriaId} onValueChange={(v) => setCategoriaId(v ?? '')}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar categoria (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredCategorias.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.nombre_display}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-          <div className="space-y-2">
-            <Label htmlFor="modalidad">Modalidad</Label>
-            <Select value={modalidad} onValueChange={(v) => setModalidad(v ?? '')}>
-              <SelectTrigger id="modalidad">
-                <SelectValue placeholder="Seleccionar modalidad (opcional)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="M">Masculino</SelectItem>
-                <SelectItem value="F">Femenino</SelectItem>
-                <SelectItem value="mixto">Mixto</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex justify-end gap-2">
+          <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending || !nombre.trim() || !disciplina}>
               {isPending ? 'Creando...' : 'Crear'}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

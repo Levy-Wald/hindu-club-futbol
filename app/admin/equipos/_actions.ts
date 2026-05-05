@@ -137,3 +137,28 @@ export async function quitarMiembro(personaEquipoId: string, equipoId: string) {
   revalidatePath(`/admin/equipos/${equipoId}`)
   return formatResult(true, 'Miembro desvinculado correctamente.')
 }
+
+// --- BUSCAR PERSONAS ---
+
+export async function buscarPersonas(query: string) {
+  if (!query || query.trim().length < 2) {
+    return { ok: true, data: [] }
+  }
+
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('personas')
+    .select('id, nombre, apellido, numero_documento')
+    .is('deleted_at', null)
+    .or(
+      `nombre.ilike.%${query.trim()}%,apellido.ilike.%${query.trim()}%,numero_documento.ilike.%${query.trim()}%`
+    )
+    .limit(8)
+
+  if (error) {
+    return { ok: false, data: [] }
+  }
+
+  return { ok: true, data: data ?? [] }
+}
