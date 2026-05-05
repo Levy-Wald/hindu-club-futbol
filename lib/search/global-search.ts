@@ -24,6 +24,8 @@ export interface SearchResults {
 }
 
 const PAGINAS_ESTATICAS: SearchResult[] = [
+  { id: 'page-mi-perfil', categoria: 'paginas', titulo: 'Mi perfil', subtitulo: 'Mis datos personales', url: '/admin/mi-perfil' },
+  { id: 'page-mi-equipo', categoria: 'paginas', titulo: 'Mi equipo', subtitulo: 'Mi equipo, plantel y horarios', url: '/admin/mi-equipo' },
   { id: 'page-personas', categoria: 'paginas', titulo: 'Personas', subtitulo: 'Gestión de personas del club', url: '/admin/personas' },
   { id: 'page-equipos', categoria: 'paginas', titulo: 'Equipos', subtitulo: 'Gestión de equipos y planteles', url: '/admin/equipos' },
   { id: 'page-padrones', categoria: 'paginas', titulo: 'Padrones', subtitulo: 'Padrones y registros de socios', url: '/admin/padrones' },

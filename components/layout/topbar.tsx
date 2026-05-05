@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { ThemeToggle } from './theme-toggle'
 import { GlobalSearch } from './global-search'
@@ -13,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { LogOut, User } from 'lucide-react'
+import { LogOut, User, Shield, Settings } from 'lucide-react'
 
 interface TopbarProps {
   userEmail?: string
@@ -50,14 +51,23 @@ export function Topbar({ userEmail }: TopbarProps) {
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               {userEmail || 'Usuario'}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem disabled>
+            <DropdownMenuItem onClick={() => router.push('/admin/mi-perfil')}>
               <User className="mr-2 h-4 w-4" />
               Mi perfil
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/admin/mi-equipo')}>
+              <Shield className="mr-2 h-4 w-4" />
+              Mi equipo
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push('/admin/configuracion')}>
+              <Settings className="mr-2 h-4 w-4" />
+              Configuración
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>

@@ -1,10 +1,16 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { MessageSquare } from 'lucide-react'
+import { fetchSolicitudesPendientes } from './_lib/queries'
+import { SolicitudesPanel } from './_components/solicitudes-panel'
 
-export default function ComunicacionesPage() {
+export default async function ComunicacionesPage() {
+  const solicitudes = await fetchSolicitudesPendientes()
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <h1 className="text-xl sm:text-2xl font-bold">Comunicaciones</h1>
+
+      <SolicitudesPanel solicitudes={solicitudes as never[]} />
 
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Users, LayoutDashboard, ClipboardList, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Users, ClipboardList, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import {
   LayoutDashboard as DashIcon,
@@ -15,16 +15,20 @@ import {
   Wallet,
   MessageSquare,
   Settings,
+  UserCircle,
+  Trophy,
 } from 'lucide-react'
 
 const bottomNavItems = [
   { label: 'Inicio', href: '/admin', icon: LayoutDashboard },
+  { label: 'Mi equipo', href: '/admin/mi-equipo', icon: Trophy },
   { label: 'Personas', href: '/admin/personas', icon: Users },
-  { label: 'Padrones', href: '/admin/padrones', icon: ClipboardList },
   { label: 'Más', href: '#menu', icon: Menu },
 ]
 
 const fullMenuItems = [
+  { label: 'Mi perfil', href: '/admin/mi-perfil', icon: UserCircle },
+  { label: 'Mi equipo', href: '/admin/mi-equipo', icon: Trophy },
   { label: 'Dashboard', href: '/admin', icon: DashIcon },
   { label: 'Personas', href: '/admin/personas', icon: UsersIcon },
   { label: 'Padrones', href: '/admin/padrones', icon: PadronesIcon },

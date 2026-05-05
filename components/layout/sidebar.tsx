@@ -13,9 +13,16 @@ import {
   Wallet,
   MessageSquare,
   Settings,
+  UserCircle,
+  Trophy,
 } from 'lucide-react'
 
-const menuItems = [
+const personalItems = [
+  { label: 'Mi perfil', href: '/admin/mi-perfil', icon: UserCircle },
+  { label: 'Mi equipo', href: '/admin/mi-equipo', icon: Trophy },
+]
+
+const adminItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { label: 'Personas', href: '/admin/personas', icon: Users },
   { label: 'Padrones', href: '/admin/padrones', icon: ClipboardList },
@@ -27,6 +34,26 @@ const menuItems = [
   { label: 'Configuración', href: '/admin/configuracion', icon: Settings },
 ]
 
+function NavItem({ item, pathname }: { item: { label: string; href: string; icon: React.ComponentType<{ className?: string }> }; pathname: string }) {
+  const isActive = item.href === '/admin'
+    ? pathname === '/admin'
+    : pathname.startsWith(item.href)
+  return (
+    <Link
+      href={item.href}
+      className={cn(
+        'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+        isActive
+          ? 'bg-accent text-accent-foreground'
+          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+      )}
+    >
+      <item.icon className="h-4 w-4" />
+      {item.label}
+    </Link>
+  )
+}
+
 export function Sidebar() {
   const pathname = usePathname()
 
@@ -37,27 +64,14 @@ export function Sidebar() {
           Hindu Club
         </Link>
       </div>
-      <nav className="flex-1 space-y-1 p-2">
-        {menuItems.map((item) => {
-          const isActive = item.href === '/admin'
-            ? pathname === '/admin'
-            : pathname.startsWith(item.href)
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                isActive
-                  ? 'bg-accent text-accent-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-              )}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          )
-        })}
+      <nav className="flex-1 p-2 space-y-1">
+        {personalItems.map((item) => (
+          <NavItem key={item.href} item={item} pathname={pathname} />
+        ))}
+        <div className="my-2 border-t" />
+        {adminItems.map((item) => (
+          <NavItem key={item.href} item={item} pathname={pathname} />
+        ))}
       </nav>
     </aside>
   )
