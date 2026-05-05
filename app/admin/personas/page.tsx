@@ -4,6 +4,7 @@ import { PersonasTable } from './_components/personas-table'
 import { SearchBar } from './_components/search-bar'
 import { PersonasFilters } from './_components/personas-filters'
 import { CrearPersonaSheet } from './_components/crear-persona-sheet'
+import { ImportButton } from './_components/import-button'
 
 interface PageProps {
   searchParams: Promise<Record<string, string | undefined>>
@@ -29,7 +30,10 @@ export default async function PersonasPage({ searchParams }: PageProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold">Personas</h1>
-        <CrearPersonaSheet />
+        <div className="flex items-center gap-2">
+          <ImportButton />
+          <CrearPersonaSheet />
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">

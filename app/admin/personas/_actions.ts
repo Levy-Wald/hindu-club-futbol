@@ -351,3 +351,63 @@ export async function quitarDePadron(personaPadronId: string, personaId: string)
   revalidatePath(`/admin/personas/${personaId}`)
   return formatResult(true, 'Persona dada de baja del padrón')
 }
+
+// --- IMPORTAR CSV ---
+
+export async function importarPersonas(rows: { nombre: string; apellido: string; numero_documento?: string; email_principal?: string; telefono_principal?: string; fecha_nacimiento?: string; genero?: string; cuil_cuit?: string; tipo_documento?: string; direccion_calle?: string; direccion_ciudad?: string; direccion_provincia?: string }[]) {
+  const supabase = await createClient()
+
+  let imported = 0
+  let skipped = 0
+  const errors: { row: number; message: string }[] = []
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i]
+
+    // Validate required fields
+    if (!row.nombre || !row.apellido) {
+      errors.push({ row: i + 1, message: 'Faltan nombre o apellido' })
+      continue
+    }
+
+    // Dedupe by numero_documento
+    if (row.numero_documento) {
+      const { data: existing } = await supabase
+        .from('personas')
+        .select('id')
+        .eq('tenant_id', TENANT_ID)
+        .eq('numero_documento', row.numero_documento)
+        .maybeSingle()
+
+      if (existing) {
+        skipped++
+        continue
+      }
+    }
+
+    const { error } = await supabase.from('personas').insert({
+      tenant_id: TENANT_ID,
+      nombre: row.nombre,
+      apellido: row.apellido,
+      numero_documento: row.numero_documento || null,
+      email_principal: row.email_principal || null,
+      telefono_principal: row.telefono_principal || null,
+      fecha_nacimiento: row.fecha_nacimiento || null,
+      genero: row.genero || null,
+      cuil_cuit: row.cuil_cuit || null,
+      tipo_documento: row.tipo_documento || 'dni',
+      direccion_calle: row.direccion_calle || null,
+      direccion_ciudad: row.direccion_ciudad || null,
+      direccion_provincia: row.direccion_provincia || null,
+    })
+
+    if (error) {
+      errors.push({ row: i + 1, message: error.message })
+    } else {
+      imported++
+    }
+  }
+
+  revalidatePath('/admin/personas')
+  return { imported, skipped, errors }
+}
