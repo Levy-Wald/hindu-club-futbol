@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -15,18 +17,33 @@ import { createClient } from '@/lib/supabase/client'
 
 interface Vehiculo {
   id: string
+  tipo_vehiculo_slug: string | null
   marca: string
   modelo: string
   año: number | null
-  patente: string | null
+  patente: string
+  pais_patente: string
   color: string | null
-  tipo_vehiculo: string | null
-  compania_seguro: string | null
-  numero_poliza: string | null
-  vencimiento_seguro: string | null
-  vencimiento_vtv: string | null
-  activo: boolean
+  combustible: string | null
+  seguro_compania_slug: string | null
+  seguro_compania_otra: string | null
+  seguro_numero_poliza: string | null
+  seguro_tipo_cobertura: string | null
+  seguro_vigencia_desde: string | null
+  seguro_vigencia_hasta: string | null
+  tipo_titularidad: string | null
+  titular_nombre: string | null
+  titular_dni: string | null
+  permite_ingreso_club: boolean
+  lugar_estacionamiento_asignado: string | null
+  tag_rfid_estacionamiento: string | null
   notas: string | null
+  activo: boolean
+}
+
+interface CatalogoItem {
+  slug: string
+  nombre: string
 }
 
 interface SeccionVehiculosProps {
@@ -36,81 +53,102 @@ interface SeccionVehiculosProps {
 
 // --- Helpers ---
 
-function getEstadoVencimiento(fecha: string | null): 'vigente' | 'por_vencer' | 'vencido' | 'sin_fecha' {
-  if (!fecha) return 'sin_fecha'
+function getEstadoSeguro(desde: string | null, hasta: string | null): 'vigente' | 'por_vencer' | 'vencido' | 'sin_fecha' {
+  if (!hasta) return 'sin_fecha'
   const hoy = new Date()
-  const venc = new Date(fecha)
+  const venc = new Date(hasta)
   if (venc < hoy) return 'vencido'
   const diff = (venc.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24)
   if (diff <= 30) return 'por_vencer'
   return 'vigente'
 }
 
-function BadgeVencimiento({ fecha, label }: { fecha: string | null; label: string }) {
-  const estado = getEstadoVencimiento(fecha)
+function BadgeSeguro({ desde, hasta }: { desde: string | null; hasta: string | null }) {
+  const estado = getEstadoSeguro(desde, hasta)
   switch (estado) {
     case 'vigente':
-      return <Badge variant="outline" className="border-green-500 text-green-600 dark:text-green-400">{label}: Vigente</Badge>
+      return <Badge variant="outline" className="border-green-500 text-green-600 dark:text-green-400">Seguro vigente</Badge>
     case 'por_vencer':
-      return <Badge variant="outline" className="border-yellow-500 text-yellow-600 dark:text-yellow-400">{label}: Por vencer</Badge>
+      return <Badge variant="outline" className="border-yellow-500 text-yellow-600 dark:text-yellow-400">Seguro por vencer</Badge>
     case 'vencido':
-      return <Badge variant="outline" className="border-red-500 text-red-600 dark:text-red-400">{label}: Vencido</Badge>
+      return <Badge variant="outline" className="border-red-500 text-red-600 dark:text-red-400">Seguro vencido</Badge>
     default:
       return null
   }
 }
 
-const TIPOS_VEHICULO = [
-  { value: 'auto', label: 'Auto' },
-  { value: 'moto', label: 'Moto' },
-  { value: 'camioneta', label: 'Camioneta' },
-  { value: 'otro', label: 'Otro' },
-]
+const EMPTY_FORM = {
+  tipo_vehiculo_slug: '',
+  marca: '',
+  modelo: '',
+  año: '',
+  patente: '',
+  pais_patente: 'AR',
+  color: '',
+  combustible: '',
+  seguro_compania_slug: '',
+  seguro_compania_otra: '',
+  seguro_numero_poliza: '',
+  seguro_tipo_cobertura: '',
+  seguro_vigencia_desde: '',
+  seguro_vigencia_hasta: '',
+  tipo_titularidad: '',
+  titular_nombre: '',
+  titular_dni: '',
+  permite_ingreso_club: true,
+  lugar_estacionamiento_asignado: '',
+  tag_rfid_estacionamiento: '',
+  notas: '',
+}
 
 // --- Main Component ---
 
 export function SeccionVehiculos({ personaId, tenantId }: SeccionVehiculosProps) {
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([])
+  const [tiposVehiculo, setTiposVehiculo] = useState<CatalogoItem[]>([])
+  const [companiasSeguro, setCompaniasSeguro] = useState<CatalogoItem[]>([])
   const [loaded, setLoaded] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({
-    marca: '',
-    modelo: '',
-    año: '',
-    patente: '',
-    color: '',
-    tipo_vehiculo: '',
-    compania_seguro: '',
-    numero_poliza: '',
-    vencimiento_seguro: '',
-    vencimiento_vtv: '',
-    notas: '',
-  })
+  const [form, setForm] = useState(EMPTY_FORM)
 
   useEffect(() => {
     async function load() {
       const supabase = createClient()
-      const { data, error } = await supabase
-        .from('personas_vehiculos')
-        .select('*')
-        .eq('persona_id', personaId)
-        .eq('activo', true)
-        .order('created_at', { ascending: false })
+      const [vehiculosRes, tiposRes, companiasRes] = await Promise.all([
+        supabase
+          .from('personas_vehiculos')
+          .select('*')
+          .eq('persona_id', personaId)
+          .eq('activo', true)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('catalogo_tipos_vehiculo')
+          .select('slug, nombre')
+          .eq('activo', true)
+          .order('orden'),
+        supabase
+          .from('catalogo_companias_seguro')
+          .select('slug, nombre')
+          .eq('activo', true)
+          .order('nombre'),
+      ])
 
-      if (error) {
-        toast.error(`Error cargando vehículos: ${error.message}`)
-      } else if (data) {
-        setVehiculos(data)
+      if (vehiculosRes.error) {
+        toast.error(`Error cargando vehículos: ${vehiculosRes.error.message}`)
+      } else {
+        setVehiculos(vehiculosRes.data ?? [])
       }
+      setTiposVehiculo(tiposRes.data ?? [])
+      setCompaniasSeguro(companiasRes.data ?? [])
       setLoaded(true)
     }
     load()
   }, [personaId])
 
   async function saveVehiculo() {
-    if (!form.marca || !form.modelo) {
-      toast.error('Marca y modelo son obligatorios')
+    if (!form.marca || !form.modelo || !form.patente) {
+      toast.error('Marca, modelo y patente son obligatorios')
       return
     }
     setSaving(true)
@@ -120,16 +158,26 @@ export function SeccionVehiculos({ personaId, tenantId }: SeccionVehiculosProps)
       .insert({
         tenant_id: tenantId,
         persona_id: personaId,
+        tipo_vehiculo_slug: form.tipo_vehiculo_slug || null,
         marca: form.marca,
         modelo: form.modelo,
         año: form.año ? parseInt(form.año) : null,
-        patente: form.patente || null,
+        patente: form.patente,
+        pais_patente: form.pais_patente || 'AR',
         color: form.color || null,
-        tipo_vehiculo: form.tipo_vehiculo || null,
-        compania_seguro: form.compania_seguro || null,
-        numero_poliza: form.numero_poliza || null,
-        vencimiento_seguro: form.vencimiento_seguro || null,
-        vencimiento_vtv: form.vencimiento_vtv || null,
+        combustible: form.combustible || null,
+        seguro_compania_slug: form.seguro_compania_slug || null,
+        seguro_compania_otra: form.seguro_compania_otra || null,
+        seguro_numero_poliza: form.seguro_numero_poliza || null,
+        seguro_tipo_cobertura: form.seguro_tipo_cobertura || null,
+        seguro_vigencia_desde: form.seguro_vigencia_desde || null,
+        seguro_vigencia_hasta: form.seguro_vigencia_hasta || null,
+        tipo_titularidad: form.tipo_titularidad || null,
+        titular_nombre: form.titular_nombre || null,
+        titular_dni: form.titular_dni || null,
+        permite_ingreso_club: form.permite_ingreso_club,
+        lugar_estacionamiento_asignado: form.lugar_estacionamiento_asignado || null,
+        tag_rfid_estacionamiento: form.tag_rfid_estacionamiento || null,
         notas: form.notas || null,
         activo: true,
       })
@@ -141,13 +189,9 @@ export function SeccionVehiculos({ personaId, tenantId }: SeccionVehiculosProps)
       toast.error(error.message)
     } else {
       setVehiculos((prev) => [data, ...prev])
-      setForm({
-        marca: '', modelo: '', año: '', patente: '', color: '',
-        tipo_vehiculo: '', compania_seguro: '', numero_poliza: '',
-        vencimiento_seguro: '', vencimiento_vtv: '', notas: '',
-      })
+      setForm(EMPTY_FORM)
       setShowForm(false)
-      toast.success('Vehículo agregado')
+      toast.success('Vehículo registrado')
     }
   }
 
@@ -166,8 +210,19 @@ export function SeccionVehiculos({ personaId, tenantId }: SeccionVehiculosProps)
     }
   }
 
+  function getTipoLabel(slug: string | null) {
+    if (!slug) return null
+    return tiposVehiculo.find((t) => t.slug === slug)?.nombre ?? slug
+  }
+
+  function getCompaniaLabel(slug: string | null, otra: string | null) {
+    if (otra) return otra
+    if (!slug) return null
+    return companiasSeguro.find((c) => c.slug === slug)?.nombre ?? slug
+  }
+
   if (!loaded) {
-    return <Card><CardContent className="py-8 text-center text-muted-foreground">Cargando vehículos...</CardContent></Card>
+    return <Card><CardContent className="py-8 text-center text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin inline mr-2" />Cargando vehículos...</CardContent></Card>
   }
 
   return (
@@ -185,65 +240,142 @@ export function SeccionVehiculos({ personaId, tenantId }: SeccionVehiculosProps)
       <CardContent className="space-y-4">
         {/* Formulario nuevo vehículo */}
         {showForm && (
-          <div className="rounded-md border p-4 space-y-3 bg-muted/20">
+          <div className="rounded-md border p-4 space-y-4 bg-muted/20">
+            {/* Datos del vehículo */}
+            <p className="text-sm font-medium text-muted-foreground">Datos del vehículo</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-sm text-muted-foreground">Marca *</Label>
-                <Input value={form.marca} onChange={(e) => setForm((p) => ({ ...p, marca: e.target.value }))} placeholder="Ej: Toyota" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-sm text-muted-foreground">Modelo *</Label>
-                <Input value={form.modelo} onChange={(e) => setForm((p) => ({ ...p, modelo: e.target.value }))} placeholder="Ej: Corolla" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-sm text-muted-foreground">Año</Label>
-                <Input type="number" value={form.año} onChange={(e) => setForm((p) => ({ ...p, año: e.target.value }))} placeholder="Ej: 2022" />
-              </div>
-              <div className="space-y-1.5">
                 <Label className="text-sm text-muted-foreground">Tipo</Label>
-                <Select value={form.tipo_vehiculo} onValueChange={(v) => setForm((p) => ({ ...p, tipo_vehiculo: v ?? '' }))}>
+                <Select value={form.tipo_vehiculo_slug} onValueChange={(v) => setForm((p) => ({ ...p, tipo_vehiculo_slug: v ?? '' }))}>
                   <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                   <SelectContent>
-                    {TIPOS_VEHICULO.map((t) => (
-                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                    {tiposVehiculo.map((t) => (
+                      <SelectItem key={t.slug} value={t.slug}>{t.nombre}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-sm text-muted-foreground">Patente</Label>
-                <Input value={form.patente} onChange={(e) => setForm((p) => ({ ...p, patente: e.target.value }))} placeholder="Ej: AB123CD" />
+                <Label className="text-sm text-muted-foreground">Marca *</Label>
+                <Input value={form.marca} onChange={(e) => setForm((p) => ({ ...p, marca: e.target.value }))} placeholder="Toyota" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm text-muted-foreground">Modelo *</Label>
+                <Input value={form.modelo} onChange={(e) => setForm((p) => ({ ...p, modelo: e.target.value }))} placeholder="Corolla" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm text-muted-foreground">Año</Label>
+                <Input type="number" value={form.año} onChange={(e) => setForm((p) => ({ ...p, año: e.target.value }))} placeholder="2022" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-sm text-muted-foreground">Patente *</Label>
+                <Input value={form.patente} onChange={(e) => setForm((p) => ({ ...p, patente: e.target.value }))} placeholder="AB123CD" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm text-muted-foreground">País patente</Label>
+                <Input value={form.pais_patente} onChange={(e) => setForm((p) => ({ ...p, pais_patente: e.target.value }))} placeholder="AR" />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-sm text-muted-foreground">Color</Label>
-                <Input value={form.color} onChange={(e) => setForm((p) => ({ ...p, color: e.target.value }))} placeholder="Ej: Blanco" />
+                <Input value={form.color} onChange={(e) => setForm((p) => ({ ...p, color: e.target.value }))} placeholder="Blanco" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-sm text-muted-foreground">Compañía de seguro</Label>
-                <Input value={form.compania_seguro} onChange={(e) => setForm((p) => ({ ...p, compania_seguro: e.target.value }))} placeholder="Ej: La Segunda" />
+                <Label className="text-sm text-muted-foreground">Combustible</Label>
+                <Input value={form.combustible} onChange={(e) => setForm((p) => ({ ...p, combustible: e.target.value }))} placeholder="Nafta" />
               </div>
             </div>
+
+            {/* Seguro */}
+            <p className="text-sm font-medium text-muted-foreground pt-2">Seguro</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="space-y-1.5">
+                <Label className="text-sm text-muted-foreground">Compañía</Label>
+                <Select value={form.seguro_compania_slug} onValueChange={(v) => setForm((p) => ({ ...p, seguro_compania_slug: v ?? '', seguro_compania_otra: '' }))}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__otra">Otra (especificar)</SelectItem>
+                    {companiasSeguro.map((c) => (
+                      <SelectItem key={c.slug} value={c.slug}>{c.nombre}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {form.seguro_compania_slug === '__otra' && (
+                <div className="space-y-1.5">
+                  <Label className="text-sm text-muted-foreground">Nombre compañía</Label>
+                  <Input value={form.seguro_compania_otra} onChange={(e) => setForm((p) => ({ ...p, seguro_compania_otra: e.target.value }))} placeholder="Nombre" />
+                </div>
+              )}
+              <div className="space-y-1.5">
                 <Label className="text-sm text-muted-foreground">N° póliza</Label>
-                <Input value={form.numero_poliza} onChange={(e) => setForm((p) => ({ ...p, numero_poliza: e.target.value }))} />
+                <Input value={form.seguro_numero_poliza} onChange={(e) => setForm((p) => ({ ...p, seguro_numero_poliza: e.target.value }))} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-sm text-muted-foreground">Vencimiento seguro</Label>
-                <Input type="date" value={form.vencimiento_seguro} onChange={(e) => setForm((p) => ({ ...p, vencimiento_seguro: e.target.value }))} />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-sm text-muted-foreground">Vencimiento VTV</Label>
-                <Input type="date" value={form.vencimiento_vtv} onChange={(e) => setForm((p) => ({ ...p, vencimiento_vtv: e.target.value }))} />
+                <Label className="text-sm text-muted-foreground">Tipo cobertura</Label>
+                <Input value={form.seguro_tipo_cobertura} onChange={(e) => setForm((p) => ({ ...p, seguro_tipo_cobertura: e.target.value }))} placeholder="Terceros completo" />
               </div>
             </div>
-            <div className="space-y-1.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-sm text-muted-foreground">Vigencia desde</Label>
+                <Input type="date" value={form.seguro_vigencia_desde} onChange={(e) => setForm((p) => ({ ...p, seguro_vigencia_desde: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm text-muted-foreground">Vigencia hasta</Label>
+                <Input type="date" value={form.seguro_vigencia_hasta} onChange={(e) => setForm((p) => ({ ...p, seguro_vigencia_hasta: e.target.value }))} />
+              </div>
+            </div>
+
+            {/* Titularidad */}
+            <p className="text-sm font-medium text-muted-foreground pt-2">Titularidad</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-sm text-muted-foreground">Tipo</Label>
+                <Select value={form.tipo_titularidad} onValueChange={(v) => setForm((p) => ({ ...p, tipo_titularidad: v ?? '' }))}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="titular">Titular</SelectItem>
+                    <SelectItem value="autorizado">Autorizado</SelectItem>
+                    <SelectItem value="familiar">Familiar</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm text-muted-foreground">Titular nombre</Label>
+                <Input value={form.titular_nombre} onChange={(e) => setForm((p) => ({ ...p, titular_nombre: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm text-muted-foreground">Titular DNI</Label>
+                <Input value={form.titular_dni} onChange={(e) => setForm((p) => ({ ...p, titular_dni: e.target.value }))} />
+              </div>
+            </div>
+
+            {/* Acceso club */}
+            <p className="text-sm font-medium text-muted-foreground pt-2">Acceso al club</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+              <div className="flex items-center gap-2">
+                <Switch checked={form.permite_ingreso_club} onCheckedChange={(v) => setForm((p) => ({ ...p, permite_ingreso_club: v }))} />
+                <Label className="text-sm">Permite ingreso al club</Label>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm text-muted-foreground">Estacionamiento</Label>
+                <Input value={form.lugar_estacionamiento_asignado} onChange={(e) => setForm((p) => ({ ...p, lugar_estacionamiento_asignado: e.target.value }))} placeholder="Ej: A-15" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm text-muted-foreground">Tag RFID</Label>
+                <Input value={form.tag_rfid_estacionamiento} onChange={(e) => setForm((p) => ({ ...p, tag_rfid_estacionamiento: e.target.value }))} />
+              </div>
+            </div>
+
+            {/* Notas */}
+            <div className="space-y-1.5 pt-2">
               <Label className="text-sm text-muted-foreground">Notas</Label>
-              <Input value={form.notas} onChange={(e) => setForm((p) => ({ ...p, notas: e.target.value }))} placeholder="Opcional" />
+              <Textarea value={form.notas} onChange={(e) => setForm((p) => ({ ...p, notas: e.target.value }))} rows={2} placeholder="Opcional" />
             </div>
-            <div className="flex gap-2">
+
+            <div className="flex gap-2 pt-1">
               <Button size="sm" onClick={saveVehiculo} disabled={saving}>
                 {saving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Plus className="mr-1.5 h-3.5 w-3.5" />}
                 Guardar
@@ -267,9 +399,7 @@ export function SeccionVehiculos({ personaId, tenantId }: SeccionVehiculosProps)
                           {v.marca} {v.modelo}
                           {v.año && <span className="text-muted-foreground font-normal"> ({v.año})</span>}
                         </p>
-                        {v.patente && (
-                          <p className="text-xs text-muted-foreground font-mono">{v.patente}</p>
-                        )}
+                        <p className="text-xs text-muted-foreground font-mono">{v.patente}</p>
                       </div>
                     </div>
                     <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => deleteVehiculo(v.id)}>
@@ -278,18 +408,29 @@ export function SeccionVehiculos({ personaId, tenantId }: SeccionVehiculosProps)
                   </div>
 
                   <div className="flex flex-wrap gap-1.5 text-xs text-muted-foreground">
-                    {v.tipo_vehiculo && (
-                      <span className="capitalize">{TIPOS_VEHICULO.find((t) => t.value === v.tipo_vehiculo)?.label ?? v.tipo_vehiculo}</span>
-                    )}
+                    {getTipoLabel(v.tipo_vehiculo_slug) && <span>{getTipoLabel(v.tipo_vehiculo_slug)}</span>}
                     {v.color && <span>· {v.color}</span>}
-                    {v.compania_seguro && <span>· {v.compania_seguro}</span>}
-                    {v.numero_poliza && <span>· Póliza: {v.numero_poliza}</span>}
+                    {v.combustible && <span>· {v.combustible}</span>}
+                    {getCompaniaLabel(v.seguro_compania_slug, v.seguro_compania_otra) && (
+                      <span>· Seguro: {getCompaniaLabel(v.seguro_compania_slug, v.seguro_compania_otra)}</span>
+                    )}
                   </div>
 
                   <div className="flex flex-wrap gap-1.5">
-                    <BadgeVencimiento fecha={v.vencimiento_seguro} label="Seguro" />
-                    <BadgeVencimiento fecha={v.vencimiento_vtv} label="VTV" />
+                    <BadgeSeguro desde={v.seguro_vigencia_desde} hasta={v.seguro_vigencia_hasta} />
+                    {v.permite_ingreso_club && (
+                      <Badge variant="outline" className="border-blue-500 text-blue-600 dark:text-blue-400">Ingreso club</Badge>
+                    )}
+                    {v.lugar_estacionamiento_asignado && (
+                      <Badge variant="secondary" className="text-xs">Est: {v.lugar_estacionamiento_asignado}</Badge>
+                    )}
                   </div>
+
+                  {v.tipo_titularidad && v.tipo_titularidad !== 'titular' && (
+                    <p className="text-xs text-muted-foreground">
+                      {v.tipo_titularidad === 'autorizado' ? 'Autorizado' : 'Familiar'}{v.titular_nombre ? ` — ${v.titular_nombre}` : ''}
+                    </p>
+                  )}
 
                   {v.notas && (
                     <p className="text-xs text-muted-foreground italic">{v.notas}</p>

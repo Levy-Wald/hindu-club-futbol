@@ -70,10 +70,14 @@
 
 ### Sprint 4 — Vehículos (COMPLETADO)
 
-- [x] Migration `personas_vehiculos`: marca, modelo, año, patente, color, tipo, seguro, VTV
-- [x] RLS tenant isolation
-- [x] UI CRUD completa en ficha persona (tab Documentos)
-- [x] Badges de estado de vencimiento (vigente/por vencer/vencido) para seguro y VTV
+- [x] Tabla `personas_vehiculos` ya existía en DB (30 columnas, schema completo con catálogos)
+- [x] RLS ya existente (4 policies SELECT/INSERT/UPDATE/DELETE)
+- [x] UI CRUD completa en ficha persona (tab Documentos) — usa schema real:
+  - Selects desde `catalogo_tipos_vehiculo` y `catalogo_companias_seguro`
+  - Seguro con vigencia_desde/hasta, tipo cobertura, compañía por catálogo
+  - Titularidad (titular/autorizado/familiar)
+  - Acceso club (permite ingreso, estacionamiento, tag RFID)
+- [x] Badge de estado de vigencia del seguro (vigente/por vencer/vencido)
 
 ### Sprint 4 — Categoría automática por edad (COMPLETADO)
 
