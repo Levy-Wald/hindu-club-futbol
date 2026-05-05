@@ -11,6 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Users } from 'lucide-react'
+import { useGenericColumnConfig } from '@/components/ui/column-config-generic'
 
 interface Equipo {
   id: string
@@ -26,7 +27,18 @@ interface EquiposTableProps {
   equipos: Equipo[]
 }
 
+const EQUIPOS_COLUMNS = [
+  { id: 'categoria', label: 'Categoría' },
+  { id: 'disciplina', label: 'Disciplina' },
+  { id: 'modalidad', label: 'Modalidad' },
+  { id: 'miembros', label: 'Miembros' },
+  { id: 'estado', label: 'Estado' },
+]
+
+export const EQUIPOS_COLUMN_DEFS = EQUIPOS_COLUMNS
+
 export function EquiposTable({ equipos }: EquiposTableProps) {
+  const { isVisible } = useGenericColumnConfig('equipos-columns', EQUIPOS_COLUMNS)
   return (
     <div className="space-y-4">
       {/* Mobile cards */}
@@ -68,11 +80,11 @@ export function EquiposTable({ equipos }: EquiposTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
-              <TableHead>Categoria</TableHead>
-              <TableHead>Disciplina</TableHead>
-              <TableHead>Modalidad</TableHead>
-              <TableHead className="text-center">Miembros</TableHead>
-              <TableHead>Estado</TableHead>
+              {isVisible('categoria') && <TableHead>Categoría</TableHead>}
+              {isVisible('disciplina') && <TableHead>Disciplina</TableHead>}
+              {isVisible('modalidad') && <TableHead>Modalidad</TableHead>}
+              {isVisible('miembros') && <TableHead className="text-center">Miembros</TableHead>}
+              {isVisible('estado') && <TableHead>Estado</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -90,20 +102,24 @@ export function EquiposTable({ equipos }: EquiposTableProps) {
                       {e.nombre}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{e.categoria_nombre}</TableCell>
-                  <TableCell className="text-muted-foreground">{e.disciplina_slug}</TableCell>
-                  <TableCell className="text-muted-foreground">{e.modalidad ?? '—'}</TableCell>
-                  <TableCell className="text-center">
-                    <span className="flex items-center justify-center gap-1">
-                      <Users className="h-3.5 w-3.5" />
-                      {e.miembros_count}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={e.activo ? 'default' : 'secondary'}>
-                      {e.activo ? 'activo' : 'inactivo'}
-                    </Badge>
-                  </TableCell>
+                  {isVisible('categoria') && <TableCell className="text-muted-foreground">{e.categoria_nombre}</TableCell>}
+                  {isVisible('disciplina') && <TableCell className="text-muted-foreground">{e.disciplina_slug}</TableCell>}
+                  {isVisible('modalidad') && <TableCell className="text-muted-foreground">{e.modalidad ?? '—'}</TableCell>}
+                  {isVisible('miembros') && (
+                    <TableCell className="text-center">
+                      <span className="flex items-center justify-center gap-1">
+                        <Users className="h-3.5 w-3.5" />
+                        {e.miembros_count}
+                      </span>
+                    </TableCell>
+                  )}
+                  {isVisible('estado') && (
+                    <TableCell>
+                      <Badge variant={e.activo ? 'default' : 'secondary'}>
+                        {e.activo ? 'activo' : 'inactivo'}
+                      </Badge>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}

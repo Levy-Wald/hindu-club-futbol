@@ -20,11 +20,20 @@ import {
 import { MoreHorizontal, Eye, Power } from 'lucide-react'
 import { toggleActivoPadron } from '../_actions'
 import { toast } from 'sonner'
+import { useGenericColumnConfig } from '@/components/ui/column-config-generic'
 import type { PadronConConteo } from '../_lib/queries'
 
 interface PadronesTableProps {
   padrones: PadronConConteo[]
 }
+
+const PADRONES_COLUMNS = [
+  { id: 'tipo', label: 'Tipo' },
+  { id: 'miembros', label: 'Miembros' },
+  { id: 'estado', label: 'Estado' },
+]
+
+export const PADRONES_COLUMN_DEFS = PADRONES_COLUMNS
 
 const TIPO_LABELS: Record<string, string> = {
   global: 'Global',
@@ -36,6 +45,8 @@ const TIPO_LABELS: Record<string, string> = {
 }
 
 export function PadronesTable({ padrones }: PadronesTableProps) {
+  const { isVisible } = useGenericColumnConfig('padrones-columns', PADRONES_COLUMNS)
+
   async function handleToggle(id: string) {
     const result = await toggleActivoPadron(id)
     if (result.ok) toast.success(result.message)
@@ -77,9 +88,9 @@ export function PadronesTable({ padrones }: PadronesTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead className="text-center">Miembros</TableHead>
-              <TableHead>Estado</TableHead>
+              {isVisible('tipo') && <TableHead>Tipo</TableHead>}
+              {isVisible('miembros') && <TableHead className="text-center">Miembros</TableHead>}
+              {isVisible('estado') && <TableHead>Estado</TableHead>}
               <TableHead className="w-12" />
             </TableRow>
           </TableHeader>
@@ -98,15 +109,19 @@ export function PadronesTable({ padrones }: PadronesTableProps) {
                       {p.nombre}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {p.tipo ? TIPO_LABELS[p.tipo] ?? p.tipo : '—'}
-                  </TableCell>
-                  <TableCell className="text-center">{p.miembros_activos}</TableCell>
-                  <TableCell>
-                    <Badge variant={p.activo ? 'default' : 'secondary'}>
-                      {p.activo ? 'Activo' : 'Inactivo'}
-                    </Badge>
-                  </TableCell>
+                  {isVisible('tipo') && (
+                    <TableCell className="text-muted-foreground">
+                      {p.tipo ? TIPO_LABELS[p.tipo] ?? p.tipo : '—'}
+                    </TableCell>
+                  )}
+                  {isVisible('miembros') && <TableCell className="text-center">{p.miembros_activos}</TableCell>}
+                  {isVisible('estado') && (
+                    <TableCell>
+                      <Badge variant={p.activo ? 'default' : 'secondary'}>
+                        {p.activo ? 'Activo' : 'Inactivo'}
+                      </Badge>
+                    </TableCell>
+                  )}
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8" />}>

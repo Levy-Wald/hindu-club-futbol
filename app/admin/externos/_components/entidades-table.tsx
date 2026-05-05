@@ -14,6 +14,7 @@ import {
 import { Power } from 'lucide-react'
 import { toast } from 'sonner'
 import { toggleActivoEntidad } from '../_actions'
+import { useGenericColumnConfig } from '@/components/ui/column-config-generic'
 
 interface Entidad {
   id: string
@@ -28,7 +29,17 @@ interface EntidadesTableProps {
   entidades: Entidad[]
 }
 
+const ENTIDADES_COLUMNS = [
+  { id: 'tipo', label: 'Tipo' },
+  { id: 'telefono', label: 'Teléfono' },
+  { id: 'email', label: 'Email' },
+  { id: 'estado', label: 'Estado' },
+]
+
+export const ENTIDADES_COLUMN_DEFS = ENTIDADES_COLUMNS
+
 export function EntidadesTable({ entidades }: EntidadesTableProps) {
+  const { isVisible } = useGenericColumnConfig('entidades-columns', ENTIDADES_COLUMNS)
   const [isPending, startTransition] = useTransition()
 
   function handleToggle(id: string) {
@@ -87,10 +98,10 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Telefono</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Estado</TableHead>
+              {isVisible('tipo') && <TableHead>Tipo</TableHead>}
+              {isVisible('telefono') && <TableHead>Teléfono</TableHead>}
+              {isVisible('email') && <TableHead>Email</TableHead>}
+              {isVisible('estado') && <TableHead>Estado</TableHead>}
               <TableHead>Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -105,16 +116,20 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
               entidades.map((e) => (
                 <TableRow key={e.id} className={!e.activo ? 'opacity-50' : ''}>
                   <TableCell className="font-medium">{e.nombre}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{e.tipo}</Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{e.telefono ?? '—'}</TableCell>
-                  <TableCell className="text-muted-foreground">{e.email ?? '—'}</TableCell>
-                  <TableCell>
-                    <Badge variant={e.activo ? 'default' : 'secondary'}>
-                      {e.activo ? 'activo' : 'inactivo'}
-                    </Badge>
-                  </TableCell>
+                  {isVisible('tipo') && (
+                    <TableCell>
+                      <Badge variant="outline">{e.tipo}</Badge>
+                    </TableCell>
+                  )}
+                  {isVisible('telefono') && <TableCell className="text-muted-foreground">{e.telefono ?? '—'}</TableCell>}
+                  {isVisible('email') && <TableCell className="text-muted-foreground">{e.email ?? '—'}</TableCell>}
+                  {isVisible('estado') && (
+                    <TableCell>
+                      <Badge variant={e.activo ? 'default' : 'secondary'}>
+                        {e.activo ? 'activo' : 'inactivo'}
+                      </Badge>
+                    </TableCell>
+                  )}
                   <TableCell>
                     <Button
                       size="icon"

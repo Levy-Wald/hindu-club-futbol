@@ -45,8 +45,8 @@
 - [x] Exportar personas bulk (filtros actuales + selección de campos, CSV/JSON)
 - [x] Exportar padrones (CSV con miembros activos)
 - [x] Exportar equipos (CSV con datos de equipos)
-- [ ] Exportar externos (cuando se implemente la sección)
-- [ ] Permisos granulares de exportación (Sprint 4+)
+- [x] Exportar externos (Sprint 5 — ExportEntidadesButton)
+- [ ] Permisos granulares de exportación (Sprint 6+)
 
 ### Sprint 3 — Documentacion y estandares (COMPLETADO)
 
@@ -66,7 +66,7 @@
 - [x] En tabla de personas: usuario elige qué columnas ver (documento, email, teléfono, roles, estado)
 - [x] Guardar preferencia de vista por usuario (localStorage)
 - [x] Popover con checkboxes para toggle de columnas
-- [ ] Aplicar mismo patrón en padrones, equipos, externos (Sprint 5+)
+- [x] Aplicar mismo patrón en padrones, equipos, externos (Sprint 5)
 
 ### Sprint 4 — Vehículos (COMPLETADO)
 
@@ -84,4 +84,13 @@
 - [x] Query `fetchCategoriasEquipo` con `edad_min` / `edad_max`
 - [x] Display "Categoría sugerida por edad" en sección deportivo
 - [x] Matching basado en edad de la persona vs rangos de categorías activas
-- [ ] Auto-asignación a equipo por categoría (Sprint 5+ — requiere reglas de negocio)
+- [ ] Auto-asignación a equipo por categoría (futuro — requiere reglas de negocio, solo sugerencia por ahora)
+
+### Sprint 5 — Columnas configurables global + Export externos (COMPLETADO)
+
+- [x] Componente genérico `GenericColumnConfig` + hook `useGenericColumnConfig` (reutilizable)
+- [x] Columnas configurables en equipos (categoría, disciplina, modalidad, miembros, estado)
+- [x] Columnas configurables en padrones (tipo, miembros, estado)
+- [x] Columnas configurables en externos (tipo, teléfono, email, estado)
+- [x] Export entidades externas a CSV (ExportEntidadesButton)
+- [x] Patrón consistente: botón engranaje + popover en header de todas las tablas

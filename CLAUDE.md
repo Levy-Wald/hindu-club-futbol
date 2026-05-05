@@ -312,5 +312,5 @@ Esto garantiza que la documentacion siempre refleja el estado real del proyecto.
 ---
 
 **Ultima actualizacion:** 2026-05-05
-**Version:** Sprint 4
+**Version:** Sprint 5
 **Owner:** Yair Levy Wald
