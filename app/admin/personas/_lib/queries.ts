@@ -85,6 +85,11 @@ export async function fetchPersonaById(id: string) {
       ),
       personas_padrones!personas_padrones_persona_id_fkey(id, padron_id, estado_padron_id, tipo_socio_id, numero_socio, fecha_alta, activo,
         padron:padrones(id, nombre, slug)
+      ),
+      personas_equipos!personas_equipos_persona_id_fkey(id, equipo_id, rol_equipo_slug, dorsal, posicion, fecha_inicio, activo,
+        equipo:equipos!equipo_id(id, nombre, disciplina_slug, modalidad,
+          categorias_equipo!categoria_id(id, nombre_display)
+        )
       )
     `)
     .eq('id', id)

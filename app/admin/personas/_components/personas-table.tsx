@@ -153,7 +153,7 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
               <TableHead>{sortButton('apellido', 'Nombre')}</TableHead>
               <TableHead>{sortButton('numero_documento', 'Documento')}</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Atributos</TableHead>
+              <TableHead>Roles</TableHead>
               <TableHead>{sortButton('estado', 'Estado')}</TableHead>
               <TableHead className="w-12" />
             </TableRow>

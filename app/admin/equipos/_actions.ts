@@ -138,6 +138,51 @@ export async function quitarMiembro(personaEquipoId: string, equipoId: string) {
   return formatResult(true, 'Miembro desvinculado correctamente.')
 }
 
+// --- CREAR HORARIO ---
+
+export async function crearHorario(input: {
+  equipo_id: string
+  dia_semana: number
+  hora_inicio: string
+  hora_fin: string
+  tipo_actividad: string
+}) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('equipos_horarios')
+    .insert({
+      tenant_id: TENANT_ID,
+      equipo_id: input.equipo_id,
+      dia_semana: input.dia_semana,
+      hora_inicio: input.hora_inicio,
+      hora_fin: input.hora_fin,
+      tipo_actividad: input.tipo_actividad,
+    })
+
+  if (error) return formatResult(false, error.message)
+
+  revalidatePath(`/admin/equipos/${input.equipo_id}`)
+  return formatResult(true, 'Horario creado')
+}
+
+// --- ELIMINAR HORARIO ---
+
+export async function eliminarHorario(horarioId: string, equipoId: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('equipos_horarios')
+    .delete()
+    .eq('id', horarioId)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return formatResult(false, error.message)
+
+  revalidatePath(`/admin/equipos/${equipoId}`)
+  return formatResult(true, 'Horario eliminado')
+}
+
 // --- BUSCAR PERSONAS ---
 
 export async function buscarPersonas(query: string) {

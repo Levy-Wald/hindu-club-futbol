@@ -1,6 +1,7 @@
 import { fetchEquipos, fetchCategoriasEquipo } from './_lib/queries'
 import { EquiposTable } from './_components/equipos-table'
 import { CrearEquipoDialog } from './_components/crear-equipo-dialog'
+import { ExportEquiposButton } from './_components/export-equipos-button'
 
 export default async function EquiposPage() {
   const [equipos, categorias] = await Promise.all([
@@ -15,7 +16,10 @@ export default async function EquiposPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold">Equipos</h1>
-        <CrearEquipoDialog categorias={categorias} disciplinas={disciplinas} />
+        <div className="flex items-center gap-2">
+          <ExportEquiposButton equipos={equipos} />
+          <CrearEquipoDialog categorias={categorias} disciplinas={disciplinas} />
+        </div>
       </div>
 
       <EquiposTable equipos={equipos} />

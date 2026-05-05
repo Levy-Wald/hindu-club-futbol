@@ -20,6 +20,7 @@ import { SeccionNotas } from './secciones/notas'
 import { SeccionSalud } from './secciones/salud'
 import { SeccionFichaTotal } from './secciones/ficha-total'
 import { SeccionDocumentos } from './secciones/documentos'
+import { SeccionDeporteEquipos } from './secciones/deporte-equipos'
 import { TabAtributos } from './tab-atributos'
 import { TabVinculos } from './tab-vinculos'
 import { TabPadrones } from './tab-padrones'
@@ -103,7 +104,7 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
 
   return (
     <>
-      <Tabs defaultValue="identidad">
+      <Tabs defaultValue="personal">
         {/* ACTION BAR — sticky on mobile for easy access */}
         <div className="sticky top-[57px] z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-4 px-4 py-2 border-b sm:relative sm:top-auto sm:z-auto sm:bg-transparent sm:backdrop-blur-none sm:mx-0 sm:px-0 sm:py-0 sm:border-b-0 mb-3 sm:mb-0">
           <div className="flex items-center gap-2 justify-end">
@@ -118,20 +119,15 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
           </div>
         </div>
 
-        {/* TABS — horizontally scrollable on mobile */}
+        {/* TABS — horizontally scrollable on mobile, grouped */}
         <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
           <TabsList className="inline-flex w-max sm:flex-wrap sm:w-auto h-auto gap-1">
-            <TabsTrigger value="identidad">Identidad</TabsTrigger>
-            <TabsTrigger value="contacto">Contacto</TabsTrigger>
-            <TabsTrigger value="direccion">Dirección</TabsTrigger>
-            <TabsTrigger value="fisico">Físico</TabsTrigger>
-            <TabsTrigger value="deporte">Deporte</TabsTrigger>
+            <TabsTrigger value="personal">Personal</TabsTrigger>
+            <TabsTrigger value="deportivo">Deportivo</TabsTrigger>
             <TabsTrigger value="salud">Salud</TabsTrigger>
             <TabsTrigger value="profesional">Profesional</TabsTrigger>
-            <TabsTrigger value="educacion">Educación</TabsTrigger>
-            <TabsTrigger value="membresia">Membresía</TabsTrigger>
+            <TabsTrigger value="club">Club</TabsTrigger>
             <TabsTrigger value="documentos">Documentos</TabsTrigger>
-            <TabsTrigger value="notas">Notas</TabsTrigger>
             <TabsTrigger value="roles">
               Roles
               {atributosActivos > 0 && (
@@ -146,39 +142,43 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
           </TabsList>
         </div>
 
-        {/* DATA SECTIONS — all share form state */}
-        <TabsContent value="identidad" className="mt-4">
+        {/* PERSONAL: identidad + contacto + dirección */}
+        <TabsContent value="personal" className="mt-4 space-y-4">
           <SeccionIdentidad form={form} update={update} s={s} />
-        </TabsContent>
-        <TabsContent value="contacto" className="mt-4">
           <SeccionContacto form={form} update={update} s={s} />
-        </TabsContent>
-        <TabsContent value="direccion" className="mt-4">
           <SeccionDireccion form={form} update={update} s={s} />
         </TabsContent>
-        <TabsContent value="fisico" className="mt-4">
+
+        {/* DEPORTIVO: equipos + físico + actividad deportiva */}
+        <TabsContent value="deportivo" className="mt-4 space-y-4">
+          <SeccionDeporteEquipos
+            personaEquipos={(persona.personas_equipos ?? []) as never[]}
+            fechaNacimiento={persona.fecha_nacimiento as string | null}
+          />
           <SeccionDeporteFisico form={form} update={update} s={s} />
-        </TabsContent>
-        <TabsContent value="deporte" className="mt-4">
           <SeccionDeporteActividad form={form} update={update} s={s} />
         </TabsContent>
+
+        {/* SALUD: datos médicos + obra social + lesiones + rehabilitaciones */}
         <TabsContent value="salud" className="mt-4">
           <SeccionSalud personaId={persona.id as string} tenantId={persona.tenant_id as string} />
         </TabsContent>
-        <TabsContent value="profesional" className="mt-4">
+
+        {/* PROFESIONAL: profesional + educación */}
+        <TabsContent value="profesional" className="mt-4 space-y-4">
           <SeccionProfesional form={form} update={update} s={s} />
-        </TabsContent>
-        <TabsContent value="educacion" className="mt-4">
           <SeccionEducacion form={form} update={update} s={s} />
         </TabsContent>
-        <TabsContent value="membresia" className="mt-4">
+
+        {/* CLUB: membresía + notas */}
+        <TabsContent value="club" className="mt-4 space-y-4">
           <SeccionMembresia form={form} update={update} s={s} />
+          <SeccionNotas form={form} update={update} s={s} />
         </TabsContent>
+
+        {/* DOCUMENTOS: fotos + identidad + médicos */}
         <TabsContent value="documentos" className="mt-4">
           <SeccionDocumentos personaId={persona.id as string} tenantId={persona.tenant_id as string} fotoPerfilUrl={(persona.foto_perfil_url as string) || undefined} />
-        </TabsContent>
-        <TabsContent value="notas" className="mt-4">
-          <SeccionNotas form={form} update={update} s={s} />
         </TabsContent>
 
         {/* RELATIONSHIP TABS — independent state */}

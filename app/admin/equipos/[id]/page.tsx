@@ -4,10 +4,10 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ArrowLeft, Calendar, Info, Shield, Users } from 'lucide-react'
-import { fetchEquipoDetalle, fetchRolesEquipo } from '../_lib/queries'
+import { fetchEquipoDetalle, fetchRolesEquipo, fetchCategoriasEquipo } from '../_lib/queries'
 import { Plantel } from './_components/plantel'
-
-const DIAS_SEMANA = ['', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo']
+import { EditarEquipoForm } from './_components/editar-equipo-form'
+import { HorariosPanel } from './_components/horarios-panel'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -16,11 +16,12 @@ interface PageProps {
 export default async function EquipoDetallePage({ params }: PageProps) {
   const { id } = await params
 
-  let equipo, roles
+  let equipo, roles, categorias
   try {
-    ;[equipo, roles] = await Promise.all([
+    ;[equipo, roles, categorias] = await Promise.all([
       fetchEquipoDetalle(id),
       fetchRolesEquipo(),
+      fetchCategoriasEquipo(),
     ])
   } catch {
     notFound()
@@ -49,7 +50,17 @@ export default async function EquipoDetallePage({ params }: PageProps) {
     } | null
   }>
 
-  const rolesJugador = roles.filter((r) => r.categoria === 'jugador')
+  const horarios = equipo.horarios as unknown as Array<{
+    id: string
+    dia_semana: number
+    hora_inicio: string
+    hora_fin: string
+    tipo_actividad: string
+    activo: boolean
+  }>
+
+  // DB tiene categoria 'deportivo' para jugadores y 'staff' para cuerpo técnico
+  const rolesJugador = roles.filter((r) => r.categoria === 'deportivo')
   const rolesStaff = roles.filter((r) => r.categoria === 'staff')
 
   const miembrosJugadores = miembros.filter((m) =>
@@ -107,21 +118,27 @@ export default async function EquipoDetallePage({ params }: PageProps) {
         {/* Info Tab */}
         <TabsContent value="info">
           <div className="space-y-6 pt-4">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <InfoCard label="Disciplina" value={equipo.disciplina_slug} />
-              <InfoCard label="Modalidad" value={equipo.modalidad ?? 'Sin especificar'} />
-              <InfoCard label="Categoria" value={categoria?.nombre_display ?? 'Sin categoria'} />
-              <InfoCard label="Estado" value={equipo.activo ? 'Activo' : 'Inactivo'} />
-              <InfoCard label="Creado" value={equipo.created_at ? new Date(equipo.created_at).toLocaleDateString('es-AR') : '—'} />
-              <InfoCard label="Actualizado" value={equipo.updated_at ? new Date(equipo.updated_at).toLocaleDateString('es-AR') : '—'} />
-            </div>
+            <EditarEquipoForm
+              equipo={{
+                id: equipo.id,
+                nombre: equipo.nombre,
+                disciplina_slug: equipo.disciplina_slug,
+                modalidad: equipo.modalidad,
+                activo: equipo.activo,
+              }}
+              categorias={categorias.map((c) => ({
+                id: c.id,
+                nombre_display: c.nombre_display,
+                disciplina_slug: c.disciplina_slug,
+              }))}
+            />
 
             <div className="rounded-lg border p-4 space-y-3">
               <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Resumen</h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <StatCard label="Jugadores" value={miembrosJugadores.length} />
                 <StatCard label="Staff" value={miembrosStaff.length} />
-                <StatCard label="Horarios" value={equipo.horarios.length} />
+                <StatCard label="Horarios" value={horarios.length} />
                 <StatCard label="Total miembros" value={miembros.length} />
               </div>
             </div>
@@ -154,35 +171,11 @@ export default async function EquipoDetallePage({ params }: PageProps) {
 
         {/* Horarios Tab */}
         <TabsContent value="horarios">
-          <div className="space-y-3 pt-4">
-            <h2 className="text-lg font-semibold">Horarios</h2>
-            {equipo.horarios.length === 0 ? (
-              <p className="text-center text-muted-foreground py-6">No hay horarios cargados.</p>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {equipo.horarios.map((h) => (
-                  <div key={h.id} className="rounded-lg border p-4 space-y-1">
-                    <p className="font-medium">{DIAS_SEMANA[h.dia_semana ?? 0] ?? `Dia ${h.dia_semana}`}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {h.hora_inicio?.slice(0, 5)} - {h.hora_fin?.slice(0, 5)}
-                    </p>
-                    <Badge variant="outline" className="mt-1">{h.tipo_actividad ?? 'otro'}</Badge>
-                  </div>
-                ))}
-              </div>
-            )}
+          <div className="pt-4">
+            <HorariosPanel equipoId={equipo.id} horarios={horarios} />
           </div>
         </TabsContent>
       </Tabs>
-    </div>
-  )
-}
-
-function InfoCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border p-4">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
-      <p className="mt-1 font-medium capitalize">{value}</p>
     </div>
   )
 }
