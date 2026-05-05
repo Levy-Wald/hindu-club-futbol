@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useMemo, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -19,48 +19,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Plus, Trash2, List, CalendarDays, MapPin } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Plus,
+  Trash2,
+  List,
+  CalendarDays,
+  MapPin,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+} from 'lucide-react'
 import { toast } from 'sonner'
-import { crearHorario, eliminarHorario } from '../../_actions'
+import { crearEvento, eliminarEvento } from '../../_actions'
 
-const DIAS_SEMANA = [
-  { value: '1', label: 'Lunes' },
-  { value: '2', label: 'Martes' },
-  { value: '3', label: 'Miercoles' },
-  { value: '4', label: 'Jueves' },
-  { value: '5', label: 'Viernes' },
-  { value: '6', label: 'Sabado' },
-  { value: '7', label: 'Domingo' },
-]
+// --- Tipos ---
 
-const TIPOS_ACTIVIDAD = [
-  { value: 'entrenamiento', label: 'Entrenamiento' },
-  { value: 'partido_local', label: 'Partido local' },
-  { value: 'partido_visitante', label: 'Partido visitante' },
-  { value: 'amistoso', label: 'Amistoso' },
-  { value: 'torneo', label: 'Torneo' },
-  { value: 'otro', label: 'Otro' },
-]
-
-const RECURRENCIA_OPTIONS = [
-  { value: 'una_vez', label: 'Una vez' },
-  { value: 'semanal', label: 'Semanal' },
-  { value: 'quincenal', label: 'Quincenal' },
-  { value: 'mensual', label: 'Mensual' },
-]
-
-const TIPO_COLORES: Record<string, string> = {
-  entrenamiento: 'bg-blue-500/80 border-blue-600 text-white',
-  partido_local: 'bg-green-500/80 border-green-600 text-white',
-  partido_visitante: 'bg-orange-500/80 border-orange-600 text-white',
-  amistoso: 'bg-purple-500/80 border-purple-600 text-white',
-  torneo: 'bg-red-500/80 border-red-600 text-white',
-  otro: 'bg-gray-500/80 border-gray-600 text-white',
+interface Evento {
+  id: string
+  fecha: string | null
+  dia_semana: number
+  hora_inicio: string
+  hora_fin: string
+  tipo_actividad: string
+  titulo: string | null
+  hora_citacion: string | null
+  descripcion: string | null
+  activo: boolean
+  sede_id: string | null
+  cancha_id: string | null
 }
-
-const HORA_INICIO_CALENDARIO = 7
-const HORA_FIN_CALENDARIO = 22
-const HORAS_TOTAL = HORA_FIN_CALENDARIO - HORA_INICIO_CALENDARIO
 
 interface Sede {
   id: string
@@ -74,30 +64,64 @@ interface Cancha {
   sede_id: string
 }
 
-interface Horario {
-  id: string
-  dia_semana: number
-  hora_inicio: string
-  hora_fin: string
-  tipo_actividad: string
-  activo: boolean
-  sede_id: string | null
-  cancha_id: string | null
-  metadata: Record<string, unknown>
-}
-
-interface HorariosPanelProps {
+interface CalendarioPanelProps {
   equipoId: string
-  horarios: Horario[]
+  eventos: Evento[]
   sedes: Sede[]
   canchas: Cancha[]
 }
 
-type ViewMode = 'lista' | 'calendario'
+// --- Constantes ---
 
-function getDiaNombre(dia: number): string {
-  return DIAS_SEMANA.find((d) => d.value === String(dia))?.label ?? String(dia)
+const TIPOS_ACTIVIDAD = [
+  { value: 'entrenamiento', label: 'Entrenamiento' },
+  { value: 'partido_local', label: 'Partido local' },
+  { value: 'partido_visitante', label: 'Partido visitante' },
+  { value: 'amistoso', label: 'Amistoso' },
+  { value: 'torneo', label: 'Torneo' },
+  { value: 'otro', label: 'Otro' },
+]
+
+const TIPO_COLORES: Record<string, string> = {
+  entrenamiento: 'bg-blue-500/80 border-blue-600 text-white',
+  partido_local: 'bg-green-500/80 border-green-600 text-white',
+  partido_visitante: 'bg-orange-500/80 border-orange-600 text-white',
+  amistoso: 'bg-purple-500/80 border-purple-600 text-white',
+  torneo: 'bg-red-500/80 border-red-600 text-white',
+  otro: 'bg-gray-500/80 border-gray-600 text-white',
 }
+
+const TIPO_BADGE_COLORES: Record<string, string> = {
+  entrenamiento: 'bg-blue-100 text-blue-800 border-blue-200',
+  partido_local: 'bg-green-100 text-green-800 border-green-200',
+  partido_visitante: 'bg-orange-100 text-orange-800 border-orange-200',
+  amistoso: 'bg-purple-100 text-purple-800 border-purple-200',
+  torneo: 'bg-red-100 text-red-800 border-red-200',
+  otro: 'bg-gray-100 text-gray-800 border-gray-200',
+}
+
+const RECURRENCIA_OPTIONS = [
+  { value: 'no_repite', label: 'No se repite' },
+  { value: 'diario', label: 'Todos los días' },
+  { value: 'semanal', label: 'Todas las semanas' },
+  { value: 'quincenal', label: 'Cada 2 semanas' },
+  { value: 'mensual', label: 'Todos los meses' },
+]
+
+const DIAS_SEMANA_CORTO = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+const MESES = [
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+]
+
+const HORA_INICIO_CALENDARIO = 7
+const HORA_FIN_CALENDARIO = 22
+const HORAS_TOTAL = HORA_FIN_CALENDARIO - HORA_INICIO_CALENDARIO
+
+type ViewMode = 'lista' | 'calendario'
+type FinRecurrencia = 'cantidad' | 'fecha'
+
+// --- Utilidades ---
 
 function getTipoLabel(tipo: string): string {
   return TIPOS_ACTIVIDAD.find((t) => t.value === tipo)?.label ?? tipo
@@ -107,22 +131,67 @@ function getTipoColor(tipo: string): string {
   return TIPO_COLORES[tipo] ?? TIPO_COLORES.otro
 }
 
+function getTipoBadgeColor(tipo: string): string {
+  return TIPO_BADGE_COLORES[tipo] ?? TIPO_BADGE_COLORES.otro
+}
+
 function timeToMinutes(time: string): number {
   const [h, m] = time.split(':').map(Number)
   return h * 60 + m
 }
 
+function formatFechaCorta(fechaStr: string): string {
+  const fecha = new Date(fechaStr + 'T12:00:00')
+  const diaSemana = DIAS_SEMANA_CORTO[fecha.getDay() === 0 ? 6 : fecha.getDay() - 1]
+  const dia = fecha.getDate()
+  const mes = MESES[fecha.getMonth()]
+  return `${diaSemana} ${dia} de ${mes}`
+}
+
+function formatTime(time: string): string {
+  return time.slice(0, 5)
+}
+
+function getMonday(date: Date): Date {
+  const d = new Date(date)
+  const day = d.getDay()
+  const diff = day === 0 ? -6 : 1 - day
+  d.setDate(d.getDate() + diff)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+function addDays(date: Date, days: number): Date {
+  const d = new Date(date)
+  d.setDate(d.getDate() + days)
+  return d
+}
+
+function dateToYMD(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
 function calcularFechasRecurrentes(
   fechaInicio: string,
   recurrencia: string,
-  cantidad: number
-): Date[] {
-  const fechas: Date[] = []
-  const inicio = new Date(fechaInicio + 'T00:00:00')
+  finTipo: FinRecurrencia,
+  cantidad: number,
+  fechaFin: string
+): string[] {
+  const fechas: string[] = []
+  const inicio = new Date(fechaInicio + 'T12:00:00')
+  const limite = finTipo === 'fecha' ? new Date(fechaFin + 'T23:59:59') : null
+  const maxIteraciones = finTipo === 'cantidad' ? cantidad : 365
 
-  for (let i = 0; i < cantidad; i++) {
+  for (let i = 0; i < maxIteraciones; i++) {
     const fecha = new Date(inicio)
     switch (recurrencia) {
+      case 'diario':
+        fecha.setDate(inicio.getDate() + i)
+        break
       case 'semanal':
         fecha.setDate(inicio.getDate() + i * 7)
         break
@@ -135,72 +204,186 @@ function calcularFechasRecurrentes(
       default:
         break
     }
-    fechas.push(fecha)
+
+    if (limite && fecha > limite) break
+    fechas.push(dateToYMD(fecha))
   }
 
   return fechas
 }
 
-function getDiaSemanaFromDate(date: Date): number {
-  // JS: 0=domingo, 1=lunes... Nuestro sistema: 1=lunes, 7=domingo
-  const jsDay = date.getDay()
-  return jsDay === 0 ? 7 : jsDay
+// --- ICS ---
+
+function generateICS(
+  evento: Evento,
+  sedeNombre: string | null,
+  canchaNombre: string | null
+): string {
+  const fecha = evento.fecha ?? ''
+  const dtstart = fecha.replace(/-/g, '') + 'T' + evento.hora_inicio.replace(/:/g, '').slice(0, 6)
+  const dtend = fecha.replace(/-/g, '') + 'T' + evento.hora_fin.replace(/:/g, '').slice(0, 6)
+
+  const summary = evento.titulo ?? getTipoLabel(evento.tipo_actividad)
+  const locationParts = [sedeNombre, canchaNombre].filter(Boolean)
+  const location = locationParts.length > 0 ? locationParts.join(' - ') : ''
+
+  const descParts: string[] = []
+  if (evento.hora_citacion) {
+    descParts.push(`Hora de citación: ${formatTime(evento.hora_citacion)}`)
+  }
+  if (evento.descripcion) {
+    descParts.push(evento.descripcion)
+  }
+  const description = descParts.join('\\n')
+
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//ClubCore//Hindu Club//ES',
+    'BEGIN:VEVENT',
+    `DTSTART:${dtstart}`,
+    `DTEND:${dtend}`,
+    `SUMMARY:${summary}`,
+  ]
+  if (location) lines.push(`LOCATION:${location}`)
+  if (description) lines.push(`DESCRIPTION:${description}`)
+  lines.push('END:VEVENT', 'END:VCALENDAR')
+
+  return lines.join('\r\n')
+}
+
+function downloadICS(
+  evento: Evento,
+  sedeNombre: string | null,
+  canchaNombre: string | null
+) {
+  const content = generateICS(evento, sedeNombre, canchaNombre)
+  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `evento-${evento.fecha ?? 'sin-fecha'}.ics`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
 
 // --- Vista Lista ---
+
 function ListaView({
-  horarios,
+  eventos,
   isPending,
   onEliminar,
   sedes,
+  canchas,
 }: {
-  horarios: Horario[]
+  eventos: Evento[]
   isPending: boolean
   onEliminar: (id: string) => void
   sedes: Sede[]
+  canchas: Cancha[]
 }) {
-  if (horarios.length === 0) {
-    return <p className="text-sm text-muted-foreground">No hay horarios configurados.</p>
-  }
+  const sorted = useMemo(
+    () =>
+      [...eventos].sort((a, b) => {
+        const fa = a.fecha ?? ''
+        const fb = b.fecha ?? ''
+        if (fa !== fb) return fa.localeCompare(fb)
+        return a.hora_inicio.localeCompare(b.hora_inicio)
+      }),
+    [eventos]
+  )
 
   function getSedeNombre(sedeId: string | null): string | null {
     if (!sedeId) return null
     return sedes.find((s) => s.id === sedeId)?.nombre ?? null
   }
 
+  function getCanchaNombre(canchaId: string | null): string | null {
+    if (!canchaId) return null
+    return canchas.find((c) => c.id === canchaId)?.nombre ?? null
+  }
+
+  if (sorted.length === 0) {
+    return <p className="text-sm text-muted-foreground">No hay eventos programados.</p>
+  }
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-      {horarios.map((h) => {
-        const sedeNombre = getSedeNombre(h.sede_id)
+    <div className="space-y-2">
+      {sorted.map((ev) => {
+        const sedeNombre = getSedeNombre(ev.sede_id)
+        const canchaNombre = getCanchaNombre(ev.cancha_id)
+        const ubicacion = [sedeNombre, canchaNombre].filter(Boolean).join(' · ')
+
         return (
           <div
-            key={h.id}
-            className="rounded-lg border bg-card p-3 flex items-start justify-between gap-2"
+            key={ev.id}
+            className="rounded-lg border bg-card p-3 flex items-start justify-between gap-3"
           >
-            <div className="space-y-1">
-              <p className="text-sm font-medium">{getDiaNombre(h.dia_semana)}</p>
-              <p className="text-xs text-muted-foreground">
-                {h.hora_inicio.slice(0, 5)} - {h.hora_fin.slice(0, 5)}
-              </p>
-              <p className="text-xs text-muted-foreground capitalize">
-                {getTipoLabel(h.tipo_actividad)}
-              </p>
-              {sedeNombre && (
+            <div className="space-y-1 min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                {ev.fecha && (
+                  <p className="text-sm font-medium">{formatFechaCorta(ev.fecha)}</p>
+                )}
+                <p className="text-sm text-muted-foreground">
+                  {formatTime(ev.hora_inicio)} – {formatTime(ev.hora_fin)}
+                </p>
+                <Badge
+                  variant="outline"
+                  className={`text-[10px] px-1.5 py-0 h-4 ${getTipoBadgeColor(ev.tipo_actividad)}`}
+                >
+                  {getTipoLabel(ev.tipo_actividad)}
+                </Badge>
+              </div>
+              {ev.titulo && (
+                <p className="text-sm font-medium truncate">{ev.titulo}</p>
+              )}
+              {ubicacion && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  {sedeNombre}
+                  <MapPin className="h-3 w-3 shrink-0" />
+                  {ubicacion}
                 </p>
               )}
+              {ev.hora_citacion && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3 shrink-0" />
+                  Citación: {formatTime(ev.hora_citacion)}
+                </p>
+              )}
+              {ev.descripcion && (
+                <p className="text-xs text-muted-foreground truncate">{ev.descripcion}</p>
+              )}
             </div>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7 text-destructive hover:text-destructive"
-              disabled={isPending}
-              onClick={() => onEliminar(h.id)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1 shrink-0">
+              {ev.fecha && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                  title="Descargar .ics"
+                  onClick={() =>
+                    downloadICS(
+                      ev,
+                      getSedeNombre(ev.sede_id),
+                      getCanchaNombre(ev.cancha_id)
+                    )
+                  }
+                >
+                  <Download className="h-3.5 w-3.5" />
+                </Button>
+              )}
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 text-destructive hover:text-destructive"
+                disabled={isPending}
+                onClick={() => onEliminar(ev.id)}
+                title="Eliminar evento"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         )
       })}
@@ -208,156 +391,207 @@ function ListaView({
   )
 }
 
-// --- Vista Calendario (Desktop) ---
-function CalendarioDesktopView({ horarios }: { horarios: Horario[] }) {
+// --- Vista Calendario Semanal ---
+
+function CalendarioSemanalView({
+  eventos,
+  sedes,
+  canchas,
+}: {
+  eventos: Evento[]
+  sedes: Sede[]
+  canchas: Cancha[]
+}) {
+  const [semanaOffset, setSemanaOffset] = useState(0)
+
+  const lunesActual = useMemo(() => {
+    const hoy = new Date()
+    const lunes = getMonday(hoy)
+    return addDays(lunes, semanaOffset * 7)
+  }, [semanaOffset])
+
+  const diasSemana = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => addDays(lunesActual, i))
+  }, [lunesActual])
+
   const horasArray = Array.from({ length: HORAS_TOTAL }, (_, i) => HORA_INICIO_CALENDARIO + i)
-  const ROW_HEIGHT = 48 // px per hour
+  const ROW_HEIGHT = 48
+
+  function getSedeNombre(sedeId: string | null): string | null {
+    if (!sedeId) return null
+    return sedes.find((s) => s.id === sedeId)?.nombre ?? null
+  }
+
+  function getCanchaNombre(canchaId: string | null): string | null {
+    if (!canchaId) return null
+    return canchas.find((c) => c.id === canchaId)?.nombre ?? null
+  }
+
+  const rangoLabel = useMemo(() => {
+    const inicio = diasSemana[0]
+    const fin = diasSemana[6]
+    const mesInicio = MESES[inicio.getMonth()]
+    const mesFin = MESES[fin.getMonth()]
+    if (inicio.getMonth() === fin.getMonth()) {
+      return `${inicio.getDate()} – ${fin.getDate()} de ${mesInicio} ${inicio.getFullYear()}`
+    }
+    return `${inicio.getDate()} de ${mesInicio} – ${fin.getDate()} de ${mesFin} ${fin.getFullYear()}`
+  }, [diasSemana])
+
+  const hoyStr = dateToYMD(new Date())
 
   return (
-    <div className="hidden md:block overflow-x-auto border rounded-lg">
-      <div className="min-w-[700px]">
-        {/* Header */}
-        <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b bg-muted/50">
-          <div className="p-2 text-xs font-medium text-muted-foreground border-r" />
-          {DIAS_SEMANA.map((d) => (
-            <div
-              key={d.value}
-              className="p-2 text-xs font-medium text-center text-muted-foreground border-r last:border-r-0"
+    <div className="space-y-3">
+      {/* Navegacion */}
+      <div className="flex items-center justify-between">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setSemanaOffset((o) => o - 1)}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <div className="text-sm font-medium text-center">
+          <span className="capitalize">{rangoLabel}</span>
+          {semanaOffset !== 0 && (
+            <Button
+              size="sm"
+              variant="link"
+              className="ml-2 text-xs h-auto p-0"
+              onClick={() => setSemanaOffset(0)}
             >
-              {d.label}
-            </div>
-          ))}
+              Hoy
+            </Button>
+          )}
         </div>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setSemanaOffset((o) => o + 1)}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
 
-        {/* Body */}
-        <div className="grid grid-cols-[60px_repeat(7,1fr)] relative">
-          {/* Time labels + grid lines */}
-          <div className="relative" style={{ height: `${HORAS_TOTAL * ROW_HEIGHT}px` }}>
-            {horasArray.map((hora) => (
-              <div
-                key={hora}
-                className="absolute left-0 right-0 border-b text-[10px] text-muted-foreground px-1 pt-0.5"
-                style={{ top: `${(hora - HORA_INICIO_CALENDARIO) * ROW_HEIGHT}px`, height: `${ROW_HEIGHT}px` }}
-              >
-                {String(hora).padStart(2, '0')}:00
-              </div>
-            ))}
+      {/* Grilla */}
+      <div className="overflow-x-auto border rounded-lg">
+        <div className="min-w-[700px]">
+          {/* Header con dias */}
+          <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b bg-muted/50">
+            <div className="p-2 text-xs font-medium text-muted-foreground border-r" />
+            {diasSemana.map((dia, i) => {
+              const diaStr = dateToYMD(dia)
+              const esHoy = diaStr === hoyStr
+              return (
+                <div
+                  key={i}
+                  className={`p-2 text-center border-r last:border-r-0 ${esHoy ? 'bg-primary/10' : ''}`}
+                >
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {DIAS_SEMANA_CORTO[i]}
+                  </p>
+                  <p className={`text-sm font-semibold ${esHoy ? 'text-primary' : ''}`}>
+                    {dia.getDate()}
+                  </p>
+                </div>
+              )
+            })}
           </div>
 
-          {/* Day columns */}
-          {DIAS_SEMANA.map((dia) => {
-            const diaHorarios = horarios.filter((h) => h.dia_semana === Number(dia.value))
-            return (
-              <div
-                key={dia.value}
-                className="relative border-r last:border-r-0"
-                style={{ height: `${HORAS_TOTAL * ROW_HEIGHT}px` }}
-              >
-                {/* Grid lines */}
-                {horasArray.map((hora) => (
-                  <div
-                    key={hora}
-                    className="absolute left-0 right-0 border-b"
-                    style={{ top: `${(hora - HORA_INICIO_CALENDARIO) * ROW_HEIGHT}px`, height: `${ROW_HEIGHT}px` }}
-                  />
-                ))}
-
-                {/* Horario blocks */}
-                {diaHorarios.map((h) => {
-                  const inicioMin = timeToMinutes(h.hora_inicio)
-                  const finMin = timeToMinutes(h.hora_fin)
-                  const topPx = ((inicioMin - HORA_INICIO_CALENDARIO * 60) / 60) * ROW_HEIGHT
-                  const heightPx = ((finMin - inicioMin) / 60) * ROW_HEIGHT
-
-                  if (topPx < 0 || heightPx <= 0) return null
-
-                  return (
-                    <div
-                      key={h.id}
-                      className={`absolute left-0.5 right-0.5 rounded px-1 py-0.5 border text-[10px] leading-tight overflow-hidden ${getTipoColor(h.tipo_actividad)}`}
-                      style={{ top: `${topPx}px`, height: `${Math.max(heightPx, 16)}px` }}
-                      title={`${getDiaNombre(h.dia_semana)} ${h.hora_inicio.slice(0, 5)}-${h.hora_fin.slice(0, 5)} | ${getTipoLabel(h.tipo_actividad)}`}
-                    >
-                      <span className="font-medium">{h.hora_inicio.slice(0, 5)}</span>
-                      {heightPx >= 32 && (
-                        <span className="block truncate">{getTipoLabel(h.tipo_actividad)}</span>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// --- Vista Calendario (Mobile: un dia a la vez) ---
-function CalendarioMobileView({ horarios }: { horarios: Horario[] }) {
-  const [diaSeleccionado, setDiaSeleccionado] = useState('1')
-  const horasArray = Array.from({ length: HORAS_TOTAL }, (_, i) => HORA_INICIO_CALENDARIO + i)
-  const ROW_HEIGHT = 40
-  const diaHorarios = horarios.filter((h) => h.dia_semana === Number(diaSeleccionado))
-
-  return (
-    <div className="block md:hidden space-y-3">
-      {/* Day selector tabs */}
-      <div className="flex gap-1 overflow-x-auto pb-1">
-        {DIAS_SEMANA.map((d) => (
-          <Button
-            key={d.value}
-            size="sm"
-            variant={diaSeleccionado === d.value ? 'default' : 'outline'}
-            className="text-xs shrink-0 px-2"
-            onClick={() => setDiaSeleccionado(d.value)}
-          >
-            {d.label.slice(0, 3)}
-          </Button>
-        ))}
-      </div>
-
-      {/* Single day column */}
-      <div className="border rounded-lg overflow-hidden">
-        <div className="relative" style={{ height: `${HORAS_TOTAL * ROW_HEIGHT}px` }}>
-          {/* Hour grid lines */}
-          {horasArray.map((hora) => (
-            <div
-              key={hora}
-              className="absolute left-0 right-0 border-b flex items-start"
-              style={{ top: `${(hora - HORA_INICIO_CALENDARIO) * ROW_HEIGHT}px`, height: `${ROW_HEIGHT}px` }}
-            >
-              <span className="text-[10px] text-muted-foreground px-1 pt-0.5 w-12 shrink-0">
-                {String(hora).padStart(2, '0')}:00
-              </span>
+          {/* Body */}
+          <div className="grid grid-cols-[60px_repeat(7,1fr)] relative">
+            {/* Columna de horas */}
+            <div className="relative" style={{ height: `${HORAS_TOTAL * ROW_HEIGHT}px` }}>
+              {horasArray.map((hora) => (
+                <div
+                  key={hora}
+                  className="absolute left-0 right-0 border-b text-[10px] text-muted-foreground px-1 pt-0.5"
+                  style={{
+                    top: `${(hora - HORA_INICIO_CALENDARIO) * ROW_HEIGHT}px`,
+                    height: `${ROW_HEIGHT}px`,
+                  }}
+                >
+                  {String(hora).padStart(2, '0')}:00
+                </div>
+              ))}
             </div>
-          ))}
 
-          {/* Horario blocks */}
-          {diaHorarios.map((h) => {
-            const inicioMin = timeToMinutes(h.hora_inicio)
-            const finMin = timeToMinutes(h.hora_fin)
-            const topPx = ((inicioMin - HORA_INICIO_CALENDARIO * 60) / 60) * ROW_HEIGHT
-            const heightPx = ((finMin - inicioMin) / 60) * ROW_HEIGHT
+            {/* Columnas de dias */}
+            {diasSemana.map((dia, colIdx) => {
+              const diaStr = dateToYMD(dia)
+              const esHoy = diaStr === hoyStr
+              const eventosDelDia = eventos.filter((ev) => ev.fecha === diaStr)
 
-            if (topPx < 0 || heightPx <= 0) return null
+              return (
+                <div
+                  key={colIdx}
+                  className={`relative border-r last:border-r-0 ${esHoy ? 'bg-primary/5' : ''}`}
+                  style={{ height: `${HORAS_TOTAL * ROW_HEIGHT}px` }}
+                >
+                  {/* Lineas de hora */}
+                  {horasArray.map((hora) => (
+                    <div
+                      key={hora}
+                      className="absolute left-0 right-0 border-b"
+                      style={{
+                        top: `${(hora - HORA_INICIO_CALENDARIO) * ROW_HEIGHT}px`,
+                        height: `${ROW_HEIGHT}px`,
+                      }}
+                    />
+                  ))}
 
-            return (
-              <div
-                key={h.id}
-                className={`absolute left-12 right-1 rounded px-2 py-0.5 border text-xs overflow-hidden ${getTipoColor(h.tipo_actividad)}`}
-                style={{ top: `${topPx}px`, height: `${Math.max(heightPx, 20)}px` }}
-              >
-                <span className="font-medium">
-                  {h.hora_inicio.slice(0, 5)} - {h.hora_fin.slice(0, 5)}
-                </span>
-                {heightPx >= 36 && (
-                  <span className="block truncate">{getTipoLabel(h.tipo_actividad)}</span>
-                )}
-              </div>
-            )
-          })}
+                  {/* Bloques de eventos */}
+                  {eventosDelDia.map((ev) => {
+                    const inicioMin = timeToMinutes(ev.hora_inicio)
+                    const finMin = timeToMinutes(ev.hora_fin)
+                    const topPx =
+                      ((inicioMin - HORA_INICIO_CALENDARIO * 60) / 60) * ROW_HEIGHT
+                    const heightPx = ((finMin - inicioMin) / 60) * ROW_HEIGHT
+
+                    if (topPx < 0 || heightPx <= 0) return null
+
+                    const sedeNombre = getSedeNombre(ev.sede_id)
+                    const canchaNombre = getCanchaNombre(ev.cancha_id)
+                    const ubicacion = [sedeNombre, canchaNombre]
+                      .filter(Boolean)
+                      .join(' - ')
+
+                    return (
+                      <div
+                        key={ev.id}
+                        className={`absolute left-0.5 right-0.5 rounded px-1 py-0.5 border text-[10px] leading-tight overflow-hidden cursor-default ${getTipoColor(ev.tipo_actividad)}`}
+                        style={{
+                          top: `${topPx}px`,
+                          height: `${Math.max(heightPx, 16)}px`,
+                        }}
+                        title={[
+                          ev.titulo ?? getTipoLabel(ev.tipo_actividad),
+                          `${formatTime(ev.hora_inicio)} – ${formatTime(ev.hora_fin)}`,
+                          ubicacion,
+                        ]
+                          .filter(Boolean)
+                          .join('\n')}
+                      >
+                        <span className="font-medium">
+                          {formatTime(ev.hora_inicio)}
+                        </span>
+                        {heightPx >= 28 && (
+                          <span className="block truncate">
+                            {ev.titulo ?? getTipoLabel(ev.tipo_actividad)}
+                          </span>
+                        )}
+                        {heightPx >= 44 && ubicacion && (
+                          <span className="block truncate opacity-80">
+                            {ubicacion}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -365,71 +599,83 @@ function CalendarioMobileView({ horarios }: { horarios: Horario[] }) {
 }
 
 // --- Componente principal ---
-export function HorariosPanel({ equipoId, horarios, sedes, canchas }: HorariosPanelProps) {
+
+export function CalendarioPanel({
+  equipoId,
+  eventos,
+  sedes,
+  canchas,
+}: CalendarioPanelProps) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [viewMode, setViewMode] = useState<ViewMode>('lista')
 
   // Form state
-  const [diaSemana, setDiaSemana] = useState('')
+  const [fecha, setFecha] = useState('')
   const [horaInicio, setHoraInicio] = useState('')
   const [horaFin, setHoraFin] = useState('')
   const [tipoActividad, setTipoActividad] = useState('')
-  const [recurrencia, setRecurrencia] = useState('una_vez')
-  const [cantidadRepeticiones, setCantidadRepeticiones] = useState(1)
-  const [fechaInicio, setFechaInicio] = useState('')
+  const [titulo, setTitulo] = useState('')
   const [sedeId, setSedeId] = useState('')
   const [canchaId, setCanchaId] = useState('')
   const [horaCitacion, setHoraCitacion] = useState('')
+  const [descripcion, setDescripcion] = useState('')
+  const [recurrencia, setRecurrencia] = useState('no_repite')
+  const [finRecurrencia, setFinRecurrencia] = useState<FinRecurrencia>('cantidad')
+  const [cantidadRepeticiones, setCantidadRepeticiones] = useState(4)
+  const [fechaFinRecurrencia, setFechaFinRecurrencia] = useState('')
 
-  // Filter canchas by selected sede
+  // Canchas filtradas por sede
   const canchasFiltradas = sedeId
     ? canchas.filter((c) => c.sede_id === sedeId)
     : canchas
 
   function resetForm() {
-    setDiaSemana('')
+    setFecha('')
     setHoraInicio('')
     setHoraFin('')
     setTipoActividad('')
-    setRecurrencia('una_vez')
-    setCantidadRepeticiones(1)
-    setFechaInicio('')
+    setTitulo('')
     setSedeId('')
     setCanchaId('')
     setHoraCitacion('')
+    setDescripcion('')
+    setRecurrencia('no_repite')
+    setFinRecurrencia('cantidad')
+    setCantidadRepeticiones(4)
+    setFechaFinRecurrencia('')
   }
 
   function handleCrear(e: React.FormEvent) {
     e.preventDefault()
 
-    if (!diaSemana || !horaInicio || !horaFin || !tipoActividad) {
-      toast.error('Todos los campos son obligatorios.')
+    if (!fecha || !horaInicio || !horaFin || !tipoActividad) {
+      toast.error('Fecha, hora inicio, hora fin y tipo de actividad son obligatorios.')
       return
     }
 
-    if (recurrencia !== 'una_vez' && !fechaInicio) {
-      toast.error('La fecha de inicio es obligatoria para horarios recurrentes.')
-      return
-    }
-
-    if (recurrencia !== 'una_vez' && cantidadRepeticiones < 1) {
-      toast.error('La cantidad de repeticiones debe ser al menos 1.')
+    if (horaInicio >= horaFin) {
+      toast.error('La hora de inicio debe ser anterior a la hora de fin.')
       return
     }
 
     startTransition(async () => {
-      if (recurrencia === 'una_vez') {
-        // Single creation
-        const result = await crearHorario({
-          equipo_id: equipoId,
-          dia_semana: Number(diaSemana),
-          hora_inicio: horaInicio,
-          hora_fin: horaFin,
-          tipo_actividad: tipoActividad,
-          sede_id: sedeId || null,
-          cancha_id: canchaId || null,
-          hora_citacion: horaCitacion || null,
+      const baseEvento = {
+        equipo_id: equipoId,
+        hora_inicio: horaInicio,
+        hora_fin: horaFin,
+        tipo_actividad: tipoActividad,
+        titulo: titulo.trim() || null,
+        sede_id: sedeId || null,
+        cancha_id: canchaId || null,
+        hora_citacion: horaCitacion || null,
+        descripcion: descripcion.trim() || null,
+      }
+
+      if (recurrencia === 'no_repite') {
+        const result = await crearEvento({
+          ...baseEvento,
+          fecha,
         })
 
         if (result.ok) {
@@ -440,22 +686,36 @@ export function HorariosPanel({ equipoId, horarios, sedes, canchas }: HorariosPa
           toast.error(result.message)
         }
       } else {
-        // Recurrent creation
-        const fechas = calcularFechasRecurrentes(fechaInicio, recurrencia, cantidadRepeticiones)
+        // Recurrente: generar fechas
+        if (finRecurrencia === 'cantidad' && cantidadRepeticiones < 1) {
+          toast.error('La cantidad de eventos debe ser al menos 1.')
+          return
+        }
+        if (finRecurrencia === 'fecha' && !fechaFinRecurrencia) {
+          toast.error('Seleccioná una fecha de finalización.')
+          return
+        }
+
+        const fechas = calcularFechasRecurrentes(
+          fecha,
+          recurrencia,
+          finRecurrencia,
+          cantidadRepeticiones,
+          fechaFinRecurrencia
+        )
+
+        if (fechas.length === 0) {
+          toast.error('No se generaron fechas con los parámetros seleccionados.')
+          return
+        }
+
         let exitosos = 0
         let errores = 0
 
-        for (const fecha of fechas) {
-          const diaSemanaCalculado = getDiaSemanaFromDate(fecha)
-          const result = await crearHorario({
-            equipo_id: equipoId,
-            dia_semana: diaSemanaCalculado,
-            hora_inicio: horaInicio,
-            hora_fin: horaFin,
-            tipo_actividad: tipoActividad,
-            sede_id: sedeId || null,
-            cancha_id: canchaId || null,
-            hora_citacion: horaCitacion || null,
+        for (const f of fechas) {
+          const result = await crearEvento({
+            ...baseEvento,
+            fecha: f,
           })
 
           if (result.ok) {
@@ -466,20 +726,23 @@ export function HorariosPanel({ equipoId, horarios, sedes, canchas }: HorariosPa
         }
 
         if (errores === 0) {
-          toast.success(`Se crearon ${exitosos} horario${exitosos > 1 ? 's' : ''} correctamente.`)
+          toast.success(
+            `Se crearon ${exitosos} evento${exitosos > 1 ? 's' : ''} correctamente.`
+          )
           setOpen(false)
           resetForm()
         } else {
-          toast.error(`Se crearon ${exitosos} horarios, pero ${errores} fallaron.`)
+          toast.error(
+            `Se crearon ${exitosos} eventos, pero ${errores} fallaron.`
+          )
         }
       }
     })
   }
 
-  function handleEliminar(horarioId: string) {
+  function handleEliminar(eventoId: string) {
     startTransition(async () => {
-      const result = await eliminarHorario(horarioId, equipoId)
-
+      const result = await eliminarEvento(eventoId, equipoId)
       if (result.ok) {
         toast.success(result.message)
       } else {
@@ -491,10 +754,10 @@ export function HorariosPanel({ equipoId, horarios, sedes, canchas }: HorariosPa
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h3 className="text-sm font-medium text-muted-foreground">Horarios</h3>
+        <h3 className="text-sm font-medium text-muted-foreground">Calendario</h3>
 
         <div className="flex items-center gap-2">
-          {/* View mode toggle */}
+          {/* Toggle vista */}
           <div className="flex items-center border rounded-md overflow-hidden">
             <Button
               size="sm"
@@ -516,38 +779,35 @@ export function HorariosPanel({ equipoId, horarios, sedes, canchas }: HorariosPa
             </Button>
           </div>
 
-          {/* Add button */}
+          {/* Boton nuevo evento */}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger render={<Button size="sm" variant="outline" />}>
               <Plus className="h-4 w-4 mr-1" />
-              Agregar horario
+              Nuevo evento
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Agregar horario</DialogTitle>
+                <DialogTitle>Nuevo evento</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleCrear} className="space-y-4">
+                {/* Fecha */}
                 <div className="space-y-2">
-                  <Label>Dia de la semana</Label>
-                  <Select value={diaSemana} onValueChange={(v) => setDiaSemana(v ?? '')}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar dia" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DIAS_SEMANA.map((d) => (
-                        <SelectItem key={d.value} value={d.value}>
-                          {d.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="evento-fecha">Fecha</Label>
+                  <Input
+                    id="evento-fecha"
+                    type="date"
+                    value={fecha}
+                    onChange={(e) => setFecha(e.target.value)}
+                    required
+                  />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Hora inicio / fin */}
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="hora-inicio">Hora inicio</Label>
+                    <Label htmlFor="evento-hora-inicio">Hora inicio</Label>
                     <Input
-                      id="hora-inicio"
+                      id="evento-hora-inicio"
                       type="time"
                       value={horaInicio}
                       onChange={(e) => setHoraInicio(e.target.value)}
@@ -555,9 +815,9 @@ export function HorariosPanel({ equipoId, horarios, sedes, canchas }: HorariosPa
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="hora-fin">Hora fin</Label>
+                    <Label htmlFor="evento-hora-fin">Hora fin</Label>
                     <Input
-                      id="hora-fin"
+                      id="evento-hora-fin"
                       type="time"
                       value={horaFin}
                       onChange={(e) => setHoraFin(e.target.value)}
@@ -566,9 +826,13 @@ export function HorariosPanel({ equipoId, horarios, sedes, canchas }: HorariosPa
                   </div>
                 </div>
 
+                {/* Tipo actividad */}
                 <div className="space-y-2">
-                  <Label>Tipo actividad</Label>
-                  <Select value={tipoActividad} onValueChange={(v) => setTipoActividad(v ?? '')}>
+                  <Label>Tipo de actividad</Label>
+                  <Select
+                    value={tipoActividad}
+                    onValueChange={(v) => setTipoActividad(v ?? '')}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar tipo" />
                     </SelectTrigger>
@@ -582,12 +846,30 @@ export function HorariosPanel({ equipoId, horarios, sedes, canchas }: HorariosPa
                   </Select>
                 </div>
 
+                {/* Titulo */}
+                <div className="space-y-2">
+                  <Label htmlFor="evento-titulo">Título (opcional)</Label>
+                  <Input
+                    id="evento-titulo"
+                    type="text"
+                    value={titulo}
+                    onChange={(e) => setTitulo(e.target.value)}
+                    placeholder="Ej: Partido vs River"
+                  />
+                </div>
+
                 {/* Sede */}
                 <div className="space-y-2">
-                  <Label>Sede</Label>
-                  <Select value={sedeId} onValueChange={(v) => { setSedeId(v ?? ''); setCanchaId('') }}>
+                  <Label>Sede (opcional)</Label>
+                  <Select
+                    value={sedeId}
+                    onValueChange={(v) => {
+                      setSedeId(v ?? '')
+                      setCanchaId('')
+                    }}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar sede (opcional)" />
+                      <SelectValue placeholder="Seleccionar sede" />
                     </SelectTrigger>
                     <SelectContent>
                       {sedes.map((s) => (
@@ -600,79 +882,132 @@ export function HorariosPanel({ equipoId, horarios, sedes, canchas }: HorariosPa
                 </div>
 
                 {/* Cancha */}
-                <div className="space-y-2">
-                  <Label>Cancha</Label>
-                  <Select value={canchaId} onValueChange={(v) => setCanchaId(v ?? '')}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar cancha (opcional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {canchasFiltradas.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {canchasFiltradas.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Cancha (opcional)</Label>
+                    <Select
+                      value={canchaId}
+                      onValueChange={(v) => setCanchaId(v ?? '')}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar cancha" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {canchasFiltradas.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 {/* Hora citacion */}
                 <div className="space-y-2">
-                  <Label htmlFor="hora-citacion">Hora de citacion (opcional)</Label>
+                  <Label htmlFor="evento-citacion">Hora de citación (opcional)</Label>
                   <Input
-                    id="hora-citacion"
+                    id="evento-citacion"
                     type="time"
                     value={horaCitacion}
                     onChange={(e) => setHoraCitacion(e.target.value)}
                   />
                 </div>
 
-                {/* Recurrence fields */}
+                {/* Descripcion */}
                 <div className="space-y-2">
-                  <Label>Repetir</Label>
-                  <Select value={recurrencia} onValueChange={(v) => setRecurrencia(v ?? 'una_vez')}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar recurrencia" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {RECURRENCIA_OPTIONS.map((r) => (
-                        <SelectItem key={r.value} value={r.value}>
-                          {r.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="evento-descripcion">Descripción (opcional)</Label>
+                  <Textarea
+                    id="evento-descripcion"
+                    value={descripcion}
+                    onChange={(e) => setDescripcion(e.target.value)}
+                    rows={2}
+                    placeholder="Notas adicionales..."
+                  />
                 </div>
 
-                {recurrencia !== 'una_vez' && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="fecha-inicio">Fecha inicio</Label>
-                      <Input
-                        id="fecha-inicio"
-                        type="date"
-                        value={fechaInicio}
-                        onChange={(e) => setFechaInicio(e.target.value)}
-                        required
-                      />
+                {/* Repetir */}
+                <div className="space-y-3 border-t pt-4">
+                  <div className="space-y-2">
+                    <Label>Repetir</Label>
+                    <Select
+                      value={recurrencia}
+                      onValueChange={(v) => setRecurrencia(v ?? 'no_repite')}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {RECURRENCIA_OPTIONS.map((r) => (
+                          <SelectItem key={r.value} value={r.value}>
+                            {r.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {recurrencia !== 'no_repite' && (
+                    <div className="space-y-3 pl-2 border-l-2 border-muted ml-1">
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Finaliza
+                      </p>
+
+                      {/* Opcion: despues de N eventos */}
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="fin-recurrencia"
+                          checked={finRecurrencia === 'cantidad'}
+                          onChange={() => setFinRecurrencia('cantidad')}
+                          className="accent-primary"
+                        />
+                        <span className="text-sm">Después de</span>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={52}
+                          value={cantidadRepeticiones}
+                          onChange={(e) =>
+                            setCantidadRepeticiones(
+                              Math.min(52, Math.max(1, Number(e.target.value)))
+                            )
+                          }
+                          className="w-16 h-8 text-sm"
+                          disabled={finRecurrencia !== 'cantidad'}
+                        />
+                        <span className="text-sm">eventos</span>
+                      </label>
+
+                      {/* Opcion: en fecha */}
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="fin-recurrencia"
+                          checked={finRecurrencia === 'fecha'}
+                          onChange={() => setFinRecurrencia('fecha')}
+                          className="accent-primary"
+                        />
+                        <span className="text-sm">En fecha</span>
+                        <Input
+                          type="date"
+                          value={fechaFinRecurrencia}
+                          onChange={(e) => setFechaFinRecurrencia(e.target.value)}
+                          className="w-auto h-8 text-sm"
+                          disabled={finRecurrencia !== 'fecha'}
+                          min={fecha}
+                        />
+                      </label>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cantidad-repeticiones">Cantidad de repeticiones</Label>
-                      <Input
-                        id="cantidad-repeticiones"
-                        type="number"
-                        min={1}
-                        max={52}
-                        value={cantidadRepeticiones}
-                        onChange={(e) => setCantidadRepeticiones(Number(e.target.value))}
-                        required
-                      />
-                    </div>
-                  </>
-                )}
+                  )}
+                </div>
 
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setOpen(false)}
+                  >
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={isPending}>
@@ -685,16 +1020,23 @@ export function HorariosPanel({ equipoId, horarios, sedes, canchas }: HorariosPa
         </div>
       </div>
 
-      {/* Views */}
+      {/* Vistas */}
       {viewMode === 'lista' && (
-        <ListaView horarios={horarios} isPending={isPending} onEliminar={handleEliminar} sedes={sedes} />
+        <ListaView
+          eventos={eventos}
+          isPending={isPending}
+          onEliminar={handleEliminar}
+          sedes={sedes}
+          canchas={canchas}
+        />
       )}
 
       {viewMode === 'calendario' && (
-        <>
-          <CalendarioDesktopView horarios={horarios} />
-          <CalendarioMobileView horarios={horarios} />
-        </>
+        <CalendarioSemanalView
+          eventos={eventos}
+          sedes={sedes}
+          canchas={canchas}
+        />
       )}
     </div>
   )

@@ -207,7 +207,70 @@ export async function quitarMiembro(personaEquipoId: string, equipoId: string) {
   return formatResult(true, 'Miembro desvinculado correctamente.')
 }
 
-// --- CREAR HORARIO ---
+// --- CREAR EVENTO ---
+
+export async function crearEvento(input: {
+  equipo_id: string
+  fecha: string  // YYYY-MM-DD
+  hora_inicio: string
+  hora_fin: string
+  tipo_actividad: string
+  titulo?: string | null
+  sede_id?: string | null
+  cancha_id?: string | null
+  hora_citacion?: string | null
+  descripcion?: string | null
+}) {
+  const supabase = await createClient()
+
+  // Compute dia_semana from fecha for backward compat
+  const fechaDate = new Date(input.fecha + 'T00:00:00')
+  const jsDay = fechaDate.getDay()
+  const diaSemana = jsDay === 0 ? 7 : jsDay
+
+  const { error } = await supabase
+    .from('equipos_horarios')
+    .insert({
+      tenant_id: TENANT_ID,
+      equipo_id: input.equipo_id,
+      fecha: input.fecha,
+      dia_semana: diaSemana,
+      hora_inicio: input.hora_inicio,
+      hora_fin: input.hora_fin,
+      tipo_actividad: input.tipo_actividad,
+      titulo: input.titulo?.trim() || null,
+      sede_id: input.sede_id || null,
+      cancha_id: input.cancha_id || null,
+      hora_citacion: input.hora_citacion || null,
+      descripcion: input.descripcion?.trim() || null,
+    })
+
+  if (error) return formatResult(false, error.message)
+
+  revalidatePath(`/admin/equipos/${input.equipo_id}`)
+  revalidatePath('/admin/mi-equipo')
+  return formatResult(true, 'Evento creado')
+}
+
+// --- ELIMINAR EVENTO ---
+
+export async function eliminarEvento(eventoId: string, equipoId: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('equipos_horarios')
+    .delete()
+    .eq('id', eventoId)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return formatResult(false, error.message)
+
+  revalidatePath(`/admin/equipos/${equipoId}`)
+  revalidatePath('/admin/mi-equipo')
+  return formatResult(true, 'Evento eliminado')
+}
+
+// --- BACKWARD COMPAT: CREAR HORARIO ---
 
 export async function crearHorario(input: {
   equipo_id: string
@@ -238,24 +301,14 @@ export async function crearHorario(input: {
   if (error) return formatResult(false, error.message)
 
   revalidatePath(`/admin/equipos/${input.equipo_id}`)
+  revalidatePath('/admin/mi-equipo')
   return formatResult(true, 'Horario creado')
 }
 
-// --- ELIMINAR HORARIO ---
+// --- BACKWARD COMPAT: ELIMINAR HORARIO ---
 
 export async function eliminarHorario(horarioId: string, equipoId: string) {
-  const supabase = await createClient()
-
-  const { error } = await supabase
-    .from('equipos_horarios')
-    .delete()
-    .eq('id', horarioId)
-    .eq('tenant_id', TENANT_ID)
-
-  if (error) return formatResult(false, error.message)
-
-  revalidatePath(`/admin/equipos/${equipoId}`)
-  return formatResult(true, 'Horario eliminado')
+  return eliminarEvento(horarioId, equipoId)
 }
 
 // --- BUSCAR PERSONAS ---

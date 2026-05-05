@@ -9,7 +9,7 @@ import { fetchEquipoDetalle, fetchRolesEquipo, fetchCategoriasEquipo, fetchEntid
 import { Plantel } from './_components/plantel'
 import { EditarEquipoForm } from './_components/editar-equipo-form'
 import { EquipoComposicion } from './_components/equipo-composicion'
-import { HorariosPanel } from './_components/horarios-panel'
+import { CalendarioPanel } from './_components/horarios-panel'
 import { IndumentariaPanel } from './_components/indumentaria-panel'
 
 interface PageProps {
@@ -63,16 +63,19 @@ export default async function EquipoDetallePage({ params }: PageProps) {
     } | null
   }>
 
-  const horarios = equipo.horarios as unknown as Array<{
+  const eventos = equipo.horarios as unknown as Array<{
     id: string
+    fecha: string | null
     dia_semana: number
     hora_inicio: string
     hora_fin: string
     tipo_actividad: string
+    titulo: string | null
+    hora_citacion: string | null
+    descripcion: string | null
     activo: boolean
     sede_id: string | null
     cancha_id: string | null
-    metadata: Record<string, unknown>
   }>
 
   const rolesJugador = roles.filter((r) => r.categoria === 'deportivo')
@@ -149,7 +152,7 @@ export default async function EquipoDetallePage({ params }: PageProps) {
             </TabsTrigger>
             <TabsTrigger value="horarios">
               <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Horarios</span>
+              <span className="hidden sm:inline">Calendario</span>
             </TabsTrigger>
             <TabsTrigger value="config">
               <Settings className="h-4 w-4" />
@@ -222,7 +225,7 @@ export default async function EquipoDetallePage({ params }: PageProps) {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <StatCard label="Jugadores" value={miembrosJugadores.length} />
                   <StatCard label="Staff" value={miembrosStaff.length} />
-                  <StatCard label="Horarios" value={horarios.length} />
+                  <StatCard label="Eventos" value={eventos.length} />
                   <StatCard label="Total miembros" value={miembros.length} />
                 </div>
               </CardContent>
@@ -268,7 +271,7 @@ export default async function EquipoDetallePage({ params }: PageProps) {
         {/* Horarios Tab */}
         <TabsContent value="horarios">
           <div className="pt-4">
-            <HorariosPanel equipoId={equipo.id} horarios={horarios} sedes={sedes} canchas={canchas} />
+            <CalendarioPanel equipoId={equipo.id} eventos={eventos} sedes={sedes} canchas={canchas} />
           </div>
         </TabsContent>
 

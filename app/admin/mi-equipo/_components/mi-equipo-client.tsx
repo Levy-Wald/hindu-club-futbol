@@ -20,6 +20,7 @@ import {
   UserCheck,
   Navigation,
   ExternalLink,
+  Download,
 } from 'lucide-react'
 import { TarjetaJugador } from './tarjeta-jugador'
 import { ExportPlantel } from './export-plantel'
@@ -101,18 +102,33 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
   const indumentaria = equipo.indumentaria as Record<string, { descripcion?: string; foto_url?: string }> | null
   const fotoEquipo = equipo.foto_equipo_url as string | null
 
-  // Horarios ordenados cronológicamente (Lun→Dom, por hora)
-  const horariosUnicos = deduplicarPorId(horarios)
-  const horariosCronologicos = [...horariosUnicos].sort((a, b) => {
+  // Eventos ordenados cronológicamente por fecha real
+  const eventosUnicos = deduplicarPorId(horarios)
+  const hoyStr = new Date().toISOString().split('T')[0]
+  // Solo mostrar eventos futuros o de hoy
+  const eventosFuturos = eventosUnicos.filter((e) => {
+    const fecha = e.fecha as string | null
+    if (fecha) return fecha >= hoyStr
+    return true // eventos sin fecha (legacy) siempre se muestran
+  })
+  const eventosCronologicos = [...eventosFuturos].sort((a, b) => {
+    const fA = a.fecha as string | null
+    const fB = b.fecha as string | null
+    // Eventos con fecha van primero, ordenados por fecha
+    if (fA && fB) {
+      if (fA !== fB) return fA.localeCompare(fB)
+      return ((a.hora_inicio as string) || '').localeCompare((b.hora_inicio as string) || '')
+    }
+    if (fA && !fB) return -1
+    if (!fA && fB) return 1
+    // Ambos sin fecha: por dia_semana
     const dA = a.dia_semana as number
     const dB = b.dia_semana as number
     if (dA !== dB) return dA - dB
     return ((a.hora_inicio as string) || '').localeCompare((b.hora_inicio as string) || '')
   })
 
-  const hoy = new Date()
-  const diaHoy = hoy.getDay() === 0 ? 7 : hoy.getDay()
-  const proximaActividad = getProximaActividad(horariosUnicos, diaHoy)
+  const proximaActividad = eventosCronologicos[0] ?? null
 
   const equipoData = buildEquipoData(equipo)
 
@@ -145,15 +161,18 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1.5">
                   <p className="text-2xl font-bold">
-                    {formatFechaCalendario(proximaActividad.dia_semana as number)}
+                    {formatFechaEvento(proximaActividad)}
                   </p>
+                  {proximaActividad.titulo ? (
+                    <p className="text-sm text-white/80 font-medium">{proximaActividad.titulo as string}</p>
+                  ) : null}
                   <div className="flex items-center gap-2">
                     <Badge variant="default" className="capitalize">
                       {formatTipoActividad(proximaActividad.tipo_actividad as string)}
                     </Badge>
-                    {(proximaActividad.metadata as Record<string, unknown>)?.hora_citacion ? (
+                    {(proximaActividad.hora_citacion as string | null) ? (
                       <span className="text-xs text-muted-foreground">
-                        Citación: {((proximaActividad.metadata as Record<string, unknown>).hora_citacion as string).slice(0, 5)}
+                        Citación: {(proximaActividad.hora_citacion as string).slice(0, 5)}
                       </span>
                     ) : null}
                   </div>
@@ -223,21 +242,21 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
         </CardContent>
       </Card>
 
-      {/* 2. HORARIOS — cronológico */}
+      {/* 2. CALENDARIO — cronológico por fecha */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Horarios semanales
+            <Calendar className="h-4 w-4" />
+            Próximos eventos
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {horariosCronologicos.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sin horarios cargados</p>
+          {eventosCronologicos.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Sin eventos programados</p>
           ) : (
             <div className="space-y-2">
-              {horariosCronologicos.map((h) => (
-                <HorarioCard key={h.id as string} horario={h} />
+              {eventosCronologicos.map((h) => (
+                <EventoCard key={h.id as string} evento={h} equipoNombre={equipo.nombre as string} />
               ))}
             </div>
           )}
@@ -492,10 +511,9 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
 
 /* ─── Sub-componentes ─── */
 
-function HorarioCard({ horario }: { horario: Record<string, unknown> }) {
-  const sede = horario.sede as Record<string, unknown> | null
-  const cancha = horario.cancha as Record<string, unknown> | null
-  const metadata = horario.metadata as Record<string, unknown> | null
+function EventoCard({ evento, equipoNombre }: { evento: Record<string, unknown>; equipoNombre: string }) {
+  const sede = evento.sede as Record<string, unknown> | null
+  const cancha = evento.cancha as Record<string, unknown> | null
   const direccionObj = sede?.direccion as Record<string, unknown> | null
   const direccion = direccionObj
     ? [direccionObj.calle, direccionObj.numero, direccionObj.ciudad].filter(Boolean).join(' ') || null
@@ -505,24 +523,26 @@ function HorarioCard({ horario }: { horario: Record<string, unknown> }) {
     cancha ? (cancha.nombre as string) : '',
   ].filter(Boolean).join(' · ')
   const searchQuery = encodeURIComponent(direccion || nombreLugar || '')
-  const horaCitacion = metadata?.hora_citacion as string | null
+  const horaCitacion = evento.hora_citacion as string | null
+  const titulo = evento.titulo as string | null
 
   return (
     <div className="border rounded-lg px-4 py-3 hover:bg-muted/50 transition-colors space-y-1.5">
       {/* Primera fila: fecha, horario, tipo */}
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold">{formatFechaCalendario(horario.dia_semana as number)}</p>
+          <p className="text-sm font-semibold">{formatFechaEvento(evento)}</p>
+          {titulo ? <p className="text-xs text-muted-foreground">{titulo}</p> : null}
         </div>
         <div className="font-mono tabular-nums text-sm font-medium shrink-0">
-          {(horario.hora_inicio as string)?.slice(0, 5)} – {(horario.hora_fin as string)?.slice(0, 5)}
+          {(evento.hora_inicio as string)?.slice(0, 5)} – {(evento.hora_fin as string)?.slice(0, 5)}
         </div>
         <Badge variant="outline" className="text-[10px] capitalize shrink-0">
-          {formatTipoActividad(horario.tipo_actividad as string)}
+          {formatTipoActividad(evento.tipo_actividad as string)}
         </Badge>
       </div>
 
-      {/* Segunda fila: sede, citación, maps */}
+      {/* Segunda fila: sede, citación, maps, ics */}
       <div className="flex items-center gap-3 text-xs text-muted-foreground">
         {nombreLugar ? (
           <span className="flex items-center gap-1 truncate">
@@ -559,6 +579,14 @@ function HorarioCard({ horario }: { horario: Record<string, unknown> }) {
               </a>
             </>
           ) : null}
+          <button
+            type="button"
+            onClick={() => downloadICS(evento, equipoNombre, nombreLugar, direccion)}
+            className="text-muted-foreground hover:text-foreground"
+            title="Descargar para calendario (.ics)"
+          >
+            <Download className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
     </div>
@@ -658,40 +686,70 @@ function deduplicarPorId(arr: Array<Record<string, unknown>>): Array<Record<stri
   })
 }
 
-function getProximaActividad(
-  horarios: Array<Record<string, unknown>>,
-  diaHoy: number
-): Record<string, unknown> | null {
-  if (horarios.length === 0) return null
-
-  const horariosOrdenados = [...horarios].sort((a, b) => {
-    const dA = a.dia_semana as number
-    const dB = b.dia_semana as number
-    const distA = dA >= diaHoy ? dA - diaHoy : 7 - diaHoy + dA
-    const distB = dB >= diaHoy ? dB - diaHoy : 7 - diaHoy + dB
-    if (distA !== distB) return distA - distB
-    return ((a.hora_inicio as string) || '').localeCompare((b.hora_inicio as string) || '')
-  })
-
-  return horariosOrdenados[0]
-}
-
-/** Calcula la próxima fecha calendario para un dia_semana (1=Lun, 7=Dom) */
-function getProximaFecha(diaSemana: number): Date {
-  const hoy = new Date()
-  const diaHoy = hoy.getDay() === 0 ? 7 : hoy.getDay() // 1-7
-  let diff = diaSemana - diaHoy
-  if (diff <= 0) diff += 7
-  const fecha = new Date(hoy)
-  fecha.setDate(hoy.getDate() + diff)
-  return fecha
-}
-
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 
-function formatFechaCalendario(diaSemana: number): string {
-  const fecha = getProximaFecha(diaSemana)
-  const dia = fecha.getDate()
-  const mes = MESES[fecha.getMonth()]
-  return `${DIAS[diaSemana]} ${dia} de ${mes}`
+/** Formatea la fecha de un evento: usa `fecha` si existe, sino calcula desde dia_semana */
+function formatFechaEvento(evento: Record<string, unknown>): string {
+  const fecha = evento.fecha as string | null
+  if (fecha) {
+    const d = new Date(fecha + 'T12:00:00') // noon to avoid timezone issues
+    const jsDay = d.getDay()
+    const diaSemana = jsDay === 0 ? 7 : jsDay
+    return `${DIAS[diaSemana]} ${d.getDate()} de ${MESES[d.getMonth()]}`
+  }
+  // Fallback para eventos legacy sin fecha
+  const diaSemana = evento.dia_semana as number
+  return DIAS[diaSemana] || 'Sin fecha'
+}
+
+/** Genera y descarga un archivo .ics para agregar el evento al calendario */
+function downloadICS(
+  evento: Record<string, unknown>,
+  equipoNombre: string,
+  ubicacion: string,
+  direccion: string | null
+) {
+  const fecha = evento.fecha as string | null
+  if (!fecha) return
+
+  const horaInicio = (evento.hora_inicio as string) || '00:00'
+  const horaFin = (evento.hora_fin as string) || '23:59'
+  const titulo = (evento.titulo as string) || formatTipoActividad(evento.tipo_actividad as string)
+  const horaCitacion = evento.hora_citacion as string | null
+  const descripcionEvento = evento.descripcion as string | null
+
+  // Format: YYYYMMDDTHHMMSS (local time)
+  const dtStart = fecha.replace(/-/g, '') + 'T' + horaInicio.replace(/:/g, '').padEnd(6, '0')
+  const dtEnd = fecha.replace(/-/g, '') + 'T' + horaFin.replace(/:/g, '').padEnd(6, '0')
+
+  const locationParts = [ubicacion, direccion].filter(Boolean).join(' - ')
+  const descParts = [
+    `Equipo: ${equipoNombre}`,
+    horaCitacion ? `Hora de citación: ${horaCitacion.slice(0, 5)}` : '',
+    descripcionEvento || '',
+  ].filter(Boolean).join('\\n')
+
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//ClubCore//Hindu Club//ES',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `DTSTART:${dtStart}`,
+    `DTEND:${dtEnd}`,
+    `SUMMARY:${titulo} - ${equipoNombre}`,
+    locationParts ? `LOCATION:${locationParts}` : '',
+    `DESCRIPTION:${descParts}`,
+    `UID:${evento.id as string}@clubcore`,
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].filter(Boolean).join('\r\n')
+
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `evento-${fecha}.ics`
+  link.click()
+  URL.revokeObjectURL(url)
 }

@@ -66,12 +66,13 @@ export async function fetchHorariosEquipo(equipoId: string) {
   const { data } = await supabase
     .from('equipos_horarios')
     .select(`
-      id, dia_semana, hora_inicio, hora_fin, tipo_actividad, activo, metadata,
+      id, dia_semana, hora_inicio, hora_fin, tipo_actividad, activo, metadata, fecha, titulo, hora_citacion, descripcion,
       sede:sedes!sede_id(id, nombre, direccion),
       cancha:canchas!cancha_id(id, nombre)
     `)
     .eq('equipo_id', equipoId)
     .eq('activo', true)
+    .order('fecha', { ascending: true, nullsFirst: false })
     .order('dia_semana', { ascending: true })
 
   return data ?? []
