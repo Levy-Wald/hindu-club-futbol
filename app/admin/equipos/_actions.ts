@@ -127,6 +127,44 @@ export async function agregarMiembro(input: {
   return formatResult(true, 'Miembro agregado correctamente.')
 }
 
+// --- EDITAR MIEMBRO ---
+
+export async function editarMiembroEquipo(
+  personaEquipoId: string,
+  equipoId: string,
+  input: {
+    rol_equipo_slug: string
+    dorsal: number | null
+    posicion: string | null
+  }
+) {
+  const supabase = await createClient()
+
+  if (!input.rol_equipo_slug) {
+    return formatResult(false, 'El rol es obligatorio.')
+  }
+
+  const updates: Record<string, unknown> = {
+    rol_equipo_slug: input.rol_equipo_slug,
+    dorsal: input.dorsal,
+    posicion: input.posicion?.trim() || null,
+    updated_at: new Date().toISOString(),
+  }
+
+  const { error } = await supabase
+    .from('personas_equipos')
+    .update(updates)
+    .eq('id', personaEquipoId)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) {
+    return formatResult(false, `Error al editar miembro: ${error.message}`)
+  }
+
+  revalidatePath(`/admin/equipos/${equipoId}`)
+  return formatResult(true, 'Miembro actualizado correctamente.')
+}
+
 // --- QUITAR MIEMBRO (soft delete) ---
 
 export async function quitarMiembro(personaEquipoId: string, equipoId: string) {
@@ -214,6 +252,83 @@ export async function buscarPersonas(query: string) {
   }
 
   return { ok: true, data: data ?? [] }
+}
+
+// --- UPLOAD FOTO INDUMENTARIA ---
+
+export async function uploadIndumentariaFoto(formData: FormData) {
+  const supabase = await createClient()
+  const file = formData.get('file') as File | null
+  const equipoId = formData.get('equipoId') as string | null
+  const tipo = formData.get('tipo') as string | null
+
+  if (!file || !equipoId || !tipo) {
+    return formatResult(false, 'Faltan datos: archivo, equipoId o tipo.')
+  }
+
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+  const allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg']
+  if (!allowedExts.includes(ext)) {
+    return formatResult(false, `Extension no permitida: .${ext}`)
+  }
+
+  const path = `equipos/${equipoId}/indumentaria/${tipo}.${ext}`
+
+  const { error: uploadError } = await supabase.storage
+    .from('public-assets')
+    .upload(path, file, { upsert: true })
+
+  if (uploadError) {
+    return formatResult(false, `Error al subir archivo: ${uploadError.message}`)
+  }
+
+  const { data: urlData } = supabase.storage
+    .from('public-assets')
+    .getPublicUrl(path)
+
+  return formatResult(true, 'Foto subida correctamente.', { url: urlData.publicUrl })
+}
+
+// --- UPLOAD FOTO EQUIPO ---
+
+export async function uploadFotoEquipo(formData: FormData) {
+  const supabase = await createClient()
+  const file = formData.get('file') as File | null
+  const equipoId = formData.get('equipoId') as string | null
+
+  if (!file || !equipoId) {
+    return formatResult(false, 'Faltan datos: archivo o equipoId.')
+  }
+
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+  const allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg']
+  if (!allowedExts.includes(ext)) {
+    return formatResult(false, `Extension no permitida: .${ext}`)
+  }
+
+  const path = `equipos/${equipoId}/foto-equipo.${ext}`
+
+  const { error: uploadError } = await supabase.storage
+    .from('public-assets')
+    .upload(path, file, { upsert: true })
+
+  if (uploadError) {
+    return formatResult(false, `Error al subir archivo: ${uploadError.message}`)
+  }
+
+  const { data: urlData } = supabase.storage
+    .from('public-assets')
+    .getPublicUrl(path)
+
+  // Tambien actualizar el campo en la tabla
+  await supabase
+    .from('equipos')
+    .update({ foto_equipo_url: urlData.publicUrl })
+    .eq('id', equipoId)
+    .eq('tenant_id', TENANT_ID)
+
+  revalidatePath(`/admin/equipos/${equipoId}`)
+  return formatResult(true, 'Foto del equipo subida correctamente.', { url: urlData.publicUrl })
 }
 
 // --- ACTUALIZAR INDUMENTARIA ---

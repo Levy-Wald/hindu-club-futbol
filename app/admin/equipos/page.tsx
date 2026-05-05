@@ -10,7 +10,7 @@ import { VistasPanel } from '@/components/ui/vistas-panel'
 import { EQUIPOS_MODULES, EQUIPOS_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
 import { DownloadTemplateButton } from '@/components/ui/download-template-button'
 import { Button } from '@/components/ui/button'
-import { Upload } from 'lucide-react'
+import { Upload, Shield } from 'lucide-react'
 
 interface Props {
   searchParams: Promise<Record<string, string | undefined>>
@@ -44,6 +44,12 @@ export default async function EquiposPage({ searchParams }: Props) {
             <Button variant="outline" size="sm">
               <Upload className="h-4 w-4 mr-1" />
               <span className="hidden sm:inline">Importar</span>
+            </Button>
+          </Link>
+          <Link href="/admin/equipos/capitanes">
+            <Button variant="outline" size="sm">
+              <Shield className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Capitanes</span>
             </Button>
           </Link>
           <ExportEquiposButton equipos={equipos} />

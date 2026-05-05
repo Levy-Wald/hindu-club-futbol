@@ -31,9 +31,9 @@ import {
 import { useVistasColumns } from '@/components/ui/vistas-panel'
 import { SelectionBar } from '@/components/ui/selection-bar'
 import Link from 'next/link'
-import { UserPlus, UserMinus, Search } from 'lucide-react'
+import { UserPlus, UserMinus, Search, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
-import { agregarMiembro, quitarMiembro, buscarPersonas } from '../../_actions'
+import { agregarMiembro, quitarMiembro, editarMiembroEquipo, buscarPersonas } from '../../_actions'
 import type { ExportData } from '@/lib/export/formats'
 
 interface Persona {
@@ -105,6 +105,13 @@ export function Plantel({ equipoId, miembros, roles, tipo }: PlantelProps) {
 
   // Form state
   const [rolSlug, setRolSlug] = useState('')
+
+  // Edit dialog state
+  const [editOpen, setEditOpen] = useState(false)
+  const [editingMiembro, setEditingMiembro] = useState<Miembro | null>(null)
+  const [editRol, setEditRol] = useState('')
+  const [editDorsal, setEditDorsal] = useState('')
+  const [editPosicion, setEditPosicion] = useState('')
 
   // Filtered miembros
   const filteredMiembros = useMemo(() => {
@@ -260,6 +267,34 @@ export function Plantel({ equipoId, miembros, roles, tipo }: PlantelProps) {
       const result = await quitarMiembro(miembroId, equipoId)
       if (result.ok) toast.success(result.message)
       else toast.error(result.message)
+    })
+  }
+
+  function openEditDialog(miembro: Miembro) {
+    setEditingMiembro(miembro)
+    setEditRol(miembro.rol_equipo_slug)
+    setEditDorsal(miembro.dorsal !== null ? String(miembro.dorsal) : '')
+    setEditPosicion(miembro.posicion ?? '')
+    setEditOpen(true)
+  }
+
+  function handleEditar(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editingMiembro || !editRol) return
+
+    startTransition(async () => {
+      const result = await editarMiembroEquipo(editingMiembro.id, equipoId, {
+        rol_equipo_slug: editRol,
+        dorsal: editDorsal.trim() !== '' ? Number(editDorsal) : null,
+        posicion: editPosicion.trim() || null,
+      })
+      if (result.ok) {
+        toast.success(result.message)
+        setEditOpen(false)
+        setEditingMiembro(null)
+      } else {
+        toast.error(result.message)
+      }
     })
   }
 
@@ -422,15 +457,27 @@ export function Plantel({ equipoId, miembros, roles, tipo }: PlantelProps) {
                       {m.fecha_inicio && <span>desde {m.fecha_inicio}</span>}
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 shrink-0 text-destructive"
-                    onClick={() => handleQuitar(m.id)}
-                    disabled={isPending}
-                  >
-                    <UserMinus className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => openEditDialog(m)}
+                      disabled={isPending}
+                      title="Editar miembro"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => handleQuitar(m.id)}
+                      disabled={isPending}
+                    >
+                      <UserMinus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             )
@@ -530,16 +577,28 @@ export function Plantel({ equipoId, miembros, roles, tipo }: PlantelProps) {
                       </TableCell>
                     )}
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive"
-                        onClick={() => handleQuitar(m.id)}
-                        disabled={isPending}
-                        title="Quitar del equipo"
-                      >
-                        <UserMinus className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => openEditDialog(m)}
+                          disabled={isPending}
+                          title="Editar miembro"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive"
+                          onClick={() => handleQuitar(m.id)}
+                          disabled={isPending}
+                          title="Quitar del equipo"
+                        >
+                          <UserMinus className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )
@@ -557,6 +616,68 @@ export function Plantel({ equipoId, miembros, roles, tipo }: PlantelProps) {
         onClear={clearSelection}
         getData={getExportData}
       />
+
+      {/* Edit member dialog */}
+      <Dialog open={editOpen} onOpenChange={(v) => { setEditOpen(v); if (!v) setEditingMiembro(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Editar {editingMiembro?.personas
+                ? `${editingMiembro.personas.apellido}, ${editingMiembro.personas.nombre}`
+                : 'miembro'}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditar} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit_rol">Rol</Label>
+              <Select value={editRol} onValueChange={(v) => setEditRol(v ?? '')}>
+                <SelectTrigger id="edit_rol">
+                  <SelectValue placeholder="Seleccionar rol" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roles.map((r) => (
+                    <SelectItem key={r.slug} value={r.slug}>
+                      {r.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit_dorsal">Dorsal</Label>
+              <Input
+                id="edit_dorsal"
+                type="number"
+                min={0}
+                max={999}
+                value={editDorsal}
+                onChange={(e) => setEditDorsal(e.target.value)}
+                placeholder="Ej: 10"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit_posicion">Posicion</Label>
+              <Input
+                id="edit_posicion"
+                value={editPosicion}
+                onChange={(e) => setEditPosicion(e.target.value)}
+                placeholder="Ej: Delantero, Arquero..."
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isPending || !editRol}>
+                {isPending ? 'Guardando...' : 'Guardar'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Footer count */}
       <div className="flex items-center justify-between">

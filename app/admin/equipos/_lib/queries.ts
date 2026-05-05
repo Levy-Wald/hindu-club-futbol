@@ -122,6 +122,87 @@ export async function fetchEntidadesFederaciones() {
   return data ?? []
 }
 
+export interface CapitanInfo {
+  persona_id: string
+  nombre: string
+  apellido: string
+  whatsapp: string | null
+  email_principal: string | null
+  foto_perfil_url: string | null
+  rol_equipo_slug: string
+}
+
+export interface EquipoConCapitanes {
+  id: string
+  nombre: string
+  disciplina_slug: string
+  color_principal: string | null
+  escudo_url: string | null
+  capitanes: CapitanInfo[]
+}
+
+export async function fetchCapitanesPorEquipo(): Promise<EquipoConCapitanes[]> {
+  const supabase = await createClient()
+
+  // Traer todos los equipos activos
+  const { data: equipos, error: eqError } = await supabase
+    .from('equipos')
+    .select('id, nombre, disciplina_slug, color_principal, escudo_url')
+    .eq('tenant_id', TENANT_ID)
+    .eq('activo', true)
+    .order('nombre', { ascending: true })
+
+  if (eqError) throw eqError
+
+  // Traer capitanes y subcapitanes activos
+  const { data: capitanes, error: capError } = await supabase
+    .from('personas_equipos')
+    .select(
+      `equipo_id, rol_equipo_slug, persona_id,
+       personas!persona_id(id, nombre, apellido, whatsapp, email_principal, foto_perfil_url)`
+    )
+    .eq('tenant_id', TENANT_ID)
+    .eq('activo', true)
+    .in('rol_equipo_slug', ['capitan', 'subcapitan'])
+
+  if (capError) throw capError
+
+  // Agrupar capitanes por equipo
+  const capsByEquipo = new Map<string, CapitanInfo[]>()
+  for (const c of capitanes ?? []) {
+    const p = c.personas as unknown as {
+      id: string
+      nombre: string
+      apellido: string
+      whatsapp: string | null
+      email_principal: string | null
+      foto_perfil_url: string | null
+    } | null
+    if (!p) continue
+
+    const list = capsByEquipo.get(c.equipo_id) ?? []
+    list.push({
+      persona_id: p.id,
+      nombre: p.nombre,
+      apellido: p.apellido,
+      whatsapp: p.whatsapp,
+      email_principal: p.email_principal,
+      foto_perfil_url: p.foto_perfil_url,
+      rol_equipo_slug: c.rol_equipo_slug,
+    })
+    capsByEquipo.set(c.equipo_id, list)
+  }
+
+  return (equipos ?? []).map((eq) => ({
+    id: eq.id,
+    nombre: eq.nombre,
+    disciplina_slug: eq.disciplina_slug,
+    color_principal: eq.color_principal,
+    escudo_url: eq.escudo_url,
+    capitanes: capsByEquipo.get(eq.id) ?? [],
+  }))
+}
+
 export async function fetchRolesEquipo() {
   const supabase = await createClient()
 
