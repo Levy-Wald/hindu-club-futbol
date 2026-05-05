@@ -7,7 +7,7 @@ import { PersonasFilters } from './_components/personas-filters'
 import { CrearPersonaSheet } from './_components/crear-persona-sheet'
 import { ImportButton } from './_components/import-button'
 import { ExportButton } from './_components/export-button'
-import { ColumnConfig } from './_components/column-config'
+import { PersonasVistas } from './_components/personas-vistas'
 import { DownloadTemplateButton } from '@/components/ui/download-template-button'
 import { Button } from '@/components/ui/button'
 import { Upload } from 'lucide-react'
@@ -37,7 +37,7 @@ export default async function PersonasPage({ searchParams }: PageProps) {
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold">Personas</h1>
         <div className="flex items-center gap-2">
-          <ColumnConfig />
+          <PersonasVistas />
           <DownloadTemplateButton
             headers={['nombre', 'apellido', 'numero_documento', 'email_principal', 'telefono_principal', 'fecha_nacimiento', 'genero', 'cuil_cuit', 'tipo_documento', 'direccion_calle', 'direccion_ciudad', 'direccion_provincia']}
             filename="modelo_personas.csv"

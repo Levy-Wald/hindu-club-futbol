@@ -20,7 +20,8 @@ import {
 import { MoreHorizontal, Eye, Power } from 'lucide-react'
 import { toggleActivoPadron } from '../_actions'
 import { toast } from 'sonner'
-import { useGenericColumnConfig } from '@/components/ui/column-config-generic'
+import { useVistasColumns } from '@/components/ui/vistas-panel'
+import { PADRONES_LIST_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
 import type { PadronConConteo } from '../_lib/queries'
 
 interface PadronesTableProps {
@@ -46,7 +47,7 @@ const TIPO_LABELS: Record<string, string> = {
 }
 
 export function PadronesTable({ padrones }: PadronesTableProps) {
-  const { isVisible } = useGenericColumnConfig('padrones-columns', PADRONES_COLUMNS)
+  const { isVisible } = useVistasColumns('padrones-columns', PADRONES_LIST_DEFAULT_COLUMNS)
 
   async function handleToggle(id: string) {
     const result = await toggleActivoPadron(id)

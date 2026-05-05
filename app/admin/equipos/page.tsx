@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { fetchEquipos, fetchCategoriasEquipo } from './_lib/queries'
-import { EquiposTable, EQUIPOS_COLUMN_DEFS } from './_components/equipos-table'
+import { EquiposTable } from './_components/equipos-table'
 import { CrearEquipoDialog } from './_components/crear-equipo-dialog'
 import { ExportEquiposButton } from './_components/export-equipos-button'
-import { GenericColumnConfig } from '@/components/ui/column-config-generic'
+import { VistasPanel } from '@/components/ui/vistas-panel'
+import { EQUIPOS_MODULES, EQUIPOS_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
 import { DownloadTemplateButton } from '@/components/ui/download-template-button'
 import { Button } from '@/components/ui/button'
 import { Upload } from 'lucide-react'
@@ -22,7 +23,7 @@ export default async function EquiposPage() {
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold">Equipos</h1>
         <div className="flex items-center gap-2">
-          <GenericColumnConfig storageKey="equipos-columns" columns={EQUIPOS_COLUMN_DEFS} />
+          <VistasPanel modulo="equipos" modules={EQUIPOS_MODULES} defaultColumns={EQUIPOS_DEFAULT_COLUMNS} storageKey="equipos-columns" />
           <DownloadTemplateButton
             headers={['nombre', 'disciplina_slug', 'modalidad', 'categoria', 'nivel_competencia', 'color_principal']}
             filename="modelo_equipos.csv"

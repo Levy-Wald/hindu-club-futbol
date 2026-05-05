@@ -11,7 +11,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Users } from 'lucide-react'
-import { useGenericColumnConfig } from '@/components/ui/column-config-generic'
+import { useVistasColumns } from '@/components/ui/vistas-panel'
+import { EQUIPOS_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
 
 interface Equipo {
   id: string
@@ -40,7 +41,7 @@ const EQUIPOS_COLUMNS = [
 export const EQUIPOS_COLUMN_DEFS = EQUIPOS_COLUMNS
 
 export function EquiposTable({ equipos }: EquiposTableProps) {
-  const { isVisible } = useGenericColumnConfig('equipos-columns', EQUIPOS_COLUMNS)
+  const { isVisible } = useVistasColumns('equipos-columns', EQUIPOS_DEFAULT_COLUMNS)
   return (
     <div className="space-y-4">
       {/* Mobile cards */}

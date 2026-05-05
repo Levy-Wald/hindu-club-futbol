@@ -1,8 +1,7 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Download } from 'lucide-react'
-import { toast } from 'sonner'
+import { ExportFormatSelector } from '@/components/ui/export-format-selector'
+import type { ExportData } from '@/lib/export/formats'
 
 interface Entidad {
   id: string
@@ -10,6 +9,8 @@ interface Entidad {
   tipo: string
   telefono: string | null
   email: string | null
+  sitio_web: string | null
+  cuit: string | null
   activo: boolean
 }
 
@@ -18,40 +19,22 @@ interface ExportEntidadesButtonProps {
 }
 
 export function ExportEntidadesButton({ entidades }: ExportEntidadesButtonProps) {
-  function handleExport() {
-    if (entidades.length === 0) {
-      toast.error('No hay entidades para exportar')
-      return
+  function getData(): ExportData | null {
+    if (entidades.length === 0) return null
+    return {
+      headers: ['Nombre', 'Tipo', 'Teléfono', 'Email', 'Sitio web', 'CUIT', 'Activo'],
+      rows: entidades.map((e) => [
+        e.nombre,
+        e.tipo,
+        e.telefono ?? '',
+        e.email ?? '',
+        e.sitio_web ?? '',
+        e.cuit ?? '',
+        e.activo ? 'Sí' : 'No',
+      ]),
+      filename: `entidades_externas_${new Date().toISOString().split('T')[0]}`,
     }
-
-    const headers = ['Nombre', 'Tipo', 'Teléfono', 'Email', 'Activo']
-    const rows = entidades.map((e) => [
-      e.nombre,
-      e.tipo,
-      e.telefono ?? '',
-      e.email ?? '',
-      e.activo ? 'Sí' : 'No',
-    ])
-
-    const csv = [
-      headers.join(','),
-      ...rows.map((r) => r.map((v) => `"${v.replace(/"/g, '""')}"`).join(',')),
-    ].join('\n')
-
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `entidades_externas_${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
-    toast.success(`${entidades.length} entidades exportadas`)
   }
 
-  return (
-    <Button variant="outline" size="sm" onClick={handleExport}>
-      <Download className="h-4 w-4 sm:mr-2" />
-      <span className="hidden sm:inline">Exportar</span>
-    </Button>
-  )
+  return <ExportFormatSelector getData={getData} disabled={entidades.length === 0} />
 }

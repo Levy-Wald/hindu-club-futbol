@@ -1,8 +1,15 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { FileSpreadsheet } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { FileSpreadsheet, FileText } from 'lucide-react'
 import { toast } from 'sonner'
+import { downloadTemplateCSV, downloadTemplateXLSX } from '@/lib/export/template'
 
 interface DownloadTemplateButtonProps {
   headers: string[]
@@ -11,26 +18,32 @@ interface DownloadTemplateButtonProps {
 }
 
 export function DownloadTemplateButton({ headers, filename, sampleRow }: DownloadTemplateButtonProps) {
-  function handleDownload() {
-    const rows = [headers.join(',')]
-    if (sampleRow) {
-      rows.push(sampleRow.map((v) => `"${v.replace(/"/g, '""')}"`).join(','))
-    }
-    const csv = rows.join('\n')
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    a.click()
-    URL.revokeObjectURL(url)
-    toast.success('Modelo descargado')
+  function handleCSV() {
+    downloadTemplateCSV(headers, filename, sampleRow)
+    toast.success('Modelo CSV descargado')
+  }
+
+  function handleXLSX() {
+    downloadTemplateXLSX(headers, filename, sampleRow)
+    toast.success('Modelo XLSX descargado')
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={handleDownload}>
-      <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
-      <span className="hidden sm:inline">Modelo</span>
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button variant="outline" size="sm" />}>
+        <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
+        <span className="hidden sm:inline">Modelo</span>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={handleCSV}>
+          <FileText className="h-4 w-4 mr-2" />
+          Descargar CSV
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleXLSX}>
+          <FileSpreadsheet className="h-4 w-4 mr-2" />
+          Descargar Excel (XLSX)
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

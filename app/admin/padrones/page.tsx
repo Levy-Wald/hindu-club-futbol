@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { fetchPadronesConConteo } from './_lib/queries'
-import { PadronesTable, PADRONES_COLUMN_DEFS } from './_components/padrones-table'
+import { PadronesTable } from './_components/padrones-table'
 import { CrearPadronDialog } from './_components/crear-padron-dialog'
-import { GenericColumnConfig } from '@/components/ui/column-config-generic'
+import { VistasPanel } from '@/components/ui/vistas-panel'
+import { PADRONES_LIST_MODULES, PADRONES_LIST_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
 import { DownloadTemplateButton } from '@/components/ui/download-template-button'
 import { Button } from '@/components/ui/button'
 import { GitCompareArrows } from 'lucide-react'
@@ -15,7 +16,7 @@ export default async function PadronesPage() {
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold">Padrones</h1>
         <div className="flex items-center gap-2">
-          <GenericColumnConfig storageKey="padrones-columns" columns={PADRONES_COLUMN_DEFS} />
+          <VistasPanel modulo="padrones" modules={PADRONES_LIST_MODULES} defaultColumns={PADRONES_LIST_DEFAULT_COLUMNS} storageKey="padrones-columns" />
           <DownloadTemplateButton
             headers={['nombre', 'tipo', 'disciplina_slug', 'es_externo']}
             filename="modelo_padrones.csv"

@@ -19,7 +19,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { PersonaAvatar } from './persona-avatar'
-import { useColumnConfig } from './column-config'
+import { useVistasColumns } from '@/components/ui/vistas-panel'
+import { PERSONAS_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
 import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, RotateCcw, CirclePause, CirclePlay } from 'lucide-react'
 import { softDeletePersona, restaurarPersona, cambiarEstadoPersona } from '../_actions'
 import { toast } from 'sonner'
@@ -68,7 +69,7 @@ const ATRIBUTO_COLORS: Record<string, string> = {
 export function PersonasTable({ personas, total, page, pageSize }: PersonasTableProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { isVisible } = useColumnConfig()
+  const { isVisible } = useVistasColumns('personas-columns', PERSONAS_DEFAULT_COLUMNS)
   const totalPages = Math.ceil(total / pageSize)
 
   function handleSort(column: string) {
@@ -156,9 +157,9 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
             <TableRow>
               <TableHead className="w-12" />
               <TableHead>{sortButton('apellido', 'Nombre')}</TableHead>
-              {isVisible('documento') && <TableHead>{sortButton('numero_documento', 'Documento')}</TableHead>}
-              {isVisible('email') && <TableHead>Email</TableHead>}
-              {isVisible('telefono') && <TableHead>Teléfono</TableHead>}
+              {isVisible('numero_documento') && <TableHead>{sortButton('numero_documento', 'Documento')}</TableHead>}
+              {isVisible('email_principal') && <TableHead>Email</TableHead>}
+              {isVisible('telefono_principal') && <TableHead>Teléfono</TableHead>}
               {isVisible('fecha_nacimiento') && <TableHead>Fecha nac.</TableHead>}
               {isVisible('genero') && <TableHead>Género</TableHead>}
               {isVisible('direccion_ciudad') && <TableHead>Ciudad</TableHead>}
@@ -185,9 +186,9 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
                       {p.apellido}, {p.nombre}
                     </Link>
                   </TableCell>
-                  {isVisible('documento') && <TableCell className="text-muted-foreground">{p.numero_documento ?? '—'}</TableCell>}
-                  {isVisible('email') && <TableCell className="text-muted-foreground">{p.email_principal ?? '—'}</TableCell>}
-                  {isVisible('telefono') && <TableCell className="text-muted-foreground">{p.telefono_principal ?? '—'}</TableCell>}
+                  {isVisible('numero_documento') && <TableCell className="text-muted-foreground">{p.numero_documento ?? '—'}</TableCell>}
+                  {isVisible('email_principal') && <TableCell className="text-muted-foreground">{p.email_principal ?? '—'}</TableCell>}
+                  {isVisible('telefono_principal') && <TableCell className="text-muted-foreground">{p.telefono_principal ?? '—'}</TableCell>}
                   {isVisible('fecha_nacimiento') && <TableCell className="text-muted-foreground">{p.fecha_nacimiento ? new Date(p.fecha_nacimiento).toLocaleDateString('es-AR') : '—'}</TableCell>}
                   {isVisible('genero') && <TableCell className="text-muted-foreground">{p.genero ?? '—'}</TableCell>}
                   {isVisible('direccion_ciudad') && <TableCell className="text-muted-foreground">{p.direccion_ciudad ?? '—'}</TableCell>}

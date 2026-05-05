@@ -1,8 +1,7 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Download } from 'lucide-react'
-import { toast } from 'sonner'
+import { ExportFormatSelector } from '@/components/ui/export-format-selector'
+import type { ExportData } from '@/lib/export/formats'
 
 interface Miembro {
   id: string
@@ -23,44 +22,23 @@ interface ExportPadronButtonProps {
 }
 
 export function ExportPadronButton({ padronNombre, miembros }: ExportPadronButtonProps) {
-  function handleExport() {
-    if (miembros.length === 0) {
-      toast.error('No hay miembros para exportar')
-      return
+  function getData(): ExportData | null {
+    if (miembros.length === 0) return null
+    return {
+      headers: ['Apellido', 'Nombre', 'Documento', 'Email', 'N. Socio', 'Tipo Socio', 'Estado', 'Fecha Alta'],
+      rows: miembros.map((m) => [
+        m.apellido,
+        m.nombre,
+        m.numero_documento ?? '',
+        m.email ?? '',
+        m.numero_socio ?? '',
+        m.tipo_socio ?? '',
+        m.estado_padron ?? '',
+        m.fecha_alta ?? '',
+      ]),
+      filename: `padron_${padronNombre.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}`,
     }
-
-    const headers = ['Apellido', 'Nombre', 'Documento', 'Email', 'N. Socio', 'Tipo Socio', 'Estado', 'Fecha Alta']
-    const rows = miembros.map((m) => [
-      m.apellido,
-      m.nombre,
-      m.numero_documento ?? '',
-      m.email ?? '',
-      m.numero_socio ?? '',
-      m.tipo_socio ?? '',
-      m.estado_padron ?? '',
-      m.fecha_alta ?? '',
-    ])
-
-    const csv = [
-      headers.join(','),
-      ...rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')),
-    ].join('\n')
-
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    const fecha = new Date().toISOString().split('T')[0]
-    a.download = `padron_${padronNombre.toLowerCase().replace(/\s+/g, '_')}_${fecha}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
-    toast.success(`${miembros.length} miembros exportados`)
   }
 
-  return (
-    <Button variant="outline" size="sm" onClick={handleExport}>
-      <Download className="h-4 w-4 sm:mr-2" />
-      <span className="hidden sm:inline">Exportar</span>
-    </Button>
-  )
+  return <ExportFormatSelector getData={getData} disabled={miembros.length === 0} />
 }

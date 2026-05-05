@@ -14,7 +14,9 @@ import {
 import { Power } from 'lucide-react'
 import { toast } from 'sonner'
 import { toggleActivoEntidad } from '../_actions'
-import { useGenericColumnConfig } from '@/components/ui/column-config-generic'
+import { useVistasColumns } from '@/components/ui/vistas-panel'
+import { EXTERNOS_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
+import { EditarEntidadDialog } from './editar-entidad-dialog'
 
 interface Entidad {
   id: string
@@ -24,6 +26,7 @@ interface Entidad {
   email: string | null
   sitio_web: string | null
   cuit: string | null
+  razon_social: string | null
   activo: boolean
 }
 
@@ -43,7 +46,7 @@ const ENTIDADES_COLUMNS = [
 export const ENTIDADES_COLUMN_DEFS = ENTIDADES_COLUMNS
 
 export function EntidadesTable({ entidades }: EntidadesTableProps) {
-  const { isVisible } = useGenericColumnConfig('entidades-columns', ENTIDADES_COLUMNS)
+  const { isVisible } = useVistasColumns('entidades-columns', EXTERNOS_DEFAULT_COLUMNS)
   const [isPending, startTransition] = useTransition()
 
   function handleToggle(id: string) {
@@ -80,6 +83,7 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
                   <Badge variant={e.activo ? 'default' : 'secondary'}>
                     {e.tipo}
                   </Badge>
+                  <EditarEntidadDialog entidad={e} />
                   <Button
                     size="icon"
                     variant="ghost"
@@ -139,16 +143,19 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
                     </TableCell>
                   )}
                   <TableCell>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7"
-                      disabled={isPending}
-                      onClick={() => handleToggle(e.id)}
-                      title={e.activo ? 'Desactivar' : 'Activar'}
-                    >
-                      <Power className="h-3.5 w-3.5" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <EditarEntidadDialog entidad={e} />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        disabled={isPending}
+                        onClick={() => handleToggle(e.id)}
+                        title={e.activo ? 'Desactivar' : 'Activar'}
+                      >
+                        <Power className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

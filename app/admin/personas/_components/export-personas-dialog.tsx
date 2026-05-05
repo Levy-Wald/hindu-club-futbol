@@ -12,9 +12,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Download, Loader2 } from 'lucide-react'
+import { FileText, FileSpreadsheet, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { exportarPersonas } from '../_actions-export'
+import type { ExportFormat, ExportData, ClubBranding } from '@/lib/export/formats'
 
 const MODULES = [
   {
@@ -143,18 +144,9 @@ const MODULES = [
 const ALL_FIELD_KEYS = MODULES.flatMap((m) => m.fields.map((f) => f.key))
 const TOTAL_FIELDS = ALL_FIELD_KEYS.length
 
-function buildFilename(ext: 'csv' | 'json'): string {
+function buildFilename(): string {
   const date = new Date().toISOString().slice(0, 10)
-  return `personas_export_${date}.${ext}`
-}
-
-function triggerDownload(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
+  return `personas_export_${date}`
 }
 
 export function ExportPersonasDialog({
@@ -217,10 +209,11 @@ export function ExportPersonasDialog({
     }
   }
 
-  async function handleExportCSV() {
+  async function handleExport(format: ExportFormat) {
     if (selected.size === 0) return
     setLoading(true)
     try {
+      const { exportData } = await import('@/lib/export/formats')
       const result = await exportarPersonas(buildParams())
       if (!result.ok) {
         toast.error('Error al exportar personas. Intentá de nuevo.')
@@ -229,56 +222,22 @@ export function ExportPersonasDialog({
 
       const fields = MODULES.flatMap((m) => m.fields).filter((f) => selected.has(f.key))
       const headers = fields.map((f) => f.label)
-
       const rows = result.data.map((row) =>
-        fields.map((f) => {
-          const val = row[f.key] ?? ''
-          return `"${String(val).replace(/"/g, '""')}"`
-        })
+        fields.map((f) => String(row[f.key] ?? ''))
       )
 
-      const csvLines = [
-        headers.map((h) => `"${h.replace(/"/g, '""')}"`).join(','),
-        ...rows.map((r) => r.join(',')),
-      ]
-      const csv = csvLines.join('\n')
-      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-      triggerDownload(blob, buildFilename('csv'))
-
-      toast.success(`${result.data.length} persona${result.data.length !== 1 ? 's' : ''} exportada${result.data.length !== 1 ? 's' : ''} correctamente.`)
-      onOpenChange(false)
-    } catch {
-      toast.error('Error inesperado al exportar. Intentá de nuevo.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function handleExportJSON() {
-    if (selected.size === 0) return
-    setLoading(true)
-    try {
-      const result = await exportarPersonas(buildParams())
-      if (!result.ok) {
-        toast.error('Error al exportar personas. Intentá de nuevo.')
-        return
+      const data: ExportData = { headers, rows, filename: buildFilename() }
+      const branding: ClubBranding = {
+        nombre: 'Hindu Club',
+        direccion: 'Don Bosco 3569, Victoria, Buenos Aires',
+        email: 'info@hinduclub.com.ar',
+        web: 'www.hinduclub.com.ar',
+        logoUrl: '/logo.png',
+        usuario: 'Admin',
+        fecha: new Date().toLocaleDateString('es-AR'),
       }
 
-      const fields = MODULES.flatMap((m) => m.fields).filter((f) => selected.has(f.key))
-
-      const exportData = result.data.map((row) => {
-        const obj: Record<string, unknown> = {}
-        fields.forEach((f) => {
-          obj[f.key] = row[f.key] ?? null
-        })
-        return obj
-      })
-
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-        type: 'application/json',
-      })
-      triggerDownload(blob, buildFilename('json'))
-
+      await exportData(format, data, branding)
       toast.success(`${result.data.length} persona${result.data.length !== 1 ? 's' : ''} exportada${result.data.length !== 1 ? 's' : ''} correctamente.`)
       onOpenChange(false)
     } catch {
@@ -346,31 +305,41 @@ export function ExportPersonasDialog({
           })}
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t mt-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 border-t mt-4">
           <Button
-            onClick={handleExportCSV}
+            onClick={() => handleExport('csv')}
             disabled={selected.size === 0 || loading}
-            className="flex-1"
+            size="sm"
           >
-            {loading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="mr-2 h-4 w-4" />
-            )}
-            Exportar CSV
+            {loading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />}
+            CSV
           </Button>
           <Button
             variant="outline"
-            onClick={handleExportJSON}
+            onClick={() => handleExport('xlsx')}
             disabled={selected.size === 0 || loading}
-            className="flex-1"
+            size="sm"
           >
-            {loading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="mr-2 h-4 w-4" />
-            )}
-            Exportar JSON
+            {loading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <FileSpreadsheet className="mr-1.5 h-3.5 w-3.5" />}
+            Excel
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => handleExport('pdf')}
+            disabled={selected.size === 0 || loading}
+            size="sm"
+          >
+            {loading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />}
+            PDF
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => handleExport('pdf_membretado')}
+            disabled={selected.size === 0 || loading}
+            size="sm"
+          >
+            {loading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />}
+            Membretado
           </Button>
         </div>
       </DialogContent>
