@@ -35,36 +35,40 @@ export default async function PersonaDetallePage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/admin/personas">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <PersonaAvatar nombre={persona.nombre} apellido={persona.apellido} className="h-12 w-12" />
-        <div>
-          <h1 className="text-2xl font-bold">
-            {persona.apellido}, {persona.nombre}
-          </h1>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            {persona.numero_documento && <span>Doc: {persona.numero_documento}</span>}
-            {persona.email_principal && <span>· {persona.email_principal}</span>}
-            <Badge variant={persona.deleted_at ? 'destructive' : 'default'}>
-              {persona.deleted_at ? 'eliminada' : persona.estado}
-            </Badge>
+      {/* HEADER STICKY */}
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-4 px-4 py-3 border-b -mt-4">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/personas">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <PersonaAvatar nombre={persona.nombre} apellido={persona.apellido} className="h-10 w-10" />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg font-bold truncate">
+              {persona.apellido}, {persona.nombre}
+            </h1>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              {persona.numero_documento && <span>Doc: {persona.numero_documento}</span>}
+              <Badge variant={persona.deleted_at ? 'destructive' : 'default'} className="text-[10px] h-4">
+                {persona.deleted_at ? 'eliminada' : persona.estado}
+              </Badge>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link href={`/admin/personas/${persona.id}/historial`}>
+              <Button variant="outline" size="sm">
+                <History className="mr-2 h-4 w-4" />
+                Historial
+              </Button>
+            </Link>
           </div>
         </div>
-        <Link href={`/admin/personas/${persona.id}/historial`} className="ml-auto">
-          <Button variant="outline" size="sm">
-            <History className="mr-2 h-4 w-4" />
-            Historial
-          </Button>
-        </Link>
       </div>
 
       <Tabs defaultValue="datos">
-        <TabsList>
-          <TabsTrigger value="datos">Datos</TabsTrigger>
+        <TabsList className="flex-wrap h-auto gap-1">
+          <TabsTrigger value="datos">Ficha completa</TabsTrigger>
           <TabsTrigger value="atributos">
             Atributos
             {persona.personas_atributos?.filter((a: { activo: boolean }) => a.activo).length > 0 && (
