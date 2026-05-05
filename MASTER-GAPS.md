@@ -180,7 +180,61 @@ Estado: CRUD externos hecho. Falta:
 
 ---
 
-## Tiempo estimado restante
+## Post Hindu LIVE (Sprint 16+)
+
+Una vez que Hindu está en producción, se construyen módulos sobre el mismo tronco:
+
+### Sprint 16-19: Bot WhatsApp + Capitán Oliver
+- Módulo `bot_whatsapp_equipo` (WhatsApp Cloud API)
+- Producto "Capitán Oliver Fútbol" (tronco + futbol + bot WA + cuotas)
+- Producto "Capitán Oliver Pádel" (mismo pero con disciplina_padel)
+- Convocatorias, confirmaciones, cobros — todo por WA
+
+### Sprint 20-24: Más disciplinas y verticales
+- Hockey, tenis, pádel, golf, rugby, básquet, actividades recreativas
+- Módulo `country_deportivo` (propietarios, accesos, invitados)
+- Módulo `escuela_deportiva`
+
+### Sprint 25-27: Integraciones avanzadas
+- Conectores: ATC Sports, Ondepor, HubSpot, Salesforce
+- App móvil propia (módulo premium)
+- Módulo `federacion_hub` (cross-club, fixtures, sanciones)
+
+### Futuro sin fecha
+- Módulos premium: polo_educativo, inmobiliario, competencias_profesionales
+- Multi-torneo, competencia_internacional
+- Revista publicación, contabilidad avanzada
+
+---
+
+## Arquitectura modular (referencia)
+
+```
+TRONCO (Sprints 1-15)
+├── Personas + Atributos + Vínculos
+├── Padrones múltiples
+├── Equipos + Categorías + Horarios
+├── Cajas + Movimientos + Cuotas + Productos
+├── Empleados + Contratos
+├── Eventos + Comunicaciones
+├── Audit log + Auth + Storage + RLS
+│
+MÓDULOS VENDIBLES (Post-LIVE)
+├── Disciplinas: futbol, hockey, tenis, padel, golf, rugby, basquet...
+├── Verticales: country, federacion, escuela, inmobiliario
+├── Canales: bot_whatsapp, app_movil, api_publica, mcp_server
+└── Conectores: zoho, mercadopago, atc_sports, ondepor, stripe, resend...
+```
+
+La diferencia entre clientes es CONFIGURACIÓN, no CÓDIGO:
+- Hindu: tronco + futbol + conectores = USD 249/mes
+- Hacoaj: enterprise + 14 disciplinas + multi-sede = USD 2,099/mes
+- Country del Pilar: tronco + country + 3 disciplinas = USD 269/mes
+- Capitán Oliver: light + 1 disciplina + bot WA = USD 25/mes
+
+---
+
+## Tiempo estimado restante hasta Hindu LIVE
 
 Sprints 5-15 = 11 sprints pendientes.
 Estimado: 90-120 horas agente + 15-20 horas validación Yair.
@@ -190,4 +244,5 @@ Calendario: 6-8 semanas a 4-6h/día.
 
 **Última actualización:** 2026-05-05
 **Próximo sprint:** 5 (Vínculos + Tutores/Padres + Bajas)
+**Instrucciones:** ver `NEXT-SPRINT.md`
 **Owner:** Yair Levy Wald

@@ -6,14 +6,44 @@ Este archivo lo lee Claude Code en cada sesión. **Tiene precedencia sobre cualq
 
 ## Proyecto
 
-**ClubCore** (Hindu Club Fútbol V2)
-Plataforma SaaS multi-tenant para gestión de clubes deportivos.
+**ClubCore** — Plataforma SaaS multi-tenant para gestión de clubes deportivos.
+Tronco genérico + Módulos vendibles + Configuración por tenant.
 
 **Cliente piloto:** Hindu Club Fútbol.
-**Owner:** Yair Levy Wald (yair@levywald.com).
+**Validado contra:** Hindu Club, Hacoaj, Country del Pilar, Capitán Oliver.
+**Owner:** Yair Levy Wald (yair@levywald.com) · Levy Wald CMO.
 **Repo:** github.com/yamiro12/hindu-club-futbol
 **Deploy:** hindu-club.vercel.app
 **DB:** Supabase project `hkoizqbptwhnepzbmjql`.
+
+### Visión del producto
+
+ClubCore es un tronco genérico que sirve a TODOS los clientes. La diferencia entre un club, un country y un capitán amateur es solo **qué módulos activan** y **cómo configuran** (qué venden, qué compran, qué disciplinas tienen). El código es el mismo.
+
+**Arquitectura modular:**
+- **Capa 1 — Tronco** (personas, padrones, equipos, cajas, empleados, eventos, audit): incluido siempre.
+- **Capa 2 — Módulos vendibles** (disciplinas, verticales, canales, integraciones): cada uno con precio.
+- **Capa 3 — Configuración por tenant** (productos, sedes, branding, tipos de socio): solo data.
+
+**Canales de conexión (post Hindu LIVE):**
+- API REST pública (Sprint 13) — cualquier sistema externo se conecta
+- MCP Server (Sprint 13) — agentes IA operan ClubCore
+- Webhooks salientes (Sprint 13) — eventos disparan acciones externas
+- Bot WhatsApp (post-LIVE) — el game changer, todo funciona hablándole al WA
+- Conectores (Sprint 14+) — Zoho, MercadoPago, ATC Sports, Ondepor, etc.
+
+**Productos comerciales sobre la misma base:**
+- Hindu Club Fútbol: tronco pro + fútbol + conectores (~USD 249/mes)
+- Hacoaj: enterprise + 14 disciplinas + multi-sede (~USD 2,099/mes)
+- Country del Pilar: tronco + country_deportivo + 3 disciplinas (~USD 269/mes)
+- Capitán Oliver: tronco light + 1 disciplina + bot WA (~USD 25/mes)
+
+### Cómo seguir el proyecto
+
+1. Leer `NEXT-SPRINT.md` — dice exactamente qué hacer ahora
+2. Leer `MASTER-GAPS.md` — roadmap completo y estado
+3. Seguir el patrón de los módulos existentes (queries/actions/components)
+4. Al terminar: actualizar MASTER-GAPS, NEXT-SPRINT, build, commit, push
 
 ---
 
@@ -318,13 +348,36 @@ Esto garantiza que la documentacion siempre refleja el estado real del proyecto.
 
 ## Progreso actual
 
-Sprints 1-4 del plan original: COMPLETADOS.
-Sprint actual pendiente: 5 (Vínculos + Tutores/Padres + Bajas).
-Ver `MASTER-GAPS.md` para detalle completo.
+Sprints 1-4 del plan original de 15: COMPLETADOS + UX transversal.
+Sprint pendiente: 5 (Vínculos + Tutores/Padres + Bajas).
+Ver `NEXT-SPRINT.md` para instrucciones exactas de qué hacer ahora.
+Ver `MASTER-GAPS.md` para roadmap completo.
+
+## Plan de 15 sprints → Hindu LIVE
+
+| Sprint | Contenido | Estado |
+|--------|-----------|--------|
+| 1 | Foundation (migrations, auth, layout, RLS, deploy) | HECHO |
+| 2 | ABM Personas + Vista Global | HECHO |
+| 3 | Padrones + Importación masiva | HECHO |
+| 4 | Equipos + Categorías + Horarios + Asignaciones | HECHO |
+| 5 | Vínculos + Tutores/Padres + Bajas | PENDIENTE ← PRÓXIMO |
+| 6 | Externos + Federaciones + Fusiones | PARCIAL |
+| 7 | Mi Perfil + Mi Equipo (vista jugador) | PENDIENTE |
+| 8 | Páginas públicas + Branding + Pre-inscripción | PENDIENTE |
+| 9 | Cajas + Movimientos + Productos | PENDIENTE |
+| 10 | Operaciones deportivas avanzadas | PENDIENTE |
+| 11 | Empleados + Contratos + Liquidaciones | PENDIENTE |
+| 12 | Comunicaciones | PENDIENTE |
+| 13 | API + Webhooks + MCP | PENDIENTE |
+| 14 | Conectores + Padrón consolidación | PENDIENTE |
+| 15 | Auditoría + Hardening + Hindu LIVE | PENDIENTE |
+
+Post-LIVE: bot WA, Capitán Oliver, más disciplinas, countries, app móvil.
 
 ---
 
 **Última actualización:** 2026-05-05
 **Versión:** Sprints 1-4 completos + UX transversal
-**Plan:** 15 sprints hasta Hindu LIVE (ver MASTER-GAPS.md)
+**Plan:** 15 sprints hasta Hindu LIVE
 **Owner:** Yair Levy Wald
