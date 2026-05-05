@@ -14,20 +14,18 @@ interface PageProps {
 export default async function PersonaDetallePage({ params }: PageProps) {
   const { id } = await params
 
-  let persona
-  try {
-    persona = await fetchPersonaById(id)
-  } catch {
-    notFound()
-  }
-
-  const [catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio] = await Promise.all([
+  // Todas las queries en paralelo — no esperar persona para lanzar catálogos
+  const [personaResult, catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio] = await Promise.all([
+    fetchPersonaById(id).catch(() => null),
     fetchCatalogoAtributos(),
     fetchCatalogoVinculos(),
     fetchPadrones(),
     fetchEstadosPadron(),
     fetchTiposSocio(),
   ])
+
+  if (!personaResult) notFound()
+  const persona = personaResult
 
   return (
     <div className="space-y-4">

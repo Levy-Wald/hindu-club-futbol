@@ -10,11 +10,15 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // El middleware ya valida el user y redirige si no hay sesión.
+  // Usamos getSession() que lee del cookie (sin round-trip de red).
+  const { data: { session } } = await supabase.auth.getSession()
 
-  if (!user) {
+  if (!session) {
     redirect('/login')
   }
+
+  const user = session.user
 
   return (
     <div className="flex h-dvh overflow-hidden">

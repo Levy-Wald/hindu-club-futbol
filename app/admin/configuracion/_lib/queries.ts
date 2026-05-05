@@ -5,41 +5,44 @@ const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 export async function fetchTenantConfig() {
   const supabase = await createClient()
 
-  const { data: tenant, error: tenantError } = await supabase
-    .from('tenants')
-    .select('id, nombre, slug, dominio_personalizado, config, logo_url, activo')
-    .eq('id', TENANT_ID)
-    .single()
+  const [tenantRes, modulosRes] = await Promise.all([
+    supabase
+      .from('tenants')
+      .select('id, nombre, slug, dominio_personalizado, config, logo_url, activo')
+      .eq('id', TENANT_ID)
+      .single(),
+    supabase
+      .from('tenant_modulos')
+      .select('modulo_slug, activo, fecha_activacion')
+      .eq('tenant_id', TENANT_ID),
+  ])
 
-  if (tenantError) throw tenantError
+  if (tenantRes.error) throw tenantRes.error
+  if (modulosRes.error) throw modulosRes.error
 
-  const { data: modulosActivos, error: modulosError } = await supabase
-    .from('tenant_modulos')
-    .select('modulo_slug, activo, fecha_activacion')
-    .eq('tenant_id', TENANT_ID)
-
-  if (modulosError) throw modulosError
-
-  return { tenant, modulosActivos: modulosActivos ?? [] }
+  return { tenant: tenantRes.data, modulosActivos: modulosRes.data ?? [] }
 }
 
 export async function fetchModulos() {
   const supabase = await createClient()
 
-  const { data: catalogo, error: catalogoError } = await supabase
-    .from('catalogo_modulos')
-    .select('slug, nombre, descripcion, categoria, version, activo')
-    .eq('activo', true)
-    .order('categoria')
+  const [catalogoRes, tenantModulosRes] = await Promise.all([
+    supabase
+      .from('catalogo_modulos')
+      .select('slug, nombre, descripcion, categoria, version, activo')
+      .eq('activo', true)
+      .order('categoria'),
+    supabase
+      .from('tenant_modulos')
+      .select('modulo_slug, activo, configuracion, fecha_activacion')
+      .eq('tenant_id', TENANT_ID),
+  ])
 
-  if (catalogoError) throw catalogoError
+  if (catalogoRes.error) throw catalogoRes.error
+  if (tenantModulosRes.error) throw tenantModulosRes.error
 
-  const { data: tenantModulos, error: tmError } = await supabase
-    .from('tenant_modulos')
-    .select('modulo_slug, activo, configuracion, fecha_activacion')
-    .eq('tenant_id', TENANT_ID)
-
-  if (tmError) throw tmError
+  const catalogo = catalogoRes.data
+  const tenantModulos = tenantModulosRes.data
 
   const activacionMap = new Map(
     (tenantModulos ?? []).map((m) => [m.modulo_slug, m])

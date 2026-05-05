@@ -8,9 +8,10 @@ const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
+  const user = session?.user
 
-  // Stats queries
+  // Stats queries - todas en paralelo
   const [personasRes, equiposRes, padronesRes, entidadesRes, recentRes] = await Promise.all([
     supabase
       .from('personas')
