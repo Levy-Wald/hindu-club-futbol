@@ -93,7 +93,7 @@ const TIPOS_DOC_IDENTIDAD = [
 
 const TIPOS_DOC_MEDICO = [
   { value: 'apto_fisico', label: 'Apto físico' },
-  { value: 'electrocardiograma', label: 'Electrocardiograma' },
+  { value: 'ecg', label: 'Electrocardiograma (ECG)' },
   { value: 'laboratorio', label: 'Laboratorio' },
   { value: 'certificado_medico', label: 'Certificado médico' },
   { value: 'otro', label: 'Otro' },
