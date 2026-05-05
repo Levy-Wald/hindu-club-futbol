@@ -29,7 +29,7 @@ const fullMenuItems = [
   { label: 'Personas', href: '/admin/personas', icon: UsersIcon },
   { label: 'Padrones', href: '/admin/padrones', icon: PadronesIcon },
   { label: 'Equipos', href: '/admin/equipos', icon: Shield },
-  { label: 'Externos', href: '/admin/externos', icon: Building2 },
+  { label: 'Entidades', href: '/admin/externos', icon: Building2 },
   { label: 'Operaciones', href: '/admin/operaciones', icon: CalendarDays },
   { label: 'Cajas', href: '/admin/cajas', icon: Wallet },
   { label: 'Comunicaciones', href: '/admin/comunicaciones', icon: MessageSquare },

@@ -102,10 +102,64 @@ export function TabVinculos({ personaId, vinculosOrigen, vinculosDestino, catalo
     else toast.error(result.message)
   }
 
+  const FAMILIA_SLUGS = ['padre', 'madre', 'tutor', 'hermano', 'conyuge', 'abuelo', 'tio', 'primo', 'padrino']
+  const PROTEGIDOS_HIJO = ['padre', 'madre', 'tutor']
+
   const todosVinculos = [
     ...vinculosOrigen.map((v) => ({ ...v, persona: v.destino, direccion: 'origen' as const })),
     ...vinculosDestino.map((v) => ({ ...v, persona: v.origen, direccion: 'destino' as const })),
   ].filter((v) => v.activo)
+
+  const familiaVinculos = todosVinculos.filter((v) => FAMILIA_SLUGS.includes(v.tipo_vinculo_slug))
+  const otrosVinculos = todosVinculos.filter((v) => !FAMILIA_SLUGS.includes(v.tipo_vinculo_slug))
+
+  function renderVinculo(v: (typeof todosVinculos)[0]) {
+    const label = getVinculoLabel(
+      v.tipo_vinculo_slug,
+      v.direccion === 'origen' ? 'directo' : 'inverso'
+    )
+    // No permitir quitar padre/madre/tutor desde el lado del hijo
+    const esProtegido = PROTEGIDOS_HIJO.includes(v.tipo_vinculo_slug) && v.direccion === 'destino'
+
+    return (
+      <div key={v.id} className="flex items-center justify-between border rounded-md p-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <Badge variant="outline" className="shrink-0">{label}</Badge>
+          {v.persona && (
+            <Link
+              href={`/admin/personas/${v.persona.id}`}
+              className="text-sm font-medium hover:underline truncate"
+            >
+              {v.persona.apellido}, {v.persona.nombre}
+            </Link>
+          )}
+          {v.fecha_inicio && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
+              <CalendarDays className="h-3 w-3" />
+              {new Date(v.fecha_inicio).toLocaleDateString('es-AR')}
+            </span>
+          )}
+          {v.notas && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs text-sm">{v.notas}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+        {!esProtegido && (
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleDesactivar(v.id)}>
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -174,57 +228,31 @@ export function TabVinculos({ personaId, vinculosOrigen, vinculosDestino, catalo
         </CardContent>
       </Card>
 
+      {familiaVinculos.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Familia / Tutores ({familiaVinculos.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {familiaVinculos.map(renderVinculo)}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Vínculos activos ({todosVinculos.length})</CardTitle>
+          <CardTitle className="text-lg">
+            {familiaVinculos.length > 0 ? `Otros vínculos (${otrosVinculos.length})` : `Vínculos activos (${todosVinculos.length})`}
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {todosVinculos.length === 0 ? (
+          {(familiaVinculos.length > 0 ? otrosVinculos : todosVinculos).length === 0 ? (
             <p className="text-sm text-muted-foreground">Sin vínculos registrados.</p>
           ) : (
             <div className="space-y-2">
-              {todosVinculos.map((v) => {
-                const label = getVinculoLabel(
-                  v.tipo_vinculo_slug,
-                  v.direccion === 'origen' ? 'directo' : 'inverso'
-                )
-                return (
-                  <div key={v.id} className="flex items-center justify-between border rounded-md p-3">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline">{label}</Badge>
-                      {v.persona && (
-                        <Link
-                          href={`/admin/personas/${v.persona.id}`}
-                          className="text-sm font-medium hover:underline"
-                        >
-                          {v.persona.apellido}, {v.persona.nombre}
-                        </Link>
-                      )}
-                      {v.fecha_inicio && (
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <CalendarDays className="h-3 w-3" />
-                          {new Date(v.fecha_inicio).toLocaleDateString('es-AR')}
-                        </span>
-                      )}
-                      {v.notas && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="max-w-xs text-sm">{v.notas}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                    </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDesactivar(v.id)}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )
-              })}
+              {(familiaVinculos.length > 0 ? otrosVinculos : todosVinculos).map(renderVinculo)}
             </div>
           )}
         </CardContent>

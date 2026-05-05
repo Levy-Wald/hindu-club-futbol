@@ -195,7 +195,7 @@ export async function softDeletePersona(id: string) {
 }
 
 export async function cambiarEstadoPersona(id: string, estado: string) {
-  const estadosValidos = ['activo', 'pausado', 'pendiente_revision']
+  const estadosValidos = ['activo', 'inactivo', 'pausado', 'pendiente_revision']
   if (!estadosValidos.includes(estado)) {
     return formatResult(false, 'Estado no válido')
   }

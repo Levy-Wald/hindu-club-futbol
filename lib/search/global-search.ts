@@ -27,7 +27,7 @@ const PAGINAS_ESTATICAS: SearchResult[] = [
   { id: 'page-personas', categoria: 'paginas', titulo: 'Personas', subtitulo: 'Gestión de personas del club', url: '/admin/personas' },
   { id: 'page-equipos', categoria: 'paginas', titulo: 'Equipos', subtitulo: 'Gestión de equipos y planteles', url: '/admin/equipos' },
   { id: 'page-padrones', categoria: 'paginas', titulo: 'Padrones', subtitulo: 'Padrones y registros de socios', url: '/admin/padrones' },
-  { id: 'page-externos', categoria: 'paginas', titulo: 'Externos', subtitulo: 'Entidades y clubes externos', url: '/admin/externos' },
+  { id: 'page-entidades', categoria: 'paginas', titulo: 'Entidades', subtitulo: 'Clubes, federaciones y entidades externas', url: '/admin/externos' },
   { id: 'page-cajas', categoria: 'paginas', titulo: 'Cajas', subtitulo: 'Gestión de cajas y movimientos', url: '/admin/cajas' },
   { id: 'page-comunicaciones', categoria: 'paginas', titulo: 'Comunicaciones', subtitulo: 'Comunicaciones y mensajes', url: '/admin/comunicaciones' },
   { id: 'page-configuracion', categoria: 'paginas', titulo: 'Configuración', subtitulo: 'Configuración del sistema', url: '/admin/configuracion' },

@@ -30,7 +30,7 @@ export default async function ExternosPage({ searchParams }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl sm:text-2xl font-bold">Entidades externas</h1>
+        <h1 className="text-xl sm:text-2xl font-bold">Entidades</h1>
         <div className="flex items-center gap-2">
           <VistasPanel modulo="externos" modules={EXTERNOS_MODULES} defaultColumns={EXTERNOS_DEFAULT_COLUMNS} storageKey="entidades-columns" />
           <DownloadTemplateButton

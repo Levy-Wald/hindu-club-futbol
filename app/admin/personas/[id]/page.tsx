@@ -1,12 +1,11 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { fetchPersonaById, fetchCatalogoAtributos, fetchCatalogoVinculos, fetchPadrones, fetchEstadosPadron, fetchTiposSocio, fetchCategoriasEquipo } from '../_lib/queries'
-import { fetchCatalogoMotivosBaja } from '@/app/admin/bajas/_lib/queries'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { PersonaAvatar } from '../_components/persona-avatar'
 import { PersonaEditor } from './_components/persona-editor'
-import { DarDeBajaDialog } from './_components/dar-de-baja-dialog'
+import { ToggleActivoButton } from './_components/toggle-activo-button'
 import { ArrowLeft, History } from 'lucide-react'
 
 interface PageProps {
@@ -17,7 +16,7 @@ export default async function PersonaDetallePage({ params }: PageProps) {
   const { id } = await params
 
   // Todas las queries en paralelo — no esperar persona para lanzar catálogos
-  const [personaResult, catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio, categoriasEquipo, catalogoMotivosBaja] = await Promise.all([
+  const [personaResult, catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio, categoriasEquipo] = await Promise.all([
     fetchPersonaById(id).catch(() => null),
     fetchCatalogoAtributos(),
     fetchCatalogoVinculos(),
@@ -25,7 +24,6 @@ export default async function PersonaDetallePage({ params }: PageProps) {
     fetchEstadosPadron(),
     fetchTiposSocio(),
     fetchCategoriasEquipo(),
-    fetchCatalogoMotivosBaja(),
   ])
 
   if (!personaResult) notFound()
@@ -53,10 +51,9 @@ export default async function PersonaDetallePage({ params }: PageProps) {
               </Badge>
             </div>
           </div>
-          <DarDeBajaDialog
+          <ToggleActivoButton
             personaId={persona.id}
             personaEstado={persona.estado}
-            catalogoMotivos={catalogoMotivosBaja}
           />
           <Link href={`/admin/personas/${persona.id}/historial`} className="shrink-0">
             <Button variant="outline" size="sm">
