@@ -20,6 +20,7 @@ import { SeccionNotas } from './secciones/notas'
 import { SeccionSalud } from './secciones/salud'
 import { SeccionFichaTotal } from './secciones/ficha-total'
 import { SeccionDocumentos } from './secciones/documentos'
+import { SeccionVehiculos } from './secciones/vehiculos'
 import { SeccionDeporteEquipos } from './secciones/deporte-equipos'
 import { TabAtributos } from './tab-atributos'
 import { TabVinculos } from './tab-vinculos'
@@ -33,6 +34,7 @@ interface PersonaEditorProps {
   padronesDisponibles: { id: string; nombre: string; slug: string; tipo: string }[]
   estadosPadron: { id: string; slug: string; nombre: string }[]
   tiposSocio: { id: string; slug: string; nombre: string }[]
+  categoriasEquipo: { id: string; nombre_display: string; edad_min?: number | null; edad_max?: number | null }[]
 }
 
 function init(p: Record<string, unknown>): EditarPersonaInput {
@@ -79,7 +81,7 @@ function init(p: Record<string, unknown>): EditarPersonaInput {
   }
 }
 
-export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, padronesDisponibles, estadosPadron, tiposSocio }: PersonaEditorProps) {
+export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, padronesDisponibles, estadosPadron, tiposSocio, categoriasEquipo }: PersonaEditorProps) {
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState<EditarPersonaInput>(() => init(persona))
   const [exportOpen, setExportOpen] = useState(false)
@@ -154,6 +156,7 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
           <SeccionDeporteEquipos
             personaEquipos={(persona.personas_equipos ?? []) as never[]}
             fechaNacimiento={persona.fecha_nacimiento as string | null}
+            categoriasDisponibles={categoriasEquipo}
           />
           <SeccionDeporteFisico form={form} update={update} s={s} />
           <SeccionDeporteActividad form={form} update={update} s={s} />
@@ -176,9 +179,10 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
           <SeccionNotas form={form} update={update} s={s} />
         </TabsContent>
 
-        {/* DOCUMENTOS: fotos + identidad + médicos */}
-        <TabsContent value="documentos" className="mt-4">
+        {/* DOCUMENTOS + VEHÍCULOS */}
+        <TabsContent value="documentos" className="mt-4 space-y-4">
           <SeccionDocumentos personaId={persona.id as string} tenantId={persona.tenant_id as string} fotoPerfilUrl={(persona.foto_perfil_url as string) || undefined} />
+          <SeccionVehiculos personaId={persona.id as string} tenantId={persona.tenant_id as string} />
         </TabsContent>
 
         {/* RELATIONSHIP TABS — independent state */}

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { fetchPersonaById, fetchCatalogoAtributos, fetchCatalogoVinculos, fetchPadrones, fetchEstadosPadron, fetchTiposSocio } from '../_lib/queries'
+import { fetchPersonaById, fetchCatalogoAtributos, fetchCatalogoVinculos, fetchPadrones, fetchEstadosPadron, fetchTiposSocio, fetchCategoriasEquipo } from '../_lib/queries'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { PersonaAvatar } from '../_components/persona-avatar'
@@ -15,13 +15,14 @@ export default async function PersonaDetallePage({ params }: PageProps) {
   const { id } = await params
 
   // Todas las queries en paralelo — no esperar persona para lanzar catálogos
-  const [personaResult, catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio] = await Promise.all([
+  const [personaResult, catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio, categoriasEquipo] = await Promise.all([
     fetchPersonaById(id).catch(() => null),
     fetchCatalogoAtributos(),
     fetchCatalogoVinculos(),
     fetchPadrones(),
     fetchEstadosPadron(),
     fetchTiposSocio(),
+    fetchCategoriasEquipo(),
   ])
 
   if (!personaResult) notFound()
@@ -65,6 +66,7 @@ export default async function PersonaDetallePage({ params }: PageProps) {
         padronesDisponibles={padrones}
         estadosPadron={estadosPadron}
         tiposSocio={tiposSocio}
+        categoriasEquipo={categoriasEquipo}
       />
     </div>
   )

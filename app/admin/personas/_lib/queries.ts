@@ -159,6 +159,18 @@ export async function fetchTiposSocio() {
   return data ?? []
 }
 
+export async function fetchCategoriasEquipo() {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('categorias_equipo')
+    .select('id, nombre_display, edad_min, edad_max')
+    .eq('activa', true)
+    .order('orden')
+
+  if (error) throw error
+  return data ?? []
+}
+
 export async function searchPersonas(query: string, excludeId?: string) {
   const supabase = await createClient()
   let q = supabase

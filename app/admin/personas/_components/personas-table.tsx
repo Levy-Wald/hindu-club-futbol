@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { PersonaAvatar } from './persona-avatar'
+import { useColumnConfig } from './column-config'
 import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, RotateCcw, CirclePause, CirclePlay } from 'lucide-react'
 import { softDeletePersona, restaurarPersona, cambiarEstadoPersona } from '../_actions'
 import { toast } from 'sonner'
@@ -64,6 +65,7 @@ const ATRIBUTO_COLORS: Record<string, string> = {
 export function PersonasTable({ personas, total, page, pageSize }: PersonasTableProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { isVisible } = useColumnConfig()
   const totalPages = Math.ceil(total / pageSize)
 
   function handleSort(column: string) {
@@ -151,17 +153,18 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
             <TableRow>
               <TableHead className="w-12" />
               <TableHead>{sortButton('apellido', 'Nombre')}</TableHead>
-              <TableHead>{sortButton('numero_documento', 'Documento')}</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Roles</TableHead>
-              <TableHead>{sortButton('estado', 'Estado')}</TableHead>
+              {isVisible('documento') && <TableHead>{sortButton('numero_documento', 'Documento')}</TableHead>}
+              {isVisible('email') && <TableHead>Email</TableHead>}
+              {isVisible('telefono') && <TableHead>Teléfono</TableHead>}
+              {isVisible('roles') && <TableHead>Roles</TableHead>}
+              {isVisible('estado') && <TableHead>{sortButton('estado', 'Estado')}</TableHead>}
               <TableHead className="w-12" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {personas.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={99} className="text-center text-muted-foreground py-8">
                   No se encontraron personas.
                 </TableCell>
               </TableRow>
@@ -176,28 +179,33 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
                       {p.apellido}, {p.nombre}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{p.numero_documento ?? '—'}</TableCell>
-                  <TableCell className="text-muted-foreground">{p.email_principal ?? '—'}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {p.personas_atributos
-                        ?.filter((a) => a.activo)
-                        .map((a) => (
-                          <Badge
-                            key={a.atributo_slug}
-                            variant="secondary"
-                            className={ATRIBUTO_COLORS[a.atributo_slug] ?? ''}
-                          >
-                            {a.atributo_slug}
-                          </Badge>
-                        ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={p.deleted_at ? 'destructive' : p.estado === 'activo' ? 'default' : 'secondary'}>
-                      {p.deleted_at ? 'eliminada' : p.estado}
-                    </Badge>
-                  </TableCell>
+                  {isVisible('documento') && <TableCell className="text-muted-foreground">{p.numero_documento ?? '—'}</TableCell>}
+                  {isVisible('email') && <TableCell className="text-muted-foreground">{p.email_principal ?? '—'}</TableCell>}
+                  {isVisible('telefono') && <TableCell className="text-muted-foreground">{p.telefono_principal ?? '—'}</TableCell>}
+                  {isVisible('roles') && (
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {p.personas_atributos
+                          ?.filter((a) => a.activo)
+                          .map((a) => (
+                            <Badge
+                              key={a.atributo_slug}
+                              variant="secondary"
+                              className={ATRIBUTO_COLORS[a.atributo_slug] ?? ''}
+                            >
+                              {a.atributo_slug}
+                            </Badge>
+                          ))}
+                      </div>
+                    </TableCell>
+                  )}
+                  {isVisible('estado') && (
+                    <TableCell>
+                      <Badge variant={p.deleted_at ? 'destructive' : p.estado === 'activo' ? 'default' : 'secondary'}>
+                        {p.deleted_at ? 'eliminada' : p.estado}
+                      </Badge>
+                    </TableCell>
+                  )}
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8" />}>

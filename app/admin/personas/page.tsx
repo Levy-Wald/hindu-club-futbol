@@ -6,6 +6,7 @@ import { PersonasFilters } from './_components/personas-filters'
 import { CrearPersonaSheet } from './_components/crear-persona-sheet'
 import { ImportButton } from './_components/import-button'
 import { ExportButton } from './_components/export-button'
+import { ColumnConfig } from './_components/column-config'
 
 interface PageProps {
   searchParams: Promise<Record<string, string | undefined>>
@@ -32,6 +33,7 @@ export default async function PersonasPage({ searchParams }: PageProps) {
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold">Personas</h1>
         <div className="flex items-center gap-2">
+          <ColumnConfig />
           <ExportButton />
           <ImportButton />
           <CrearPersonaSheet />

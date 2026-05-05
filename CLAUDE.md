@@ -283,6 +283,34 @@ pnpm dev
 
 ---
 
-**Última actualización:** 2026-05-04
-**Versión:** Sprint 1
+---
+
+## Documentacion del proyecto (docs/)
+
+| Archivo | Contenido |
+|---------|-----------|
+| `docs/ARCHITECTURE.md` | Separacion de capas, patron de modulo, multi-tenant |
+| `docs/UI-UX.md` | Responsive, patrones React, shadcn v4, accesibilidad, performance frontend |
+| `docs/DESIGN-SYSTEM.md` | Colores, tipografia, espaciado, componentes, auditoria visual |
+| `docs/POSTGRES.md` | Indices, RLS optimizada, migraciones seguras, Supabase CLI |
+| `docs/WORKFLOW.md` | Proceso de desarrollo, checklists, verificacion, ABM de docs |
+| `docs/SKILL-CHALLENGE.md` | Pre-mortem /challenge para analizar planes antes de ejecutar |
+
+---
+
+## Workflow obligatorio (ABM de docs)
+
+Al iniciar cada sesion:
+1. Leer `CLAUDE.md`, `MASTER-GAPS.md`, y los archivos en `docs/` relevantes a la tarea.
+
+Al terminar cada sesion de trabajo:
+2. Actualizar `MASTER-GAPS.md` con items completados o nuevos pendientes.
+3. Si se tomaron decisiones arquitectonicas, actualizar el doc correspondiente en `docs/`.
+
+Esto garantiza que la documentacion siempre refleja el estado real del proyecto.
+
+---
+
+**Ultima actualizacion:** 2026-05-05
+**Version:** Sprint 4
 **Owner:** Yair Levy Wald

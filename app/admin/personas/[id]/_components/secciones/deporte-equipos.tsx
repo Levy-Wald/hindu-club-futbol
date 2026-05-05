@@ -3,7 +3,14 @@
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users, Shield } from 'lucide-react'
+import { Users, Shield, Info } from 'lucide-react'
+
+interface CategoriaEquipo {
+  id: string
+  nombre_display: string
+  edad_min?: number | null
+  edad_max?: number | null
+}
 
 interface EquipoMembership {
   id: string
@@ -18,13 +25,14 @@ interface EquipoMembership {
     nombre: string
     disciplina_slug: string
     modalidad: string | null
-    categorias_equipo: { id: string; nombre_display: string } | null
+    categorias_equipo: CategoriaEquipo | null
   } | null
 }
 
 interface SeccionDeporteEquiposProps {
   personaEquipos: EquipoMembership[]
   fechaNacimiento?: string | null
+  categoriasDisponibles?: CategoriaEquipo[]
 }
 
 function calcularEdad(fechaNac: string): number {
@@ -51,9 +59,20 @@ const DISCIPLINA_LABELS: Record<string, string> = {
   otro: 'Otro',
 }
 
-export function SeccionDeporteEquipos({ personaEquipos, fechaNacimiento }: SeccionDeporteEquiposProps) {
+function getCategoriasSugeridas(edad: number | null, categorias: CategoriaEquipo[]): CategoriaEquipo[] {
+  if (edad === null || categorias.length === 0) return []
+  return categorias.filter((c) => {
+    if (c.edad_min == null && c.edad_max == null) return false
+    const min = c.edad_min ?? 0
+    const max = c.edad_max ?? 99
+    return edad >= min && edad <= max
+  })
+}
+
+export function SeccionDeporteEquipos({ personaEquipos, fechaNacimiento, categoriasDisponibles = [] }: SeccionDeporteEquiposProps) {
   const activos = personaEquipos.filter((pe) => pe.activo)
   const edad = fechaNacimiento ? calcularEdad(fechaNacimiento) : null
+  const categoriasSugeridas = getCategoriasSugeridas(edad, categoriasDisponibles)
 
   // Group by disciplina
   const porDeporte = activos.reduce<Record<string, EquipoMembership[]>>((acc, pe) => {
@@ -76,6 +95,15 @@ export function SeccionDeporteEquipos({ personaEquipos, fechaNacimiento }: Secci
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {categoriasSugeridas.length > 0 && (
+          <div className="flex items-center gap-2 mb-3 rounded-md bg-muted/50 px-3 py-2">
+            <Info className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              Categoría sugerida por edad ({edad} años):{' '}
+              {categoriasSugeridas.map((c) => c.nombre_display).join(', ')}
+            </p>
+          </div>
+        )}
         {activos.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-4">
             Esta persona no está asignada a ningún equipo.

@@ -48,14 +48,36 @@
 - [ ] Exportar externos (cuando se implemente la sección)
 - [ ] Permisos granulares de exportación (Sprint 4+)
 
-### Sprint 4 — Columnas configurables
+### Sprint 3 — Documentacion y estandares (COMPLETADO)
 
-- [ ] En tabla de personas: usuario elige qué N columnas ver
-- [ ] Guardar preferencia de vista por usuario (tabla o localStorage)
-- [ ] Aplicar mismo patrón en padrones, equipos, externos
+- [x] Eliminar docs obsoletos (SPRINT-1-FOUNDATION-PROMPT.md, AGENTS.md)
+- [x] Actualizar README.md con estado actual del proyecto
+- [x] Actualizar CLAUDE.md a Sprint 3 + workflow ABM + tabla de docs
+- [x] Crear docs/ARCHITECTURE.md (separacion de capas, patron de modulo, multi-tenant)
+- [x] Crear docs/UI-UX.md (responsive, patrones React, shadcn v4, performance frontend)
+- [x] Crear docs/DESIGN-SYSTEM.md (colores, tipografia, componentes, auditoria visual)
+- [x] Crear docs/POSTGRES.md (indices, RLS, migraciones seguras, Supabase CLI)
+- [x] Crear docs/WORKFLOW.md (checklists pre-feature, verificacion post-dev, ABM)
+- [x] Crear docs/SKILL-CHALLENGE.md (pre-mortem adaptado al proyecto)
+- [x] Consolidar AI-READY.md y PERFORMANCE.md dentro de los otros docs (eliminados)
 
-### Sprint 4 — Documentos y Vehículos
+### Sprint 4 — Columnas configurables (COMPLETADO)
 
-- [ ] Sub-módulo documentos: tipo, número, fecha emisión, vencimiento, archivo adjunto (Storage)
-- [ ] Sub-módulo vehículos: marca, modelo, patente, color, seguro
-- [ ] UI en ficha persona agrupado con identidad/contacto/dirección
+- [x] En tabla de personas: usuario elige qué columnas ver (documento, email, teléfono, roles, estado)
+- [x] Guardar preferencia de vista por usuario (localStorage)
+- [x] Popover con checkboxes para toggle de columnas
+- [ ] Aplicar mismo patrón en padrones, equipos, externos (Sprint 5+)
+
+### Sprint 4 — Vehículos (COMPLETADO)
+
+- [x] Migration `personas_vehiculos`: marca, modelo, año, patente, color, tipo, seguro, VTV
+- [x] RLS tenant isolation
+- [x] UI CRUD completa en ficha persona (tab Documentos)
+- [x] Badges de estado de vencimiento (vigente/por vencer/vencido) para seguro y VTV
+
+### Sprint 4 — Categoría automática por edad (COMPLETADO)
+
+- [x] Query `fetchCategoriasEquipo` con `edad_min` / `edad_max`
+- [x] Display "Categoría sugerida por edad" en sección deportivo
+- [x] Matching basado en edad de la persona vs rangos de categorías activas
+- [ ] Auto-asignación a equipo por categoría (Sprint 5+ — requiere reglas de negocio)
