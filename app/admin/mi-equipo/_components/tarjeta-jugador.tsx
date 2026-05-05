@@ -7,6 +7,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Download, Share2, CreditCard } from 'lucide-react'
 import { toast } from 'sonner'
 
+const ROL_LABELS: Record<string, string> = {
+  capitan: 'Capitán',
+  subcapitan: 'Sub-capitán',
+  dt: 'Director Técnico',
+  delegado: 'Delegado',
+  preparador_fisico: 'Preparador Físico',
+  kinesiologo: 'Kinesiólogo',
+  ayudante_campo: 'Ayudante de Campo',
+}
+
 interface TarjetaJugadorProps {
   jugador: {
     nombre: string
@@ -150,13 +160,18 @@ export function TarjetaJugador({ jugador, equipo, triggerElement, triggerLabel }
               </h2>
 
               {/* Posición y rol */}
-              <div className="mt-auto flex items-center gap-2">
+              <div className="mt-auto flex flex-col items-center gap-1.5">
                 {jugador.posicion ? (
                   <span
                     className="px-3 py-1 rounded-full text-xs font-bold uppercase"
                     style={{ backgroundColor: colorSecundario, color: colorPrincipal }}
                   >
                     {jugador.posicion}
+                  </span>
+                ) : null}
+                {jugador.rol && jugador.rol !== 'jugador' ? (
+                  <span className="px-3 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-white/20 text-white/90">
+                    {ROL_LABELS[jugador.rol] || jugador.rol.replace(/_/g, ' ')}
                   </span>
                 ) : null}
               </div>

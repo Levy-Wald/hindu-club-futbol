@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
-import { Loader2, Save, Plus, Trash2, Activity, Stethoscope, HeartPulse } from 'lucide-react'
+import { Loader2, Save, Plus, Trash2, Activity, Stethoscope, HeartPulse, Upload, FileText, Eye } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 // --- Types ---
@@ -185,6 +185,406 @@ function getBadgeVariant(estado: string): 'default' | 'secondary' | 'destructive
     case 'recaida': return 'destructive'
     default: return 'outline'
   }
+}
+
+// --- Document types & constants ---
+
+interface StorageFile {
+  name: string
+  created_at: string | null
+}
+
+interface DocumentoMedico {
+  nombre: string
+  path: string
+  fecha: string
+}
+
+const TIPOS_DOCUMENTO_MEDICO = [
+  { value: 'apto_medico', label: 'Apto medico' },
+  { value: 'estudio_medico', label: 'Estudio medico' },
+  { value: 'certificado_medico', label: 'Certificado medico' },
+  { value: 'otro', label: 'Otro' },
+]
+
+const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'pdf']
+const ALLOWED_MIME_ACCEPT = 'image/jpeg,image/png,image/webp,application/pdf'
+
+function getExtension(filename: string): string {
+  return filename.split('.').pop()?.toLowerCase() ?? ''
+}
+
+function formatStorageDate(dateStr: string): string {
+  try {
+    return new Date(dateStr).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  } catch {
+    return dateStr
+  }
+}
+
+// --- DocumentUploader sub-component ---
+
+interface DocumentUploaderProps {
+  storagePath: string
+  label: string
+  showTipoSelector?: boolean
+}
+
+function DocumentUploader({ storagePath, label, showTipoSelector = false }: DocumentUploaderProps) {
+  const [documentos, setDocumentos] = useState<DocumentoMedico[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [loadingDocs, setLoadingDocs] = useState(true)
+  const [tipoDocumento, setTipoDocumento] = useState('apto_medico')
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const loadDocuments = useCallback(async () => {
+    setLoadingDocs(true)
+    const supabase = createClient()
+    const { data, error } = await supabase.storage
+      .from('private-documentos')
+      .list(storagePath, { limit: 100, sortBy: { column: 'created_at', order: 'desc' } })
+
+    if (error) {
+      console.error('Error listing documents:', error.message)
+      setLoadingDocs(false)
+      return
+    }
+
+    const docs: DocumentoMedico[] = (data ?? [])
+      .filter((f: StorageFile) => f.name !== '.emptyFolderPlaceholder')
+      .map((f: StorageFile) => ({
+        nombre: f.name,
+        path: `${storagePath}/${f.name}`,
+        fecha: f.created_at ?? '',
+      }))
+
+    setDocumentos(docs)
+    setLoadingDocs(false)
+  }, [storagePath])
+
+  useEffect(() => {
+    loadDocuments()
+  }, [loadDocuments])
+
+  async function handleUpload(file: File) {
+    const ext = getExtension(file.name)
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      toast.error('Formato no permitido. Usá JPG, PNG, WEBP o PDF.')
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('El archivo supera el limite de 10 MB.')
+      return
+    }
+
+    setUploading(true)
+    const supabase = createClient()
+    const timestamp = Date.now()
+    const prefix = showTipoSelector ? `${tipoDocumento}_` : ''
+    const fileName = `${prefix}${timestamp}.${ext}`
+    const fullPath = `${storagePath}/${fileName}`
+
+    const { error } = await supabase.storage
+      .from('private-documentos')
+      .upload(fullPath, file)
+
+    setUploading(false)
+    if (error) {
+      toast.error(`Error al subir: ${error.message}`)
+    } else {
+      toast.success('Documento subido correctamente')
+      await loadDocuments()
+    }
+  }
+
+  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) {
+      handleUpload(file)
+    }
+    // Reset input so same file can be re-selected
+    e.target.value = ''
+  }
+
+  async function handleDownload(path: string) {
+    const supabase = createClient()
+    const { data, error } = await supabase.storage
+      .from('private-documentos')
+      .createSignedUrl(path, 3600)
+
+    if (error || !data?.signedUrl) {
+      toast.error('No se pudo generar el enlace de descarga')
+      return
+    }
+    window.open(data.signedUrl, '_blank')
+  }
+
+  async function handleDelete(path: string) {
+    const supabase = createClient()
+    const { error } = await supabase.storage
+      .from('private-documentos')
+      .remove([path])
+
+    if (error) {
+      toast.error(`Error al eliminar: ${error.message}`)
+    } else {
+      toast.success('Documento eliminado')
+      setDocumentos((prev) => prev.filter((d) => d.path !== path))
+    }
+  }
+
+  function getDocLabel(nombre: string): string {
+    for (const tipo of TIPOS_DOCUMENTO_MEDICO) {
+      if (nombre.startsWith(`${tipo.value}_`)) {
+        return tipo.label
+      }
+    }
+    return nombre
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {showTipoSelector && (
+          <Select value={tipoDocumento} onValueChange={(v) => setTipoDocumento(v ?? 'apto_medico')}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              {TIPOS_DOCUMENTO_MEDICO.map((t) => (
+                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={ALLOWED_MIME_ACCEPT}
+          onChange={onFileChange}
+          className="hidden"
+        />
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+        >
+          {uploading ? (
+            <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Upload className="mr-1.5 h-3.5 w-3.5" />
+          )}
+          {uploading ? 'Subiendo...' : label}
+        </Button>
+      </div>
+
+      {loadingDocs ? (
+        <p className="text-xs text-muted-foreground">Cargando documentos...</p>
+      ) : documentos.length > 0 ? (
+        <div className="divide-y rounded-md border">
+          {documentos.map((doc) => (
+            <div key={doc.path} className="flex items-center justify-between gap-2 px-3 py-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm truncate">{showTipoSelector ? getDocLabel(doc.nombre) : doc.nombre}</p>
+                  <p className="text-xs text-muted-foreground">{formatStorageDate(doc.fecha)}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleDownload(doc.path)}>
+                  <Eye className="h-3.5 w-3.5" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleDelete(doc.path)}>
+                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+// --- Inline attach button for lesion/rehab items ---
+
+interface InlineAttachButtonProps {
+  storagePath: string
+}
+
+function InlineAttachButton({ storagePath }: InlineAttachButtonProps) {
+  const [count, setCount] = useState<number | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [showDocs, setShowDocs] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const loadCount = useCallback(async () => {
+    const supabase = createClient()
+    const { data } = await supabase.storage
+      .from('private-documentos')
+      .list(storagePath, { limit: 100 })
+
+    const filtered = (data ?? []).filter((f: StorageFile) => f.name !== '.emptyFolderPlaceholder')
+    setCount(filtered.length)
+  }, [storagePath])
+
+  useEffect(() => {
+    loadCount()
+  }, [loadCount])
+
+  async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+
+    const ext = getExtension(file.name)
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      toast.error('Formato no permitido. Usá JPG, PNG, WEBP o PDF.')
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('El archivo supera el limite de 10 MB.')
+      return
+    }
+
+    setUploading(true)
+    const supabase = createClient()
+    const timestamp = Date.now()
+    const fileName = `${timestamp}.${ext}`
+    const fullPath = `${storagePath}/${fileName}`
+
+    const { error } = await supabase.storage
+      .from('private-documentos')
+      .upload(fullPath, file)
+
+    setUploading(false)
+    if (error) {
+      toast.error(`Error al subir: ${error.message}`)
+    } else {
+      toast.success('Documento adjuntado')
+      await loadCount()
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={ALLOWED_MIME_ACCEPT}
+        onChange={onFileChange}
+        className="hidden"
+      />
+      <Button
+        size="sm"
+        variant="ghost"
+        className="h-7 px-2 text-xs"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploading}
+      >
+        {uploading ? (
+          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+        ) : (
+          <Upload className="mr-1 h-3 w-3" />
+        )}
+        Adjuntar
+      </Button>
+      {count !== null && count > 0 && (
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 px-2 text-xs"
+          onClick={() => setShowDocs(!showDocs)}
+        >
+          <FileText className="mr-1 h-3 w-3" />
+          {count} doc{count > 1 ? 's' : ''}
+        </Button>
+      )}
+      {showDocs && (
+        <InlineDocList storagePath={storagePath} onUpdate={loadCount} />
+      )}
+    </div>
+  )
+}
+
+interface InlineDocListProps {
+  storagePath: string
+  onUpdate: () => Promise<void>
+}
+
+function InlineDocList({ storagePath, onUpdate }: InlineDocListProps) {
+  const [docs, setDocs] = useState<DocumentoMedico[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true)
+      const supabase = createClient()
+      const { data } = await supabase.storage
+        .from('private-documentos')
+        .list(storagePath, { limit: 100, sortBy: { column: 'created_at', order: 'desc' } })
+
+      const filtered = (data ?? [])
+        .filter((f: StorageFile) => f.name !== '.emptyFolderPlaceholder')
+        .map((f: StorageFile) => ({
+          nombre: f.name,
+          path: `${storagePath}/${f.name}`,
+          fecha: f.created_at ?? '',
+        }))
+      setDocs(filtered)
+      setLoading(false)
+    }
+    load()
+  }, [storagePath])
+
+  async function handleDownload(path: string) {
+    const supabase = createClient()
+    const { data, error } = await supabase.storage
+      .from('private-documentos')
+      .createSignedUrl(path, 3600)
+    if (error || !data?.signedUrl) {
+      toast.error('No se pudo generar el enlace')
+      return
+    }
+    window.open(data.signedUrl, '_blank')
+  }
+
+  async function handleDelete(path: string) {
+    const supabase = createClient()
+    const { error } = await supabase.storage
+      .from('private-documentos')
+      .remove([path])
+    if (error) {
+      toast.error(`Error: ${error.message}`)
+    } else {
+      setDocs((prev) => prev.filter((d) => d.path !== path))
+      toast.success('Documento eliminado')
+      await onUpdate()
+    }
+  }
+
+  if (loading) return <p className="text-xs text-muted-foreground ml-2">Cargando...</p>
+
+  return (
+    <div className="absolute right-0 top-full mt-1 z-10 w-64 rounded-md border bg-background shadow-lg p-2 space-y-1">
+      {docs.map((doc) => (
+        <div key={doc.path} className="flex items-center justify-between gap-1 text-xs">
+          <span className="truncate">{doc.nombre}</span>
+          <div className="flex items-center gap-0.5 shrink-0">
+            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => handleDownload(doc.path)}>
+              <Eye className="h-3 w-3" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => handleDelete(doc.path)}>
+              <Trash2 className="h-3 w-3 text-destructive" />
+            </Button>
+          </div>
+        </div>
+      ))}
+      {docs.length === 0 && <p className="text-xs text-muted-foreground">Sin documentos</p>}
+    </div>
+  )
 }
 
 // --- Main Component ---
@@ -617,6 +1017,20 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
               </div>
             </CardContent>
           </Card>
+
+          {/* APTOS MÉDICOS */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Aptos medicos y documentos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DocumentUploader
+                storagePath={`personas/${personaId}/salud/aptos`}
+                label="Subir documento"
+                showTipoSelector
+              />
+            </CardContent>
+          </Card>
         </div>
       </TabsContent>
 
@@ -702,8 +1116,8 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
             {lesiones.length > 0 ? (
               <div className="divide-y rounded-md border">
                 {lesiones.map((l) => (
-                  <div key={l.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3">
-                    <div>
+                  <div key={l.id} className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 p-3">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium">
                           {TIPOS_LESION.find((t) => t.value === l.tipo_lesion)?.label ?? l.tipo_lesion}
@@ -720,6 +1134,11 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
                         {l.contexto_actividad && ` · ${CONTEXTOS.find((c) => c.value === l.contexto_actividad)?.label}`}
                       </p>
                       {l.diagnostico && <p className="text-xs text-muted-foreground mt-0.5">Dx: {l.diagnostico}</p>}
+                      <div className="relative mt-1">
+                        <InlineAttachButton
+                          storagePath={`personas/${personaId}/salud/lesiones/${l.id}`}
+                        />
+                      </div>
                     </div>
                     <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => deleteLesion(l.id)}>
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
@@ -806,8 +1225,8 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
             {rehabilitaciones.length > 0 ? (
               <div className="divide-y rounded-md border">
                 {rehabilitaciones.map((r) => (
-                  <div key={r.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3">
-                    <div>
+                  <div key={r.id} className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 p-3">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium">
                           {TIPOS_REHAB.find((t) => t.value === r.tipo_rehabilitacion)?.label ?? r.tipo_rehabilitacion}
@@ -825,6 +1244,11 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
                         {r.profesional_externo_nombre && ` · ${r.profesional_externo_nombre}`}
                       </p>
                       {r.descripcion && <p className="text-xs text-muted-foreground mt-0.5">{r.descripcion}</p>}
+                      <div className="relative mt-1">
+                        <InlineAttachButton
+                          storagePath={`personas/${personaId}/salud/rehabilitaciones/${r.id}`}
+                        />
+                      </div>
                     </div>
                     <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => deleteRehab(r.id)}>
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />

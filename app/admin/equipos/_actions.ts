@@ -134,8 +134,6 @@ export async function editarMiembroEquipo(
   equipoId: string,
   input: {
     rol_equipo_slug: string
-    dorsal: number | null
-    posicion: string | null
   }
 ) {
   const supabase = await createClient()
@@ -144,16 +142,40 @@ export async function editarMiembroEquipo(
     return formatResult(false, 'El rol es obligatorio.')
   }
 
-  const updates: Record<string, unknown> = {
-    rol_equipo_slug: input.rol_equipo_slug,
-    dorsal: input.dorsal,
-    posicion: input.posicion?.trim() || null,
-    updated_at: new Date().toISOString(),
+  // Obtener el miembro actual para saber persona_id y rol anterior
+  const { data: current } = await supabase
+    .from('personas_equipos')
+    .select('persona_id, rol_equipo_slug')
+    .eq('id', personaEquipoId)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (!current) {
+    return formatResult(false, 'Miembro no encontrado.')
   }
+
+  // Si el rol no cambió, no hacer nada
+  if (current.rol_equipo_slug === input.rol_equipo_slug) {
+    return formatResult(true, 'Sin cambios.')
+  }
+
+  // Desactivar cualquier registro existente con el nuevo rol para esta persona+equipo
+  await supabase
+    .from('personas_equipos')
+    .update({ activo: false, fecha_fin: new Date().toISOString().split('T')[0] })
+    .eq('persona_id', current.persona_id)
+    .eq('equipo_id', equipoId)
+    .eq('rol_equipo_slug', input.rol_equipo_slug)
+    .eq('activo', true)
+    .eq('tenant_id', TENANT_ID)
+    .neq('id', personaEquipoId)
 
   const { error } = await supabase
     .from('personas_equipos')
-    .update(updates)
+    .update({
+      rol_equipo_slug: input.rol_equipo_slug,
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', personaEquipoId)
     .eq('tenant_id', TENANT_ID)
 
@@ -162,7 +184,8 @@ export async function editarMiembroEquipo(
   }
 
   revalidatePath(`/admin/equipos/${equipoId}`)
-  return formatResult(true, 'Miembro actualizado correctamente.')
+  revalidatePath('/admin/mi-equipo')
+  return formatResult(true, 'Rol actualizado correctamente.')
 }
 
 // --- QUITAR MIEMBRO (soft delete) ---

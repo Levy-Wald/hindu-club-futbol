@@ -110,8 +110,6 @@ export function Plantel({ equipoId, miembros, roles, tipo }: PlantelProps) {
   const [editOpen, setEditOpen] = useState(false)
   const [editingMiembro, setEditingMiembro] = useState<Miembro | null>(null)
   const [editRol, setEditRol] = useState('')
-  const [editDorsal, setEditDorsal] = useState('')
-  const [editPosicion, setEditPosicion] = useState('')
 
   // Filtered miembros
   const filteredMiembros = useMemo(() => {
@@ -273,8 +271,6 @@ export function Plantel({ equipoId, miembros, roles, tipo }: PlantelProps) {
   function openEditDialog(miembro: Miembro) {
     setEditingMiembro(miembro)
     setEditRol(miembro.rol_equipo_slug)
-    setEditDorsal(miembro.dorsal !== null ? String(miembro.dorsal) : '')
-    setEditPosicion(miembro.posicion ?? '')
     setEditOpen(true)
   }
 
@@ -285,8 +281,6 @@ export function Plantel({ equipoId, miembros, roles, tipo }: PlantelProps) {
     startTransition(async () => {
       const result = await editarMiembroEquipo(editingMiembro.id, equipoId, {
         rol_equipo_slug: editRol,
-        dorsal: editDorsal.trim() !== '' ? Number(editDorsal) : null,
-        posicion: editPosicion.trim() || null,
       })
       if (result.ok) {
         toast.success(result.message)
@@ -642,29 +636,6 @@ export function Plantel({ equipoId, miembros, roles, tipo }: PlantelProps) {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit_dorsal">Dorsal</Label>
-              <Input
-                id="edit_dorsal"
-                type="number"
-                min={0}
-                max={999}
-                value={editDorsal}
-                onChange={(e) => setEditDorsal(e.target.value)}
-                placeholder="Ej: 10"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit_posicion">Posicion</Label>
-              <Input
-                id="edit_posicion"
-                value={editPosicion}
-                onChange={(e) => setEditPosicion(e.target.value)}
-                placeholder="Ej: Delantero, Arquero..."
-              />
             </div>
 
             <div className="flex justify-end gap-2">
