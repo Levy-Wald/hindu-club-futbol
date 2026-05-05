@@ -18,8 +18,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Download, Users, UserX, UserCheck } from 'lucide-react'
+import { Download, Users, UserX, UserCheck, Link2, Unlink, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { toast } from 'sonner'
+import { vincularBatchAPadron, desvincularBatchDePadron } from '../_actions'
 import type { PadronOption, PersonaPadronRow } from '../_lib/queries'
 
 interface ComparadorUIProps {
@@ -37,6 +39,8 @@ export function ComparadorUI({ padrones, personas, equipos }: ComparadorUIProps)
   const [padronB, setPadronB] = useState<string>('')
   const [equipoId, setEquipoId] = useState<string>('')
   const [filter, setFilter] = useState<FilterMode>('todos')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [actionLoading, setActionLoading] = useState(false)
 
   // Compute comparison results
   const results = useMemo(() => {
@@ -64,6 +68,59 @@ export function ComparadorUI({ padrones, personas, equipos }: ComparadorUIProps)
 
   const padronAName = padrones.find((p) => p.id === padronA)?.nombre ?? ''
   const padronBName = padrones.find((p) => p.id === padronB)?.nombre ?? ''
+
+  function toggleSelect(personaId: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(personaId)) next.delete(personaId)
+      else next.add(personaId)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    if (selected.size === filteredResults.length) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(filteredResults.map((r) => r.persona_id)))
+    }
+  }
+
+  async function handleVincular(targetPadronId: string) {
+    if (selected.size === 0) return
+    setActionLoading(true)
+    try {
+      const result = await vincularBatchAPadron(targetPadronId, Array.from(selected))
+      if (result.ok) {
+        toast.success(result.message)
+        setSelected(new Set())
+      } else {
+        toast.error(result.message)
+      }
+    } catch {
+      toast.error('Error al vincular')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  async function handleDesvincular(targetPadronId: string) {
+    if (selected.size === 0) return
+    setActionLoading(true)
+    try {
+      const result = await desvincularBatchDePadron(targetPadronId, Array.from(selected))
+      if (result.ok) {
+        toast.success(result.message)
+        setSelected(new Set())
+      } else {
+        toast.error(result.message)
+      }
+    } catch {
+      toast.error('Error al desvincular')
+    } finally {
+      setActionLoading(false)
+    }
+  }
 
   function exportCSV() {
     if (!filteredResults.length) return
@@ -209,6 +266,70 @@ export function ComparadorUI({ padrones, personas, equipos }: ComparadorUIProps)
             </div>
           )}
 
+          {/* Bulk actions bar */}
+          {selected.size > 0 && padronA && (
+            <div className="flex items-center gap-2 p-3 rounded-md border bg-primary/5 border-primary/20">
+              <span className="text-sm font-medium">{selected.size} seleccionada{selected.size !== 1 ? 's' : ''}</span>
+              <div className="flex-1" />
+              {mode === 'padron_vs_padron' && padronB && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={actionLoading}
+                    onClick={() => handleVincular(padronB)}
+                  >
+                    {actionLoading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Link2 className="h-3 w-3 mr-1" />}
+                    Vincular a {padronBName}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={actionLoading}
+                    onClick={() => handleVincular(padronA)}
+                  >
+                    {actionLoading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Link2 className="h-3 w-3 mr-1" />}
+                    Vincular a {padronAName}
+                  </Button>
+                </>
+              )}
+              {mode === 'padron_vs_personas' && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={actionLoading}
+                  onClick={() => handleVincular(padronA)}
+                >
+                  {actionLoading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Link2 className="h-3 w-3 mr-1" />}
+                  Vincular a {padronAName}
+                </Button>
+              )}
+              {mode === 'padron_vs_equipos' && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={actionLoading}
+                  onClick={() => handleVincular(padronA)}
+                >
+                  {actionLoading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Link2 className="h-3 w-3 mr-1" />}
+                  Vincular a {padronAName}
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={actionLoading}
+                onClick={() => handleDesvincular(padronA)}
+              >
+                <Unlink className="h-3 w-3 mr-1" />
+                Desvincular de {padronAName}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
+                Cancelar
+              </Button>
+            </div>
+          )}
+
           {/* Table */}
           <div className="rounded-md border">
             <div className="flex items-center justify-between p-2 border-b bg-muted/30">
@@ -224,6 +345,14 @@ export function ComparadorUI({ padrones, personas, equipos }: ComparadorUIProps)
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-8">
+                      <input
+                        type="checkbox"
+                        checked={selected.size > 0 && selected.size === filteredResults.length}
+                        onChange={toggleSelectAll}
+                        className="rounded"
+                      />
+                    </TableHead>
                     <TableHead>Nombre</TableHead>
                     <TableHead>DNI</TableHead>
                     <TableHead>Email</TableHead>
@@ -233,13 +362,21 @@ export function ComparadorUI({ padrones, personas, equipos }: ComparadorUIProps)
                 <TableBody>
                   {filteredResults.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                         {!padronA ? 'Seleccioná un padrón para comparar.' : 'No hay resultados.'}
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredResults.slice(0, 500).map((r) => (
-                      <TableRow key={r.persona_id}>
+                      <TableRow key={r.persona_id} className={selected.has(r.persona_id) ? 'bg-primary/5' : ''}>
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            checked={selected.has(r.persona_id)}
+                            onChange={() => toggleSelect(r.persona_id)}
+                            className="rounded"
+                          />
+                        </TableCell>
                         <TableCell>
                           <Link
                             href={`/admin/personas/${r.persona_id}`}

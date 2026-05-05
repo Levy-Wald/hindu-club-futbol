@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import Link from 'next/link'
 import { fetchPersonas, fetchCatalogoAtributos } from './_lib/queries'
 import { PersonasTable } from './_components/personas-table'
 import { SearchBar } from './_components/search-bar'
@@ -8,6 +9,8 @@ import { ImportButton } from './_components/import-button'
 import { ExportButton } from './_components/export-button'
 import { ColumnConfig } from './_components/column-config'
 import { DownloadTemplateButton } from '@/components/ui/download-template-button'
+import { Button } from '@/components/ui/button'
+import { Upload } from 'lucide-react'
 
 interface PageProps {
   searchParams: Promise<Record<string, string | undefined>>
@@ -41,7 +44,12 @@ export default async function PersonasPage({ searchParams }: PageProps) {
             sampleRow={['Juan', 'Pérez', '12345678', 'juan@email.com', '1155001234', '1990-01-15', 'M', '20-12345678-9', 'dni', 'Av. Libertador 1234', 'Buenos Aires', 'CABA']}
           />
           <ExportButton />
-          <ImportButton />
+          <Link href="/admin/personas/importar">
+            <Button variant="outline" size="sm">
+              <Upload className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Importar</span>
+            </Button>
+          </Link>
           <CrearPersonaSheet />
         </div>
       </div>

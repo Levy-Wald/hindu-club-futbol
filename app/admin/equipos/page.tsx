@@ -1,9 +1,12 @@
+import Link from 'next/link'
 import { fetchEquipos, fetchCategoriasEquipo } from './_lib/queries'
 import { EquiposTable, EQUIPOS_COLUMN_DEFS } from './_components/equipos-table'
 import { CrearEquipoDialog } from './_components/crear-equipo-dialog'
 import { ExportEquiposButton } from './_components/export-equipos-button'
 import { GenericColumnConfig } from '@/components/ui/column-config-generic'
 import { DownloadTemplateButton } from '@/components/ui/download-template-button'
+import { Button } from '@/components/ui/button'
+import { Upload } from 'lucide-react'
 
 export default async function EquiposPage() {
   const [equipos, categorias] = await Promise.all([
@@ -25,6 +28,12 @@ export default async function EquiposPage() {
             filename="modelo_equipos.csv"
             sampleRow={['Sub-15 Masculino', 'futbol', 'M', 'sub_15', 'competitivo', '#003366']}
           />
+          <Link href="/admin/equipos/importar">
+            <Button variant="outline" size="sm">
+              <Upload className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Importar</span>
+            </Button>
+          </Link>
           <ExportEquiposButton equipos={equipos} />
           <CrearEquipoDialog categorias={categorias} disciplinas={disciplinas} />
         </div>

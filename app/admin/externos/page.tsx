@@ -1,9 +1,12 @@
+import Link from 'next/link'
 import { fetchEntidades } from './_lib/queries'
 import { EntidadesTable, ENTIDADES_COLUMN_DEFS } from './_components/entidades-table'
 import { CrearEntidadDialog } from './_components/crear-entidad-dialog'
 import { ExportEntidadesButton } from './_components/export-entidades-button'
 import { GenericColumnConfig } from '@/components/ui/column-config-generic'
 import { DownloadTemplateButton } from '@/components/ui/download-template-button'
+import { Button } from '@/components/ui/button'
+import { Upload } from 'lucide-react'
 
 export default async function ExternosPage() {
   const entidades = await fetchEntidades()
@@ -19,6 +22,12 @@ export default async function ExternosPage() {
             filename="modelo_entidades.csv"
             sampleRow={['Club Atlético River Plate', 'club', '011-4789-1234', 'contacto@river.com.ar', 'www.cariverplate.com.ar', '30-12345678-9', 'Club Atlético River Plate']}
           />
+          <Link href="/admin/externos/importar">
+            <Button variant="outline" size="sm">
+              <Upload className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Importar</span>
+            </Button>
+          </Link>
           <ExportEntidadesButton entidades={entidades} />
           <CrearEntidadDialog />
         </div>
