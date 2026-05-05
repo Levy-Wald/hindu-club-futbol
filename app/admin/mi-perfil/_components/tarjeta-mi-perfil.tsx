@@ -8,6 +8,11 @@ interface TarjetaJugadorMiPerfilProps {
     nombre: string
     apellido: string
     foto_perfil_url?: string | null
+    foto_credencial_url?: string | null
+    pie_dominante?: string | null
+    altura_cm?: number | null
+    peso_kg?: number | null
+    fecha_nacimiento?: string | null
   }
   asignacion: Record<string, unknown>
 }
@@ -17,6 +22,8 @@ export function TarjetaJugadorMiPerfil({ persona, asignacion }: TarjetaJugadorMi
   if (!equipo) return null
 
   const categoria = equipo.categoria as { nombre_display: string } | null
+  const fechaNac = persona.fecha_nacimiento ?? null
+  const edad = fechaNac ? Math.floor((Date.now() - new Date(fechaNac).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null
 
   return (
     <TarjetaJugador
@@ -27,6 +34,11 @@ export function TarjetaJugadorMiPerfil({ persona, asignacion }: TarjetaJugadorMi
         posicion: asignacion.posicion as string | null,
         rol: (asignacion.rol_equipo_slug as string) || 'jugador',
         foto_url: persona.foto_perfil_url || null,
+        foto_credencial_url: persona.foto_credencial_url || null,
+        pie_dominante: persona.pie_dominante || null,
+        altura_cm: persona.altura_cm || null,
+        peso_kg: persona.peso_kg || null,
+        edad,
       }}
       equipo={{
         nombre: equipo.nombre as string,

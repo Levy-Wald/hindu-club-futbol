@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ArrowLeft, Calendar, Info, Users, Shirt, Settings, Trophy, Building2, Image } from 'lucide-react'
-import { fetchEquipoDetalle, fetchRolesEquipo, fetchCategoriasEquipo, fetchEntidadesFederaciones } from '../_lib/queries'
+import { fetchEquipoDetalle, fetchRolesEquipo, fetchCategoriasEquipo, fetchEntidadesFederaciones, fetchSedes, fetchCanchas } from '../_lib/queries'
 import { Plantel } from './_components/plantel'
 import { EditarEquipoForm } from './_components/editar-equipo-form'
 import { EquipoComposicion } from './_components/equipo-composicion'
@@ -19,13 +19,15 @@ interface PageProps {
 export default async function EquipoDetallePage({ params }: PageProps) {
   const { id } = await params
 
-  let equipo, roles, categorias, federaciones
+  let equipo, roles, categorias, federaciones, sedes, canchas
   try {
-    ;[equipo, roles, categorias, federaciones] = await Promise.all([
+    ;[equipo, roles, categorias, federaciones, sedes, canchas] = await Promise.all([
       fetchEquipoDetalle(id),
       fetchRolesEquipo(),
       fetchCategoriasEquipo(),
       fetchEntidadesFederaciones(),
+      fetchSedes(),
+      fetchCanchas(),
     ])
   } catch {
     notFound()
@@ -68,6 +70,9 @@ export default async function EquipoDetallePage({ params }: PageProps) {
     hora_fin: string
     tipo_actividad: string
     activo: boolean
+    sede_id: string | null
+    cancha_id: string | null
+    metadata: Record<string, unknown>
   }>
 
   const rolesJugador = roles.filter((r) => r.categoria === 'deportivo')
@@ -263,7 +268,7 @@ export default async function EquipoDetallePage({ params }: PageProps) {
         {/* Horarios Tab */}
         <TabsContent value="horarios">
           <div className="pt-4">
-            <HorariosPanel equipoId={equipo.id} horarios={horarios} />
+            <HorariosPanel equipoId={equipo.id} horarios={horarios} sedes={sedes} canchas={canchas} />
           </div>
         </TabsContent>
 

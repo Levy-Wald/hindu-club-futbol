@@ -75,6 +75,8 @@ function buildEquipoData(equipo: Record<string, unknown>) {
 
 function buildJugadorData(j: Record<string, unknown>) {
   const p = j.persona as Record<string, unknown>
+  const fechaNac = p?.fecha_nacimiento as string | null
+  const edad = fechaNac ? Math.floor((Date.now() - new Date(fechaNac).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null
   return {
     nombre: p?.nombre as string || '',
     apellido: p?.apellido as string || '',
@@ -82,6 +84,11 @@ function buildJugadorData(j: Record<string, unknown>) {
     posicion: j.posicion as string | null,
     rol: (j.rol_equipo_slug as string) || 'jugador',
     foto_url: p?.foto_perfil_url as string | null,
+    foto_credencial_url: p?.foto_credencial_url as string | null,
+    pie_dominante: p?.pie_dominante as string | null,
+    altura_cm: p?.altura_cm as number | null,
+    peso_kg: p?.peso_kg as number | null,
+    edad,
   }
 }
 
@@ -138,11 +145,18 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1.5">
                   <p className="text-2xl font-bold">
-                    {DIAS[proximaActividad.dia_semana as number]}
+                    {formatFechaCalendario(proximaActividad.dia_semana as number)}
                   </p>
-                  <Badge variant="default" className="capitalize">
-                    {formatTipoActividad(proximaActividad.tipo_actividad as string)}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="default" className="capitalize">
+                      {formatTipoActividad(proximaActividad.tipo_actividad as string)}
+                    </Badge>
+                    {(proximaActividad.metadata as Record<string, unknown>)?.hora_citacion ? (
+                      <span className="text-xs text-muted-foreground">
+                        Citación: {((proximaActividad.metadata as Record<string, unknown>).hora_citacion as string).slice(0, 5)}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
                 <div className="text-right">
                   <p className="text-3xl font-bold font-mono tabular-nums">
@@ -481,6 +495,7 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
 function HorarioCard({ horario }: { horario: Record<string, unknown> }) {
   const sede = horario.sede as Record<string, unknown> | null
   const cancha = horario.cancha as Record<string, unknown> | null
+  const metadata = horario.metadata as Record<string, unknown> | null
   const direccionObj = sede?.direccion as Record<string, unknown> | null
   const direccion = direccionObj
     ? [direccionObj.calle, direccionObj.numero, direccionObj.ciudad].filter(Boolean).join(' ') || null
@@ -490,46 +505,62 @@ function HorarioCard({ horario }: { horario: Record<string, unknown> }) {
     cancha ? (cancha.nombre as string) : '',
   ].filter(Boolean).join(' · ')
   const searchQuery = encodeURIComponent(direccion || nombreLugar || '')
+  const horaCitacion = metadata?.hora_citacion as string | null
 
   return (
-    <div className="flex items-center gap-3 border rounded-lg px-4 py-3 hover:bg-muted/50 transition-colors">
-      {/* Día */}
-      <div className="w-20 shrink-0">
-        <p className="text-sm font-semibold">{DIAS[horario.dia_semana as number]}</p>
+    <div className="border rounded-lg px-4 py-3 hover:bg-muted/50 transition-colors space-y-1.5">
+      {/* Primera fila: fecha, horario, tipo */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold">{formatFechaCalendario(horario.dia_semana as number)}</p>
+        </div>
+        <div className="font-mono tabular-nums text-sm font-medium shrink-0">
+          {(horario.hora_inicio as string)?.slice(0, 5)} – {(horario.hora_fin as string)?.slice(0, 5)}
+        </div>
+        <Badge variant="outline" className="text-[10px] capitalize shrink-0">
+          {formatTipoActividad(horario.tipo_actividad as string)}
+        </Badge>
       </div>
 
-      {/* Horario */}
-      <div className="font-mono tabular-nums text-sm font-medium shrink-0">
-        {(horario.hora_inicio as string)?.slice(0, 5)} – {(horario.hora_fin as string)?.slice(0, 5)}
-      </div>
-
-      {/* Tipo actividad */}
-      <Badge variant="outline" className="text-[10px] capitalize shrink-0">
-        {formatTipoActividad(horario.tipo_actividad as string)}
-      </Badge>
-
-      {/* Sede/cancha */}
-      <div className="flex-1 min-w-0 flex items-center gap-1.5 text-xs text-muted-foreground">
+      {/* Segunda fila: sede, citación, maps */}
+      <div className="flex items-center gap-3 text-xs text-muted-foreground">
         {nombreLugar ? (
-          <>
+          <span className="flex items-center gap-1 truncate">
             <MapPin className="h-3 w-3 shrink-0" />
-            <span className="truncate">{nombreLugar}</span>
-          </>
+            {nombreLugar}
+          </span>
         ) : null}
+        {direccion ? (
+          <span className="truncate hidden sm:inline">{direccion}</span>
+        ) : null}
+        {horaCitacion ? (
+          <span className="shrink-0">Citación: {horaCitacion.slice(0, 5)}</span>
+        ) : null}
+        <div className="ml-auto flex items-center gap-1.5 shrink-0">
+          {(direccion || nombreLugar) ? (
+            <>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${searchQuery}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground"
+                title="Google Maps"
+              >
+                <Navigation className="h-3.5 w-3.5" />
+              </a>
+              <a
+                href={`https://waze.com/ul?q=${searchQuery}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground"
+                title="Waze"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </>
+          ) : null}
+        </div>
       </div>
-
-      {/* Maps link */}
-      {(direccion || nombreLugar) ? (
-        <a
-          href={`https://www.google.com/maps/search/?api=1&query=${searchQuery}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="shrink-0 text-muted-foreground hover:text-foreground"
-          title="Ver en Google Maps"
-        >
-          <Navigation className="h-3.5 w-3.5" />
-        </a>
-      ) : null}
     </div>
   )
 }
@@ -643,4 +674,24 @@ function getProximaActividad(
   })
 
   return horariosOrdenados[0]
+}
+
+/** Calcula la próxima fecha calendario para un dia_semana (1=Lun, 7=Dom) */
+function getProximaFecha(diaSemana: number): Date {
+  const hoy = new Date()
+  const diaHoy = hoy.getDay() === 0 ? 7 : hoy.getDay() // 1-7
+  let diff = diaSemana - diaHoy
+  if (diff <= 0) diff += 7
+  const fecha = new Date(hoy)
+  fecha.setDate(hoy.getDate() + diff)
+  return fecha
+}
+
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+
+function formatFechaCalendario(diaSemana: number): string {
+  const fecha = getProximaFecha(diaSemana)
+  const dia = fecha.getDate()
+  const mes = MESES[fecha.getMonth()]
+  return `${DIAS[diaSemana]} ${dia} de ${mes}`
 }

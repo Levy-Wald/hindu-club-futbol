@@ -79,7 +79,7 @@ export async function fetchEquipoDetalle(id: string) {
 
   const { data: horarios } = await supabase
     .from('equipos_horarios')
-    .select('id, dia_semana, hora_inicio, hora_fin, tipo_actividad, activo')
+    .select('id, dia_semana, hora_inicio, hora_fin, tipo_actividad, activo, sede_id, cancha_id, metadata')
     .eq('equipo_id', id)
     .eq('tenant_id', TENANT_ID)
     .eq('activo', true)
@@ -201,6 +201,28 @@ export async function fetchCapitanesPorEquipo(): Promise<EquipoConCapitanes[]> {
     escudo_url: eq.escudo_url,
     capitanes: capsByEquipo.get(eq.id) ?? [],
   }))
+}
+
+export async function fetchSedes() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('sedes')
+    .select('id, nombre, direccion')
+    .eq('tenant_id', TENANT_ID)
+    .order('nombre')
+  return data ?? []
+}
+
+export async function fetchCanchas(sedeId?: string) {
+  const supabase = await createClient()
+  let query = supabase
+    .from('canchas')
+    .select('id, nombre, sede_id')
+    .eq('tenant_id', TENANT_ID)
+    .order('nombre')
+  if (sedeId) query = query.eq('sede_id', sedeId)
+  const { data } = await query
+  return data ?? []
 }
 
 export async function fetchRolesEquipo() {

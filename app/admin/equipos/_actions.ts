@@ -215,6 +215,9 @@ export async function crearHorario(input: {
   hora_inicio: string
   hora_fin: string
   tipo_actividad: string
+  sede_id?: string | null
+  cancha_id?: string | null
+  hora_citacion?: string | null
 }) {
   const supabase = await createClient()
 
@@ -227,6 +230,9 @@ export async function crearHorario(input: {
       hora_inicio: input.hora_inicio,
       hora_fin: input.hora_fin,
       tipo_actividad: input.tipo_actividad,
+      sede_id: input.sede_id || null,
+      cancha_id: input.cancha_id || null,
+      metadata: input.hora_citacion ? { hora_citacion: input.hora_citacion } : {},
     })
 
   if (error) return formatResult(false, error.message)

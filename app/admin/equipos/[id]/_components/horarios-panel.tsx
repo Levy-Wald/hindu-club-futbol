@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Plus, Trash2, List, CalendarDays } from 'lucide-react'
+import { Plus, Trash2, List, CalendarDays, MapPin } from 'lucide-react'
 import { toast } from 'sonner'
 import { crearHorario, eliminarHorario } from '../../_actions'
 
@@ -62,6 +62,18 @@ const HORA_INICIO_CALENDARIO = 7
 const HORA_FIN_CALENDARIO = 22
 const HORAS_TOTAL = HORA_FIN_CALENDARIO - HORA_INICIO_CALENDARIO
 
+interface Sede {
+  id: string
+  nombre: string
+  direccion: unknown
+}
+
+interface Cancha {
+  id: string
+  nombre: string
+  sede_id: string
+}
+
 interface Horario {
   id: string
   dia_semana: number
@@ -69,11 +81,16 @@ interface Horario {
   hora_fin: string
   tipo_actividad: string
   activo: boolean
+  sede_id: string | null
+  cancha_id: string | null
+  metadata: Record<string, unknown>
 }
 
 interface HorariosPanelProps {
   equipoId: string
   horarios: Horario[]
+  sedes: Sede[]
+  canchas: Cancha[]
 }
 
 type ViewMode = 'lista' | 'calendario'
@@ -135,42 +152,58 @@ function ListaView({
   horarios,
   isPending,
   onEliminar,
+  sedes,
 }: {
   horarios: Horario[]
   isPending: boolean
   onEliminar: (id: string) => void
+  sedes: Sede[]
 }) {
   if (horarios.length === 0) {
     return <p className="text-sm text-muted-foreground">No hay horarios configurados.</p>
   }
 
+  function getSedeNombre(sedeId: string | null): string | null {
+    if (!sedeId) return null
+    return sedes.find((s) => s.id === sedeId)?.nombre ?? null
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-      {horarios.map((h) => (
-        <div
-          key={h.id}
-          className="rounded-lg border bg-card p-3 flex items-start justify-between gap-2"
-        >
-          <div className="space-y-1">
-            <p className="text-sm font-medium">{getDiaNombre(h.dia_semana)}</p>
-            <p className="text-xs text-muted-foreground">
-              {h.hora_inicio.slice(0, 5)} - {h.hora_fin.slice(0, 5)}
-            </p>
-            <p className="text-xs text-muted-foreground capitalize">
-              {getTipoLabel(h.tipo_actividad)}
-            </p>
-          </div>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-7 w-7 text-destructive hover:text-destructive"
-            disabled={isPending}
-            onClick={() => onEliminar(h.id)}
+      {horarios.map((h) => {
+        const sedeNombre = getSedeNombre(h.sede_id)
+        return (
+          <div
+            key={h.id}
+            className="rounded-lg border bg-card p-3 flex items-start justify-between gap-2"
           >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      ))}
+            <div className="space-y-1">
+              <p className="text-sm font-medium">{getDiaNombre(h.dia_semana)}</p>
+              <p className="text-xs text-muted-foreground">
+                {h.hora_inicio.slice(0, 5)} - {h.hora_fin.slice(0, 5)}
+              </p>
+              <p className="text-xs text-muted-foreground capitalize">
+                {getTipoLabel(h.tipo_actividad)}
+              </p>
+              {sedeNombre && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {sedeNombre}
+                </p>
+              )}
+            </div>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 text-destructive hover:text-destructive"
+              disabled={isPending}
+              onClick={() => onEliminar(h.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -332,7 +365,7 @@ function CalendarioMobileView({ horarios }: { horarios: Horario[] }) {
 }
 
 // --- Componente principal ---
-export function HorariosPanel({ equipoId, horarios }: HorariosPanelProps) {
+export function HorariosPanel({ equipoId, horarios, sedes, canchas }: HorariosPanelProps) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [viewMode, setViewMode] = useState<ViewMode>('lista')
@@ -345,6 +378,14 @@ export function HorariosPanel({ equipoId, horarios }: HorariosPanelProps) {
   const [recurrencia, setRecurrencia] = useState('una_vez')
   const [cantidadRepeticiones, setCantidadRepeticiones] = useState(1)
   const [fechaInicio, setFechaInicio] = useState('')
+  const [sedeId, setSedeId] = useState('')
+  const [canchaId, setCanchaId] = useState('')
+  const [horaCitacion, setHoraCitacion] = useState('')
+
+  // Filter canchas by selected sede
+  const canchasFiltradas = sedeId
+    ? canchas.filter((c) => c.sede_id === sedeId)
+    : canchas
 
   function resetForm() {
     setDiaSemana('')
@@ -354,6 +395,9 @@ export function HorariosPanel({ equipoId, horarios }: HorariosPanelProps) {
     setRecurrencia('una_vez')
     setCantidadRepeticiones(1)
     setFechaInicio('')
+    setSedeId('')
+    setCanchaId('')
+    setHoraCitacion('')
   }
 
   function handleCrear(e: React.FormEvent) {
@@ -383,6 +427,9 @@ export function HorariosPanel({ equipoId, horarios }: HorariosPanelProps) {
           hora_inicio: horaInicio,
           hora_fin: horaFin,
           tipo_actividad: tipoActividad,
+          sede_id: sedeId || null,
+          cancha_id: canchaId || null,
+          hora_citacion: horaCitacion || null,
         })
 
         if (result.ok) {
@@ -406,6 +453,9 @@ export function HorariosPanel({ equipoId, horarios }: HorariosPanelProps) {
             hora_inicio: horaInicio,
             hora_fin: horaFin,
             tipo_actividad: tipoActividad,
+            sede_id: sedeId || null,
+            cancha_id: canchaId || null,
+            hora_citacion: horaCitacion || null,
           })
 
           if (result.ok) {
@@ -532,6 +582,51 @@ export function HorariosPanel({ equipoId, horarios }: HorariosPanelProps) {
                   </Select>
                 </div>
 
+                {/* Sede */}
+                <div className="space-y-2">
+                  <Label>Sede</Label>
+                  <Select value={sedeId} onValueChange={(v) => { setSedeId(v ?? ''); setCanchaId('') }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar sede (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sedes.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Cancha */}
+                <div className="space-y-2">
+                  <Label>Cancha</Label>
+                  <Select value={canchaId} onValueChange={(v) => setCanchaId(v ?? '')}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar cancha (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {canchasFiltradas.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Hora citacion */}
+                <div className="space-y-2">
+                  <Label htmlFor="hora-citacion">Hora de citacion (opcional)</Label>
+                  <Input
+                    id="hora-citacion"
+                    type="time"
+                    value={horaCitacion}
+                    onChange={(e) => setHoraCitacion(e.target.value)}
+                  />
+                </div>
+
                 {/* Recurrence fields */}
                 <div className="space-y-2">
                   <Label>Repetir</Label>
@@ -592,7 +687,7 @@ export function HorariosPanel({ equipoId, horarios }: HorariosPanelProps) {
 
       {/* Views */}
       {viewMode === 'lista' && (
-        <ListaView horarios={horarios} isPending={isPending} onEliminar={handleEliminar} />
+        <ListaView horarios={horarios} isPending={isPending} onEliminar={handleEliminar} sedes={sedes} />
       )}
 
       {viewMode === 'calendario' && (

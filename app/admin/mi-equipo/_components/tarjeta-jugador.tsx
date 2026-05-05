@@ -25,6 +25,11 @@ interface TarjetaJugadorProps {
     posicion: string | null
     rol: string
     foto_url: string | null
+    foto_credencial_url?: string | null
+    pie_dominante?: string | null
+    altura_cm?: number | null
+    peso_kg?: number | null
+    edad?: number | null
   }
   equipo: {
     nombre: string
@@ -45,6 +50,7 @@ export function TarjetaJugador({ jugador, equipo, triggerElement, triggerLabel }
 
   const colorPrincipal = equipo.color_principal || '#1a1a2e'
   const colorSecundario = equipo.color_secundario || '#e2e8f0'
+  const fotoFinal = jugador.foto_url || jugador.foto_credencial_url || null
 
   async function handleDownload() {
     if (!cardRef.current) return
@@ -142,8 +148,8 @@ export function TarjetaJugador({ jugador, equipo, triggerElement, triggerLabel }
                 className="w-24 h-24 rounded-full border-4 flex items-center justify-center mb-4 overflow-hidden"
                 style={{ borderColor: colorSecundario }}
               >
-                {jugador.foto_url ? (
-                  <img src={jugador.foto_url} alt="" className="w-full h-full object-cover" />
+                {fotoFinal ? (
+                  <img src={fotoFinal} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-3xl font-bold text-white/80">
                     {jugador.nombre[0]}{jugador.apellido[0]}
@@ -158,6 +164,14 @@ export function TarjetaJugador({ jugador, equipo, triggerElement, triggerLabel }
               <h2 className="text-xl font-black text-white uppercase text-center leading-tight">
                 {jugador.apellido}
               </h2>
+
+              {/* Stats */}
+              <div className="flex items-center gap-3 text-[10px] text-white/70 mt-1">
+                {jugador.edad != null ? <span>{jugador.edad} años</span> : null}
+                {jugador.altura_cm ? <span>{jugador.altura_cm} cm</span> : null}
+                {jugador.peso_kg ? <span>{jugador.peso_kg} kg</span> : null}
+                {jugador.pie_dominante ? <span>Pie {jugador.pie_dominante}</span> : null}
+              </div>
 
               {/* Posición y rol */}
               <div className="mt-auto flex flex-col items-center gap-1.5">

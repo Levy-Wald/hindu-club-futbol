@@ -47,9 +47,10 @@ export async function fetchPlantelEquipo(equipoId: string) {
     .select(`
       id, rol_equipo_slug, dorsal, posicion,
       persona:personas!persona_id(
-        id, nombre, apellido, foto_perfil_url,
+        id, nombre, apellido, foto_perfil_url, foto_credencial_url,
         telefono_principal, whatsapp, email_principal,
-        fecha_nacimiento, numero_documento
+        fecha_nacimiento, numero_documento,
+        pie_dominante, altura_cm, peso_kg
       )
     `)
     .eq('equipo_id', equipoId)
@@ -65,7 +66,7 @@ export async function fetchHorariosEquipo(equipoId: string) {
   const { data } = await supabase
     .from('equipos_horarios')
     .select(`
-      id, dia_semana, hora_inicio, hora_fin, tipo_actividad, activo,
+      id, dia_semana, hora_inicio, hora_fin, tipo_actividad, activo, metadata,
       sede:sedes!sede_id(id, nombre, direccion),
       cancha:canchas!cancha_id(id, nombre)
     `)
