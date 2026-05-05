@@ -5,10 +5,18 @@ Alineado al plan original de 15 sprints → Hindu LIVE.
 
 ---
 
-## Estado actual: Sprint 6 COMPLETADO + UX transversal
+## Estado actual: Sprint 6 COMPLETADO + UX transversal + Ajustes post-validación
 
 Los primeros 6 sprints del plan original están completos.
 Adicionalmente se implementó un bloque de UX transversal (no planificado originalmente) que mejora la experiencia en todos los módulos existentes.
+
+### Ajustes post-validación (después de Sprint 6)
+- [x] "Externos" renombrado a "Entidades" en todo el sistema (sidebar, mobile, search, títulos)
+- [x] "Dar de baja" reemplazado por "Desactivar/Activar" (toggle simple, baja formal queda para ERP Sprint 9+)
+- [x] Vínculos separados en "Familia / Tutores" y "Otros vínculos"
+- [x] Menor no puede quitar vínculo padre/madre/tutor (protección en UI)
+- [x] Tutores y Bajas removidos del menú principal (son atributos de personas, no módulos)
+- [x] Tabla entidades clickeable → detalle con DropdownMenu (patrón UX unificado)
 
 ---
 
@@ -69,24 +77,25 @@ Aplicado a personas, padrones, equipos, externos:
 ### Sprint 5 — Vínculos + Tutores/Padres + Bajas (HECHO)
 
 - [x] Vínculos bidireccionales con labels humanos (Padre de / Hijo/a de)
+- [x] Vínculos separados en "Familia / Tutores" y "Otros vínculos"
+- [x] Menor no puede quitar vínculo padre/madre/tutor
 - [x] Tooltips de notas y fecha inicio en vínculos
-- [x] Página /admin/tutores con búsqueda, filtros (con/sin menor), vistas, export
-- [x] Página /admin/bajas con búsqueda, filtros (motivo, fecha), vistas, export
-- [x] Dialog "Dar de baja" en ficha persona (motivo + fecha + detalle)
-- [x] Server action darDeBaja con propagación a padrones
-- [x] Server action reactivarPersona
-- [x] Sidebar, mobile nav y búsqueda global actualizados
+- [x] Página /admin/tutores (accesible por URL, no en menú principal)
+- [x] Página /admin/bajas (accesible por URL, no en menú principal)
+- [x] Toggle Desactivar/Activar en ficha persona (baja formal diferida a ERP)
+- [x] Server actions: cambiarEstadoPersona, reactivarPersona
 - [x] Spec documentado: docs/MENORES-TUTORES.md (para sprints 7 y 9)
 
-### Sprint 6 — Externos + Federaciones + Fusiones (HECHO)
+### Sprint 6 — Entidades + Federaciones + Fusiones (HECHO)
 
+- [x] Módulo renombrado de "Externos" a "Entidades" en todo el sistema
 - [x] Página detalle de entidad /admin/externos/[id] con tabs (Info, Representantes, Entidades hijas)
 - [x] Dirección completa con links a Google Maps y Waze
 - [x] Jerarquía de entidades (entidad_padre_id, entidades hijas)
 - [x] Migration entidades_representantes (tabla pivote persona-entidad con roles)
 - [x] Asignar/quitar representantes con roles (presidente, vice, secretario, tesorero, vocal, contacto, delegado, otro+custom)
 - [x] Dirección y entidad padre en forms de crear/editar entidad
-- [x] Nombres clickeables en listado → detalle
+- [x] Nombres clickeables en listado → detalle con DropdownMenu
 - [x] Labels de fusión en vínculos bidireccionales
 - [x] Fusiones operativas documentadas para Sprint 10 (requiere tabla partidos)
 
@@ -186,6 +195,11 @@ Aplicado a personas, padrones, equipos, externos:
 3. **Exports usan dynamic import** para mantener bundle chico (`lib/export/formats.ts`)
 4. **Vistas se guardan en DB** (tabla `user_vistas`) para persistir entre dispositivos
 5. **Columnas de tabla** se sincronizan via localStorage + custom events para reactividad
+6. **Trigger updated_at** se llama `trg_set_updated_at()` (NO `set_updated_at()`)
+7. **Tutores/Bajas** no son módulos del menú — son atributos/estados de Personas
+8. **"Dar de baja"** diferido al ERP (Sprint 9+). Por ahora: Desactivar/Activar simple
+9. **UX unificado**: nombres clickeables → detalle, acciones en DropdownMenu, no botones inline
+10. **"Externos" renombrado a "Entidades"** en UI (URLs siguen siendo `/admin/externos`)
 
 ---
 

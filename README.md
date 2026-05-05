@@ -41,7 +41,7 @@ pnpm dev
 | 3 | Padrones + Importación masiva | HECHO |
 | 4 | Equipos + Categorías + Horarios + Asignaciones | HECHO |
 | 5 | Vínculos + Tutores/Padres + Bajas | HECHO |
-| 6 | Externos + Federaciones + Fusiones | HECHO |
+| 6 | Entidades + Federaciones + Fusiones | HECHO |
 | 7 | Mi Perfil + Mi Equipo (vista jugador) | PENDIENTE |
 | 8 | Páginas públicas + Branding + Pre-inscripción | PENDIENTE |
 | 9 | Cajas + Movimientos + Productos | PENDIENTE |
