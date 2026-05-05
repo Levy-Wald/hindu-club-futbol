@@ -17,6 +17,8 @@ import { SeccionProfesional } from './secciones/profesional'
 import { SeccionEducacion } from './secciones/educacion'
 import { SeccionMembresia } from './secciones/membresia'
 import { SeccionNotas } from './secciones/notas'
+import { SeccionSalud } from './secciones/salud'
+import { SeccionFichaTotal } from './secciones/ficha-total'
 import { TabAtributos } from './tab-atributos'
 import { TabVinculos } from './tab-vinculos'
 import { TabPadrones } from './tab-padrones'
@@ -107,13 +109,15 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
             <TabsTrigger value="identidad">Identidad</TabsTrigger>
             <TabsTrigger value="contacto">Contacto</TabsTrigger>
             <TabsTrigger value="direccion">Dirección</TabsTrigger>
+            <TabsTrigger value="fisico">Físico</TabsTrigger>
             <TabsTrigger value="deporte">Deporte</TabsTrigger>
+            <TabsTrigger value="salud">Salud</TabsTrigger>
             <TabsTrigger value="profesional">Profesional</TabsTrigger>
             <TabsTrigger value="educacion">Educación</TabsTrigger>
             <TabsTrigger value="membresia">Membresía</TabsTrigger>
             <TabsTrigger value="notas">Notas</TabsTrigger>
-            <TabsTrigger value="atributos">
-              Atributos
+            <TabsTrigger value="roles">
+              Roles
               {atributosActivos > 0 && (
                 <Badge variant="secondary" className="ml-1 h-5 min-w-5 rounded-full px-1 text-xs">
                   {atributosActivos}
@@ -122,6 +126,7 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
             </TabsTrigger>
             <TabsTrigger value="vinculos">Vínculos</TabsTrigger>
             <TabsTrigger value="padrones">Padrones</TabsTrigger>
+            <TabsTrigger value="ficha">Ficha total</TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2 shrink-0">
             <Button variant="outline" size="sm" onClick={() => setExportOpen(true)}>
@@ -145,11 +150,14 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
         <TabsContent value="direccion" className="mt-4">
           <SeccionDireccion form={form} update={update} s={s} />
         </TabsContent>
-        <TabsContent value="deporte" className="mt-4">
+        <TabsContent value="fisico" className="mt-4">
           <SeccionDeporteFisico form={form} update={update} s={s} />
-          <div className="mt-4">
-            <SeccionDeporteActividad form={form} update={update} s={s} />
-          </div>
+        </TabsContent>
+        <TabsContent value="deporte" className="mt-4">
+          <SeccionDeporteActividad form={form} update={update} s={s} />
+        </TabsContent>
+        <TabsContent value="salud" className="mt-4">
+          <SeccionSalud personaId={persona.id as string} tenantId={persona.tenant_id as string} />
         </TabsContent>
         <TabsContent value="profesional" className="mt-4">
           <SeccionProfesional form={form} update={update} s={s} />
@@ -165,7 +173,7 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
         </TabsContent>
 
         {/* RELATIONSHIP TABS — independent state */}
-        <TabsContent value="atributos" className="mt-4">
+        <TabsContent value="roles" className="mt-4">
           <TabAtributos
             personaId={persona.id as string}
             atributos={(persona.personas_atributos ?? []) as never[]}
@@ -188,6 +196,11 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
             estadosPadron={estadosPadron}
             tiposSocio={tiposSocio}
           />
+        </TabsContent>
+
+        {/* FICHA TOTAL — read-only overview */}
+        <TabsContent value="ficha" className="mt-4">
+          <SeccionFichaTotal form={form} persona={persona} />
         </TabsContent>
       </Tabs>
 
