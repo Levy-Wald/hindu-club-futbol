@@ -94,15 +94,14 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
   const indumentaria = equipo.indumentaria as Record<string, { descripcion?: string; foto_url?: string }> | null
   const fotoEquipo = equipo.foto_equipo_url as string | null
 
-  // Agrupar horarios por tipo (deduplicar por id)
+  // Horarios ordenados cronológicamente (Lun→Dom, por hora)
   const horariosUnicos = deduplicarPorId(horarios)
-  const horariosEntrenamiento = horariosUnicos.filter((h) => (h.tipo_actividad as string) === 'entrenamiento')
-  const horariosPartido = horariosUnicos.filter((h) =>
-    ['partido', 'partido_local', 'partido_visitante'].includes(h.tipo_actividad as string)
-  )
-  const horariosOtros = horariosUnicos.filter(
-    (h) => !['entrenamiento', 'partido', 'partido_local', 'partido_visitante'].includes(h.tipo_actividad as string)
-  )
+  const horariosCronologicos = [...horariosUnicos].sort((a, b) => {
+    const dA = a.dia_semana as number
+    const dB = b.dia_semana as number
+    if (dA !== dB) return dA - dB
+    return ((a.hora_inicio as string) || '').localeCompare((b.hora_inicio as string) || '')
+  })
 
   const hoy = new Date()
   const diaHoy = hoy.getDay() === 0 ? 7 : hoy.getDay()
@@ -210,29 +209,23 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
         </CardContent>
       </Card>
 
-      {/* 2. HORARIOS */}
+      {/* 2. HORARIOS — cronológico */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            Horarios
+            Horarios semanales
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {horariosUnicos.length === 0 ? (
+        <CardContent>
+          {horariosCronologicos.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sin horarios cargados</p>
           ) : (
-            <>
-              {horariosEntrenamiento.length > 0 ? (
-                <HorariosGroup label="Entrenamientos" horarios={horariosEntrenamiento} />
-              ) : null}
-              {horariosPartido.length > 0 ? (
-                <HorariosGroup label="Partidos" horarios={horariosPartido} />
-              ) : null}
-              {horariosOtros.length > 0 ? (
-                <HorariosGroup label="Otras actividades" horarios={horariosOtros} />
-              ) : null}
-            </>
+            <div className="space-y-2">
+              {horariosCronologicos.map((h) => (
+                <HorarioCard key={h.id as string} horario={h} />
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
@@ -485,21 +478,6 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
 
 /* ─── Sub-componentes ─── */
 
-function HorariosGroup({ label, horarios }: { label: string; horarios: Array<Record<string, unknown>> }) {
-  return (
-    <div>
-      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-        {label}
-      </h4>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {horarios.map((h) => (
-          <HorarioCard key={h.id as string} horario={h} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
 function HorarioCard({ horario }: { horario: Record<string, unknown> }) {
   const sede = horario.sede as Record<string, unknown> | null
   const cancha = horario.cancha as Record<string, unknown> | null
@@ -511,42 +489,46 @@ function HorarioCard({ horario }: { horario: Record<string, unknown> }) {
     sede ? (sede.nombre as string) : '',
     cancha ? (cancha.nombre as string) : '',
   ].filter(Boolean).join(' · ')
+  const searchQuery = encodeURIComponent(direccion || nombreLugar || '')
 
   return (
-    <div className="border rounded-lg p-3 space-y-2">
-      <div className="flex items-center justify-between">
-        <div className="space-y-0.5">
-          <p className="text-sm font-semibold">{DIAS[horario.dia_semana as number]}</p>
-          <Badge variant="outline" className="text-[10px] capitalize">
-            {formatTipoActividad(horario.tipo_actividad as string)}
-          </Badge>
-        </div>
-        <div className="text-right">
-          <span className="text-sm font-mono tabular-nums font-medium">
-            {(horario.hora_inicio as string)?.slice(0, 5)}
-          </span>
-          <span className="text-xs text-muted-foreground"> – </span>
-          <span className="text-sm font-mono tabular-nums font-medium">
-            {(horario.hora_fin as string)?.slice(0, 5)}
-          </span>
-        </div>
+    <div className="flex items-center gap-3 border rounded-lg px-4 py-3 hover:bg-muted/50 transition-colors">
+      {/* Día */}
+      <div className="w-20 shrink-0">
+        <p className="text-sm font-semibold">{DIAS[horario.dia_semana as number]}</p>
       </div>
-      {nombreLugar ? (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <MapPin className="h-3 w-3 shrink-0" />
-          <span className="truncate">{nombreLugar}</span>
-          {(direccion || nombreLugar) ? (
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccion || nombreLugar)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-auto shrink-0 hover:text-foreground"
-              title="Ver en Google Maps"
-            >
-              <Navigation className="h-3 w-3" />
-            </a>
-          ) : null}
-        </div>
+
+      {/* Horario */}
+      <div className="font-mono tabular-nums text-sm font-medium shrink-0">
+        {(horario.hora_inicio as string)?.slice(0, 5)} – {(horario.hora_fin as string)?.slice(0, 5)}
+      </div>
+
+      {/* Tipo actividad */}
+      <Badge variant="outline" className="text-[10px] capitalize shrink-0">
+        {formatTipoActividad(horario.tipo_actividad as string)}
+      </Badge>
+
+      {/* Sede/cancha */}
+      <div className="flex-1 min-w-0 flex items-center gap-1.5 text-xs text-muted-foreground">
+        {nombreLugar ? (
+          <>
+            <MapPin className="h-3 w-3 shrink-0" />
+            <span className="truncate">{nombreLugar}</span>
+          </>
+        ) : null}
+      </div>
+
+      {/* Maps link */}
+      {(direccion || nombreLugar) ? (
+        <a
+          href={`https://www.google.com/maps/search/?api=1&query=${searchQuery}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 text-muted-foreground hover:text-foreground"
+          title="Ver en Google Maps"
+        >
+          <Navigation className="h-3.5 w-3.5" />
+        </a>
       ) : null}
     </div>
   )
