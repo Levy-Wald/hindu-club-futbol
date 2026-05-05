@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -13,12 +14,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Power } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { MoreHorizontal, Pencil, Power } from 'lucide-react'
 import { toast } from 'sonner'
 import { toggleActivoEntidad } from '../_actions'
 import { useVistasColumns } from '@/components/ui/vistas-panel'
 import { EXTERNOS_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
-import { EditarEntidadDialog } from './editar-entidad-dialog'
 import { SelectionBar } from '@/components/ui/selection-bar'
 import type { ExportData } from '@/lib/export/formats'
 
@@ -39,18 +45,8 @@ interface EntidadesTableProps {
   entidades: Entidad[]
 }
 
-const ENTIDADES_COLUMNS = [
-  { id: 'tipo', label: 'Tipo' },
-  { id: 'telefono', label: 'Teléfono' },
-  { id: 'email', label: 'Email' },
-  { id: 'sitio_web', label: 'Sitio web' },
-  { id: 'cuit', label: 'CUIT' },
-  { id: 'estado', label: 'Estado' },
-]
-
-export const ENTIDADES_COLUMN_DEFS = ENTIDADES_COLUMNS
-
 export function EntidadesTable({ entidades }: EntidadesTableProps) {
+  const router = useRouter()
   const { isVisible } = useVistasColumns('entidades-columns', EXTERNOS_DEFAULT_COLUMNS)
   const [isPending, startTransition] = useTransition()
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -75,11 +71,8 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
   function handleToggle(id: string) {
     startTransition(async () => {
       const result = await toggleActivoEntidad(id)
-      if (result.ok) {
-        toast.success(result.message)
-      } else {
-        toast.error(result.message)
-      }
+      if (result.ok) toast.success(result.message)
+      else toast.error(result.message)
     })
   }
 
@@ -91,18 +84,14 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
           <p className="text-center text-muted-foreground py-8">No se encontraron entidades.</p>
         ) : (
           entidades.map((e) => (
-            <div
+            <Link
               key={e.id}
-              className={`rounded-lg border p-3 ${!e.activo ? 'opacity-50' : ''}`}
+              href={`/admin/externos/${e.id}`}
+              className={`block rounded-lg border p-3 ${!e.activo ? 'opacity-50' : ''}`}
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <Link href={`/admin/externos/${e.id}`} className="font-medium truncate hover:underline block">
-                    {e.nombre}
-                    {(e.representantes_count ?? 0) > 0 && (
-                      <Badge variant="secondary" className="ml-2 text-xs">{e.representantes_count}</Badge>
-                    )}
-                  </Link>
+                  <p className="font-medium truncate">{e.nombre}</p>
                   <p className="text-sm text-muted-foreground truncate">
                     {e.telefono ?? '—'} · {e.email ?? '—'}
                   </p>
@@ -111,19 +100,9 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
                   <Badge variant={e.activo ? 'default' : 'secondary'}>
                     {e.tipo}
                   </Badge>
-                  <EditarEntidadDialog entidad={e} />
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7"
-                    disabled={isPending}
-                    onClick={() => handleToggle(e.id)}
-                  >
-                    <Power className="h-3.5 w-3.5" />
-                  </Button>
                 </div>
               </div>
-            </div>
+            </Link>
           ))
         )}
       </div>
@@ -143,13 +122,13 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
               {isVisible('sitio_web') && <TableHead>Sitio web</TableHead>}
               {isVisible('cuit') && <TableHead>CUIT</TableHead>}
               {isVisible('estado') && <TableHead>Estado</TableHead>}
-              <TableHead>Acciones</TableHead>
+              <TableHead className="w-12" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {entidades.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={99} className="text-center text-muted-foreground py-8">
                   No se encontraron entidades.
                 </TableCell>
               </TableRow>
@@ -159,13 +138,10 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
                   <TableCell>
                     <Checkbox checked={selected.has(e.id)} onCheckedChange={() => toggleSelect(e.id)} />
                   </TableCell>
-                  <TableCell className="font-medium">
-                    <Link href={`/admin/externos/${e.id}`} className="hover:underline">
+                  <TableCell>
+                    <Link href={`/admin/externos/${e.id}`} className="font-medium hover:underline">
                       {e.nombre}
                     </Link>
-                    {(e.representantes_count ?? 0) > 0 && (
-                      <Badge variant="secondary" className="ml-2 text-xs">{e.representantes_count}</Badge>
-                    )}
                   </TableCell>
                   {isVisible('tipo') && (
                     <TableCell>
@@ -184,19 +160,24 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
                     </TableCell>
                   )}
                   <TableCell>
-                    <div className="flex items-center gap-1">
-                      <EditarEntidadDialog entidad={e} />
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7"
-                        disabled={isPending}
-                        onClick={() => handleToggle(e.id)}
-                        title={e.activo ? 'Desactivar' : 'Activar'}
-                      >
-                        <Power className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8" />}>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => router.push(`/admin/externos/${e.id}`)}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleToggle(e.id)}
+                          disabled={isPending}
+                        >
+                          <Power className="mr-2 h-4 w-4" />
+                          {e.activo ? 'Desactivar' : 'Activar'}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
@@ -212,6 +193,13 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
         onClear={clearSelection}
         getData={getExportData}
       />
+
+      {/* Footer count */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {entidades.length} entidad{entidades.length !== 1 ? 'es' : ''} en total
+        </p>
+      </div>
     </div>
   )
 }
