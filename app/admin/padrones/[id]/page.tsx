@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { ArrowLeft, Users } from 'lucide-react'
+import { ArrowLeft, Users, Sparkles } from 'lucide-react'
 import { AgregarMiembroDialog } from './_components/agregar-miembro-dialog'
 import { ImportarMiembrosDialog } from './_components/importar-miembros-dialog'
 import { ExportPadronButton } from './_components/export-padron-button'
@@ -87,6 +87,12 @@ export default async function PadronDetallePage({ params }: PageProps) {
             estadosPadron={estadosPadron}
             tiposSocio={tiposSocio}
           />
+          <Link href={`/admin/padrones/${padron.id}/importar`}>
+            <Button variant="outline" size="sm">
+              <Sparkles className="h-4 w-4 mr-1" />
+              Import inteligente
+            </Button>
+          </Link>
           <ExportPadronButton
             padronNombre={padron.nombre}
             miembros={miembrosActivos.map((m) => ({
