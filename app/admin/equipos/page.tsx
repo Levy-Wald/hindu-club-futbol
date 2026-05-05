@@ -3,6 +3,7 @@ import { EquiposTable, EQUIPOS_COLUMN_DEFS } from './_components/equipos-table'
 import { CrearEquipoDialog } from './_components/crear-equipo-dialog'
 import { ExportEquiposButton } from './_components/export-equipos-button'
 import { GenericColumnConfig } from '@/components/ui/column-config-generic'
+import { DownloadTemplateButton } from '@/components/ui/download-template-button'
 
 export default async function EquiposPage() {
   const [equipos, categorias] = await Promise.all([
@@ -19,6 +20,11 @@ export default async function EquiposPage() {
         <h1 className="text-xl sm:text-2xl font-bold">Equipos</h1>
         <div className="flex items-center gap-2">
           <GenericColumnConfig storageKey="equipos-columns" columns={EQUIPOS_COLUMN_DEFS} />
+          <DownloadTemplateButton
+            headers={['nombre', 'disciplina_slug', 'modalidad', 'categoria', 'nivel_competencia', 'color_principal']}
+            filename="modelo_equipos.csv"
+            sampleRow={['Sub-15 Masculino', 'futbol', 'M', 'sub_15', 'competitivo', '#003366']}
+          />
           <ExportEquiposButton equipos={equipos} />
           <CrearEquipoDialog categorias={categorias} disciplinas={disciplinas} />
         </div>

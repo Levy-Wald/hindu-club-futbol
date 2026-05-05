@@ -7,6 +7,7 @@ export interface PadronConConteo {
   nombre: string
   slug: string
   tipo: string | null
+  disciplina_slug: string | null
   es_externo: boolean
   activo: boolean
   created_at: string
@@ -19,7 +20,7 @@ export async function fetchPadronesConConteo(): Promise<PadronConConteo[]> {
   const { data, error } = await supabase
     .from('padrones')
     .select(`
-      id, nombre, slug, tipo, es_externo, activo, created_at,
+      id, nombre, slug, tipo, disciplina_slug, es_externo, activo, created_at,
       personas_padrones!personas_padrones_padron_id_fkey(id)
     `)
     .eq('tenant_id', TENANT_ID)
@@ -32,6 +33,7 @@ export async function fetchPadronesConConteo(): Promise<PadronConConteo[]> {
     nombre: p.nombre,
     slug: p.slug,
     tipo: p.tipo,
+    disciplina_slug: p.disciplina_slug,
     es_externo: p.es_externo,
     activo: p.activo,
     created_at: p.created_at,

@@ -7,6 +7,7 @@ import { CrearPersonaSheet } from './_components/crear-persona-sheet'
 import { ImportButton } from './_components/import-button'
 import { ExportButton } from './_components/export-button'
 import { ColumnConfig } from './_components/column-config'
+import { DownloadTemplateButton } from '@/components/ui/download-template-button'
 
 interface PageProps {
   searchParams: Promise<Record<string, string | undefined>>
@@ -34,6 +35,11 @@ export default async function PersonasPage({ searchParams }: PageProps) {
         <h1 className="text-xl sm:text-2xl font-bold">Personas</h1>
         <div className="flex items-center gap-2">
           <ColumnConfig />
+          <DownloadTemplateButton
+            headers={['nombre', 'apellido', 'numero_documento', 'email_principal', 'telefono_principal', 'fecha_nacimiento', 'genero', 'cuil_cuit', 'tipo_documento', 'direccion_calle', 'direccion_ciudad', 'direccion_provincia']}
+            filename="modelo_personas.csv"
+            sampleRow={['Juan', 'Pérez', '12345678', 'juan@email.com', '1155001234', '1990-01-15', 'M', '20-12345678-9', 'dni', 'Av. Libertador 1234', 'Buenos Aires', 'CABA']}
+          />
           <ExportButton />
           <ImportButton />
           <CrearPersonaSheet />

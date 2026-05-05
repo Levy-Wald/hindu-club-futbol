@@ -22,6 +22,8 @@ interface Entidad {
   tipo: string
   telefono: string | null
   email: string | null
+  sitio_web: string | null
+  cuit: string | null
   activo: boolean
 }
 
@@ -33,6 +35,8 @@ const ENTIDADES_COLUMNS = [
   { id: 'tipo', label: 'Tipo' },
   { id: 'telefono', label: 'Teléfono' },
   { id: 'email', label: 'Email' },
+  { id: 'sitio_web', label: 'Sitio web' },
+  { id: 'cuit', label: 'CUIT' },
   { id: 'estado', label: 'Estado' },
 ]
 
@@ -101,6 +105,8 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
               {isVisible('tipo') && <TableHead>Tipo</TableHead>}
               {isVisible('telefono') && <TableHead>Teléfono</TableHead>}
               {isVisible('email') && <TableHead>Email</TableHead>}
+              {isVisible('sitio_web') && <TableHead>Sitio web</TableHead>}
+              {isVisible('cuit') && <TableHead>CUIT</TableHead>}
               {isVisible('estado') && <TableHead>Estado</TableHead>}
               <TableHead>Acciones</TableHead>
             </TableRow>
@@ -123,6 +129,8 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
                   )}
                   {isVisible('telefono') && <TableCell className="text-muted-foreground">{e.telefono ?? '—'}</TableCell>}
                   {isVisible('email') && <TableCell className="text-muted-foreground">{e.email ?? '—'}</TableCell>}
+                  {isVisible('sitio_web') && <TableCell className="text-muted-foreground">{e.sitio_web ?? '—'}</TableCell>}
+                  {isVisible('cuit') && <TableCell className="text-muted-foreground">{e.cuit ?? '—'}</TableCell>}
                   {isVisible('estado') && (
                     <TableCell>
                       <Badge variant={e.activo ? 'default' : 'secondary'}>

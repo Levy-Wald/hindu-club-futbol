@@ -36,6 +36,9 @@ interface Persona {
   numero_documento: string | null
   email_principal: string | null
   telefono_principal: string | null
+  fecha_nacimiento: string | null
+  genero: string | null
+  direccion_ciudad: string | null
   estado: string
   deleted_at: string | null
   created_at: string
@@ -156,6 +159,9 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
               {isVisible('documento') && <TableHead>{sortButton('numero_documento', 'Documento')}</TableHead>}
               {isVisible('email') && <TableHead>Email</TableHead>}
               {isVisible('telefono') && <TableHead>Teléfono</TableHead>}
+              {isVisible('fecha_nacimiento') && <TableHead>Fecha nac.</TableHead>}
+              {isVisible('genero') && <TableHead>Género</TableHead>}
+              {isVisible('direccion_ciudad') && <TableHead>Ciudad</TableHead>}
               {isVisible('roles') && <TableHead>Roles</TableHead>}
               {isVisible('estado') && <TableHead>{sortButton('estado', 'Estado')}</TableHead>}
               <TableHead className="w-12" />
@@ -182,6 +188,9 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
                   {isVisible('documento') && <TableCell className="text-muted-foreground">{p.numero_documento ?? '—'}</TableCell>}
                   {isVisible('email') && <TableCell className="text-muted-foreground">{p.email_principal ?? '—'}</TableCell>}
                   {isVisible('telefono') && <TableCell className="text-muted-foreground">{p.telefono_principal ?? '—'}</TableCell>}
+                  {isVisible('fecha_nacimiento') && <TableCell className="text-muted-foreground">{p.fecha_nacimiento ? new Date(p.fecha_nacimiento).toLocaleDateString('es-AR') : '—'}</TableCell>}
+                  {isVisible('genero') && <TableCell className="text-muted-foreground">{p.genero ?? '—'}</TableCell>}
+                  {isVisible('direccion_ciudad') && <TableCell className="text-muted-foreground">{p.direccion_ciudad ?? '—'}</TableCell>}
                   {isVisible('roles') && (
                     <TableCell>
                       <div className="flex flex-wrap gap-1">

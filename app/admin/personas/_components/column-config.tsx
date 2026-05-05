@@ -16,6 +16,9 @@ const AVAILABLE_COLUMNS = [
   { id: "documento", label: "Documento" },
   { id: "email", label: "Email" },
   { id: "telefono", label: "Teléfono" },
+  { id: "fecha_nacimiento", label: "Fecha nac." },
+  { id: "genero", label: "Género" },
+  { id: "direccion_ciudad", label: "Ciudad" },
   { id: "roles", label: "Roles" },
   { id: "estado", label: "Estado" },
 ] as const

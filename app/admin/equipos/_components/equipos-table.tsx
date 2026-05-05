@@ -19,6 +19,7 @@ interface Equipo {
   disciplina_slug: string
   modalidad: string | null
   activo: boolean
+  color_principal: string | null
   categoria_nombre: string
   miembros_count: number
 }
@@ -33,6 +34,7 @@ const EQUIPOS_COLUMNS = [
   { id: 'modalidad', label: 'Modalidad' },
   { id: 'miembros', label: 'Miembros' },
   { id: 'estado', label: 'Estado' },
+  { id: 'color', label: 'Color' },
 ]
 
 export const EQUIPOS_COLUMN_DEFS = EQUIPOS_COLUMNS
@@ -85,6 +87,7 @@ export function EquiposTable({ equipos }: EquiposTableProps) {
               {isVisible('modalidad') && <TableHead>Modalidad</TableHead>}
               {isVisible('miembros') && <TableHead className="text-center">Miembros</TableHead>}
               {isVisible('estado') && <TableHead>Estado</TableHead>}
+              {isVisible('color') && <TableHead>Color</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -118,6 +121,16 @@ export function EquiposTable({ equipos }: EquiposTableProps) {
                       <Badge variant={e.activo ? 'default' : 'secondary'}>
                         {e.activo ? 'activo' : 'inactivo'}
                       </Badge>
+                    </TableCell>
+                  )}
+                  {isVisible('color') && (
+                    <TableCell>
+                      {e.color_principal ? (
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-4 w-4 rounded-full border" style={{ backgroundColor: e.color_principal }} />
+                          <span className="text-xs text-muted-foreground">{e.color_principal}</span>
+                        </div>
+                      ) : '—'}
                     </TableCell>
                   )}
                 </TableRow>

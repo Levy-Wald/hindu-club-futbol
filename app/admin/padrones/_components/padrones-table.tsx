@@ -30,6 +30,7 @@ interface PadronesTableProps {
 const PADRONES_COLUMNS = [
   { id: 'tipo', label: 'Tipo' },
   { id: 'miembros', label: 'Miembros' },
+  { id: 'disciplina', label: 'Disciplina' },
   { id: 'estado', label: 'Estado' },
 ]
 
@@ -90,6 +91,7 @@ export function PadronesTable({ padrones }: PadronesTableProps) {
               <TableHead>Nombre</TableHead>
               {isVisible('tipo') && <TableHead>Tipo</TableHead>}
               {isVisible('miembros') && <TableHead className="text-center">Miembros</TableHead>}
+              {isVisible('disciplina') && <TableHead>Disciplina</TableHead>}
               {isVisible('estado') && <TableHead>Estado</TableHead>}
               <TableHead className="w-12" />
             </TableRow>
@@ -115,6 +117,7 @@ export function PadronesTable({ padrones }: PadronesTableProps) {
                     </TableCell>
                   )}
                   {isVisible('miembros') && <TableCell className="text-center">{p.miembros_activos}</TableCell>}
+                  {isVisible('disciplina') && <TableCell className="text-muted-foreground">{p.disciplina_slug ?? '—'}</TableCell>}
                   {isVisible('estado') && (
                     <TableCell>
                       <Badge variant={p.activo ? 'default' : 'secondary'}>

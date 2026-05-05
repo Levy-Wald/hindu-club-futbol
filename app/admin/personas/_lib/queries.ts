@@ -30,7 +30,7 @@ export async function fetchPersonas(params: PersonasQueryParams) {
   let query = supabase
     .from('personas')
     .select(
-      `id, nombre, apellido, numero_documento, email_principal, telefono_principal, estado, deleted_at, created_at, personas_atributos!personas_atributos_persona_id_fkey(atributo_slug, activo)`,
+      `id, nombre, apellido, numero_documento, email_principal, telefono_principal, fecha_nacimiento, genero, direccion_ciudad, estado, deleted_at, created_at, personas_atributos!personas_atributos_persona_id_fkey(atributo_slug, activo)`,
       { count: 'exact' }
     )
 

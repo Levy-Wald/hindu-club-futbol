@@ -8,7 +8,7 @@ export async function fetchEquipos() {
   const { data, error } = await supabase
     .from('equipos')
     .select(
-      `id, nombre, disciplina_slug, modalidad, activo, created_at,
+      `id, nombre, disciplina_slug, modalidad, activo, color_principal, created_at,
        categorias_equipo!categoria_id(id, nombre_display, disciplina_slug),
        personas_equipos(count)`
     )
@@ -23,6 +23,7 @@ export async function fetchEquipos() {
     disciplina_slug: e.disciplina_slug,
     modalidad: e.modalidad,
     activo: e.activo,
+    color_principal: e.color_principal,
     created_at: e.created_at,
     categoria_nombre: (e.categorias_equipo as unknown as { nombre_display: string } | null)?.nombre_display ?? '—',
     miembros_count: ((e.personas_equipos as { count: number }[])?.[0]?.count) ?? 0,
