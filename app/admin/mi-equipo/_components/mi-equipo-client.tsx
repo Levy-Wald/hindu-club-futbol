@@ -1,12 +1,29 @@
 'use client'
 
+import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
-  Clock,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import {
   Shirt,
   Users,
   Phone,
@@ -21,9 +38,12 @@ import {
   Navigation,
   ExternalLink,
   Download,
+  Pencil,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { TarjetaJugador } from './tarjeta-jugador'
 import { ExportPlantel } from './export-plantel'
+import { editarEvento } from '../../equipos/_actions'
 
 interface MiEquipoClientProps {
   equipo: Record<string, unknown>
@@ -36,6 +56,16 @@ const DIAS = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado
 
 const ROLES_STAFF = ['dt', 'preparador_fisico', 'kinesiologo', 'delegado', 'ayudante_campo', 'masajista', 'utilero']
 const ROLES_REFERENTES = ['capitan', 'subcapitan']
+const ROLES_PUEDEN_EDITAR_EVENTOS = ['dt', 'capitan', 'subcapitan', 'delegado', 'preparador_fisico', 'ayudante_campo']
+
+const TIPOS_ACTIVIDAD = [
+  { value: 'entrenamiento', label: 'Entrenamiento' },
+  { value: 'partido_local', label: 'Partido local' },
+  { value: 'partido_visitante', label: 'Partido visitante' },
+  { value: 'amistoso', label: 'Amistoso' },
+  { value: 'torneo', label: 'Torneo' },
+  { value: 'otro', label: 'Otro' },
+]
 
 const ROL_LABELS: Record<string, string> = {
   dt: 'Director Técnico',
@@ -131,6 +161,58 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
   const proximaActividad = eventosCronologicos[0] ?? null
 
   const equipoData = buildEquipoData(equipo)
+  const miRol = miAsignacion.rol_equipo_slug as string
+  const puedeEditarEventos = ROLES_PUEDEN_EDITAR_EVENTOS.includes(miRol)
+  const equipoId = equipo.id as string
+
+  // Edit event state
+  const [editOpen, setEditOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const [editId, setEditId] = useState('')
+  const [editFecha, setEditFecha] = useState('')
+  const [editHoraInicio, setEditHoraInicio] = useState('')
+  const [editHoraFin, setEditHoraFin] = useState('')
+  const [editTipoActividad, setEditTipoActividad] = useState('')
+  const [editTitulo, setEditTitulo] = useState('')
+  const [editHoraCitacion, setEditHoraCitacion] = useState('')
+  const [editDescripcion, setEditDescripcion] = useState('')
+
+  function openEditEvento(evento: Record<string, unknown>) {
+    setEditId(evento.id as string)
+    setEditFecha((evento.fecha as string) ?? '')
+    setEditHoraInicio(((evento.hora_inicio as string) ?? '').slice(0, 5))
+    setEditHoraFin(((evento.hora_fin as string) ?? '').slice(0, 5))
+    setEditTipoActividad((evento.tipo_actividad as string) ?? '')
+    setEditTitulo((evento.titulo as string) ?? '')
+    setEditHoraCitacion(((evento.hora_citacion as string) ?? '').slice(0, 5))
+    setEditDescripcion((evento.descripcion as string) ?? '')
+    setEditOpen(true)
+  }
+
+  function handleEditarEvento(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editFecha || !editHoraInicio || !editHoraFin || !editTipoActividad) {
+      toast.error('Fecha, hora inicio, hora fin y tipo son obligatorios.')
+      return
+    }
+    startTransition(async () => {
+      const result = await editarEvento(editId, equipoId, {
+        fecha: editFecha,
+        hora_inicio: editHoraInicio,
+        hora_fin: editHoraFin,
+        tipo_actividad: editTipoActividad,
+        titulo: editTitulo || null,
+        hora_citacion: editHoraCitacion || null,
+        descripcion: editDescripcion || null,
+      })
+      if (result.ok) {
+        toast.success(result.message)
+        setEditOpen(false)
+      } else {
+        toast.error(result.message)
+      }
+    })
+  }
 
   return (
     <div className="space-y-4">
@@ -256,7 +338,13 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
           ) : (
             <div className="space-y-2">
               {eventosCronologicos.map((h) => (
-                <EventoCard key={h.id as string} evento={h} equipoNombre={equipo.nombre as string} />
+                <EventoCard
+                  key={h.id as string}
+                  evento={h}
+                  equipoNombre={equipo.nombre as string}
+                  puedeEditar={puedeEditarEventos}
+                  onEditar={openEditEvento}
+                />
               ))}
             </div>
           )}
@@ -505,13 +593,72 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog editar evento (DT, capitán, delegados) */}
+      {puedeEditarEventos ? (
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Editar evento</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleEditarEvento} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="mi-edit-fecha">Fecha</Label>
+                <Input id="mi-edit-fecha" type="date" value={editFecha} onChange={(e) => setEditFecha(e.target.value)} required />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="mi-edit-inicio">Hora inicio</Label>
+                  <Input id="mi-edit-inicio" type="time" value={editHoraInicio} onChange={(e) => setEditHoraInicio(e.target.value)} required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="mi-edit-fin">Hora fin</Label>
+                  <Input id="mi-edit-fin" type="time" value={editHoraFin} onChange={(e) => setEditHoraFin(e.target.value)} required />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Tipo de actividad</Label>
+                <Select value={editTipoActividad} onValueChange={(v) => setEditTipoActividad(v ?? '')}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar tipo" /></SelectTrigger>
+                  <SelectContent>
+                    {TIPOS_ACTIVIDAD.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mi-edit-titulo">Título (opcional)</Label>
+                <Input id="mi-edit-titulo" value={editTitulo} onChange={(e) => setEditTitulo(e.target.value)} placeholder="Ej: Partido vs River" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mi-edit-citacion">Hora de citación (opcional)</Label>
+                <Input id="mi-edit-citacion" type="time" value={editHoraCitacion} onChange={(e) => setEditHoraCitacion(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mi-edit-desc">Descripción (opcional)</Label>
+                <Textarea id="mi-edit-desc" value={editDescripcion} onChange={(e) => setEditDescripcion(e.target.value)} rows={2} placeholder="Notas adicionales..." />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancelar</Button>
+                <Button type="submit" disabled={isPending}>{isPending ? 'Guardando...' : 'Guardar'}</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </div>
   )
 }
 
 /* ─── Sub-componentes ─── */
 
-function EventoCard({ evento, equipoNombre }: { evento: Record<string, unknown>; equipoNombre: string }) {
+function EventoCard({ evento, equipoNombre, puedeEditar, onEditar }: {
+  evento: Record<string, unknown>
+  equipoNombre: string
+  puedeEditar: boolean
+  onEditar: (evento: Record<string, unknown>) => void
+}) {
   const sede = evento.sede as Record<string, unknown> | null
   const cancha = evento.cancha as Record<string, unknown> | null
   const direccionObj = sede?.direccion as Record<string, unknown> | null
@@ -578,6 +725,16 @@ function EventoCard({ evento, equipoNombre }: { evento: Record<string, unknown>;
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
             </>
+          ) : null}
+          {puedeEditar ? (
+            <button
+              type="button"
+              onClick={() => onEditar(evento)}
+              className="text-muted-foreground hover:text-foreground"
+              title="Editar evento"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
           ) : null}
           <button
             type="button"

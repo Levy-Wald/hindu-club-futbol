@@ -31,9 +31,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  Pencil,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { crearEvento, eliminarEvento } from '../../_actions'
+import { crearEvento, editarEvento, eliminarEvento } from '../../_actions'
 
 // --- Tipos ---
 
@@ -275,12 +276,14 @@ function ListaView({
   eventos,
   isPending,
   onEliminar,
+  onEditar,
   sedes,
   canchas,
 }: {
   eventos: Evento[]
   isPending: boolean
   onEliminar: (id: string) => void
+  onEditar: (evento: Evento) => void
   sedes: Sede[]
   canchas: Cancha[]
 }) {
@@ -356,6 +359,16 @@ function ListaView({
               )}
             </div>
             <div className="flex items-center gap-1 shrink-0">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                title="Editar evento"
+                disabled={isPending}
+                onClick={() => onEditar(ev)}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
               {ev.fecha && (
                 <Button
                   size="icon"
@@ -610,7 +623,20 @@ export function CalendarioPanel({
   const [isPending, startTransition] = useTransition()
   const [viewMode, setViewMode] = useState<ViewMode>('lista')
 
-  // Form state
+  // Edit state
+  const [editOpen, setEditOpen] = useState(false)
+  const [editEvento, setEditEvento] = useState<Evento | null>(null)
+  const [editFecha, setEditFecha] = useState('')
+  const [editHoraInicio, setEditHoraInicio] = useState('')
+  const [editHoraFin, setEditHoraFin] = useState('')
+  const [editTipoActividad, setEditTipoActividad] = useState('')
+  const [editTitulo, setEditTitulo] = useState('')
+  const [editSedeId, setEditSedeId] = useState('')
+  const [editCanchaId, setEditCanchaId] = useState('')
+  const [editHoraCitacion, setEditHoraCitacion] = useState('')
+  const [editDescripcion, setEditDescripcion] = useState('')
+
+  // Form state (crear)
   const [fecha, setFecha] = useState('')
   const [horaInicio, setHoraInicio] = useState('')
   const [horaFin, setHoraFin] = useState('')
@@ -745,6 +771,55 @@ export function CalendarioPanel({
       const result = await eliminarEvento(eventoId, equipoId)
       if (result.ok) {
         toast.success(result.message)
+      } else {
+        toast.error(result.message)
+      }
+    })
+  }
+
+  function openEditDialog(evento: Evento) {
+    setEditEvento(evento)
+    setEditFecha(evento.fecha ?? '')
+    setEditHoraInicio(evento.hora_inicio?.slice(0, 5) ?? '')
+    setEditHoraFin(evento.hora_fin?.slice(0, 5) ?? '')
+    setEditTipoActividad(evento.tipo_actividad)
+    setEditTitulo(evento.titulo ?? '')
+    setEditSedeId(evento.sede_id ?? '')
+    setEditCanchaId(evento.cancha_id ?? '')
+    setEditHoraCitacion(evento.hora_citacion?.slice(0, 5) ?? '')
+    setEditDescripcion(evento.descripcion ?? '')
+    setEditOpen(true)
+  }
+
+  const editCanchasFiltradas = editSedeId
+    ? canchas.filter((c) => c.sede_id === editSedeId)
+    : canchas
+
+  function handleEditar(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editEvento) return
+
+    if (!editFecha || !editHoraInicio || !editHoraFin || !editTipoActividad) {
+      toast.error('Fecha, hora inicio, hora fin y tipo son obligatorios.')
+      return
+    }
+
+    startTransition(async () => {
+      const result = await editarEvento(editEvento.id, equipoId, {
+        fecha: editFecha,
+        hora_inicio: editHoraInicio,
+        hora_fin: editHoraFin,
+        tipo_actividad: editTipoActividad,
+        titulo: editTitulo || null,
+        sede_id: editSedeId || null,
+        cancha_id: editCanchaId || null,
+        hora_citacion: editHoraCitacion || null,
+        descripcion: editDescripcion || null,
+      })
+      if (result.ok) {
+        toast.success(result.message)
+        setEditOpen(false)
+        setEditEvento(null)
       } else {
         toast.error(result.message)
       }
@@ -1026,6 +1101,7 @@ export function CalendarioPanel({
           eventos={eventos}
           isPending={isPending}
           onEliminar={handleEliminar}
+          onEditar={openEditDialog}
           sedes={sedes}
           canchas={canchas}
         />
@@ -1038,6 +1114,153 @@ export function CalendarioPanel({
           canchas={canchas}
         />
       )}
+
+      {/* Dialog editar evento */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar evento</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditar} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-fecha">Fecha</Label>
+              <Input
+                id="edit-fecha"
+                type="date"
+                value={editFecha}
+                onChange={(e) => setEditFecha(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-hora-inicio">Hora inicio</Label>
+                <Input
+                  id="edit-hora-inicio"
+                  type="time"
+                  value={editHoraInicio}
+                  onChange={(e) => setEditHoraInicio(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-hora-fin">Hora fin</Label>
+                <Input
+                  id="edit-hora-fin"
+                  type="time"
+                  value={editHoraFin}
+                  onChange={(e) => setEditHoraFin(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Tipo de actividad</Label>
+              <Select
+                value={editTipoActividad}
+                onValueChange={(v) => setEditTipoActividad(v ?? '')}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIPOS_ACTIVIDAD.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-titulo">Título (opcional)</Label>
+              <Input
+                id="edit-titulo"
+                type="text"
+                value={editTitulo}
+                onChange={(e) => setEditTitulo(e.target.value)}
+                placeholder="Ej: Partido vs River"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Sede (opcional)</Label>
+              <Select
+                value={editSedeId}
+                onValueChange={(v) => {
+                  setEditSedeId(v ?? '')
+                  setEditCanchaId('')
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar sede" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sedes.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {editCanchasFiltradas.length > 0 && (
+              <div className="space-y-2">
+                <Label>Cancha (opcional)</Label>
+                <Select
+                  value={editCanchaId}
+                  onValueChange={(v) => setEditCanchaId(v ?? '')}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar cancha" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {editCanchasFiltradas.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-citacion">Hora de citación (opcional)</Label>
+              <Input
+                id="edit-citacion"
+                type="time"
+                value={editHoraCitacion}
+                onChange={(e) => setEditHoraCitacion(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-descripcion">Descripción (opcional)</Label>
+              <Textarea
+                id="edit-descripcion"
+                value={editDescripcion}
+                onChange={(e) => setEditDescripcion(e.target.value)}
+                rows={2}
+                placeholder="Notas adicionales..."
+              />
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? 'Guardando...' : 'Guardar'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

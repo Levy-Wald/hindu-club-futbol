@@ -252,6 +252,55 @@ export async function crearEvento(input: {
   return formatResult(true, 'Evento creado')
 }
 
+// --- EDITAR EVENTO ---
+
+export async function editarEvento(
+  eventoId: string,
+  equipoId: string,
+  input: {
+    fecha?: string
+    hora_inicio?: string
+    hora_fin?: string
+    tipo_actividad?: string
+    titulo?: string | null
+    sede_id?: string | null
+    cancha_id?: string | null
+    hora_citacion?: string | null
+    descripcion?: string | null
+  }
+) {
+  const supabase = await createClient()
+
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+
+  if (input.fecha !== undefined) {
+    updates.fecha = input.fecha
+    const fechaDate = new Date(input.fecha + 'T00:00:00')
+    const jsDay = fechaDate.getDay()
+    updates.dia_semana = jsDay === 0 ? 7 : jsDay
+  }
+  if (input.hora_inicio !== undefined) updates.hora_inicio = input.hora_inicio
+  if (input.hora_fin !== undefined) updates.hora_fin = input.hora_fin
+  if (input.tipo_actividad !== undefined) updates.tipo_actividad = input.tipo_actividad
+  if (input.titulo !== undefined) updates.titulo = input.titulo?.trim() || null
+  if (input.sede_id !== undefined) updates.sede_id = input.sede_id || null
+  if (input.cancha_id !== undefined) updates.cancha_id = input.cancha_id || null
+  if (input.hora_citacion !== undefined) updates.hora_citacion = input.hora_citacion || null
+  if (input.descripcion !== undefined) updates.descripcion = input.descripcion?.trim() || null
+
+  const { error } = await supabase
+    .from('equipos_horarios')
+    .update(updates)
+    .eq('id', eventoId)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return formatResult(false, `Error al editar evento: ${error.message}`)
+
+  revalidatePath(`/admin/equipos/${equipoId}`)
+  revalidatePath('/admin/mi-equipo')
+  return formatResult(true, 'Evento actualizado')
+}
+
 // --- ELIMINAR EVENTO ---
 
 export async function eliminarEvento(eventoId: string, equipoId: string) {
