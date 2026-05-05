@@ -40,7 +40,7 @@ pnpm dev
 | 2 | ABM Personas + Vista Global | HECHO |
 | 3 | Padrones + Importación masiva | HECHO |
 | 4 | Equipos + Categorías + Horarios + Asignaciones | HECHO |
-| 5 | Vínculos + Tutores/Padres + Bajas | PENDIENTE |
+| 5 | Vínculos + Tutores/Padres + Bajas | HECHO |
 | 6 | Externos + Federaciones + Fusiones | PARCIAL |
 | 7 | Mi Perfil + Mi Equipo (vista jugador) | PENDIENTE |
 | 8 | Páginas públicas + Branding + Pre-inscripción | PENDIENTE |
