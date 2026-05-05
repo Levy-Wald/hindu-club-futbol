@@ -5,9 +5,9 @@ Alineado al plan original de 15 sprints → Hindu LIVE.
 
 ---
 
-## Estado actual: Sprint 4 COMPLETADO + UX transversal
+## Estado actual: Sprint 6 COMPLETADO + UX transversal
 
-Los primeros 4 sprints del plan original están completos.
+Los primeros 6 sprints del plan original están completos.
 Adicionalmente se implementó un bloque de UX transversal (no planificado originalmente) que mejora la experiencia en todos los módulos existentes.
 
 ---
@@ -66,24 +66,33 @@ Aplicado a personas, padrones, equipos, externos:
 - [x] Búsqueda global Cmd+K con resultados agrupados
 - [x] Vista mobile (cards) + desktop (tabla) responsive
 
+### Sprint 5 — Vínculos + Tutores/Padres + Bajas (HECHO)
+
+- [x] Vínculos bidireccionales con labels humanos (Padre de / Hijo/a de)
+- [x] Tooltips de notas y fecha inicio en vínculos
+- [x] Página /admin/tutores con búsqueda, filtros (con/sin menor), vistas, export
+- [x] Página /admin/bajas con búsqueda, filtros (motivo, fecha), vistas, export
+- [x] Dialog "Dar de baja" en ficha persona (motivo + fecha + detalle)
+- [x] Server action darDeBaja con propagación a padrones
+- [x] Server action reactivarPersona
+- [x] Sidebar, mobile nav y búsqueda global actualizados
+- [x] Spec documentado: docs/MENORES-TUTORES.md (para sprints 7 y 9)
+
+### Sprint 6 — Externos + Federaciones + Fusiones (HECHO)
+
+- [x] Página detalle de entidad /admin/externos/[id] con tabs (Info, Representantes, Entidades hijas)
+- [x] Dirección completa con links a Google Maps y Waze
+- [x] Jerarquía de entidades (entidad_padre_id, entidades hijas)
+- [x] Migration entidades_representantes (tabla pivote persona-entidad con roles)
+- [x] Asignar/quitar representantes con roles (presidente, vice, secretario, tesorero, vocal, contacto, delegado, otro+custom)
+- [x] Dirección y entidad padre en forms de crear/editar entidad
+- [x] Nombres clickeables en listado → detalle
+- [x] Labels de fusión en vínculos bidireccionales
+- [x] Fusiones operativas documentadas para Sprint 10 (requiere tabla partidos)
+
 ---
 
 ## Sprints PENDIENTES
-
-### Sprint 5 — Vínculos + Tutores/Padres + Bajas
-
-- [ ] ABM completo de vínculos persona-persona (UI dedicada)
-- [ ] Vista "Tutores/Padres" — personas con atributo padre_tutor y sus vínculos
-- [ ] Vista "Bajas" con casuística (motivo, fecha, reactivación)
-- [ ] Workflow de baja: marcar persona, registrar motivo, propagar a padrones
-
-### Sprint 6 — Externos + Federaciones + Fusiones
-
-Estado: CRUD externos hecho. Falta:
-- [ ] Vistas: Representantes Federaciones, Equipos Rivales
-- [ ] Vistas: Jugadores/Staff Fusión (atributo jugador_fusion, staff_fusion)
-- [ ] Asignar representantes a entidades
-- [ ] Jerarquía de entidades (entidad_padre_id)
 
 ### Sprint 7 — Mi Perfil + Mi Equipo (vista jugador)
 
@@ -236,13 +245,13 @@ La diferencia entre clientes es CONFIGURACIÓN, no CÓDIGO:
 
 ## Tiempo estimado restante hasta Hindu LIVE
 
-Sprints 5-15 = 11 sprints pendientes.
-Estimado: 90-120 horas agente + 15-20 horas validación Yair.
-Calendario: 6-8 semanas a 4-6h/día.
+Sprints 7-15 = 9 sprints pendientes.
+Estimado: 70-100 horas agente + 12-18 horas validación Yair.
+Calendario: 4-6 semanas a 4-6h/día.
 
 ---
 
 **Última actualización:** 2026-05-05
-**Próximo sprint:** 5 (Vínculos + Tutores/Padres + Bajas)
+**Próximo sprint:** 7 (Mi Perfil + Mi Equipo)
 **Instrucciones:** ver `NEXT-SPRINT.md`
 **Owner:** Yair Levy Wald

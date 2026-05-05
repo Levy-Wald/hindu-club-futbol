@@ -120,6 +120,45 @@ export const EXTERNOS_DEFAULT_COLUMNS = [
   'nombre', 'tipo', 'telefono', 'email', 'estado',
 ]
 
+// Bajas
+export const BAJAS_MODULES: ColumnModule[] = [
+  {
+    key: 'general',
+    label: 'General',
+    columns: [
+      { id: 'nombre', label: 'Nombre' },
+      { id: 'apellido', label: 'Apellido' },
+      { id: 'numero_documento', label: 'Documento' },
+      { id: 'email_principal', label: 'Email' },
+      { id: 'telefono_principal', label: 'Teléfono' },
+      { id: 'motivo_baja', label: 'Motivo' },
+      { id: 'fecha_baja', label: 'Fecha baja' },
+      { id: 'motivo_baja_detalle', label: 'Detalle' },
+    ],
+  },
+]
+
+export const BAJAS_DEFAULT_COLUMNS = ['apellido', 'nombre', 'numero_documento', 'motivo_baja', 'fecha_baja']
+
+// Tutores / Padres
+export const TUTORES_MODULES: ColumnModule[] = [
+  {
+    key: 'general',
+    label: 'General',
+    columns: [
+      { id: 'nombre', label: 'Nombre' },
+      { id: 'apellido', label: 'Apellido' },
+      { id: 'numero_documento', label: 'Documento' },
+      { id: 'email_principal', label: 'Email' },
+      { id: 'telefono_principal', label: 'Teléfono' },
+      { id: 'menores', label: 'Menores vinculados' },
+      { id: 'estado', label: 'Estado' },
+    ],
+  },
+]
+
+export const TUTORES_DEFAULT_COLUMNS = ['apellido', 'nombre', 'numero_documento', 'email_principal', 'menores', 'estado']
+
 // Equipo plantel (jugadores dentro de un equipo)
 export const EQUIPO_PLANTEL_MODULES: ColumnModule[] = [
   {

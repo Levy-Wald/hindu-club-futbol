@@ -371,6 +371,80 @@ export async function quitarDePadron(personaPadronId: string, personaId: string)
   return formatResult(true, 'Persona dada de baja del padrón')
 }
 
+// --- BAJAS ---
+
+export async function darDeBaja(input: {
+  personaId: string
+  motivo_baja_slug: string
+  motivo_baja_detalle?: string
+  fecha_baja: string
+}) {
+  const { personaId, motivo_baja_slug, motivo_baja_detalle, fecha_baja } = input
+
+  if (!personaId || !motivo_baja_slug || !fecha_baja) {
+    return formatResult(false, 'Faltan datos obligatorios')
+  }
+
+  const supabase = await createClient()
+
+  // Actualizar persona
+  const { error } = await supabase
+    .from('personas')
+    .update({
+      estado: 'baja',
+      motivo_baja_slug,
+      motivo_baja_detalle: motivo_baja_detalle?.trim() || null,
+      fecha_baja,
+    })
+    .eq('id', personaId)
+
+  if (error) return formatResult(false, error.message)
+
+  // Propagar a personas_padrones
+  const { error: errorPadrones } = await supabase
+    .from('personas_padrones')
+    .update({
+      activo: false,
+      fecha_baja,
+      motivo_baja_slug,
+    })
+    .eq('persona_id', personaId)
+    .eq('activo', true)
+
+  if (errorPadrones) {
+    // No falla la operación principal, pero logueamos
+    console.error('Error propagando baja a padrones:', errorPadrones.message)
+  }
+
+  revalidatePath(`/admin/personas/${personaId}`)
+  revalidatePath('/admin/bajas')
+  revalidatePath('/admin/personas')
+  return formatResult(true, 'Persona dada de baja correctamente')
+}
+
+export async function reactivarPersona(personaId: string) {
+  if (!personaId) return formatResult(false, 'ID de persona requerido')
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('personas')
+    .update({
+      estado: 'activo',
+      motivo_baja_slug: null,
+      motivo_baja_detalle: null,
+      fecha_baja: null,
+    })
+    .eq('id', personaId)
+
+  if (error) return formatResult(false, error.message)
+
+  revalidatePath(`/admin/personas/${personaId}`)
+  revalidatePath('/admin/bajas')
+  revalidatePath('/admin/personas')
+  return formatResult(true, 'Persona reactivada correctamente')
+}
+
 // --- IMPORTAR CSV ---
 
 export async function importarPersonas(rows: { nombre: string; apellido: string; numero_documento?: string; email_principal?: string; telefono_principal?: string; fecha_nacimiento?: string; genero?: string; cuil_cuit?: string; tipo_documento?: string; direccion_calle?: string; direccion_ciudad?: string; direccion_provincia?: string }[]) {

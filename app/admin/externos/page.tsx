@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { fetchEntidades } from './_lib/queries'
+import { fetchEntidades, fetchEntidadesParent } from './_lib/queries'
 import { EntidadesTable } from './_components/entidades-table'
 import { CrearEntidadDialog } from './_components/crear-entidad-dialog'
 import { ExportEntidadesButton } from './_components/export-entidades-button'
@@ -22,7 +22,10 @@ export default async function ExternosPage({ searchParams }: Props) {
   const tipo = sp.tipo
   const activo = sp.activo
 
-  const entidades = await fetchEntidades({ search, tipo, activo })
+  const [entidades, entidadesParent] = await Promise.all([
+    fetchEntidades({ search, tipo, activo }),
+    fetchEntidadesParent(),
+  ])
 
   return (
     <div className="space-y-4">
@@ -42,7 +45,7 @@ export default async function ExternosPage({ searchParams }: Props) {
             </Button>
           </Link>
           <ExportEntidadesButton entidades={entidades} />
-          <CrearEntidadDialog />
+          <CrearEntidadDialog entidadesParent={entidadesParent} />
         </div>
       </div>
 
