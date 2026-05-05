@@ -1,15 +1,27 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { fetchPadronesConConteo } from './_lib/queries'
 import { PadronesTable } from './_components/padrones-table'
 import { CrearPadronDialog } from './_components/crear-padron-dialog'
+import { PadronesSearch } from './_components/padrones-search'
+import { PadronesFilters } from './_components/padrones-filters'
 import { VistasPanel } from '@/components/ui/vistas-panel'
 import { PADRONES_LIST_MODULES, PADRONES_LIST_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
 import { DownloadTemplateButton } from '@/components/ui/download-template-button'
 import { Button } from '@/components/ui/button'
 import { GitCompareArrows } from 'lucide-react'
 
-export default async function PadronesPage() {
-  const padrones = await fetchPadronesConConteo()
+interface Props {
+  searchParams: Promise<Record<string, string | undefined>>
+}
+
+export default async function PadronesPage({ searchParams }: Props) {
+  const sp = await searchParams
+  const search = sp.q
+  const tipo = sp.tipo
+  const activo = sp.activo
+
+  const padrones = await fetchPadronesConConteo({ search, tipo, activo })
 
   return (
     <div className="space-y-4">
@@ -30,6 +42,15 @@ export default async function PadronesPage() {
           </Link>
           <CrearPadronDialog />
         </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Suspense>
+          <PadronesSearch />
+        </Suspense>
+        <Suspense>
+          <PadronesFilters />
+        </Suspense>
       </div>
 
       <PadronesTable padrones={padrones} />

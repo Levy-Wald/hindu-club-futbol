@@ -2,10 +2,16 @@ import { createClient } from '@/lib/supabase/server'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
-export async function fetchEquipos() {
+export interface FetchEquiposParams {
+  search?: string
+  disciplina?: string
+  activo?: string
+}
+
+export async function fetchEquipos(params: FetchEquiposParams = {}) {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('equipos')
     .select(
       `id, nombre, disciplina_slug, modalidad, activo, color_principal, created_at,
@@ -14,6 +20,20 @@ export async function fetchEquipos() {
     )
     .eq('tenant_id', TENANT_ID)
     .order('nombre', { ascending: true })
+
+  if (params.search) {
+    query = query.ilike('nombre', `%${params.search}%`)
+  }
+  if (params.disciplina) {
+    query = query.eq('disciplina_slug', params.disciplina)
+  }
+  if (params.activo === 'activo') {
+    query = query.eq('activo', true)
+  } else if (params.activo === 'inactivo') {
+    query = query.eq('activo', false)
+  }
+
+  const { data, error } = await query
 
   if (error) throw error
 

@@ -1,21 +1,32 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { fetchEquipos, fetchCategoriasEquipo } from './_lib/queries'
 import { EquiposTable } from './_components/equipos-table'
 import { CrearEquipoDialog } from './_components/crear-equipo-dialog'
 import { ExportEquiposButton } from './_components/export-equipos-button'
+import { EquiposSearch } from './_components/equipos-search'
+import { EquiposFilters } from './_components/equipos-filters'
 import { VistasPanel } from '@/components/ui/vistas-panel'
 import { EQUIPOS_MODULES, EQUIPOS_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
 import { DownloadTemplateButton } from '@/components/ui/download-template-button'
 import { Button } from '@/components/ui/button'
 import { Upload } from 'lucide-react'
 
-export default async function EquiposPage() {
+interface Props {
+  searchParams: Promise<Record<string, string | undefined>>
+}
+
+export default async function EquiposPage({ searchParams }: Props) {
+  const sp = await searchParams
+  const search = sp.q
+  const disciplina = sp.disciplina
+  const activo = sp.activo
+
   const [equipos, categorias] = await Promise.all([
-    fetchEquipos(),
+    fetchEquipos({ search, disciplina, activo }),
     fetchCategoriasEquipo(),
   ])
 
-  // Extract unique disciplinas from categorias
   const disciplinas = [...new Set(categorias.map((c) => c.disciplina_slug))].sort()
 
   return (
@@ -38,6 +49,15 @@ export default async function EquiposPage() {
           <ExportEquiposButton equipos={equipos} />
           <CrearEquipoDialog categorias={categorias} disciplinas={disciplinas} />
         </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Suspense>
+          <EquiposSearch />
+        </Suspense>
+        <Suspense>
+          <EquiposFilters disciplinas={disciplinas} />
+        </Suspense>
       </div>
 
       <EquiposTable equipos={equipos} />

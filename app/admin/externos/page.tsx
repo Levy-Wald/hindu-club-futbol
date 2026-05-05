@@ -1,16 +1,28 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { fetchEntidades } from './_lib/queries'
 import { EntidadesTable } from './_components/entidades-table'
 import { CrearEntidadDialog } from './_components/crear-entidad-dialog'
 import { ExportEntidadesButton } from './_components/export-entidades-button'
+import { ExternosSearch } from './_components/externos-search'
+import { ExternosFilters } from './_components/externos-filters'
 import { VistasPanel } from '@/components/ui/vistas-panel'
 import { EXTERNOS_MODULES, EXTERNOS_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
 import { DownloadTemplateButton } from '@/components/ui/download-template-button'
 import { Button } from '@/components/ui/button'
 import { Upload } from 'lucide-react'
 
-export default async function ExternosPage() {
-  const entidades = await fetchEntidades()
+interface Props {
+  searchParams: Promise<Record<string, string | undefined>>
+}
+
+export default async function ExternosPage({ searchParams }: Props) {
+  const sp = await searchParams
+  const search = sp.q
+  const tipo = sp.tipo
+  const activo = sp.activo
+
+  const entidades = await fetchEntidades({ search, tipo, activo })
 
   return (
     <div className="space-y-4">
@@ -32,6 +44,15 @@ export default async function ExternosPage() {
           <ExportEntidadesButton entidades={entidades} />
           <CrearEntidadDialog />
         </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Suspense>
+          <ExternosSearch />
+        </Suspense>
+        <Suspense>
+          <ExternosFilters />
+        </Suspense>
       </div>
 
       <EntidadesTable entidades={entidades} />

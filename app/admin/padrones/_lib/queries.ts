@@ -14,10 +14,16 @@ export interface PadronConConteo {
   miembros_activos: number
 }
 
-export async function fetchPadronesConConteo(): Promise<PadronConConteo[]> {
+export interface FetchPadronesParams {
+  search?: string
+  tipo?: string
+  activo?: string
+}
+
+export async function fetchPadronesConConteo(params: FetchPadronesParams = {}): Promise<PadronConConteo[]> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('padrones')
     .select(`
       id, nombre, slug, tipo, disciplina_slug, es_externo, activo, created_at,
@@ -25,6 +31,20 @@ export async function fetchPadronesConConteo(): Promise<PadronConConteo[]> {
     `)
     .eq('tenant_id', TENANT_ID)
     .order('nombre')
+
+  if (params.search) {
+    query = query.ilike('nombre', `%${params.search}%`)
+  }
+  if (params.tipo) {
+    query = query.eq('tipo', params.tipo)
+  }
+  if (params.activo === 'activo') {
+    query = query.eq('activo', true)
+  } else if (params.activo === 'inactivo') {
+    query = query.eq('activo', false)
+  }
+
+  const { data, error } = await query
 
   if (error) throw error
 

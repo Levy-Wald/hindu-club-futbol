@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ThemeToggle } from './theme-toggle'
+import { GlobalSearch } from './global-search'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +38,9 @@ export function Topbar({ userEmail }: TopbarProps) {
       <div className="flex items-center gap-2">
         <span className="font-bold text-sm md:hidden">Hindu Club</span>
         <span className="text-sm text-muted-foreground hidden md:block">ClubCore</span>
+      </div>
+      <div className="flex-1 flex justify-center px-4 max-w-md mx-auto">
+        <GlobalSearch />
       </div>
       <div className="flex items-center gap-2">
         <ThemeToggle />
