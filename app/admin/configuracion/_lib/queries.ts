@@ -8,7 +8,7 @@ export async function fetchTenantConfig() {
   const [tenantRes, modulosRes] = await Promise.all([
     supabase
       .from('tenants')
-      .select('id, nombre, slug, dominio_personalizado, config, logo_url, activo')
+      .select('id, nombre, slug, tipo, plan_slug, dominio_custom, configuracion, logo_url, color_principal, color_secundario, idioma_default, timezone, activo')
       .eq('id', TENANT_ID)
       .single(),
     supabase
@@ -29,8 +29,8 @@ export async function fetchModulos() {
   const [catalogoRes, tenantModulosRes] = await Promise.all([
     supabase
       .from('catalogo_modulos')
-      .select('slug, nombre, descripcion, categoria, version, activo')
-      .eq('activo', true)
+      .select('slug, nombre, descripcion, categoria, precio_usd_mensual, activo_global')
+      .eq('activo_global', true)
       .order('categoria'),
     supabase
       .from('tenant_modulos')
@@ -49,7 +49,12 @@ export async function fetchModulos() {
   )
 
   return (catalogo ?? []).map((mod) => ({
-    ...mod,
+    slug: mod.slug,
+    nombre: mod.nombre,
+    descripcion: mod.descripcion,
+    categoria: mod.categoria,
+    precio: mod.precio_usd_mensual,
+    activo: mod.activo_global,
     activado: activacionMap.get(mod.slug)?.activo ?? false,
     fechaActivacion: activacionMap.get(mod.slug)?.fecha_activacion ?? null,
   }))
