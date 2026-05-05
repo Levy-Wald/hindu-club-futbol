@@ -120,6 +120,45 @@ export const EXTERNOS_DEFAULT_COLUMNS = [
   'nombre', 'tipo', 'telefono', 'email', 'estado',
 ]
 
+// Equipo plantel (jugadores dentro de un equipo)
+export const EQUIPO_PLANTEL_MODULES: ColumnModule[] = [
+  {
+    key: 'jugador',
+    label: 'Jugador',
+    columns: [
+      { id: 'dorsal', label: 'Dorsal' },
+      { id: 'posicion', label: 'Posición' },
+      { id: 'documento', label: 'Documento' },
+      { id: 'email', label: 'Email' },
+      { id: 'fecha_inicio', label: 'Desde' },
+      { id: 'estado', label: 'Estado' },
+    ],
+  },
+]
+
+export const EQUIPO_PLANTEL_DEFAULT_COLUMNS = [
+  'dorsal', 'posicion', 'documento', 'fecha_inicio',
+]
+
+// Equipo staff (cuerpo técnico dentro de un equipo)
+export const EQUIPO_STAFF_MODULES: ColumnModule[] = [
+  {
+    key: 'staff',
+    label: 'Staff',
+    columns: [
+      { id: 'rol', label: 'Rol' },
+      { id: 'documento', label: 'Documento' },
+      { id: 'email', label: 'Email' },
+      { id: 'fecha_inicio', label: 'Desde' },
+      { id: 'estado', label: 'Estado' },
+    ],
+  },
+]
+
+export const EQUIPO_STAFF_DEFAULT_COLUMNS = [
+  'rol', 'documento', 'fecha_inicio',
+]
+
 // Padrones listing (the list of padrones)
 export const PADRONES_LIST_MODULES: ColumnModule[] = [
   {

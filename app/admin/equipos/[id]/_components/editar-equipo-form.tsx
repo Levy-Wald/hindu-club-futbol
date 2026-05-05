@@ -17,13 +17,13 @@ import { editarEquipo } from '../../_actions'
 
 const DISCIPLINAS = [
   { value: 'hockey', label: 'Hockey' },
-  { value: 'futbol', label: 'Futbol' },
+  { value: 'futbol', label: 'Fútbol' },
   { value: 'rugby', label: 'Rugby' },
-  { value: 'natacion', label: 'Natacion' },
+  { value: 'natacion', label: 'Natación' },
   { value: 'tenis', label: 'Tenis' },
-  { value: 'padel', label: 'Padel' },
-  { value: 'basquet', label: 'Basquet' },
-  { value: 'voley', label: 'Voley' },
+  { value: 'padel', label: 'Pádel' },
+  { value: 'basquet', label: 'Básquet' },
+  { value: 'voley', label: 'Vóley' },
   { value: 'handball', label: 'Handball' },
   { value: 'atletismo', label: 'Atletismo' },
   { value: 'gimnasia', label: 'Gimnasia' },
@@ -42,12 +42,17 @@ interface Equipo {
   disciplina_slug: string
   modalidad: string | null
   activo: boolean
+  color_principal: string | null
+  color_secundario: string | null
+  categoria_id: string | null
 }
 
 interface Categoria {
   id: string
   nombre_display: string
   disciplina_slug: string
+  edad_min: number | null
+  edad_max: number | null
 }
 
 interface EditarEquipoFormProps {
@@ -61,6 +66,12 @@ export function EditarEquipoForm({ equipo, categorias }: EditarEquipoFormProps) 
   const [disciplina, setDisciplina] = useState(equipo.disciplina_slug)
   const [modalidad, setModalidad] = useState(equipo.modalidad ?? '')
   const [activo, setActivo] = useState(equipo.activo)
+  const [colorPrincipal, setColorPrincipal] = useState(equipo.color_principal ?? '')
+  const [colorSecundario, setColorSecundario] = useState(equipo.color_secundario ?? '')
+  const [categoriaId, setCategoriaId] = useState(equipo.categoria_id ?? '')
+
+  const categoriasFiltered = categorias.filter((c) => c.disciplina_slug === disciplina)
+  const selectedCategoria = categorias.find((c) => c.id === categoriaId)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -75,6 +86,9 @@ export function EditarEquipoForm({ equipo, categorias }: EditarEquipoFormProps) 
         disciplina_slug: disciplina,
         modalidad: modalidad || undefined,
         activo,
+        categoria_equipo_id: categoriaId || null,
+        color_principal: colorPrincipal || undefined,
+        color_secundario: colorSecundario || undefined,
       })
 
       if (result.ok) {
@@ -86,7 +100,7 @@ export function EditarEquipoForm({ equipo, categorias }: EditarEquipoFormProps) 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-xl">
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
       <div className="space-y-2">
         <Label htmlFor="edit-nombre">Nombre</Label>
         <Input
@@ -101,7 +115,7 @@ export function EditarEquipoForm({ equipo, categorias }: EditarEquipoFormProps) 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Disciplina</Label>
-          <Select value={disciplina} onValueChange={(v) => setDisciplina(v ?? '')}>
+          <Select value={disciplina} onValueChange={(v) => { setDisciplina(v ?? ''); setCategoriaId('') }}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar" />
             </SelectTrigger>
@@ -129,6 +143,68 @@ export function EditarEquipoForm({ equipo, categorias }: EditarEquipoFormProps) 
               ))}
             </SelectContent>
           </Select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Categoría</Label>
+        <Select value={categoriaId} onValueChange={(v) => setCategoriaId(v ?? '')}>
+          <SelectTrigger>
+            <SelectValue placeholder="Seleccionar categoría" />
+          </SelectTrigger>
+          <SelectContent>
+            {categoriasFiltered.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.nombre_display}
+                {c.edad_min != null && c.edad_max != null && ` (${c.edad_min}–${c.edad_max} años)`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {selectedCategoria && selectedCategoria.edad_min != null && selectedCategoria.edad_max != null && (
+          <p className="text-xs text-muted-foreground">
+            Edades habilitadas: {selectedCategoria.edad_min} a {selectedCategoria.edad_max} años
+          </p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="color-principal">Color principal</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id="color-principal"
+              type="color"
+              value={colorPrincipal || '#000000'}
+              onChange={(e) => setColorPrincipal(e.target.value)}
+              className="w-12 h-9 p-1 cursor-pointer"
+            />
+            <Input
+              value={colorPrincipal}
+              onChange={(e) => setColorPrincipal(e.target.value)}
+              placeholder="#000000"
+              className="flex-1"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="color-secundario">Color secundario</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id="color-secundario"
+              type="color"
+              value={colorSecundario || '#ffffff'}
+              onChange={(e) => setColorSecundario(e.target.value)}
+              className="w-12 h-9 p-1 cursor-pointer"
+            />
+            <Input
+              value={colorSecundario}
+              onChange={(e) => setColorSecundario(e.target.value)}
+              placeholder="#ffffff"
+              className="flex-1"
+            />
+          </div>
         </div>
       </div>
 

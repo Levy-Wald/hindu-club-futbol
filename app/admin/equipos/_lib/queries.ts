@@ -56,8 +56,8 @@ export async function fetchEquipoDetalle(id: string) {
   const { data: equipo, error } = await supabase
     .from('equipos')
     .select(
-      `id, nombre, disciplina_slug, modalidad, activo, created_at, updated_at, metadata,
-       categorias_equipo!categoria_id(id, nombre_display, disciplina_slug, modalidad, tipo_categoria, valor)`
+      `id, nombre, disciplina_slug, modalidad, activo, color_principal, color_secundario, categoria_id, created_at, updated_at, metadata,
+       categorias_equipo!categoria_id(id, nombre_display, disciplina_slug, modalidad, tipo_categoria, valor, edad_min, edad_max)`
     )
     .eq('id', id)
     .eq('tenant_id', TENANT_ID)
@@ -97,7 +97,7 @@ export async function fetchCategoriasEquipo() {
 
   const { data, error } = await supabase
     .from('categorias_equipo')
-    .select('id, nombre_display, disciplina_slug, modalidad, tipo_categoria, valor, activa')
+    .select('id, nombre_display, disciplina_slug, modalidad, tipo_categoria, valor, edad_min, edad_max, activa')
     .eq('tenant_id', TENANT_ID)
     .eq('activa', true)
     .order('orden', { ascending: true })

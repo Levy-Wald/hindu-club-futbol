@@ -56,6 +56,8 @@ export async function editarEquipo(
     disciplina_slug?: string
     modalidad?: string
     activo?: boolean
+    color_principal?: string
+    color_secundario?: string
   }
 ) {
   const supabase = await createClient()
@@ -66,6 +68,8 @@ export async function editarEquipo(
   if (input.disciplina_slug !== undefined) updates.disciplina_slug = input.disciplina_slug
   if (input.modalidad !== undefined) updates.modalidad = input.modalidad || null
   if (input.activo !== undefined) updates.activo = input.activo
+  if (input.color_principal !== undefined) updates.color_principal = input.color_principal || null
+  if (input.color_secundario !== undefined) updates.color_secundario = input.color_secundario || null
 
   const { error } = await supabase
     .from('equipos')

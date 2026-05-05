@@ -115,26 +115,31 @@ Mejor parar y aclarar que avanzar mal. Yair está disponible.
 
 ```
 hindu-v2/
-├── app/                       # Next.js App Router
-│   ├── (public)/              # Rutas sin auth
-│   ├── (admin)/               # Rutas con auth (sidebar layout)
-│   ├── api/                   # Route handlers
-│   └── layout.tsx
+├── app/
+│   ├── (public)/              # Login (magic link)
+│   ├── admin/                 # Dashboard con sidebar
+│   │   ├── personas/          # CRUD + ficha en tabs
+│   │   ├── equipos/           # CRUD + detalle (plantel, staff, horarios)
+│   │   ├── padrones/          # CRUD + miembros + comparador
+│   │   ├── externos/          # CRUD entidades externas
+│   │   └── ...                # Placeholders (operaciones, cajas, etc.)
+│   └── api/                   # Route handlers
 ├── components/
-│   ├── ui/                    # shadcn components
-│   ├── layout/                # sidebar, topbar
-│   └── (feature)/             # componentes por feature
+│   ├── ui/                    # shadcn + vistas-panel, selection-bar, export
+│   └── layout/                # Sidebar, topbar, global-search
 ├── lib/
-│   ├── supabase/              # clients
-│   ├── utils.ts
-│   └── (feature)/             # utilities por feature
+│   ├── supabase/              # Server/client/middleware clients
+│   ├── export/                # formats.ts, template.ts
+│   ├── vistas/                # column-defs.ts, actions.ts
+│   └── search/                # global-search.ts
 ├── supabase/
-│   ├── migrations/            # 0001_*, 0002_*, etc.
+│   ├── migrations/            # Numeradas por timestamp
 │   └── seed.sql
-├── middleware.ts              # auth middleware
-├── CLAUDE.md                  # ESTE archivo
+├── docs/                      # Estándares técnicos
+├── middleware.ts              # Auth middleware
+├── CLAUDE.md                  # ESTE archivo (instrucciones agente)
 ├── README.md                  # Para humanos
-├── MASTER-GAPS.md             # Lista de pendientes (cuando aplique)
+├── MASTER-GAPS.md             # Estado + roadmap + pendientes
 └── package.json
 ```
 
@@ -311,6 +316,15 @@ Esto garantiza que la documentacion siempre refleja el estado real del proyecto.
 
 ---
 
-**Ultima actualizacion:** 2026-05-05
-**Version:** Sprint 5
+## Progreso actual
+
+Sprints 1-4 del plan original: COMPLETADOS.
+Sprint actual pendiente: 5 (Vínculos + Tutores/Padres + Bajas).
+Ver `MASTER-GAPS.md` para detalle completo.
+
+---
+
+**Última actualización:** 2026-05-05
+**Versión:** Sprints 1-4 completos + UX transversal
+**Plan:** 15 sprints hasta Hindu LIVE (ver MASTER-GAPS.md)
 **Owner:** Yair Levy Wald

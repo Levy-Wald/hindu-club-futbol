@@ -1,96 +1,193 @@
-# MASTER-GAPS — Lista de pendientes y lecciones
+# MASTER-GAPS — Estado del proyecto y roadmap
 
-## Bugs encontrados y resueltos
-
-### BUG-001: get_tenant_actual() recursión infinita en RLS
-- **Sprint:** 1
-- **Síntoma:** Error 500 — Postgres 54001 (stack depth exceeded)
-- **Causa:** `get_tenant_actual()` era SECURITY INVOKER. Al consultar `personas`, disparaba la policy de personas que llamaba a `get_tenant_actual()` → loop infinito.
-- **Fix:** Cambiar a SECURITY DEFINER + `SET search_path = public, pg_temp` + revocar acceso a anon/public, solo authenticated.
-- **Lección:** Funciones helper usadas en RLS policies que consultan tablas con RLS DEBEN ser SECURITY DEFINER.
+Única fuente de verdad de pendientes y progreso.
+Alineado al plan original de 15 sprints → Hindu LIVE.
 
 ---
 
-## Pendientes por Sprint
+## Estado actual: Sprint 4 COMPLETADO + UX transversal
 
-### Sprint 2 — Fixes UI personas (COMPLETADO)
+Los primeros 4 sprints del plan original están completos.
+Adicionalmente se implementó un bloque de UX transversal (no planificado originalmente) que mejora la experiencia en todos los módulos existentes.
 
-- [x] Renombrar columna "Atributos" → "Roles" en tabla de personas
-- [x] Reorganizar ficha de persona en tabs agrupadas:
-  - Personal (identidad + contacto + dirección)
-  - Deportivo (físico + actividad)
-  - Salud (datos médicos + obra social + lesiones + rehabilitaciones)
-  - Profesional (profesional + educación)
-  - Club (membresía + notas)
-  - Documentos
-  - Roles, Vínculos, Padrones, Ficha total
+---
 
-### Sprint 3 — Multi-deporte y categoría por edad (COMPLETADO)
+## Sprints COMPLETADOS
 
-- [x] Persona puede participar en múltiples deportes (ya soportado por personas_equipos)
-- [x] Mostrar en ficha de persona: todos los deportes + categorías + equipos (SeccionDeporteEquipos)
-- [x] Agrupado por disciplina, muestra categoría del equipo, edad de la persona, rol, dorsal
-- [ ] Categoría automática por edad (requiere configurar rangos de edad por categoría — Sprint 4)
+### Sprint 1 — Foundation (HECHO)
 
-### Sprint 3 — Salud: Lesiones y Rehabilitaciones (COMPLETADO)
+- [x] Bootstrap Next.js 16 + Tailwind 4 + shadcn/ui v4
+- [x] Conexión Supabase
+- [x] Migration clubcore_init: tablas core (tenants, personas, atributos, vínculos, entidades, sedes, canchas, equipos, categorias, competencias, horarios, personas_equipos, padrones, personas_padrones, audit_log, catálogos, tenant_modulos)
+- [x] Auth magic link
+- [x] Seed: tenant Hindu, federaciones (FACCMA, AIF, APDCC), persona Yair admin
+- [x] Layout: sidebar + topbar + dark mode
+- [x] RLS básica (get_tenant_actual SECURITY DEFINER)
+- [x] Deploy Vercel funcionando
 
-- [x] Crear tabla `personas_lesiones` — migration 20260505010000
-- [x] Crear tabla `personas_rehabilitaciones` — migration 20260505010000
-- [x] UI en ficha de persona: sección Salud con sub-tabs (Datos médicos / Lesiones / Rehabilitación)
-- [x] CRUD completo (crear + soft-delete) con historial
+### Sprint 2 — ABM Personas + Vista Global (HECHO)
 
-### Sprint 3 — Exportar datos (COMPLETADO)
+- [x] CRUD personas con todos los campos
+- [x] Ficha persona en tabs: Personal, Deportivo, Salud, Profesional, Club, Documentos, Roles, Vínculos, Padrones, Ficha total
+- [x] Asignar atributos y vínculos manualmente
+- [x] Estados de persona
+- [x] Multi-deporte por persona
+- [x] Categoría sugerida por edad
+- [x] Lesiones y rehabilitaciones (tablas + UI)
+- [x] Vehículos (CRUD completo con seguro)
 
-- [x] Exportar persona individual (CSV/JSON con selección de campos)
-- [x] Exportar personas bulk (filtros actuales + selección de campos, CSV/JSON)
-- [x] Exportar padrones (CSV con miembros activos)
-- [x] Exportar equipos (CSV con datos de equipos)
-- [x] Exportar externos (Sprint 5 — ExportEntidadesButton)
-- [ ] Permisos granulares de exportación (Sprint 6+)
+### Sprint 3 — Padrones + Importación masiva (HECHO)
 
-### Sprint 3 — Documentacion y estandares (COMPLETADO)
+- [x] ABM padrones, personas_padrones
+- [x] Importación bulk CSV con validación + dedupe por DNI
+- [x] Comparador de padrones (diferencias entre dos)
+- [x] Importación en todos los módulos (personas, equipos, padrones, externos)
 
-- [x] Eliminar docs obsoletos (SPRINT-1-FOUNDATION-PROMPT.md, AGENTS.md)
-- [x] Actualizar README.md con estado actual del proyecto
-- [x] Actualizar CLAUDE.md a Sprint 3 + workflow ABM + tabla de docs
-- [x] Crear docs/ARCHITECTURE.md (separacion de capas, patron de modulo, multi-tenant)
-- [x] Crear docs/UI-UX.md (responsive, patrones React, shadcn v4, performance frontend)
-- [x] Crear docs/DESIGN-SYSTEM.md (colores, tipografia, componentes, auditoria visual)
-- [x] Crear docs/POSTGRES.md (indices, RLS, migraciones seguras, Supabase CLI)
-- [x] Crear docs/WORKFLOW.md (checklists pre-feature, verificacion post-dev, ABM)
-- [x] Crear docs/SKILL-CHALLENGE.md (pre-mortem adaptado al proyecto)
-- [x] Consolidar AI-READY.md y PERFORMANCE.md dentro de los otros docs (eliminados)
+### Sprint 4 — Equipos + Categorías + Horarios + Asignaciones (HECHO)
 
-### Sprint 4 — Columnas configurables (COMPLETADO)
+- [x] ABM equipos con categoría, disciplina, modalidad, colores
+- [x] Categorías con edad_min/edad_max
+- [x] Horarios con recurrencia (semanal/quincenal/mensual × N repeticiones)
+- [x] Vista calendario semanal (desktop 7 columnas + mobile día a día)
+- [x] Asignar personas a equipos con rol (plantel + staff)
+- [x] Detalle equipo: composición (DT, capitán, delegados, cuerpo técnico)
+- [x] Plantel/Staff con tabla, búsqueda, filtros, selección, export
 
-- [x] En tabla de personas: usuario elige qué columnas ver (documento, email, teléfono, roles, estado)
-- [x] Guardar preferencia de vista por usuario (localStorage)
-- [x] Popover con checkboxes para toggle de columnas
-- [x] Aplicar mismo patrón en padrones, equipos, externos (Sprint 5)
+### UX Transversal (HECHO — no era sprint original)
 
-### Sprint 4 — Vehículos (COMPLETADO)
+Aplicado a personas, padrones, equipos, externos:
+- [x] Columnas configurables por módulo (VistasPanel)
+- [x] Guardar/cargar/eliminar vistas con nombre por usuario (tabla user_vistas)
+- [x] Exportación multi-formato: CSV, XLSX, PDF simple, PDF membretado
+- [x] PDF membretado con logo, nombre, dirección, email, web, fecha, usuario
+- [x] Templates descargables en CSV + XLSX
+- [x] Selección con checkboxes en todas las tablas + SelectionBar
+- [x] Buscador + filtros en cada módulo
+- [x] Búsqueda global Cmd+K con resultados agrupados
+- [x] Vista mobile (cards) + desktop (tabla) responsive
 
-- [x] Tabla `personas_vehiculos` ya existía en DB (30 columnas, schema completo con catálogos)
-- [x] RLS ya existente (4 policies SELECT/INSERT/UPDATE/DELETE)
-- [x] UI CRUD completa en ficha persona (tab Documentos) — usa schema real:
-  - Selects desde `catalogo_tipos_vehiculo` y `catalogo_companias_seguro`
-  - Seguro con vigencia_desde/hasta, tipo cobertura, compañía por catálogo
-  - Titularidad (titular/autorizado/familiar)
-  - Acceso club (permite ingreso, estacionamiento, tag RFID)
-- [x] Badge de estado de vigencia del seguro (vigente/por vencer/vencido)
+---
 
-### Sprint 4 — Categoría automática por edad (COMPLETADO)
+## Sprints PENDIENTES
 
-- [x] Query `fetchCategoriasEquipo` con `edad_min` / `edad_max`
-- [x] Display "Categoría sugerida por edad" en sección deportivo
-- [x] Matching basado en edad de la persona vs rangos de categorías activas
-- [ ] Auto-asignación a equipo por categoría (futuro — requiere reglas de negocio, solo sugerencia por ahora)
+### Sprint 5 — Vínculos + Tutores/Padres + Bajas
 
-### Sprint 5 — Columnas configurables global + Export externos (COMPLETADO)
+- [ ] ABM completo de vínculos persona-persona (UI dedicada)
+- [ ] Vista "Tutores/Padres" — personas con atributo padre_tutor y sus vínculos
+- [ ] Vista "Bajas" con casuística (motivo, fecha, reactivación)
+- [ ] Workflow de baja: marcar persona, registrar motivo, propagar a padrones
 
-- [x] Componente genérico `GenericColumnConfig` + hook `useGenericColumnConfig` (reutilizable)
-- [x] Columnas configurables en equipos (categoría, disciplina, modalidad, miembros, estado)
-- [x] Columnas configurables en padrones (tipo, miembros, estado)
-- [x] Columnas configurables en externos (tipo, teléfono, email, estado)
-- [x] Export entidades externas a CSV (ExportEntidadesButton)
-- [x] Patrón consistente: botón engranaje + popover en header de todas las tablas
+### Sprint 6 — Externos + Federaciones + Fusiones
+
+Estado: CRUD externos hecho. Falta:
+- [ ] Vistas: Representantes Federaciones, Equipos Rivales
+- [ ] Vistas: Jugadores/Staff Fusión (atributo jugador_fusion, staff_fusion)
+- [ ] Asignar representantes a entidades
+- [ ] Jerarquía de entidades (entidad_padre_id)
+
+### Sprint 7 — Mi Perfil + Mi Equipo (vista jugador)
+
+- [ ] Página /mi-perfil (datos personales del user logueado)
+- [ ] Documentos médicos (upload a storage privado)
+- [ ] Página /mi-equipo según rol del usuario
+- [ ] Widgets: próxima actividad, referentes del equipo
+
+### Sprint 8 — Páginas públicas + Branding + Pre-inscripción
+
+- [ ] Páginas públicas /equipos/[id] (lectura sin auth)
+- [ ] Branding Studio (logo, colores, nombre del tenant)
+- [ ] Form pre-inscripción pública + flujo revisión admin
+- [ ] Tabla pre_inscripciones con estados
+
+### Sprint 9 — Cajas + Movimientos + Productos
+
+- [ ] ABM cajas (operativa, shop, eventos, sede)
+- [ ] ABM categorias_movimiento
+- [ ] ABM productos_servicios (catálogo unificado compra/venta)
+- [ ] CRUD movimientos_caja (ingresos, egresos, transferencias)
+- [ ] ABM cuotas_planes + emisiones
+- [ ] Vista "Mi cuenta" con saldo por persona
+
+### Sprint 10 — Operaciones deportivas avanzadas
+
+- [ ] Eventos (entrenamientos, partidos, viajes) con calendario
+- [ ] Confirmaciones de asistencia por persona
+- [ ] Esquemas tácticos / pelotas paradas (disciplina_futbol)
+- [ ] Operaciones semanales (qué pasa esta semana en el club)
+- [ ] Scouting básico
+
+### Sprint 11 — Empleados + Contratos + Liquidaciones
+
+- [ ] ABM empleados (persona con vínculo laboral)
+- [ ] Modalidades: relación dependencia, monotributo, honorarios, negro
+- [ ] ABM contratos_laborales (monto, frecuencia, vigencia)
+- [ ] Liquidaciones mensuales → genera movimiento_caja
+- [ ] Vinculos empleado-actividad (kine en varios equipos)
+
+### Sprint 12 — Comunicaciones
+
+- [ ] Mensajería intra-club (notificaciones in-app)
+- [ ] Bell icon en topbar con notificaciones
+- [ ] Plantillas de comunicación
+- [ ] Conector Resend para emails transaccionales (opcional)
+- [ ] Envíos masivos por padrón/equipo
+
+### Sprint 13 — API + Webhooks + MCP
+
+- [ ] API REST v1 documentada (OpenAPI 3.1)
+- [ ] Endpoints: personas, equipos, padrones, vistas, importar
+- [ ] API keys gestionadas desde admin
+- [ ] Rate limiting
+- [ ] Webhooks salientes en eventos (persona creada, cuota pagada, etc.)
+- [ ] MCP server con tools: buscar_persona, crear_persona, listar_equipos, asignar_equipo
+
+### Sprint 14 — Conectores + Padrón consolidación
+
+- [ ] Conector Zoho CRM (sync bidireccional)
+- [ ] Conector MercadoPago (cobros)
+- [ ] Sync mensual con padrón global del Hindu Club
+- [ ] Scrapping federaciones (opcional)
+- [ ] Tabla padron_consolidaciones
+
+### Sprint 15 — Auditoría + Hardening + Hindu LIVE
+
+- [ ] Audit log consultable en UI (quién hizo qué, cuándo)
+- [ ] Tests E2E en flujos críticos (Playwright)
+- [ ] Performance audit (queries pesadas, lazy loading)
+- [ ] Permisos granulares (quién exporta, quién ve qué)
+- [ ] Onboarding masivo del padrón Hindu
+- [ ] Hindu Club V2 LIVE
+
+---
+
+## Bugs conocidos y resueltos
+
+### BUG-001: get_tenant_actual() recursión infinita en RLS
+- **Sprint:** 1
+- **Causa:** SECURITY INVOKER en función usada por RLS que consultaba tabla con RLS → loop.
+- **Fix:** SECURITY DEFINER + `SET search_path = public, pg_temp` + revocar anon/public.
+- **Lección:** Funciones helper usadas en RLS DEBEN ser SECURITY DEFINER.
+
+---
+
+## Decisiones técnicas tomadas
+
+1. **shadcn v4 usa `render` prop**, no `asChild` (base-ui bajo el capó)
+2. **searchParams en Next.js 16** es `Promise<Record<string, string | undefined>>`
+3. **Exports usan dynamic import** para mantener bundle chico (`lib/export/formats.ts`)
+4. **Vistas se guardan en DB** (tabla `user_vistas`) para persistir entre dispositivos
+5. **Columnas de tabla** se sincronizan via localStorage + custom events para reactividad
+
+---
+
+## Tiempo estimado restante
+
+Sprints 5-15 = 11 sprints pendientes.
+Estimado: 90-120 horas agente + 15-20 horas validación Yair.
+Calendario: 6-8 semanas a 4-6h/día.
+
+---
+
+**Última actualización:** 2026-05-05
+**Próximo sprint:** 5 (Vínculos + Tutores/Padres + Bajas)
+**Owner:** Yair Levy Wald
