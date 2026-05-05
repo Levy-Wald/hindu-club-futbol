@@ -194,6 +194,25 @@ export async function softDeletePersona(id: string) {
   return formatResult(true, 'Persona eliminada')
 }
 
+export async function cambiarEstadoPersona(id: string, estado: string) {
+  const estadosValidos = ['activo', 'pausado', 'pendiente_revision']
+  if (!estadosValidos.includes(estado)) {
+    return formatResult(false, 'Estado no válido')
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('personas')
+    .update({ estado })
+    .eq('id', id)
+
+  if (error) return formatResult(false, error.message)
+
+  revalidatePath('/admin/personas')
+  revalidatePath(`/admin/personas/${id}`)
+  return formatResult(true, `Estado cambiado a ${estado}`)
+}
+
 export async function restaurarPersona(id: string) {
   const supabase = await createClient()
   const { error } = await supabase

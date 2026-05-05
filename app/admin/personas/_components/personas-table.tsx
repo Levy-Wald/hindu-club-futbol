@@ -19,8 +19,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { PersonaAvatar } from './persona-avatar'
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, RotateCcw } from 'lucide-react'
-import { softDeletePersona, restaurarPersona } from '../_actions'
+import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, RotateCcw, CirclePause, CirclePlay } from 'lucide-react'
+import { softDeletePersona, restaurarPersona, cambiarEstadoPersona } from '../_actions'
 import { toast } from 'sonner'
 
 interface Atributo {
@@ -95,6 +95,12 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
 
   async function handleRestore(id: string) {
     const result = await restaurarPersona(id)
+    if (result.ok) toast.success(result.message)
+    else toast.error(result.message)
+  }
+
+  async function handleCambiarEstado(id: string, estado: string) {
+    const result = await cambiarEstadoPersona(id, estado)
     if (result.ok) toast.success(result.message)
     else toast.error(result.message)
   }
@@ -202,6 +208,18 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
                           <Pencil className="mr-2 h-4 w-4" />
                           Editar
                         </DropdownMenuItem>
+                        {!p.deleted_at && p.estado === 'activo' && (
+                          <DropdownMenuItem onClick={() => handleCambiarEstado(p.id, 'pausado')}>
+                            <CirclePause className="mr-2 h-4 w-4" />
+                            Pausar
+                          </DropdownMenuItem>
+                        )}
+                        {!p.deleted_at && p.estado === 'pausado' && (
+                          <DropdownMenuItem onClick={() => handleCambiarEstado(p.id, 'activo')}>
+                            <CirclePlay className="mr-2 h-4 w-4" />
+                            Reactivar
+                          </DropdownMenuItem>
+                        )}
                         {p.deleted_at ? (
                           <DropdownMenuItem onClick={() => handleRestore(p.id)}>
                             <RotateCcw className="mr-2 h-4 w-4" />
