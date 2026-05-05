@@ -33,9 +33,10 @@ export function Topbar({ userEmail }: TopbarProps) {
     : 'U'
 
   return (
-    <header className="flex h-14 items-center justify-between border-b px-4 bg-background">
+    <header className="flex h-14 items-center justify-between border-b px-4 bg-background shrink-0">
       <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">ClubCore</span>
+        <span className="font-bold text-sm md:hidden">Hindu Club</span>
+        <span className="text-sm text-muted-foreground hidden md:block">ClubCore</span>
       </div>
       <div className="flex items-center gap-2">
         <ThemeToggle />

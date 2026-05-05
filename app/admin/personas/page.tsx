@@ -27,8 +27,8 @@ export default async function PersonasPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Personas</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold">Personas</h1>
         <CrearPersonaSheet />
       </div>
 

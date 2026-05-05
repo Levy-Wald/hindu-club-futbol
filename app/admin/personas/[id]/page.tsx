@@ -39,7 +39,7 @@ export default async function PersonaDetallePage({ params }: PageProps) {
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <PersonaAvatar nombre={persona.nombre} apellido={persona.apellido} className="h-9 w-9 shrink-0 hidden xs:block" />
+          <PersonaAvatar nombre={persona.nombre} apellido={persona.apellido} className="h-9 w-9 shrink-0 hidden sm:block" />
           <div className="min-w-0 flex-1">
             <h1 className="text-sm sm:text-base font-bold truncate">
               {persona.apellido}, {persona.nombre}

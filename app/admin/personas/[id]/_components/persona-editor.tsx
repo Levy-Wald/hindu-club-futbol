@@ -109,7 +109,7 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
           <div className="flex items-center gap-2 justify-end">
             <Button variant="outline" size="sm" onClick={() => setExportOpen(true)}>
               <Download className="mr-2 h-3.5 w-3.5" />
-              <span className="hidden xs:inline">Exportar</span>
+              Exportar
             </Button>
             <Button size="sm" onClick={handleSubmit} disabled={loading}>
               {loading ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-2 h-3.5 w-3.5" />}
