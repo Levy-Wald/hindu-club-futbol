@@ -5,10 +5,9 @@ import { SinEquipo } from './_components/sin-equipo'
 
 export default async function MiEquipoPage() {
   const resultado = await fetchMiEquipo()
+  const equiposDisponibles = await fetchEquiposDisponibles()
 
   if (!resultado) {
-    // Usuario sin equipo asignado — mostrar opción de solicitar ingreso
-    const equiposDisponibles = await fetchEquiposDisponibles()
     return (
       <div className="space-y-6">
         <div>
@@ -40,6 +39,8 @@ export default async function MiEquipoPage() {
         plantel={plantel}
         horarios={horarios}
       />
+      {/* Solicitar ingreso a otro equipo */}
+      <SinEquipo equipos={equiposDisponibles} titulo="Solicitar ingreso a otro equipo" />
     </div>
   )
 }

@@ -12,9 +12,10 @@ import { solicitarIngresoEquipo } from '../../mi-perfil/_actions'
 
 interface SinEquipoProps {
   equipos: Array<{ id: string; nombre: string; disciplina_slug: string | null }>
+  titulo?: string
 }
 
-export function SinEquipo({ equipos }: SinEquipoProps) {
+export function SinEquipo({ equipos, titulo }: SinEquipoProps) {
   const [equipoId, setEquipoId] = useState('')
   const [rol, setRol] = useState('jugador')
   const [mensaje, setMensaje] = useState('')
@@ -40,7 +41,7 @@ export function SinEquipo({ equipos }: SinEquipoProps) {
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <UserPlus className="h-4 w-4" />
-          Solicitar ingreso a un equipo
+          {titulo || 'Solicitar ingreso a un equipo'}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
