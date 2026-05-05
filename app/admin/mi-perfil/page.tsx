@@ -4,6 +4,8 @@ import { PersonaAvatar } from '../personas/_components/persona-avatar'
 import { PersonaEditor } from '../personas/[id]/_components/persona-editor'
 import { fetchCatalogoAtributos, fetchCatalogoVinculos, fetchPadrones, fetchEstadosPadron, fetchTiposSocio, fetchCategoriasEquipo } from '../personas/_lib/queries'
 import { fetchMiPersonaCompleta } from './_lib/queries'
+import { fetchMiEquipo } from '../mi-equipo/_lib/queries'
+import { TarjetaJugadorMiPerfil } from './_components/tarjeta-mi-perfil'
 
 export default async function MiPerfilPage() {
   const persona = await fetchMiPersonaCompleta()
@@ -12,13 +14,14 @@ export default async function MiPerfilPage() {
     redirect('/login')
   }
 
-  const [catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio, categoriasEquipo] = await Promise.all([
+  const [catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio, categoriasEquipo, miEquipo] = await Promise.all([
     fetchCatalogoAtributos(),
     fetchCatalogoVinculos(),
     fetchPadrones(),
     fetchEstadosPadron(),
     fetchTiposSocio(),
     fetchCategoriasEquipo(),
+    fetchMiEquipo(),
   ])
 
   return (
@@ -38,6 +41,12 @@ export default async function MiPerfilPage() {
               </Badge>
             </div>
           </div>
+          {miEquipo ? (
+            <TarjetaJugadorMiPerfil
+              persona={persona}
+              asignacion={miEquipo.asignacion}
+            />
+          ) : null}
         </div>
       </div>
 

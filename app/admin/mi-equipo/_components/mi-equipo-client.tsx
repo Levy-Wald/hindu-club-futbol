@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
+import { Button } from '@/components/ui/button'
 import {
   Clock,
   Shirt,
@@ -17,7 +17,10 @@ import {
   Star,
   MessageCircle,
   UserCheck,
+  CreditCard,
 } from 'lucide-react'
+import { TarjetaJugador } from './tarjeta-jugador'
+import { ExportPlantel } from './export-plantel'
 
 interface MiEquipoClientProps {
   equipo: Record<string, unknown>
@@ -282,13 +285,66 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
         </CardContent>
       </Card>
 
-      {/* 6. PLANTEL COMPLETO — tabla con todos los datos de contacto */}
+      {/* 6. TORNEOS Y CAMPEONATOS */}
+      {equipo.torneo ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Trophy className="h-4 w-4" />
+              Torneos y campeonatos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3 border rounded-lg p-4">
+              <div className="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                <Trophy className="h-5 w-5 text-amber-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold">{equipo.torneo as string}</p>
+                <p className="text-xs text-muted-foreground capitalize">
+                  {equipo.disciplina_slug as string}
+                  {(equipo.categoria as { nombre_display: string } | null)?.nombre_display
+                    ? ` · ${(equipo.categoria as { nombre_display: string }).nombre_display}`
+                    : ''}
+                </p>
+              </div>
+              <Badge variant="default" className="shrink-0">En curso</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* 7. PLANTEL COMPLETO — tabla con todos los datos de contacto */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <Users className="h-4 w-4" />
             Plantel ({jugadores.length} jugadores)
           </CardTitle>
+          <ExportPlantel
+            equipo={{
+              nombre: equipo.nombre as string,
+              escudo_url: equipo.escudo_url as string | null,
+              color_principal: equipo.color_principal as string | null,
+              disciplina: equipo.disciplina_slug as string,
+              categoria: (equipo.categoria as { nombre_display: string } | null)?.nombre_display ?? null,
+              torneo: equipo.torneo as string | null,
+            }}
+            plantel={plantel.map((m) => ({
+              id: m.id as string,
+              rol_equipo_slug: m.rol_equipo_slug as string,
+              dorsal: m.dorsal as number | null,
+              posicion: m.posicion as string | null,
+              persona: m.persona ? {
+                nombre: (m.persona as Record<string, unknown>).nombre as string,
+                apellido: (m.persona as Record<string, unknown>).apellido as string,
+                whatsapp: (m.persona as Record<string, unknown>).whatsapp as string | null,
+                telefono_principal: (m.persona as Record<string, unknown>).telefono_principal as string | null,
+                email_principal: (m.persona as Record<string, unknown>).email_principal as string | null,
+                numero_documento: (m.persona as Record<string, unknown>).numero_documento as string | null,
+              } : null,
+            }))}
+          />
         </CardHeader>
         <CardContent>
           {jugadores.length === 0 ? (
@@ -366,14 +422,30 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
                         </div>
                       </div>
 
-                      {/* Posición + rol */}
-                      <div className="flex flex-col items-end gap-1 shrink-0">
+                      {/* Posición + tarjeta */}
+                      <div className="flex items-center gap-1 shrink-0">
                         {j.posicion ? (
                           <Badge variant="secondary" className="text-xs">{j.posicion as string}</Badge>
                         ) : null}
-                        <span className="text-xs text-muted-foreground capitalize">
-                          {ROL_LABELS[j.rol_equipo_slug as string] || (j.rol_equipo_slug as string)?.replace(/_/g, ' ')}
-                        </span>
+                        <TarjetaJugador
+                          jugador={{
+                            nombre: p.nombre as string,
+                            apellido: p.apellido as string,
+                            dorsal: j.dorsal as number | null,
+                            posicion: j.posicion as string | null,
+                            rol: (j.rol_equipo_slug as string) || 'jugador',
+                            foto_url: p.foto_perfil_url as string | null,
+                          }}
+                          equipo={{
+                            nombre: equipo.nombre as string,
+                            escudo_url: equipo.escudo_url as string | null,
+                            color_principal: equipo.color_principal as string | null,
+                            color_secundario: equipo.color_secundario as string | null,
+                            disciplina: equipo.disciplina_slug as string,
+                            categoria: (equipo.categoria as { nombre_display: string } | null)?.nombre_display ?? null,
+                            torneo: equipo.torneo as string | null,
+                          }}
+                        />
                       </div>
                     </div>
                   )
