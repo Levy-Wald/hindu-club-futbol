@@ -18,6 +18,15 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, '')
 }
 
+interface DireccionInput {
+  calle?: string
+  numero?: string
+  ciudad?: string
+  provincia?: string
+  codigo_postal?: string
+  pais?: string
+}
+
 interface CrearEntidadInput {
   tipo: string
   nombre: string
@@ -26,6 +35,8 @@ interface CrearEntidadInput {
   sitio_web?: string
   cuit?: string
   razon_social?: string
+  direccion?: DireccionInput
+  entidad_padre_id?: string
 }
 
 export async function crearEntidad(input: CrearEntidadInput) {
@@ -45,6 +56,8 @@ export async function crearEntidad(input: CrearEntidadInput) {
       sitio_web: input.sitio_web?.trim() || null,
       cuit: input.cuit?.trim() || null,
       razon_social: input.razon_social?.trim() || null,
+      direccion: input.direccion ?? null,
+      entidad_padre_id: input.entidad_padre_id || null,
     })
     .select('id')
     .single()
@@ -68,6 +81,8 @@ interface EditarEntidadInput {
   sitio_web?: string
   cuit?: string
   razon_social?: string
+  direccion?: DireccionInput
+  entidad_padre_id?: string | null
 }
 
 export async function editarEntidad(id: string, input: EditarEntidadInput) {
@@ -84,6 +99,8 @@ export async function editarEntidad(id: string, input: EditarEntidadInput) {
   if (input.sitio_web !== undefined) clean.sitio_web = input.sitio_web.trim() || null
   if (input.cuit !== undefined) clean.cuit = input.cuit.trim() || null
   if (input.razon_social !== undefined) clean.razon_social = input.razon_social.trim() || null
+  if (input.direccion !== undefined) clean.direccion = input.direccion
+  if (input.entidad_padre_id !== undefined) clean.entidad_padre_id = input.entidad_padre_id || null
 
   const { error } = await supabase
     .from('entidades')
@@ -98,6 +115,7 @@ export async function editarEntidad(id: string, input: EditarEntidadInput) {
   }
 
   revalidatePath('/admin/externos')
+  revalidatePath(`/admin/externos/${id}`)
   return formatResult(true, 'Entidad actualizada')
 }
 
@@ -121,4 +139,44 @@ export async function toggleActivoEntidad(id: string) {
 
   revalidatePath('/admin/externos')
   return formatResult(true, entidad.activo ? 'Entidad desactivada' : 'Entidad activada')
+}
+
+interface AsignarRepresentanteInput {
+  entidad_id: string
+  persona_id: string
+  rol: string
+  rol_custom?: string
+}
+
+export async function asignarRepresentante(input: AsignarRepresentanteInput) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('entidades_representantes')
+    .insert({
+      tenant_id: TENANT_ID,
+      entidad_id: input.entidad_id,
+      persona_id: input.persona_id,
+      rol: input.rol,
+      rol_custom: input.rol === 'otro' ? (input.rol_custom?.trim() || null) : null,
+    })
+
+  if (error) return formatResult(false, error.message)
+
+  revalidatePath(`/admin/externos/${input.entidad_id}`)
+  return formatResult(true, 'Representante asignado')
+}
+
+export async function quitarRepresentante(id: string, entidadId: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('entidades_representantes')
+    .update({ activo: false, fecha_fin: new Date().toISOString().split('T')[0] })
+    .eq('id', id)
+
+  if (error) return formatResult(false, error.message)
+
+  revalidatePath(`/admin/externos/${entidadId}`)
+  return formatResult(true, 'Representante removido')
 }

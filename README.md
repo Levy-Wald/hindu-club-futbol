@@ -41,7 +41,7 @@ pnpm dev
 | 3 | Padrones + Importación masiva | HECHO |
 | 4 | Equipos + Categorías + Horarios + Asignaciones | HECHO |
 | 5 | Vínculos + Tutores/Padres + Bajas | HECHO |
-| 6 | Externos + Federaciones + Fusiones | PARCIAL |
+| 6 | Externos + Federaciones + Fusiones | HECHO |
 | 7 | Mi Perfil + Mi Equipo (vista jugador) | PENDIENTE |
 | 8 | Páginas públicas + Branding + Pre-inscripción | PENDIENTE |
 | 9 | Cajas + Movimientos + Productos | PENDIENTE |
@@ -77,6 +77,7 @@ Migrations en `supabase/migrations/`:
 | `20260504230000_seed_hindu.sql` | Datos iniciales Hindu Club |
 | `20260505010000_lesiones_rehabilitaciones.sql` | Tablas lesiones y rehabilitaciones |
 | `20260505020000_user_vistas.sql` | Tabla user_vistas para vistas guardadas por usuario |
+| `20260505100000_entidades_representantes.sql` | Tabla pivote entidades_representantes (persona-entidad con roles) |
 
 Para aplicar: `npx supabase db push` o SQL Editor en dashboard Supabase.
 

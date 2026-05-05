@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -31,6 +32,7 @@ interface Entidad {
   cuit: string | null
   razon_social: string | null
   activo: boolean
+  representantes_count?: number
 }
 
 interface EntidadesTableProps {
@@ -95,7 +97,12 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{e.nombre}</p>
+                  <Link href={`/admin/externos/${e.id}`} className="font-medium truncate hover:underline block">
+                    {e.nombre}
+                    {(e.representantes_count ?? 0) > 0 && (
+                      <Badge variant="secondary" className="ml-2 text-xs">{e.representantes_count}</Badge>
+                    )}
+                  </Link>
                   <p className="text-sm text-muted-foreground truncate">
                     {e.telefono ?? '—'} · {e.email ?? '—'}
                   </p>
@@ -152,7 +159,14 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
                   <TableCell>
                     <Checkbox checked={selected.has(e.id)} onCheckedChange={() => toggleSelect(e.id)} />
                   </TableCell>
-                  <TableCell className="font-medium">{e.nombre}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link href={`/admin/externos/${e.id}`} className="hover:underline">
+                      {e.nombre}
+                    </Link>
+                    {(e.representantes_count ?? 0) > 0 && (
+                      <Badge variant="secondary" className="ml-2 text-xs">{e.representantes_count}</Badge>
+                    )}
+                  </TableCell>
                   {isVisible('tipo') && (
                     <TableCell>
                       <Badge variant="outline">{e.tipo}</Badge>

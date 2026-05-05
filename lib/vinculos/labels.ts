@@ -13,6 +13,8 @@ export const VINCULO_LABELS: Record<string, { directo: string; inverso: string }
   padrino: { directo: 'Padrino/Madrina de', inverso: 'Ahijado/a de' },
   representante: { directo: 'Representante de', inverso: 'Representado/a por' },
   contacto_emergencia: { directo: 'Contacto de emergencia de', inverso: 'Tiene como contacto de emergencia a' },
+  fusion_origen: { directo: 'Fusionado con', inverso: 'Fusionado con' },
+  fusion_destino: { directo: 'Fusionado con', inverso: 'Fusionado con' },
 }
 
 export function getVinculoLabel(slug: string, direccion: 'directo' | 'inverso'): string {
