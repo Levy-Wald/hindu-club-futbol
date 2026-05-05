@@ -27,8 +27,6 @@ const PAGINAS_ESTATICAS: SearchResult[] = [
   { id: 'page-personas', categoria: 'paginas', titulo: 'Personas', subtitulo: 'Gestión de personas del club', url: '/admin/personas' },
   { id: 'page-equipos', categoria: 'paginas', titulo: 'Equipos', subtitulo: 'Gestión de equipos y planteles', url: '/admin/equipos' },
   { id: 'page-padrones', categoria: 'paginas', titulo: 'Padrones', subtitulo: 'Padrones y registros de socios', url: '/admin/padrones' },
-  { id: 'page-tutores', categoria: 'paginas', titulo: 'Tutores / Padres', subtitulo: 'Tutores y padres de menores', url: '/admin/tutores' },
-  { id: 'page-bajas', categoria: 'paginas', titulo: 'Bajas', subtitulo: 'Personas dadas de baja', url: '/admin/bajas' },
   { id: 'page-externos', categoria: 'paginas', titulo: 'Externos', subtitulo: 'Entidades y clubes externos', url: '/admin/externos' },
   { id: 'page-cajas', categoria: 'paginas', titulo: 'Cajas', subtitulo: 'Gestión de cajas y movimientos', url: '/admin/cajas' },
   { id: 'page-comunicaciones', categoria: 'paginas', titulo: 'Comunicaciones', subtitulo: 'Comunicaciones y mensajes', url: '/admin/comunicaciones' },
@@ -132,7 +130,7 @@ export async function globalSearch(query: string): Promise<SearchResults> {
           categoria: 'externos' as const,
           titulo: e.nombre,
           subtitulo: e.tipo ?? undefined,
-          url: '/admin/externos',
+          url: `/admin/externos/${e.id}`,
         }))
       : []
 
