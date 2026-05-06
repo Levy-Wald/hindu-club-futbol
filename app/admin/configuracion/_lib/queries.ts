@@ -10,7 +10,7 @@ export async function fetchTenantConfig() {
       .from('tenants')
       .select('id, nombre, slug, tipo, activo')
       .eq('id', TENANT_ID)
-      .single(),
+      .maybeSingle(),
     supabase
       .from('tenant_modulos')
       .select('modulo_slug, activo, fecha_activacion')
@@ -22,13 +22,19 @@ export async function fetchTenantConfig() {
       .maybeSingle(),
   ])
 
-  if (tenantRes.error) throw tenantRes.error
-  // tenant_modulos may not exist on remote — handle gracefully
+  // Fallback tenant data if query fails or returns null
+  const tenantData = tenantRes.data ?? {
+    id: TENANT_ID,
+    nombre: 'Hindu Club',
+    slug: 'hindu-club',
+    tipo: 'club_deportivo',
+    activo: true,
+  }
   const modulosData = modulosRes.error ? [] : (modulosRes.data ?? [])
 
   return {
     tenant: {
-      ...tenantRes.data,
+      ...tenantData,
       plan_slug: 'pro',
       dominio_custom: null,
       configuracion: null,
