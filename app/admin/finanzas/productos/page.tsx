@@ -59,8 +59,13 @@ import {
   Search,
   DollarSign,
   ShoppingCart,
-  Check,
-  X,
+  Lock,
+  Car,
+  Home,
+  AlertTriangle,
+  Coffee,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -95,11 +100,29 @@ interface Producto {
   id: string
   nombre: string
   tipo: string
-  precio: number | null
-  moneda: string
+  sku: string | null
+  ean13: string | null
+  ean14: string | null
+  marca: string | null
+  modelo: string | null
+  color: string | null
+  material: string | null
+  origen: string | null
+  unidad_medida: string
   descripcion: string | null
+  descripcion_larga: string | null
+  precio: number | null
+  precio_compra: number | null
+  moneda: string
+  iva_compra: number | null
+  iva_venta: number | null
   es_arancelado: boolean
   es_comprable: boolean
+  stock_actual: number | null
+  stock_minimo: number | null
+  peso_kg: number | null
+  cupo_maximo: number | null
+  instalacion: string | null
   cuenta_ingreso_id: string | null
   cuenta_egreso_id: string | null
   centro_costo_id: string | null
@@ -116,11 +139,29 @@ interface Producto {
 interface ProductoForm {
   nombre: string
   tipo: string
-  precio: string
-  moneda: string
+  sku: string
+  ean13: string
+  ean14: string
+  marca: string
+  modelo: string
+  color: string
+  material: string
+  origen: string
+  unidad_medida: string
   descripcion: string
+  descripcion_larga: string
+  precio: string
+  precio_compra: string
+  moneda: string
+  iva_compra: string
+  iva_venta: string
   es_arancelado: boolean
   es_comprable: boolean
+  stock_actual: string
+  stock_minimo: string
+  peso_kg: string
+  cupo_maximo: string
+  instalacion: string
   cuenta_ingreso_id: string
   cuenta_egreso_id: string
   centro_costo_id: string
@@ -130,11 +171,29 @@ interface ProductoForm {
 const EMPTY_FORM: ProductoForm = {
   nombre: '',
   tipo: 'producto',
-  precio: '',
-  moneda: 'ARS',
+  sku: '',
+  ean13: '',
+  ean14: '',
+  marca: '',
+  modelo: '',
+  color: '',
+  material: '',
+  origen: '',
+  unidad_medida: 'unidad',
   descripcion: '',
+  descripcion_larga: '',
+  precio: '',
+  precio_compra: '',
+  moneda: 'ARS',
+  iva_compra: '21',
+  iva_venta: '21',
   es_arancelado: true,
   es_comprable: false,
+  stock_actual: '',
+  stock_minimo: '',
+  peso_kg: '',
+  cupo_maximo: '',
+  instalacion: '',
   cuenta_ingreso_id: '',
   cuenta_egreso_id: '',
   centro_costo_id: '',
@@ -154,6 +213,11 @@ const TIPOS = [
   { value: 'insumo', label: 'Insumo', icon: Package },
   { value: 'activo', label: 'Activo fijo', icon: Landmark },
   { value: 'gasto', label: 'Gasto operativo', icon: Receipt },
+  { value: 'locker', label: 'Locker', icon: Lock },
+  { value: 'cochera', label: 'Cochera', icon: Car },
+  { value: 'expensa', label: 'Expensa', icon: Home },
+  { value: 'multa', label: 'Multa', icon: AlertTriangle },
+  { value: 'consumo', label: 'Consumo', icon: Coffee },
 ] as const
 
 const FILTROS = [
@@ -166,7 +230,32 @@ const FILTROS = [
   { key: 'insumo', label: 'Insumos' },
   { key: 'activo', label: 'Activos fijos' },
   { key: 'gasto', label: 'Gastos' },
+  { key: 'locker', label: 'Lockers' },
+  { key: 'cochera', label: 'Cocheras' },
+  { key: 'expensa', label: 'Expensas' },
+  { key: 'multa', label: 'Multas' },
+  { key: 'consumo', label: 'Consumos' },
 ] as const
+
+const UNIDADES = [
+  { value: 'unidad', label: 'Unidad' },
+  { value: 'kg', label: 'Kg' },
+  { value: 'litro', label: 'Litro' },
+  { value: 'metro', label: 'Metro' },
+  { value: 'hora', label: 'Hora' },
+  { value: 'm2', label: 'm2' },
+  { value: 'par', label: 'Par' },
+] as const
+
+const IVA_OPTIONS = [
+  { value: '0', label: '0%' },
+  { value: '10.5', label: '10.5%' },
+  { value: '21', label: '21%' },
+  { value: '27', label: '27%' },
+] as const
+
+const TIPOS_CON_STOCK = ['producto', 'insumo', 'activo']
+const TIPOS_CON_CUPO = ['actividad', 'servicio', 'alquiler']
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
@@ -201,6 +290,16 @@ function tipoBadgeClass(tipo: string): string {
       return 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400'
     case 'gasto':
       return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+    case 'locker':
+      return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400'
+    case 'cochera':
+      return 'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400'
+    case 'expensa':
+      return 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-400'
+    case 'multa':
+      return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+    case 'consumo':
+      return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
     default:
       return ''
   }
@@ -228,10 +327,24 @@ export default function ProductosPage() {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
+  // Secciones colapsables del formulario
+  const [openSections, setOpenSections] = useState<Set<string>>(new Set(['identidad']))
+
   // Datos para selects del formulario
   const [centrosCosto, setCentrosCosto] = useState<CentroCosto[]>([])
   const [categorias, setCategorias] = useState<CategoriaMovimiento[]>([])
   const [cuentasImputables, setCuentasImputables] = useState<CuentaImputable[]>([])
+
+  // ---- Collapsible sections ----
+
+  function toggleSection(key: string) {
+    setOpenSections((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
   // ---- Data fetching ----
 
@@ -240,8 +353,11 @@ export default function ProductosPage() {
     const { data, error } = await supabase
       .from('productos_servicios')
       .select(`
-        id, nombre, tipo, precio, moneda, descripcion,
+        id, nombre, tipo, sku, ean13, ean14, marca, modelo, color, material, origen,
+        unidad_medida, descripcion, descripcion_larga,
+        precio, precio_compra, moneda, iva_compra, iva_venta,
         es_arancelado, es_comprable,
+        stock_actual, stock_minimo, peso_kg, cupo_maximo, instalacion,
         cuenta_ingreso_id, cuenta_egreso_id,
         centro_costo_id, categoria_movimiento_id,
         activo, created_at,
@@ -307,7 +423,8 @@ export default function ProductosPage() {
     if (filtro !== 'todos' && p.tipo !== filtro) return false
     if (search.trim()) {
       const q = search.toLowerCase().trim()
-      if (!p.nombre.toLowerCase().includes(q)) return false
+      const searchable = [p.nombre, p.sku, p.marca, p.modelo].filter(Boolean).join(' ').toLowerCase()
+      if (!searchable.includes(q)) return false
     }
     return true
   })
@@ -341,14 +458,22 @@ export default function ProductosPage() {
       headers: [
         'Nombre',
         'Tipo',
-        'Precio',
+        'SKU',
+        'Marca',
+        'Modelo',
+        'Precio venta',
+        'Precio compra',
         'Moneda',
+        'IVA venta',
+        'IVA compra',
         'Categoria',
         'Centro de costo',
         'Vendible',
         'Comprable',
         'Cuenta ingreso',
         'Cuenta egreso',
+        'Stock actual',
+        'Stock minimo',
         'Activo',
       ],
       rows: items.map((p) => {
@@ -359,14 +484,22 @@ export default function ProductosPage() {
         return [
           p.nombre,
           tipoLabel(p.tipo),
+          p.sku ?? '',
+          p.marca ?? '',
+          p.modelo ?? '',
           p.precio != null ? String(p.precio) : '',
+          p.precio_compra != null ? String(p.precio_compra) : '',
           p.moneda,
+          p.iva_venta != null ? String(p.iva_venta) : '',
+          p.iva_compra != null ? String(p.iva_compra) : '',
           cat?.nombre ?? '',
           centro?.nombre ?? '',
           p.es_arancelado ? 'Si' : 'No',
           p.es_comprable ? 'Si' : 'No',
           cIngreso ? `${cIngreso.codigo} - ${cIngreso.nombre}` : '',
           cEgreso ? `${cEgreso.codigo} - ${cEgreso.nombre}` : '',
+          p.stock_actual != null ? String(p.stock_actual) : '',
+          p.stock_minimo != null ? String(p.stock_minimo) : '',
           p.activo ? 'Si' : 'No',
         ]
       }),
@@ -388,6 +521,7 @@ export default function ProductosPage() {
   function openCreate() {
     setEditingId(null)
     setForm(EMPTY_FORM)
+    setOpenSections(new Set(['identidad']))
     setDialogOpen(true)
   }
 
@@ -396,16 +530,35 @@ export default function ProductosPage() {
     setForm({
       nombre: producto.nombre,
       tipo: producto.tipo,
-      precio: producto.precio != null ? String(producto.precio) : '',
-      moneda: producto.moneda || 'ARS',
+      sku: producto.sku || '',
+      ean13: producto.ean13 || '',
+      ean14: producto.ean14 || '',
+      marca: producto.marca || '',
+      modelo: producto.modelo || '',
+      color: producto.color || '',
+      material: producto.material || '',
+      origen: producto.origen || '',
+      unidad_medida: producto.unidad_medida || 'unidad',
       descripcion: producto.descripcion || '',
+      descripcion_larga: producto.descripcion_larga || '',
+      precio: producto.precio != null ? String(producto.precio) : '',
+      precio_compra: producto.precio_compra != null ? String(producto.precio_compra) : '',
+      moneda: producto.moneda || 'ARS',
+      iva_compra: producto.iva_compra != null ? String(producto.iva_compra) : '21',
+      iva_venta: producto.iva_venta != null ? String(producto.iva_venta) : '21',
       es_arancelado: producto.es_arancelado,
       es_comprable: producto.es_comprable,
+      stock_actual: producto.stock_actual != null ? String(producto.stock_actual) : '',
+      stock_minimo: producto.stock_minimo != null ? String(producto.stock_minimo) : '',
+      peso_kg: producto.peso_kg != null ? String(producto.peso_kg) : '',
+      cupo_maximo: producto.cupo_maximo != null ? String(producto.cupo_maximo) : '',
+      instalacion: producto.instalacion || '',
       cuenta_ingreso_id: producto.cuenta_ingreso_id || '',
       cuenta_egreso_id: producto.cuenta_egreso_id || '',
       centro_costo_id: producto.centro_costo_id || '',
       categoria_movimiento_id: producto.categoria_movimiento_id || '',
     })
+    setOpenSections(new Set(['identidad']))
     setDialogOpen(true)
   }
 
@@ -413,11 +566,29 @@ export default function ProductosPage() {
     const input = {
       nombre: form.nombre,
       tipo: form.tipo,
-      precio: form.precio ? parseFloat(form.precio) : null,
-      moneda: form.moneda,
+      sku: form.sku || null,
+      ean13: form.ean13 || null,
+      ean14: form.ean14 || null,
+      marca: form.marca || null,
+      modelo: form.modelo || null,
+      color: form.color || null,
+      material: form.material || null,
+      origen: form.origen || null,
+      unidad_medida: form.unidad_medida || 'unidad',
       descripcion: form.descripcion || null,
+      descripcion_larga: form.descripcion_larga || null,
+      precio: form.precio ? parseFloat(form.precio) : null,
+      precio_compra: form.precio_compra ? parseFloat(form.precio_compra) : null,
+      moneda: form.moneda,
+      iva_compra: form.iva_compra ? parseFloat(form.iva_compra) : null,
+      iva_venta: form.iva_venta ? parseFloat(form.iva_venta) : null,
       es_arancelado: form.es_arancelado,
       es_comprable: form.es_comprable,
+      stock_actual: form.stock_actual ? parseFloat(form.stock_actual) : null,
+      stock_minimo: form.stock_minimo ? parseFloat(form.stock_minimo) : null,
+      peso_kg: form.peso_kg ? parseFloat(form.peso_kg) : null,
+      cupo_maximo: form.cupo_maximo ? parseInt(form.cupo_maximo, 10) : null,
+      instalacion: form.instalacion || null,
       cuenta_ingreso_id: form.cuenta_ingreso_id || null,
       cuenta_egreso_id: form.cuenta_egreso_id || null,
       centro_costo_id: form.centro_costo_id || null,
@@ -465,6 +636,11 @@ export default function ProductosPage() {
     })
   }
 
+  // Determinar si mostrar seccion inventario segun tipo
+  const showStock = TIPOS_CON_STOCK.includes(form.tipo)
+  const showCupo = TIPOS_CON_CUPO.includes(form.tipo)
+  const showInventario = showStock || showCupo
+
   // ---- Render ----
 
   return (
@@ -490,7 +666,7 @@ export default function ProductosPage() {
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Buscar por nombre..."
+          placeholder="Buscar por nombre, SKU, marca..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
@@ -547,10 +723,10 @@ export default function ProductosPage() {
                       />
                     </TableHead>
                     <TableHead>Nombre</TableHead>
+                    <TableHead>SKU</TableHead>
                     <TableHead>Tipo</TableHead>
-                    <TableHead className="text-right">Precio</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Centro costo</TableHead>
+                    <TableHead className="text-right">Precio venta</TableHead>
+                    <TableHead className="text-right">Precio compra</TableHead>
                     <TableHead className="text-center">Vendible</TableHead>
                     <TableHead className="text-center">Comprable</TableHead>
                     <TableHead className="text-center">Activo</TableHead>
@@ -559,8 +735,6 @@ export default function ProductosPage() {
                 </TableHeader>
                 <TableBody>
                   {productosFiltrados.map((producto) => {
-                    const centro = resolveJoin<{ nombre: string }>(producto.centro_costo)
-                    const cat = resolveJoin<{ nombre: string }>(producto.categoria)
                     const isSelected = selected.has(producto.id)
 
                     return (
@@ -575,6 +749,9 @@ export default function ProductosPage() {
                           />
                         </TableCell>
                         <TableCell className="font-medium">{producto.nombre}</TableCell>
+                        <TableCell className="text-muted-foreground font-mono text-xs">
+                          {producto.sku || '-'}
+                        </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className={tipoBadgeClass(producto.tipo)}>
                             {tipoLabel(producto.tipo)}
@@ -583,11 +760,8 @@ export default function ProductosPage() {
                         <TableCell className="text-right font-mono">
                           {formatMoney(producto.precio, producto.moneda)}
                         </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {cat?.nombre ?? '-'}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {centro?.nombre ?? '-'}
+                        <TableCell className="text-right font-mono">
+                          {formatMoney(producto.precio_compra, producto.moneda)}
                         </TableCell>
                         <TableCell className="text-center">
                           {producto.es_arancelado ? (
@@ -647,8 +821,6 @@ export default function ProductosPage() {
           {/* Mobile cards */}
           <div className="space-y-3 md:hidden">
             {productosFiltrados.map((producto) => {
-              const centro = resolveJoin<{ nombre: string }>(producto.centro_costo)
-              const cat = resolveJoin<{ nombre: string }>(producto.categoria)
               const isSelected = selected.has(producto.id)
 
               return (
@@ -670,11 +842,17 @@ export default function ProductosPage() {
                           </Badge>
                         </div>
                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                          {producto.sku && (
+                            <span className="font-mono">SKU: {producto.sku}</span>
+                          )}
                           <span className="font-mono">
-                            {formatMoney(producto.precio, producto.moneda)}
+                            Venta: {formatMoney(producto.precio, producto.moneda)}
                           </span>
-                          {cat?.nombre && <span>{cat.nombre}</span>}
-                          {centro?.nombre && <span>{centro.nombre}</span>}
+                          {producto.precio_compra != null && (
+                            <span className="font-mono">
+                              Compra: {formatMoney(producto.precio_compra, producto.moneda)}
+                            </span>
+                          )}
                         </div>
                         <div className="flex gap-3 mt-2">
                           {producto.es_arancelado && (
@@ -766,209 +944,535 @@ export default function ProductosPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            {/* Nombre */}
-            <div className="space-y-2">
-              <Label htmlFor="prod-nombre">Nombre *</Label>
-              <Input
-                id="prod-nombre"
-                placeholder="Ej: Cuota social mensual"
-                value={form.nombre}
-                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-              />
-            </div>
+          <div className="space-y-1">
+            {/* ============================================================ */}
+            {/* SECCION 1: Identidad (siempre abierta) */}
+            {/* ============================================================ */}
+            <button
+              type="button"
+              onClick={() => toggleSection('identidad')}
+              className="flex items-center justify-between w-full py-2 text-sm font-medium"
+            >
+              Identidad
+              {openSections.has('identidad') ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </button>
+            {openSections.has('identidad') && (
+              <div className="space-y-3 pb-3">
+                {/* Nombre */}
+                <div className="space-y-2">
+                  <Label htmlFor="prod-nombre">Nombre *</Label>
+                  <Input
+                    id="prod-nombre"
+                    placeholder="Ej: Cuota social mensual"
+                    value={form.nombre}
+                    onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                  />
+                </div>
 
-            {/* Tipo */}
-            <div className="space-y-2">
-              <Label>Tipo *</Label>
-              <Select
-                value={form.tipo}
-                onValueChange={(val) => setForm({ ...form, tipo: val ?? 'producto' })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIPOS.map((t) => {
-                    const Icon = t.icon
-                    return (
-                      <SelectItem key={t.value} value={t.value}>
-                        <span className="flex items-center gap-2">
-                          <Icon className="h-4 w-4" />
-                          {t.label}
-                        </span>
-                      </SelectItem>
-                    )
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
+                {/* Tipo */}
+                <div className="space-y-2">
+                  <Label>Tipo *</Label>
+                  <Select
+                    value={form.tipo}
+                    onValueChange={(val) => setForm({ ...form, tipo: val ?? 'producto' })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIPOS.map((t) => {
+                        const Icon = t.icon
+                        return (
+                          <SelectItem key={t.value} value={t.value}>
+                            <span className="flex items-center gap-2">
+                              <Icon className="h-4 w-4" />
+                              {t.label}
+                            </span>
+                          </SelectItem>
+                        )
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {/* Precio + Moneda */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="col-span-2 space-y-2">
-                <Label htmlFor="prod-precio">Precio</Label>
-                <Input
-                  id="prod-precio"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  value={form.precio}
-                  onChange={(e) => setForm({ ...form, precio: e.target.value })}
-                />
+                {/* Marca + Modelo */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="prod-marca">Marca</Label>
+                    <Input
+                      id="prod-marca"
+                      placeholder="Ej: Nike"
+                      value={form.marca}
+                      onChange={(e) => setForm({ ...form, marca: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="prod-modelo">Modelo</Label>
+                    <Input
+                      id="prod-modelo"
+                      placeholder="Ej: Air Max"
+                      value={form.modelo}
+                      onChange={(e) => setForm({ ...form, modelo: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* SKU + EAN13 + EAN14 */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="prod-sku">SKU</Label>
+                    <Input
+                      id="prod-sku"
+                      placeholder="SKU-001"
+                      value={form.sku}
+                      onChange={(e) => setForm({ ...form, sku: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="prod-ean13">EAN13</Label>
+                    <Input
+                      id="prod-ean13"
+                      placeholder="7790001000"
+                      value={form.ean13}
+                      onChange={(e) => setForm({ ...form, ean13: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="prod-ean14">EAN14</Label>
+                    <Input
+                      id="prod-ean14"
+                      placeholder="17790001000"
+                      value={form.ean14}
+                      onChange={(e) => setForm({ ...form, ean14: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* Color + Material + Origen */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="prod-color">Color</Label>
+                    <Input
+                      id="prod-color"
+                      placeholder="Rojo"
+                      value={form.color}
+                      onChange={(e) => setForm({ ...form, color: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="prod-material">Material</Label>
+                    <Input
+                      id="prod-material"
+                      placeholder="Algodon"
+                      value={form.material}
+                      onChange={(e) => setForm({ ...form, material: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="prod-origen">Origen</Label>
+                    <Input
+                      id="prod-origen"
+                      placeholder="Nacional"
+                      value={form.origen}
+                      onChange={(e) => setForm({ ...form, origen: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* Unidad de medida */}
+                <div className="space-y-2">
+                  <Label>Unidad de medida</Label>
+                  <Select
+                    value={form.unidad_medida}
+                    onValueChange={(val) => setForm({ ...form, unidad_medida: val ?? 'unidad' })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {UNIDADES.map((u) => (
+                        <SelectItem key={u.value} value={u.value}>
+                          {u.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Descripcion */}
+                <div className="space-y-2">
+                  <Label htmlFor="prod-descripcion">Descripcion</Label>
+                  <Textarea
+                    id="prod-descripcion"
+                    placeholder="Descripcion corta..."
+                    value={form.descripcion}
+                    onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
+                    rows={2}
+                  />
+                </div>
+
+                {/* Descripcion larga */}
+                <div className="space-y-2">
+                  <Label htmlFor="prod-descripcion-larga">Descripcion larga</Label>
+                  <Textarea
+                    id="prod-descripcion-larga"
+                    placeholder="Descripcion detallada del producto o servicio..."
+                    value={form.descripcion_larga}
+                    onChange={(e) => setForm({ ...form, descripcion_larga: e.target.value })}
+                    rows={3}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Moneda</Label>
-                <Select
-                  value={form.moneda}
-                  onValueChange={(val) => setForm({ ...form, moneda: val ?? 'ARS' })}
+            )}
+
+            {/* ============================================================ */}
+            {/* SECCION 2: Precios e impuestos */}
+            {/* ============================================================ */}
+            <div className="border-t pt-1">
+              <button
+                type="button"
+                onClick={() => toggleSection('precios')}
+                className="flex items-center justify-between w-full py-2 text-sm font-medium"
+              >
+                Precios e impuestos
+                {openSections.has('precios') ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              {openSections.has('precios') && (
+                <div className="space-y-3 pb-3">
+                  {/* Precio venta + Moneda */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="col-span-2 space-y-2">
+                      <Label htmlFor="prod-precio">Precio venta (sin imp.)</Label>
+                      <Input
+                        id="prod-precio"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        value={form.precio}
+                        onChange={(e) => setForm({ ...form, precio: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Moneda</Label>
+                      <Select
+                        value={form.moneda}
+                        onValueChange={(val) => setForm({ ...form, moneda: val ?? 'ARS' })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ARS">ARS</SelectItem>
+                          <SelectItem value="USD">USD</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Precio compra */}
+                  <div className="space-y-2">
+                    <Label htmlFor="prod-precio-compra">Precio compra (sin imp.)</Label>
+                    <Input
+                      id="prod-precio-compra"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={form.precio_compra}
+                      onChange={(e) => setForm({ ...form, precio_compra: e.target.value })}
+                    />
+                  </div>
+
+                  {/* IVA venta + IVA compra */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>IVA venta</Label>
+                      <Select
+                        value={form.iva_venta}
+                        onValueChange={(val) => setForm({ ...form, iva_venta: val ?? '21' })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {IVA_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>IVA compra</Label>
+                      <Select
+                        value={form.iva_compra}
+                        onValueChange={(val) => setForm({ ...form, iva_compra: val ?? '21' })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {IVA_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Es arancelado */}
+                  <div className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <p className="text-sm font-medium">Genera cobro / se vende</p>
+                      <p className="text-xs text-muted-foreground">
+                        Indica si este item genera un ingreso
+                      </p>
+                    </div>
+                    <Switch
+                      checked={form.es_arancelado}
+                      onCheckedChange={(checked) =>
+                        setForm({ ...form, es_arancelado: Boolean(checked) })
+                      }
+                    />
+                  </div>
+
+                  {/* Es comprable */}
+                  <div className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <p className="text-sm font-medium">Se compra / es gasto</p>
+                      <p className="text-xs text-muted-foreground">
+                        Indica si este item representa un egreso
+                      </p>
+                    </div>
+                    <Switch
+                      checked={form.es_comprable}
+                      onCheckedChange={(checked) =>
+                        setForm({ ...form, es_comprable: Boolean(checked) })
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ============================================================ */}
+            {/* SECCION 3: Inventario (solo para tipos con stock/cupo) */}
+            {/* ============================================================ */}
+            {showInventario && (
+              <div className="border-t pt-1">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('inventario')}
+                  className="flex items-center justify-between w-full py-2 text-sm font-medium"
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ARS">ARS</SelectItem>
-                    <SelectItem value="USD">USD</SelectItem>
-                  </SelectContent>
-                </Select>
+                  Inventario
+                  {openSections.has('inventario') ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </button>
+                {openSections.has('inventario') && (
+                  <div className="space-y-3 pb-3">
+                    {showStock && (
+                      <>
+                        {/* Stock actual + Stock minimo */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label htmlFor="prod-stock-actual">Stock actual</Label>
+                            <Input
+                              id="prod-stock-actual"
+                              type="number"
+                              step="1"
+                              min="0"
+                              placeholder="0"
+                              value={form.stock_actual}
+                              onChange={(e) => setForm({ ...form, stock_actual: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="prod-stock-minimo">Stock minimo</Label>
+                            <Input
+                              id="prod-stock-minimo"
+                              type="number"
+                              step="1"
+                              min="0"
+                              placeholder="0"
+                              value={form.stock_minimo}
+                              onChange={(e) => setForm({ ...form, stock_minimo: e.target.value })}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Peso */}
+                        <div className="space-y-2">
+                          <Label htmlFor="prod-peso">Peso (kg)</Label>
+                          <Input
+                            id="prod-peso"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                            value={form.peso_kg}
+                            onChange={(e) => setForm({ ...form, peso_kg: e.target.value })}
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {showCupo && (
+                      <div className="space-y-2">
+                        <Label htmlFor="prod-cupo">Cupo maximo</Label>
+                        <Input
+                          id="prod-cupo"
+                          type="number"
+                          step="1"
+                          min="0"
+                          placeholder="Sin limite"
+                          value={form.cupo_maximo}
+                          onChange={(e) => setForm({ ...form, cupo_maximo: e.target.value })}
+                        />
+                      </div>
+                    )}
+
+                    {/* Instalacion */}
+                    <div className="space-y-2">
+                      <Label htmlFor="prod-instalacion">Instalacion</Label>
+                      <Input
+                        id="prod-instalacion"
+                        placeholder="Ej: Cancha 1, Salon principal"
+                        value={form.instalacion}
+                        onChange={(e) => setForm({ ...form, instalacion: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
 
-            {/* Descripcion */}
-            <div className="space-y-2">
-              <Label htmlFor="prod-descripcion">Descripcion</Label>
-              <Textarea
-                id="prod-descripcion"
-                placeholder="Descripcion del producto o servicio..."
-                value={form.descripcion}
-                onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-                rows={2}
-              />
-            </div>
-
-            {/* Es arancelado */}
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div>
-                <p className="text-sm font-medium">Genera cobro / se vende</p>
-                <p className="text-xs text-muted-foreground">
-                  Indica si este item genera un ingreso
-                </p>
-              </div>
-              <Switch
-                checked={form.es_arancelado}
-                onCheckedChange={(checked) =>
-                  setForm({ ...form, es_arancelado: Boolean(checked) })
-                }
-              />
-            </div>
-
-            {/* Es comprable */}
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div>
-                <p className="text-sm font-medium">Se compra / es gasto</p>
-                <p className="text-xs text-muted-foreground">
-                  Indica si este item representa un egreso
-                </p>
-              </div>
-              <Switch
-                checked={form.es_comprable}
-                onCheckedChange={(checked) =>
-                  setForm({ ...form, es_comprable: Boolean(checked) })
-                }
-              />
-            </div>
-
-            {/* Cuenta ingreso */}
-            <div className="space-y-2">
-              <Label>Cuenta de ingreso</Label>
-              <Select
-                value={form.cuenta_ingreso_id || '_none'}
-                onValueChange={(val) =>
-                  setForm({ ...form, cuenta_ingreso_id: val === '_none' ? '' : (val ?? '') })
-                }
+            {/* ============================================================ */}
+            {/* SECCION 4: Contabilidad */}
+            {/* ============================================================ */}
+            <div className="border-t pt-1">
+              <button
+                type="button"
+                onClick={() => toggleSection('contabilidad')}
+                className="flex items-center justify-between w-full py-2 text-sm font-medium"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar cuenta" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_none">Sin cuenta</SelectItem>
-                  {cuentasImputables.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.codigo} - {c.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                Contabilidad
+                {openSections.has('contabilidad') ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              {openSections.has('contabilidad') && (
+                <div className="space-y-3 pb-3">
+                  {/* Cuenta ingreso */}
+                  <div className="space-y-2">
+                    <Label>Cuenta de ingreso</Label>
+                    <Select
+                      value={form.cuenta_ingreso_id || '_none'}
+                      onValueChange={(val) =>
+                        setForm({ ...form, cuenta_ingreso_id: val === '_none' ? '' : (val ?? '') })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar cuenta" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_none">Sin cuenta</SelectItem>
+                        {cuentasImputables.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.codigo} - {c.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            {/* Cuenta egreso */}
-            <div className="space-y-2">
-              <Label>Cuenta de egreso</Label>
-              <Select
-                value={form.cuenta_egreso_id || '_none'}
-                onValueChange={(val) =>
-                  setForm({ ...form, cuenta_egreso_id: val === '_none' ? '' : (val ?? '') })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar cuenta" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_none">Sin cuenta</SelectItem>
-                  {cuentasImputables.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.codigo} - {c.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                  {/* Cuenta egreso */}
+                  <div className="space-y-2">
+                    <Label>Cuenta de egreso</Label>
+                    <Select
+                      value={form.cuenta_egreso_id || '_none'}
+                      onValueChange={(val) =>
+                        setForm({ ...form, cuenta_egreso_id: val === '_none' ? '' : (val ?? '') })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar cuenta" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_none">Sin cuenta</SelectItem>
+                        {cuentasImputables.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.codigo} - {c.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            {/* Centro de costo */}
-            <div className="space-y-2">
-              <Label>Centro de costo</Label>
-              <Select
-                value={form.centro_costo_id || '_none'}
-                onValueChange={(val) =>
-                  setForm({ ...form, centro_costo_id: val === '_none' ? '' : (val ?? '') })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar centro de costo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_none">Sin centro de costo</SelectItem>
-                  {centrosCosto.map((cc) => (
-                    <SelectItem key={cc.id} value={cc.id}>
-                      {cc.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                  {/* Centro de costo */}
+                  <div className="space-y-2">
+                    <Label>Centro de costo</Label>
+                    <Select
+                      value={form.centro_costo_id || '_none'}
+                      onValueChange={(val) =>
+                        setForm({ ...form, centro_costo_id: val === '_none' ? '' : (val ?? '') })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar centro de costo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_none">Sin centro de costo</SelectItem>
+                        {centrosCosto.map((cc) => (
+                          <SelectItem key={cc.id} value={cc.id}>
+                            {cc.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            {/* Categoria movimiento */}
-            <div className="space-y-2">
-              <Label>Categoria de movimiento</Label>
-              <Select
-                value={form.categoria_movimiento_id || '_none'}
-                onValueChange={(val) =>
-                  setForm({ ...form, categoria_movimiento_id: val === '_none' ? '' : (val ?? '') })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_none">Sin categoria</SelectItem>
-                  {categorias.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  {/* Categoria movimiento */}
+                  <div className="space-y-2">
+                    <Label>Categoria de movimiento</Label>
+                    <Select
+                      value={form.categoria_movimiento_id || '_none'}
+                      onValueChange={(val) =>
+                        setForm({ ...form, categoria_movimiento_id: val === '_none' ? '' : (val ?? '') })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_none">Sin categoria</SelectItem>
+                        {categorias.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

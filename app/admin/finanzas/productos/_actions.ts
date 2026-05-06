@@ -10,13 +10,35 @@ function formatResult(ok: boolean, message: string, data?: unknown) {
 }
 
 interface ProductoInput {
+  // Identidad
   nombre: string
   tipo: string
-  precio: number | null
-  moneda: string
+  sku: string | null
+  ean13: string | null
+  ean14: string | null
+  marca: string | null
+  modelo: string | null
+  color: string | null
+  material: string | null
+  origen: string | null
+  unidad_medida: string
   descripcion: string | null
+  descripcion_larga: string | null
+  // Precios e impuestos
+  precio: number | null
+  precio_compra: number | null
+  moneda: string
+  iva_compra: number | null
+  iva_venta: number | null
   es_arancelado: boolean
   es_comprable: boolean
+  // Inventario
+  stock_actual: number | null
+  stock_minimo: number | null
+  peso_kg: number | null
+  cupo_maximo: number | null
+  instalacion: string | null
+  // Contabilidad
   cuenta_ingreso_id: string | null
   cuenta_egreso_id: string | null
   centro_costo_id: string | null
@@ -37,13 +59,35 @@ export async function crearProducto(input: ProductoInput) {
     .from('productos_servicios')
     .insert({
       tenant_id: TENANT_ID,
+      // Identidad
       nombre: input.nombre.trim(),
       tipo: input.tipo,
-      precio: input.precio ?? 0,
-      moneda: input.moneda || 'ARS',
+      sku: input.sku?.trim() || null,
+      ean13: input.ean13?.trim() || null,
+      ean14: input.ean14?.trim() || null,
+      marca: input.marca?.trim() || null,
+      modelo: input.modelo?.trim() || null,
+      color: input.color?.trim() || null,
+      material: input.material?.trim() || null,
+      origen: input.origen?.trim() || null,
+      unidad_medida: input.unidad_medida || 'unidad',
       descripcion: input.descripcion?.trim() || null,
+      descripcion_larga: input.descripcion_larga?.trim() || null,
+      // Precios e impuestos
+      precio: input.precio ?? 0,
+      precio_compra: input.precio_compra ?? null,
+      moneda: input.moneda || 'ARS',
+      iva_compra: input.iva_compra ?? 21,
+      iva_venta: input.iva_venta ?? 21,
       es_arancelado: input.es_arancelado,
       es_comprable: input.es_comprable,
+      // Inventario
+      stock_actual: input.stock_actual ?? null,
+      stock_minimo: input.stock_minimo ?? null,
+      peso_kg: input.peso_kg ?? null,
+      cupo_maximo: input.cupo_maximo ?? null,
+      instalacion: input.instalacion?.trim() || null,
+      // Contabilidad
       cuenta_ingreso_id: input.cuenta_ingreso_id || null,
       cuenta_egreso_id: input.cuenta_egreso_id || null,
       centro_costo_id: input.centro_costo_id || null,
@@ -71,13 +115,35 @@ export async function editarProducto(productoId: string, input: ProductoInput) {
   const { error } = await supabase
     .from('productos_servicios')
     .update({
+      // Identidad
       nombre: input.nombre.trim(),
       tipo: input.tipo,
-      precio: input.precio ?? 0,
-      moneda: input.moneda || 'ARS',
+      sku: input.sku?.trim() || null,
+      ean13: input.ean13?.trim() || null,
+      ean14: input.ean14?.trim() || null,
+      marca: input.marca?.trim() || null,
+      modelo: input.modelo?.trim() || null,
+      color: input.color?.trim() || null,
+      material: input.material?.trim() || null,
+      origen: input.origen?.trim() || null,
+      unidad_medida: input.unidad_medida || 'unidad',
       descripcion: input.descripcion?.trim() || null,
+      descripcion_larga: input.descripcion_larga?.trim() || null,
+      // Precios e impuestos
+      precio: input.precio ?? 0,
+      precio_compra: input.precio_compra ?? null,
+      moneda: input.moneda || 'ARS',
+      iva_compra: input.iva_compra ?? 21,
+      iva_venta: input.iva_venta ?? 21,
       es_arancelado: input.es_arancelado,
       es_comprable: input.es_comprable,
+      // Inventario
+      stock_actual: input.stock_actual ?? null,
+      stock_minimo: input.stock_minimo ?? null,
+      peso_kg: input.peso_kg ?? null,
+      cupo_maximo: input.cupo_maximo ?? null,
+      instalacion: input.instalacion?.trim() || null,
+      // Contabilidad
       cuenta_ingreso_id: input.cuenta_ingreso_id || null,
       cuenta_egreso_id: input.cuenta_egreso_id || null,
       centro_costo_id: input.centro_costo_id || null,
@@ -134,7 +200,12 @@ export async function exportarProductos(filtros: { tipo?: string; search?: strin
   let query = supabase
     .from('productos_servicios')
     .select(`
-      id, nombre, tipo, precio, moneda, descripcion, es_arancelado, es_comprable, activo, created_at,
+      id, nombre, tipo, sku, ean13, ean14, marca, modelo, color, material, origen,
+      unidad_medida, descripcion, descripcion_larga,
+      precio, precio_compra, moneda, iva_compra, iva_venta,
+      es_arancelado, es_comprable,
+      stock_actual, stock_minimo, peso_kg, cupo_maximo, instalacion,
+      activo, created_at,
       centro_costo:centros_costo(nombre),
       categoria:catalogo_categorias_movimiento(nombre),
       cuenta_ingreso:plan_cuentas!productos_servicios_cuenta_ingreso_id_fkey(codigo, nombre),

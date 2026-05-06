@@ -54,8 +54,12 @@ import {
   FileText,
   Receipt,
   ListChecks,
+  Search,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { SelectionBar } from '@/components/ui/selection-bar'
+import { ExportFormatSelector } from '@/components/ui/export-format-selector'
+import type { ExportData } from '@/lib/export/formats'
 import {
   crearPlan,
   editarPlan,
@@ -294,6 +298,8 @@ function PlanesTab() {
   const [bonifForm, setBonifForm] = useState<BonificacionForm>(EMPTY_BONIF_FORM)
   const [isPending, startTransition] = useTransition()
   const [loading, setLoading] = useState(true)
+  const [searchPlanes, setSearchPlanes] = useState('')
+  const [selectedPlanes, setSelectedPlanes] = useState<Set<string>>(new Set())
 
   async function fetchData() {
     const supabase = createClient()
@@ -416,6 +422,48 @@ function PlanesTab() {
     })
   }
 
+  const filteredPlanes = planes.filter((plan) => {
+    if (!searchPlanes) return true
+    const q = searchPlanes.toLowerCase()
+    return (
+      plan.nombre.toLowerCase().includes(q) ||
+      (plan.descripcion ?? '').toLowerCase().includes(q)
+    )
+  })
+
+  function toggleSelectPlan(planId: string) {
+    setSelectedPlanes((prev) => {
+      const next = new Set(prev)
+      if (next.has(planId)) {
+        next.delete(planId)
+      } else {
+        next.add(planId)
+      }
+      return next
+    })
+  }
+
+  function getPlanesExportData(): ExportData | null {
+    const source = selectedPlanes.size > 0
+      ? filteredPlanes.filter((p) => selectedPlanes.has(p.id))
+      : filteredPlanes
+    if (source.length === 0) return null
+    return {
+      headers: ['Nombre', 'Descripcion', 'Periodicidad', 'Monto', 'Moneda', 'Dia vencimiento', 'Mora %', 'Activo'],
+      rows: source.map((p) => [
+        p.nombre,
+        p.descripcion ?? '',
+        PERIODICIDADES.find((per) => per.value === p.periodicidad)?.label ?? p.periodicidad,
+        String(p.monto),
+        p.moneda,
+        String(p.dia_vencimiento),
+        String(p.mora_porcentaje),
+        p.activo ? 'Si' : 'No',
+      ]),
+      filename: 'planes-cuotas',
+    }
+  }
+
   if (loading) {
     return (
       <Card className="mt-4">
@@ -428,15 +476,28 @@ function PlanesTab() {
 
   return (
     <div className="space-y-4 mt-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{planes.length} plan(es) configurado(s)</p>
-        <Button onClick={openCreatePlan} size="sm">
-          <Plus className="h-4 w-4 mr-1" />
-          Nuevo plan
-        </Button>
+      <div className="flex items-center justify-between gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar planes..."
+            value={searchPlanes}
+            onChange={(e) => setSearchPlanes(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <ExportFormatSelector getData={getPlanesExportData} />
+          <Button onClick={openCreatePlan} size="sm">
+            <Plus className="h-4 w-4 mr-1" />
+            Nuevo plan
+          </Button>
+        </div>
       </div>
 
-      {planes.length === 0 ? (
+      <p className="text-sm text-muted-foreground">{filteredPlanes.length} plan(es) configurado(s)</p>
+
+      {filteredPlanes.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <CalendarCheck className="h-12 w-12 text-muted-foreground mb-4" />
@@ -448,7 +509,7 @@ function PlanesTab() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {planes.map((plan) => {
+          {filteredPlanes.map((plan) => {
             const planBonifs = bonificaciones.filter((b) => b.plan_id === plan.id)
             const expanded = expandedPlanId === plan.id
 
@@ -456,12 +517,18 @@ function PlanesTab() {
               <Card key={plan.id}>
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
-                    <div
-                      className="flex-1 cursor-pointer"
-                      onClick={() => setExpandedPlanId(expanded ? null : plan.id)}
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        {expanded ? (
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        checked={selectedPlanes.has(plan.id)}
+                        onCheckedChange={() => toggleSelectPlan(plan.id)}
+                        className="mt-1"
+                      />
+                      <div
+                        className="flex-1 cursor-pointer"
+                        onClick={() => setExpandedPlanId(expanded ? null : plan.id)}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          {expanded ? (
                           <ChevronDown className="h-4 w-4 text-muted-foreground" />
                         ) : (
                           <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -481,6 +548,7 @@ function PlanesTab() {
                         {planBonifs.length > 0 && (
                           <span>{planBonifs.length} bonificacion(es)</span>
                         )}
+                      </div>
                       </div>
                     </div>
                     <DropdownMenu>
@@ -565,6 +633,14 @@ function PlanesTab() {
           })}
         </div>
       )}
+
+      <SelectionBar
+        count={selectedPlanes.size}
+        total={filteredPlanes.length}
+        onSelectAll={() => setSelectedPlanes(new Set(filteredPlanes.map((p) => p.id)))}
+        onClear={() => setSelectedPlanes(new Set())}
+        getData={getPlanesExportData}
+      />
 
       {/* Dialog Plan */}
       <Dialog
@@ -853,6 +929,8 @@ function EmisionesTab() {
   } | null>(null)
   const [isPending, startTransition] = useTransition()
   const [loading, setLoading] = useState(true)
+  const [searchEmisiones, setSearchEmisiones] = useState('')
+  const [selectedEmisiones, setSelectedEmisiones] = useState<Set<string>>(new Set())
 
   async function fetchData() {
     const supabase = createClient()
@@ -938,6 +1016,47 @@ function EmisionesTab() {
     })
   }
 
+  const filteredEmisiones = emisiones.filter((emision) => {
+    if (!searchEmisiones) return true
+    const q = searchEmisiones.toLowerCase()
+    return (
+      (emision.cuotas_planes?.nombre ?? '').toLowerCase().includes(q) ||
+      (emision.padrones?.nombre ?? '').toLowerCase().includes(q) ||
+      emision.periodo.toLowerCase().includes(q)
+    )
+  })
+
+  function toggleSelectEmision(emisionId: string) {
+    setSelectedEmisiones((prev) => {
+      const next = new Set(prev)
+      if (next.has(emisionId)) {
+        next.delete(emisionId)
+      } else {
+        next.add(emisionId)
+      }
+      return next
+    })
+  }
+
+  function getEmisionesExportData(): ExportData | null {
+    const source = selectedEmisiones.size > 0
+      ? filteredEmisiones.filter((e) => selectedEmisiones.has(e.id))
+      : filteredEmisiones
+    if (source.length === 0) return null
+    return {
+      headers: ['Plan', 'Padron', 'Periodo', 'Cantidad', 'Monto unitario', 'Fecha'],
+      rows: source.map((e) => [
+        e.cuotas_planes?.nombre ?? '-',
+        e.padrones?.nombre ?? 'Todos',
+        e.periodo,
+        String(e.cantidad),
+        formatMoney(e.monto_unitario),
+        formatFecha(e.created_at),
+      ]),
+      filename: 'emisiones-cuotas',
+    }
+  }
+
   if (loading) {
     return (
       <Card className="mt-4">
@@ -1014,10 +1133,22 @@ function EmisionesTab() {
       {/* Historial de emisiones */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Historial de emisiones</CardTitle>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle className="text-base">Historial de emisiones</CardTitle>
+            <ExportFormatSelector getData={getEmisionesExportData} />
+          </div>
+          <div className="relative max-w-sm mt-2">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar emisiones..."
+              value={searchEmisiones}
+              onChange={(e) => setSearchEmisiones(e.target.value)}
+              className="pl-9"
+            />
+          </div>
         </CardHeader>
         <CardContent className="p-0">
-          {emisiones.length === 0 ? (
+          {filteredEmisiones.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center px-4">
               <FileText className="h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-sm text-muted-foreground">No hay emisiones registradas.</p>
@@ -1026,6 +1157,21 @@ function EmisionesTab() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={
+                        filteredEmisiones.length > 0 &&
+                        selectedEmisiones.size === filteredEmisiones.length
+                      }
+                      onCheckedChange={() => {
+                        if (selectedEmisiones.size === filteredEmisiones.length) {
+                          setSelectedEmisiones(new Set())
+                        } else {
+                          setSelectedEmisiones(new Set(filteredEmisiones.map((e) => e.id)))
+                        }
+                      }}
+                    />
+                  </TableHead>
                   <TableHead>Plan</TableHead>
                   <TableHead>Padron</TableHead>
                   <TableHead>Periodo</TableHead>
@@ -1035,8 +1181,14 @@ function EmisionesTab() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {emisiones.map((emision) => (
+                {filteredEmisiones.map((emision) => (
                   <TableRow key={emision.id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedEmisiones.has(emision.id)}
+                        onCheckedChange={() => toggleSelectEmision(emision.id)}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">
                       {emision.cuotas_planes?.nombre ?? '-'}
                     </TableCell>
@@ -1056,6 +1208,14 @@ function EmisionesTab() {
           )}
         </CardContent>
       </Card>
+
+      <SelectionBar
+        count={selectedEmisiones.size}
+        total={filteredEmisiones.length}
+        onSelectAll={() => setSelectedEmisiones(new Set(filteredEmisiones.map((e) => e.id)))}
+        onClear={() => setSelectedEmisiones(new Set())}
+        getData={getEmisionesExportData}
+      />
 
       {/* Dialog confirmacion emision */}
       <Dialog
@@ -1165,6 +1325,7 @@ function EstadoCuotasTab() {
   const [cobrarMedioPagoId, setCobrarMedioPagoId] = useState('')
   const [isPending, startTransition] = useTransition()
   const [loading, setLoading] = useState(true)
+  const [searchCuotas, setSearchCuotas] = useState('')
 
   async function fetchData() {
     const supabase = createClient()
@@ -1246,13 +1407,13 @@ function EstadoCuotasTab() {
   }
 
   function toggleSelectAll() {
-    const cobrables = cuotas.filter(
+    const cobrablesAll = filteredCuotas.filter(
       (c) => c.estado === 'pendiente' || c.estado === 'vencida'
     )
-    if (selectedCuotas.size === cobrables.length) {
+    if (selectedCuotas.size === cobrablesAll.length) {
       setSelectedCuotas(new Set())
     } else {
-      setSelectedCuotas(new Set(cobrables.map((c) => c.id)))
+      setSelectedCuotas(new Set(cobrablesAll.map((c) => c.id)))
     }
   }
 
@@ -1317,6 +1478,40 @@ function EstadoCuotasTab() {
     })
   }
 
+  const filteredCuotas = cuotas.filter((cuota) => {
+    if (!searchCuotas) return true
+    const q = searchCuotas.toLowerCase()
+    const personaNombre = cuota.personas
+      ? `${cuota.personas.apellido} ${cuota.personas.nombre}`.toLowerCase()
+      : ''
+    return (
+      personaNombre.includes(q) ||
+      (cuota.cuotas_planes?.nombre ?? '').toLowerCase().includes(q) ||
+      cuota.periodo.toLowerCase().includes(q)
+    )
+  })
+
+  function getCuotasExportData(): ExportData | null {
+    const source = selectedCuotas.size > 0
+      ? filteredCuotas.filter((c) => selectedCuotas.has(c.id))
+      : filteredCuotas
+    if (source.length === 0) return null
+    return {
+      headers: ['Persona', 'Plan', 'Periodo', 'Monto original', 'Monto final', 'Estado', 'Vencimiento', 'Fecha pago'],
+      rows: source.map((c) => [
+        c.personas ? `${c.personas.apellido}, ${c.personas.nombre}` : '-',
+        c.cuotas_planes?.nombre ?? '-',
+        c.periodo,
+        formatMoney(c.monto_original, c.moneda),
+        formatMoney(c.monto_final, c.moneda),
+        estadoLabel(c.estado),
+        formatFecha(c.fecha_vencimiento),
+        c.fecha_pago ? formatFecha(c.fecha_pago) : '-',
+      ]),
+      filename: 'estado-cuotas',
+    }
+  }
+
   if (loading) {
     return (
       <Card className="mt-4">
@@ -1327,12 +1522,26 @@ function EstadoCuotasTab() {
     )
   }
 
-  const cobrables = cuotas.filter(
+  const cobrables = filteredCuotas.filter(
     (c) => c.estado === 'pendiente' || c.estado === 'vencida'
   )
 
   return (
     <div className="space-y-4 mt-4">
+      {/* Busqueda y exportacion */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por persona, plan..."
+            value={searchCuotas}
+            onChange={(e) => setSearchCuotas(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <ExportFormatSelector getData={getCuotasExportData} />
+      </div>
+
       {/* Filtros */}
       <Card>
         <CardContent className="p-4">
@@ -1386,23 +1595,15 @@ function EstadoCuotasTab() {
       {/* Acciones masivas */}
       {selectedCuotas.size > 0 && (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border">
-          <span className="text-sm font-medium">{selectedCuotas.size} seleccionada(s)</span>
           <Button size="sm" onClick={handleCobrarSeleccionadas}>
             <DollarSign className="h-4 w-4 mr-1" />
-            Cobrar seleccionadas
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSelectedCuotas(new Set())}
-          >
-            Deseleccionar
+            Cobrar seleccionadas ({selectedCuotas.size})
           </Button>
         </div>
       )}
 
       {/* Tabla de cuotas */}
-      {cuotas.length === 0 ? (
+      {filteredCuotas.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Receipt className="h-12 w-12 text-muted-foreground mb-4" />
@@ -1441,7 +1642,7 @@ function EstadoCuotasTab() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {cuotas.map((cuota) => {
+                  {filteredCuotas.map((cuota) => {
                     const esCobrable =
                       cuota.estado === 'pendiente' || cuota.estado === 'vencida'
                     const totalBonif = cuota.monto_original - cuota.monto_final
@@ -1550,7 +1751,7 @@ function EstadoCuotasTab() {
 
           {/* Mobile cards */}
           <div className="space-y-3 md:hidden">
-            {cuotas.map((cuota) => {
+            {filteredCuotas.map((cuota) => {
               const esCobrable =
                 cuota.estado === 'pendiente' || cuota.estado === 'vencida'
               const totalBonif = cuota.monto_original - cuota.monto_final
@@ -1634,6 +1835,14 @@ function EstadoCuotasTab() {
           </div>
         </>
       )}
+
+      <SelectionBar
+        count={selectedCuotas.size}
+        total={filteredCuotas.length}
+        onSelectAll={() => setSelectedCuotas(new Set(cobrables.map((c) => c.id)))}
+        onClear={() => setSelectedCuotas(new Set())}
+        getData={getCuotasExportData}
+      />
 
       {/* Dialog Cobrar */}
       <Dialog
