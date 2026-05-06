@@ -6,10 +6,8 @@ import {
   Building2,
   MapPin,
   Globe,
-  Shield,
   Save,
   Loader2,
-  CheckCircle2,
 } from 'lucide-react'
 import {
   Card,
@@ -28,7 +26,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { actualizarTenant } from '../_actions'
 
@@ -83,13 +80,6 @@ const MONEDAS = [
   { value: 'USD', label: 'Dolar Estadounidense (USD)' },
   { value: 'EUR', label: 'Euro (EUR)' },
 ]
-
-const PLAN_LABELS: Record<string, string> = {
-  free: 'Free',
-  light: 'Light',
-  pro: 'Pro',
-  enterprise: 'Enterprise',
-}
 
 function buildInitialState(tenant: TenantFormProps['tenant']) {
   return {
@@ -424,56 +414,6 @@ export function TenantForm({ tenant }: TenantFormProps) {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* ── Seccion 4: Plan y suscripcion (solo lectura) ── */}
-      <Card className="bg-muted/30">
-        <CardHeader>
-          <div className="flex items-center gap-2.5">
-            <Shield className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <CardTitle className="text-base">Plan y suscripcion</CardTitle>
-              <CardDescription className="mt-0.5">
-                Resumen del plan activo. Para cambios, contacta a soporte.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap items-center gap-6">
-            <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Plan</p>
-              <Badge variant="secondary" className="text-sm font-medium">
-                {PLAN_LABELS[tenant.plan_slug] ?? tenant.plan_slug}
-              </Badge>
-            </div>
-
-            <Separator orientation="vertical" className="h-8 hidden sm:block" />
-
-            <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Estado</p>
-              <Badge
-                variant={tenant.activo ? 'default' : 'destructive'}
-                className="text-sm font-medium"
-              >
-                {tenant.activo ? (
-                  <><CheckCircle2 className="mr-1 h-3 w-3" />Activo</>
-                ) : (
-                  'Inactivo'
-                )}
-              </Badge>
-            </div>
-
-            <Separator orientation="vertical" className="h-8 hidden sm:block" />
-
-            <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Dominio custom</p>
-              <p className="text-sm text-muted-foreground">
-                {tenant.dominio_custom ?? 'No configurado'}
-              </p>
             </div>
           </div>
         </CardContent>

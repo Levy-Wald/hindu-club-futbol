@@ -148,7 +148,7 @@ export default async function ConfiguracionPage({
 
         {/* ── Mi organizacion ── */}
         <TabsContent value="organizacion" className="mt-6 space-y-6">
-          {/* Checklist (only if incomplete) */}
+          {/* 1. Checklist (only if incomplete) */}
           {completedCount < completionSteps.length && (
             <Card className="bg-muted/30 border-dashed">
               <CardContent className="py-4">
@@ -174,9 +174,46 @@ export default async function ConfiguracionPage({
             </Card>
           )}
 
-          <TenantForm tenant={tenant} />
+          {/* 2. Plan y suscripcion */}
+          <Card className="bg-muted/30">
+            <CardContent className="py-4">
+              <div className="flex flex-wrap items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-sm font-medium">Plan y suscripcion</p>
+                </div>
 
-          {/* Accesos rapidos */}
+                <div className="flex flex-wrap items-center gap-6">
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Plan</p>
+                    <Badge variant="outline" className={`text-xs font-semibold ${planStyle.className}`}>
+                      {planStyle.label}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Estado</p>
+                    <Badge variant={tenant.activo ? 'default' : 'destructive'} className="text-xs">
+                      {tenant.activo ? (
+                        <><CheckCircle2 className="mr-1 h-3 w-3" />Activo</>
+                      ) : (
+                        'Inactivo'
+                      )}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Dominio custom</p>
+                    <p className="text-sm text-muted-foreground">
+                      {tenant.dominio_custom ?? 'No configurado'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 3. Accesos rapidos + Stats */}
           <div>
             <h3 className="text-sm font-medium text-muted-foreground mb-3">Accesos rapidos</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -187,13 +224,15 @@ export default async function ConfiguracionPage({
             </div>
           </div>
 
-          {/* Stats row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard label="Modulos activos" value={modulosActivosCount} />
             <StatCard label="Catalogos" value={catalogosCount} />
             <StatCard label="Atributos" value={catalogos.atributos.length} />
             <StatCard label="Roles equipo" value={catalogos.rolesEquipo.length} />
           </div>
+
+          {/* 4. Datos de la org + Ubicación + Config regional (TenantForm) */}
+          <TenantForm tenant={tenant} />
         </TabsContent>
 
         {/* ── Identidad y marca ── */}
