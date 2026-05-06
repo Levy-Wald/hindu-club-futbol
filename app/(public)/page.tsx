@@ -575,8 +575,6 @@ function StaffSection({ staff }: { staff: StaffRow[] }) {
     STAFF_SLUGS.includes(s.rol_equipo_slug)
   )
 
-  if (staff.length === 0) return null
-
   return (
     <section className="bg-gray-50/50 py-16 sm:py-24 dark:bg-[#111]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -589,14 +587,20 @@ function StaffSection({ staff }: { staff: StaffRow[] }) {
           </p>
         </div>
 
-        <div className="space-y-12">
-          {cuerpoTecnico.length > 0 && (
-            <StaffGroup title="Cuerpo Técnico" items={cuerpoTecnico} />
-          )}
-          {staffGeneral.length > 0 && (
-            <StaffGroup title="Staff" items={staffGeneral} />
-          )}
-        </div>
+        {staff.length === 0 ? (
+          <p className="text-center text-muted-foreground">
+            Próximamente
+          </p>
+        ) : (
+          <div className="space-y-12">
+            {cuerpoTecnico.length > 0 && (
+              <StaffGroup title="Cuerpo Técnico" items={cuerpoTecnico} />
+            )}
+            {staffGeneral.length > 0 && (
+              <StaffGroup title="Staff" items={staffGeneral} />
+            )}
+          </div>
+        )}
       </div>
     </section>
   )
