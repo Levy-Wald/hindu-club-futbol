@@ -24,7 +24,7 @@ const PLAN_LABELS: Record<string, string> = {
 }
 
 export default async function ConfiguracionPage() {
-  const [{ tenant, modulosActivos }, modulos, catalogos] = await Promise.all([
+  const [{ tenant, modulosActivos, branding }, modulos, catalogos] = await Promise.all([
     fetchTenantConfig(),
     fetchModulos(),
     fetchCatalogos(),
@@ -108,18 +108,45 @@ export default async function ConfiguracionPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <InfoField label="Logo" value={tenant.logo_url ?? 'Sin logo'} />
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Color principal</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Logo</p>
+                    {branding?.logo_url ? (
+                      <div className="flex items-center gap-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={branding.logo_url} alt="Logo" className="h-8 w-8 rounded object-contain border" />
+                        <span className="text-sm text-muted-foreground truncate max-w-[180px]">Configurado</span>
+                      </div>
+                    ) : (
+                      <p className="text-sm font-medium">Sin logo</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Color primario</p>
                     <div className="flex items-center gap-2">
-                      {tenant.color_principal && (
-                        <div className="h-5 w-5 rounded border" style={{ backgroundColor: tenant.color_principal }} />
+                      {branding?.color_primario ? (
+                        <>
+                          <div className="h-5 w-5 rounded border" style={{ backgroundColor: branding.color_primario }} />
+                          <span className="text-sm font-mono">{branding.color_primario}</span>
+                        </>
+                      ) : (
+                        <span className="text-sm">No definido</span>
                       )}
-                      <span className="text-sm font-mono">{tenant.color_principal ?? 'No definido'}</span>
                     </div>
                   </div>
+                  <InfoField label="Nombre display" value={branding?.nombre_display ?? tenant.nombre} />
                   <InfoField label="Idioma" value={tenant.idioma_default ?? 'es-AR'} />
                   <InfoField label="Timezone" value={tenant.timezone ?? 'America/Argentina/Buenos_Aires'} />
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Estado</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant={branding?.pagina_publica_activa ? 'default' : 'secondary'}>
+                        Pagina {branding?.pagina_publica_activa ? 'activa' : 'inactiva'}
+                      </Badge>
+                      <Badge variant={branding?.pre_inscripcion_activa ? 'default' : 'secondary'}>
+                        Pre-inscripcion {branding?.pre_inscripcion_activa ? 'activa' : 'inactiva'}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

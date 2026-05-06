@@ -5,7 +5,7 @@ const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 export async function fetchTenantConfig() {
   const supabase = await createClient()
 
-  const [tenantRes, modulosRes] = await Promise.all([
+  const [tenantRes, modulosRes, brandingRes] = await Promise.all([
     supabase
       .from('tenants')
       .select('id, nombre, slug, tipo, plan_slug, dominio_custom, configuracion, logo_url, color_principal, color_secundario, idioma_default, timezone, activo')
@@ -15,12 +15,21 @@ export async function fetchTenantConfig() {
       .from('tenant_modulos')
       .select('modulo_slug, activo, fecha_activacion')
       .eq('tenant_id', TENANT_ID),
+    supabase
+      .from('tenant_config_publica')
+      .select('logo_url, logo_dark_url, favicon_url, color_primario, color_secundario, nombre_display, slogan, pagina_publica_activa, pre_inscripcion_activa')
+      .eq('tenant_id', TENANT_ID)
+      .maybeSingle(),
   ])
 
   if (tenantRes.error) throw tenantRes.error
   if (modulosRes.error) throw modulosRes.error
 
-  return { tenant: tenantRes.data, modulosActivos: modulosRes.data ?? [] }
+  return {
+    tenant: tenantRes.data,
+    modulosActivos: modulosRes.data ?? [],
+    branding: brandingRes.data ?? null,
+  }
 }
 
 export async function fetchModulos() {
