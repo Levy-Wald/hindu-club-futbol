@@ -9,9 +9,7 @@ import {
   Building2,
   Palette,
   Store,
-  ArrowRight,
   Globe,
-  Image as ImageIcon,
   CheckCircle2,
   Circle,
   ShieldCheck,
@@ -29,6 +27,7 @@ import { ModulosPanel } from './_components/modulos-panel'
 import { CatalogosPanel } from './_components/catalogos-panel'
 import { TenantForm } from './_components/tenant-form'
 import { IntegracionesPanel } from './_components/integraciones-panel'
+import { BrandingForm } from './branding/_components/branding-form'
 
 const PLAN_STYLES: Record<string, { label: string; className: string }> = {
   free:       { label: 'Free',       className: 'bg-muted text-muted-foreground border-border' },
@@ -52,11 +51,10 @@ export default async function ConfiguracionPage({
   ])
 
   const modulosActivosCount = modulosActivos.filter((m) => m.activo).length
-  const catalogosCount =
-    catalogos.atributos.length +
-    catalogos.estadosPadron.length +
-    catalogos.tiposSocio.length +
-    catalogos.rolesEquipo.length
+  const catalogosCount = Object.values(catalogos).reduce(
+    (sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0),
+    0
+  )
 
   const config = tenant.configuracion as Record<string, unknown> | null
 
@@ -199,89 +197,8 @@ export default async function ConfiguracionPage({
         </TabsContent>
 
         {/* ── Identidad y marca ── */}
-        <TabsContent value="branding" className="mt-6 space-y-6">
-          <Link href="/admin/configuracion/branding" className="block group">
-            <Card className="hover:border-primary/40 hover:shadow-md transition-all duration-200 cursor-pointer">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    {branding?.logo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={branding.logo_url}
-                        alt="Logo"
-                        className="h-14 w-14 rounded-xl object-contain border bg-white p-1.5 shadow-sm"
-                      />
-                    ) : (
-                      <div className="h-14 w-14 rounded-xl border bg-muted flex items-center justify-center shadow-sm">
-                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div className="space-y-0.5">
-                      <CardTitle className="text-base">{branding?.nombre_display ?? tenant.nombre}</CardTitle>
-                      <CardDescription>{branding?.slogan ?? 'Sin slogan configurado'}</CardDescription>
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5 shrink-0 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors"
-                    tabIndex={-1}
-                  >
-                    Abrir Branding Studio
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t">
-                  {/* Colores */}
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Colores</p>
-                    {branding?.color_primario ? (
-                      <div className="flex items-center gap-2">
-                        <div className="h-7 w-7 rounded-md border shadow-sm" style={{ backgroundColor: branding.color_primario }} />
-                        {branding.color_secundario && (
-                          <div className="h-7 w-7 rounded-md border shadow-sm" style={{ backgroundColor: branding.color_secundario }} />
-                        )}
-                        <span className="text-xs font-mono text-muted-foreground ml-1">{branding.color_primario}</span>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No definidos</p>
-                    )}
-                  </div>
-
-                  {/* Assets */}
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Assets</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      <AssetBadge label="Logo" done={Boolean(branding?.logo_url)} />
-                      <AssetBadge label="Favicon" done={Boolean(branding?.favicon_url)} />
-                      <AssetBadge label="Logo dark" done={Boolean(branding?.logo_dark_url)} />
-                    </div>
-                  </div>
-
-                  {/* Estado */}
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Estado</p>
-                    <div className="flex flex-col gap-1.5">
-                      <StatusRow icon={Globe} label="Pagina publica" active={Boolean(branding?.pagina_publica_activa)} />
-                      <StatusRow icon={Building2} label="Pre-inscripcion" active={Boolean(branding?.pre_inscripcion_activa)} />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Card className="bg-muted/30 border-dashed">
-            <CardContent className="py-4 flex items-start gap-3">
-              <Palette className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Desde el <strong className="text-foreground">Branding Studio</strong> podés editar logo, colores, slogan, tipografía, secciones del home, páginas, contenido legal y galería de media. Todo se guarda en un solo lugar.
-              </p>
-            </CardContent>
-          </Card>
+        <TabsContent value="branding" className="mt-6">
+          <BrandingForm config={branding} />
         </TabsContent>
 
         {/* ── Modulos ── */}
@@ -296,6 +213,13 @@ export default async function ConfiguracionPage({
             estadosPadron={catalogos.estadosPadron}
             tiposSocio={catalogos.tiposSocio}
             rolesEquipo={catalogos.rolesEquipo}
+            motivosBaja={catalogos.motivosBaja}
+            tiposVinculo={catalogos.tiposVinculo}
+            disciplinas={catalogos.disciplinas}
+            nivelesCompetencia={catalogos.nivelesCompetencia}
+            tiposDocumento={catalogos.tiposDocumento}
+            tiposEstudio={catalogos.tiposEstudio}
+            obrasSociales={catalogos.obrasSociales}
           />
         </TabsContent>
 
@@ -492,27 +416,3 @@ function StatCard({ label, value }: { label: string; value: number }) {
   )
 }
 
-function AssetBadge({ label, done }: { label: string; done: boolean }) {
-  return (
-    <span
-      className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border ${
-        done
-          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800'
-          : 'bg-muted text-muted-foreground border-border'
-      }`}
-    >
-      {done ? <CheckCircle2 className="h-2.5 w-2.5" /> : <Circle className="h-2.5 w-2.5" />}
-      {label}
-    </span>
-  )
-}
-
-function StatusRow({ icon: Icon, label, active }: { icon: React.ElementType; label: string; active: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <span className={`ml-auto inline-block h-1.5 w-1.5 rounded-full ${active ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`} />
-    </div>
-  )
-}

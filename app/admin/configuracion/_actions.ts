@@ -90,13 +90,44 @@ export async function toggleModulo(moduloSlug: string) {
 
 // --- CATALOGOS ---
 
-type CatalogoTabla = 'catalogo_atributos' | 'catalogo_estados_padron' | 'catalogo_tipos_socio' | 'catalogo_roles_equipo'
+type CatalogoTabla =
+  | 'catalogo_atributos'
+  | 'catalogo_estados_padron'
+  | 'catalogo_tipos_socio'
+  | 'catalogo_roles_equipo'
+  | 'catalogo_motivos_baja'
+  | 'catalogo_tipos_vinculo'
+  | 'catalogo_disciplinas'
+  | 'catalogo_niveles_competencia'
+  | 'catalogo_tipos_documento'
+  | 'catalogo_tipos_estudio'
+  | 'catalogo_obras_sociales'
 
 const TABLAS_PERMITIDAS: CatalogoTabla[] = [
   'catalogo_atributos',
   'catalogo_estados_padron',
   'catalogo_tipos_socio',
   'catalogo_roles_equipo',
+  'catalogo_motivos_baja',
+  'catalogo_tipos_vinculo',
+  'catalogo_disciplinas',
+  'catalogo_niveles_competencia',
+  'catalogo_tipos_documento',
+  'catalogo_tipos_estudio',
+  'catalogo_obras_sociales',
+]
+
+// Tables that use 'slug' as PK (the rest use 'id' or also 'slug')
+const SLUG_PK_TABLES = [
+  'catalogo_atributos',
+  'catalogo_roles_equipo',
+  'catalogo_motivos_baja',
+  'catalogo_tipos_vinculo',
+  'catalogo_disciplinas',
+  'catalogo_niveles_competencia',
+  'catalogo_tipos_documento',
+  'catalogo_tipos_estudio',
+  'catalogo_obras_sociales',
 ]
 
 export async function crearItemCatalogo(tabla: string, data: { slug: string; nombre: string; categoria?: string; descripcion?: string }) {
@@ -136,8 +167,7 @@ export async function toggleItemCatalogo(tabla: string, id: string) {
 
   const supabase = await createClient()
 
-  // Determine PK column: catalogo_atributos and catalogo_roles_equipo use 'slug', others use 'id'
-  const usesSlugAsPK = tabla === 'catalogo_atributos' || tabla === 'catalogo_roles_equipo'
+  const usesSlugAsPK = SLUG_PK_TABLES.includes(tabla)
   const pkColumn = usesSlugAsPK ? 'slug' : 'id'
 
   const { data: existing, error: fetchError } = await supabase

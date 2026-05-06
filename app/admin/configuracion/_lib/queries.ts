@@ -17,7 +17,7 @@ export async function fetchTenantConfig() {
       .eq('tenant_id', TENANT_ID),
     supabase
       .from('tenant_config_publica')
-      .select('logo_url, logo_dark_url, favicon_url, color_primario, color_secundario, nombre_display, slogan, pagina_publica_activa, pre_inscripcion_activa')
+      .select('*')
       .eq('tenant_id', TENANT_ID)
       .maybeSingle(),
   ])
@@ -72,23 +72,22 @@ export async function fetchModulos() {
 export async function fetchCatalogos() {
   const supabase = await createClient()
 
-  const [atributos, estadosPadron, tiposSocio, rolesEquipo] = await Promise.all([
-    supabase
-      .from('catalogo_atributos')
-      .select('slug, nombre, descripcion, categoria, activo')
-      .order('categoria'),
-    supabase
-      .from('catalogo_estados_padron')
-      .select('id, slug, nombre, activo')
-      .order('nombre'),
-    supabase
-      .from('catalogo_tipos_socio')
-      .select('id, slug, nombre, activo')
-      .order('nombre'),
-    supabase
-      .from('catalogo_roles_equipo')
-      .select('slug, nombre, categoria, activo')
-      .order('categoria'),
+  const [
+    atributos, estadosPadron, tiposSocio, rolesEquipo,
+    motivosBaja, tiposVinculo, disciplinas, nivelesCompetencia,
+    tiposDocumento, tiposEstudio, obrasSociales,
+  ] = await Promise.all([
+    supabase.from('catalogo_atributos').select('slug, nombre, descripcion, categoria, activo').order('categoria'),
+    supabase.from('catalogo_estados_padron').select('id, slug, nombre, activo').order('nombre'),
+    supabase.from('catalogo_tipos_socio').select('id, slug, nombre, activo').order('nombre'),
+    supabase.from('catalogo_roles_equipo').select('slug, nombre, categoria, activo').order('categoria'),
+    supabase.from('catalogo_motivos_baja').select('slug, nombre, activo').order('nombre'),
+    supabase.from('catalogo_tipos_vinculo').select('slug, nombre, categoria, activo').order('categoria'),
+    supabase.from('catalogo_disciplinas').select('slug, nombre, categoria, activo').order('nombre'),
+    supabase.from('catalogo_niveles_competencia').select('slug, nombre, activo').order('orden'),
+    supabase.from('catalogo_tipos_documento').select('slug, nombre, activo').order('nombre'),
+    supabase.from('catalogo_tipos_estudio').select('slug, nombre, activo').order('nombre'),
+    supabase.from('catalogo_obras_sociales').select('slug, nombre, activo').order('nombre'),
   ])
 
   if (atributos.error) throw atributos.error
@@ -101,5 +100,12 @@ export async function fetchCatalogos() {
     estadosPadron: estadosPadron.data ?? [],
     tiposSocio: tiposSocio.data ?? [],
     rolesEquipo: rolesEquipo.data ?? [],
+    motivosBaja: motivosBaja.data ?? [],
+    tiposVinculo: tiposVinculo.data ?? [],
+    disciplinas: disciplinas.data ?? [],
+    nivelesCompetencia: nivelesCompetencia.data ?? [],
+    tiposDocumento: tiposDocumento.data ?? [],
+    tiposEstudio: tiposEstudio.data ?? [],
+    obrasSociales: obrasSociales.data ?? [],
   }
 }
