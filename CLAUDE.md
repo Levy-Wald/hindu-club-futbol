@@ -349,8 +349,9 @@ Esto garantiza que la documentacion siempre refleja el estado real del proyecto.
 
 ## Progreso actual
 
-Sprints 1-8 del plan original de 15: COMPLETADOS + UX transversal.
-Sprint pendiente: 9 (Cajas + Movimientos + Productos).
+Sprints 1-9 del plan original de 15: COMPLETADOS + UX transversal.
+Sprint 9 (Finanzas mini-ERP) pendiente de validación visual por Yair.
+Sprint pendiente: 10 (Operaciones deportivas avanzadas).
 Ver `NEXT-SPRINT.md` para instrucciones exactas de qué hacer ahora.
 Ver `MASTER-GAPS.md` para roadmap completo.
 
@@ -366,8 +367,8 @@ Ver `MASTER-GAPS.md` para roadmap completo.
 | 6 | Entidades + Federaciones + Fusiones | HECHO |
 | 7 | Mi Perfil + Mi Equipo + Calendario/Eventos | HECHO |
 | 8 | Páginas públicas + Branding + Pre-inscripción | HECHO |
-| 9 | Cajas + Movimientos + Productos | PENDIENTE ← PRÓXIMO |
-| 10 | Operaciones deportivas avanzadas | PENDIENTE |
+| 9 | Finanzas: Cajas + Movimientos + Productos + Cuotas | HECHO (validación pendiente) |
+| 10 | Operaciones deportivas avanzadas | PENDIENTE ← PRÓXIMO |
 | 11 | Empleados + Contratos + Liquidaciones | PENDIENTE |
 | 12 | Comunicaciones | PENDIENTE |
 | 13 | API + Webhooks + MCP | PENDIENTE |
@@ -378,7 +379,7 @@ Post-LIVE: bot WA, Capitán Oliver, más disciplinas, countries, app móvil.
 
 ---
 
-**Última actualización:** 2026-05-05
-**Versión:** Sprints 1-8 completos + UX transversal
+**Última actualización:** 2026-05-06
+**Versión:** Sprints 1-9 completos (validación visual pendiente Sprint 9)
 **Plan:** 15 sprints hasta Hindu LIVE
 **Owner:** Yair Levy Wald

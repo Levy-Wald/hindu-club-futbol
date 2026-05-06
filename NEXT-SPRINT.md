@@ -1,4 +1,4 @@
-# Proximo Sprint: 9 — Cajas + Movimientos + Productos
+# Proximo Sprint: 10 — Operaciones deportivas avanzadas
 
 ## Para el humano o agente que va a trabajar
 
@@ -12,57 +12,66 @@ Lee estos archivos antes de empezar:
 
 ## Contexto rapido
 
-**Estado actual:** Sprints 1-8 completos + UX transversal.
-**Proximo:** Sprint 9.
+**Estado actual:** Sprints 1-9 completos (Sprint 9 = Finanzas mini-ERP, pendiente validación visual).
+**Proximo:** Sprint 10.
 
 ---
 
-## Que hay que hacer en Sprint 9
+## Que hay que hacer en Sprint 10
 
 ### Objetivo
-Sistema financiero básico: cajas del club, movimientos de dinero, catálogo de productos/servicios, y cuotas.
+Operaciones deportivas avanzadas: eventos con asistencia, esquemas tácticos, operación semanal del club, scouting básico.
 
 ### Entregables
 
-#### 1. ABM Cajas
-- Crear/editar cajas (operativa, shop, eventos, sede)
-- Cada caja tiene saldo, tipo, responsable
-- Vista listado + detalle
+#### 1. Eventos avanzados (entrenamientos, partidos, viajes)
+- Eventos ya existen (Sprint 7), pero necesitan:
+  - Tipo de evento: entrenamiento, partido_amistoso, partido_oficial, viaje, reunion, otro
+  - Rival y sede (para partidos)
+  - Citación con hora y lugar
+  - Notas del DT pre/post evento
 
-#### 2. Categorías de movimiento
-- ABM categorias_movimiento (ingreso, egreso, transferencia)
-- Categorías predefinidas (cuota, venta, compra, salario, etc.)
+#### 2. Confirmaciones de asistencia
+- Cada persona citada puede: confirmar, rechazar, sin respuesta
+- Vista para DT: quiénes confirmaron, quiénes no
+- Integración futura con bot WA (Sprint 16+)
 
-#### 3. Productos y servicios
-- ABM productos_servicios (catálogo unificado)
-- Campos: nombre, tipo, precio, moneda, categoría, activo
-- Sirve para: cuotas, productos del shop, servicios
+#### 3. Esquemas tácticos (disciplina_futbol)
+- Formación (4-3-3, 4-4-2, etc.)
+- Posición de cada jugador en el esquema
+- Titulares vs suplentes
+- Pelotas paradas (corners, tiros libres)
+- Visual: cancha con jugadores posicionados
 
-#### 4. Movimientos de caja
-- CRUD movimientos_caja
-- Tipos: ingreso, egreso, transferencia entre cajas
-- Vinculado a persona, producto, categoría
-- Comprobante (upload a storage)
+#### 4. Operaciones semanales
+- Vista "Esta semana": próximos eventos de todos los equipos del club
+- Filtro por equipo/disciplina
+- Para dirigentes/managers: panorama general del club
 
-#### 5. Cuotas y planes
-- ABM cuotas_planes (mensual, anual, trimestral)
-- Emisión masiva de cuotas por padrón
-- Estado: pendiente, pagada, vencida, anulada
+#### 5. Scouting básico
+- Ficha de jugador externo (persona sin vínculo con el club)
+- Notas de observación
+- Estado: observado, contactado, en_negociacion, descartado, incorporado
+- Si se incorpora → crear persona en el club
 
-#### 6. Vista "Mi cuenta"
-- Saldo por persona
-- Historial de movimientos
-- Cuotas pendientes
+### Tablas a crear/modificar
+
+- `eventos` — agregar campos: tipo_evento, rival, sede, notas_pre, notas_post
+- `evento_asistencias` — persona_id, evento_id, estado (confirmado/rechazado/pendiente), nota
+- `esquemas_tacticos` — equipo_id, evento_id (opcional), formacion, notas
+- `esquema_posiciones` — esquema_id, persona_id, posicion, es_titular
+- `scouting_fichas` — persona externa, equipo interesado, estado, observaciones
 
 ### Archivos relevantes
-- `app/admin/cajas/` — actualmente placeholder
-- `lib/supabase/server.ts` — client
+- `app/admin/equipos/[id]/_components/` — calendario y eventos ya existen
+- `app/admin/mi-equipo/` — vista de equipo para DT/capitanes
+- `supabase/migrations/` — agregar migration numerada
 
 ---
 
 ## Reglas importantes
 
-1. **Verificar schema** antes de crear migrations
+1. **Verificar schema existente** antes de crear migrations
 2. **shadcn v4 usa `render` prop**, NO `asChild`
 3. **TENANT_ID hardcodeado** = `'11111111-1111-1111-1111-111111111111'`
 4. **Verificar build**: `pnpm build`
@@ -71,12 +80,23 @@ Sistema financiero básico: cajas del club, movimientos de dinero, catálogo de 
 
 ---
 
+## Sprint 9 completado (referencia)
+
+Sprint 9 entregó el módulo Finanzas completo:
+- Dashboard, Cajas, Movimientos, Productos (ERP 30+ campos), Cuotas (planes/emisiones/estado), Plan de Cuentas, Mi Cuenta
+- Import masivo de productos (wizard 4 pasos)
+- 13 tipos de producto (producto, servicio, cuota, actividad, alquiler, insumo, activo, gasto, locker, cochera, expensa, multa, consumo)
+- UX estándar: búsqueda, filtros, checkboxes, SelectionBar, export multi-formato
+- Migrations aplicadas en producción
+
+---
+
 ## Vision global
 
 ```
-Sprints 1-8:  ████████████████████████████████████████ HECHO
-Sprint 9:     ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ <- ESTAS ACA (cajas, movimientos, productos)
-Sprints 10-11:░░░░░░░░░░░░░░░░░░ (operaciones, empleados)
+Sprints 1-9:  ████████████████████████████████████████████████ HECHO
+Sprint 10:    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ <- ESTAS ACA (operaciones deportivas)
+Sprint 11:    ░░░░░░░░░░░░░░░░░░ (empleados, contratos)
 Sprints 12-14:░░░░░░░░░░░░░░░░░░ (comunicaciones, API/MCP, conectores)
 Sprint 15:    ░░░░░░░░░░░░░░░░░░ (hardening -> HINDU LIVE)
 ```

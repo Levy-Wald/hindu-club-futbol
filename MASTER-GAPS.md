@@ -5,10 +5,10 @@ Alineado al plan original de 15 sprints → Hindu LIVE.
 
 ---
 
-## Estado actual: Sprint 8 COMPLETADO + UX transversal + Ajustes post-validación
+## Estado actual: Sprint 9 COMPLETADO (~90%, pendiente validación visual)
 
-Los primeros 8 sprints del plan original están completos.
-Adicionalmente se implementó un bloque de UX transversal (no planificado originalmente) que mejora la experiencia en todos los módulos existentes.
+Los primeros 9 sprints del plan original están completos (Sprint 9 pendiente de validación visual por Yair).
+Sprint 9 = módulo Finanzas completo: mini-ERP con Cajas, Movimientos, Productos, Cuotas, Plan de Cuentas y Mi Cuenta.
 
 ### Ajustes post-validación (después de Sprint 6)
 - [x] "Externos" renombrado a "Entidades" en todo el sistema (sidebar, mobile, search, títulos)
@@ -147,18 +147,28 @@ Aplicado a personas, padrones, equipos, externos:
 
 ---
 
+### Sprint 9 — Finanzas: Cajas + Movimientos + Productos + Cuotas + Plan de Cuentas (HECHO — PENDIENTE_VALIDACION_VISUAL)
+
+- [x] Módulo Finanzas como sección colapsable en sidebar (reemplaza "Cajas" standalone)
+- [x] Dashboard Finanzas: resumen con tarjetas de saldo, gráficos de ingresos/egresos
+- [x] ABM Cajas: crear/editar cajas con tipo, saldo, responsable, cuenta contable
+- [x] Detalle caja: movimientos asociados, saldo, metadata
+- [x] ABM Movimientos: CRUD con tipo (ingreso/egreso/transferencia), persona, caja, categoría, comprobante
+- [x] Filtros avanzados en movimientos: por tipo, caja, categoría, fechas, persona
+- [x] ABM Productos full ERP: 30+ campos (SKU, EAN13, EAN14, marca, modelo, color, material, origen, unidad_medida, descripcion_larga, precio venta/compra, IVA venta/compra, stock actual/minimo, peso, cupo, instalacion)
+- [x] 13 tipos de producto: producto, servicio, cuota, actividad, alquiler, insumo, activo, gasto, locker, cochera, expensa, multa, consumo
+- [x] Import masivo de productos (wizard 4 pasos: archivo/paste → mapeo → confirmar → resultados)
+- [x] Cuotas: 3 tabs (Planes, Emisiones, Estado de cuotas) con search/filter/export/selection en cada una
+- [x] Plan de Cuentas: ABM con jerarquía (código, nombre, tipo: activo/pasivo/patrimonio/ingreso/egreso)
+- [x] Mi Cuenta: vista por persona con saldo, movimientos, cuotas pendientes
+- [x] Migrations aplicadas: tablas finanzas (cajas, movimientos, categorias_movimiento, plan_cuentas, cuotas_planes, cuotas_emisiones, cuotas_personas) + producto ERP (18 columnas nuevas + producto_proveedor)
+- [x] UX estándar en todas las páginas: búsqueda, filtros, checkboxes, SelectionBar, export multi-formato (CSV, XLSX, PDF simple, PDF membretado)
+
+---
+
 ## Sprints PENDIENTES
 
-### Sprint 9 — Cajas + Movimientos + Productos
-
-- [ ] ABM cajas (operativa, shop, eventos, sede)
-- [ ] ABM categorias_movimiento
-- [ ] ABM productos_servicios (catálogo unificado compra/venta)
-- [ ] CRUD movimientos_caja (ingresos, egresos, transferencias)
-- [ ] ABM cuotas_planes + emisiones
-- [ ] Vista "Mi cuenta" con saldo por persona
-
-### Sprint 10 — Operaciones deportivas avanzadas
+### Sprint 10 — Operaciones deportivas avanzadas (PRÓXIMO)
 
 - [ ] Eventos (entrenamientos, partidos, viajes) con calendario
 - [ ] Confirmaciones de asistencia por persona
@@ -241,6 +251,12 @@ Aplicado a personas, padrones, equipos, externos:
 17. **Brand colors** del tenant en `tenant_config_publica`, aplicados via CSS utilities (bg-brand-hero, text-brand-blue, etc.)
 18. **Multi-step form** estilo Typeform con state management en useState, sin dependencias extra
 19. **QR por equipo** generado via API externa `api.qrserver.com` (sin dependencia local)
+20. **Finanzas como módulo independiente** bajo `/admin/finanzas/` con sub-páginas (dashboard, cajas, movimientos, productos, cuotas, plan-cuentas)
+21. **Producto ERP completo**: identidad (SKU, EAN, marca, modelo, color, material, origen) + precios (venta/compra, IVA, moneda) + inventario (stock, peso, cupo) + contabilidad (cuentas, centro costo)
+22. **13 tipos de producto** para cubrir clubes y countries: producto, servicio, cuota, actividad, alquiler, insumo, activo, gasto, locker, cochera, expensa, multa, consumo
+23. **Proveedores = Entidades** con `es_proveedor = true`. Tabla `producto_proveedor` es many-to-many entre productos y entidades
+24. **Dedup en import**: por SKU (unique per tenant) o EAN-13 (unique per tenant). Si existe, se omite
+25. **Sidebar collapsible**: Finanzas es sección colapsable con sub-items (no link directo)
 
 ---
 
@@ -300,13 +316,13 @@ La diferencia entre clientes es CONFIGURACIÓN, no CÓDIGO:
 
 ## Tiempo estimado restante hasta Hindu LIVE
 
-Sprints 9-15 = 7 sprints pendientes.
-Estimado: 50-75 horas agente + 8-14 horas validación Yair.
-Calendario: 3-4 semanas a 4-6h/día.
+Sprints 10-15 = 6 sprints pendientes.
+Estimado: 40-60 horas agente + 7-12 horas validación Yair.
+Calendario: 2-3 semanas a 4-6h/día.
 
 ---
 
-**Última actualización:** 2026-05-05
-**Próximo sprint:** 9 (Cajas + Movimientos + Productos)
+**Última actualización:** 2026-05-06
+**Próximo sprint:** 10 (Operaciones deportivas avanzadas)
 **Instrucciones:** ver `NEXT-SPRINT.md`
 **Owner:** Yair Levy Wald
