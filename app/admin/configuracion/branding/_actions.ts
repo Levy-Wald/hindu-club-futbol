@@ -15,9 +15,7 @@ export async function actualizarConfigPublica(input: Record<string, unknown>) {
 
   if (error) return { ok: false, message: error.message }
 
-  revalidatePath('/')
-  revalidatePath('/equipos')
-  revalidatePath('/asociate')
+  revalidatePath('/', 'layout')
   revalidatePath('/admin/configuracion/branding')
   return { ok: true, message: 'Configuracion actualizada' }
 }
