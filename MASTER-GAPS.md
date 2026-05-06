@@ -194,7 +194,7 @@ Aplicado a personas, padrones, equipos, externos:
 
 - [x] Empleados = personas con atributo `rrhh.empleado` (no tabla separada)
 - [x] Atributos namespaceados: `rrhh.empleado`, `rrhh.admin`, `rrhh.consulta` (primera implementación de la convención acordada)
-- [x] ABM Contratos (`rrhh_contratos`): CRUD completo con modalidad (rel_dependencia, monotributo, honorarios, informal, pasantia, voluntariado), puesto, area, frecuencia (mensual/quincenal/semanal/por_hora/por_evento), vigencia, monto, CUIL, legajo
+- [x] ABM Contratos (`rrhh_contratos`): CRUD completo con modalidad (rel_dependencia, monotributo, honorarios, informal, pasantia, voluntariado), frecuencia (mensual/quincenal/semanal/por_hora/por_evento), vigencia, monto
 - [x] Rescisión de contratos con motivo obligatorio
 - [x] Soft-delete en contratos (protegido si tiene liquidaciones pagadas)
 - [x] ABM Liquidaciones (`rrhh_liquidaciones`): CRUD con estados (borrador → aprobada → pagada / anulada)
@@ -202,10 +202,25 @@ Aplicado a personas, padrones, equipos, externos:
 - [x] Anulación de liquidación anula también el movimiento_caja asociado (cascada controlada)
 - [x] Dashboard RRHH: 4 tarjetas (empleados, contratos vigentes, costo mensual estimado, liquidaciones pendientes)
 - [x] Sidebar: RRHH como sección colapsable con sub-items (Dashboard, Contratos, Liquidaciones)
-- [x] Filtros URL-synced en contratos (modalidad, estado, area, búsqueda) y liquidaciones (periodo, estado, búsqueda)
+- [x] Filtros URL-synced en contratos (modalidad, estado, búsqueda) y liquidaciones (periodo, estado, búsqueda)
 - [x] RLS: `puede_operar_rrhh()` (admin_tenant + rrhh.admin), política _own para empleados que ven sus propios contratos/liquidaciones
 - [x] Migration aplicada vía Supabase MCP: rrhh_contratos, rrhh_liquidaciones + RLS + triggers + indices
 - [x] Vínculos empleado-actividad se resuelven via personas_equipos existente (un kine en 3 equipos = 3 filas en personas_equipos con rol_equipo_slug adecuado)
+
+### Sprint 11.1 — Datos laborales refactor (HECHO — PENDIENTE_VALIDACION_VISUAL)
+
+- [x] Decisión: datos laborales son de la PERSONA, no del contrato. El contrato solo los lee.
+- [x] 3 catálogos nuevos: `catalogo_areas_trabajo` (10 seeds), `catalogo_puestos` (10 seeds), `catalogo_roles_laborales` (6 seeds)
+- [x] Tabla `personas_datos_laborales` 1:1 con persona (area, puesto, rol, legajo, obra social, sindicato)
+- [x] Legajo único por tenant (partial unique index)
+- [x] Drop 6 columnas de `rrhh_contratos`: cuil, obra_social, sindicato, numero_legajo, area, puesto
+- [x] Migración de datos existentes (contratos → personas_datos_laborales) antes del drop
+- [x] Selector de persona con autocomplete (busca por nombre/apellido/DNI, debounce 300ms)
+- [x] Al seleccionar persona en form contrato: muestra datos laborales read-only (area, puesto, rol, legajo, CUIL, obra social, sindicato)
+- [x] Si la persona no tiene datos laborales: link "Completar ficha" → /admin/personas/[id]
+- [x] Sección "Datos laborales" en tab Profesional del editor de persona (solo si tiene atributo rrhh.empleado)
+- [x] Catálogos gestionables desde admin Configuración → Catálogos → RRHH
+- [x] RLS estándar + política _own en personas_datos_laborales
 
 ### Sprint 12 — Comunicaciones
 

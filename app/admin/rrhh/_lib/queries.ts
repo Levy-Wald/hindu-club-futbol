@@ -83,7 +83,6 @@ export async function fetchDashboardRRHH() {
 export async function fetchEmpleados(filters?: {
   search?: string
   modalidad?: string
-  area?: string
   estado_contrato?: string
 }) {
   const supabase = await createClient()
@@ -135,9 +134,6 @@ export async function fetchEmpleados(filters?: {
   if (filters?.modalidad) {
     queryContratos = queryContratos.eq('modalidad', filters.modalidad)
   }
-  if (filters?.area) {
-    queryContratos = queryContratos.eq('area', filters.area)
-  }
 
   const { data: contratos } = await queryContratos
 
@@ -151,7 +147,7 @@ export async function fetchEmpleados(filters?: {
   }
 
   // Si hay filtros de contrato, solo devolver personas que tienen contrato que matchea
-  if (filters?.modalidad || filters?.area || filters?.estado_contrato) {
+  if (filters?.modalidad || filters?.estado_contrato) {
     return personas
       .filter((p) => contratosPorPersona.has(p.id))
       .map((p) => ({
@@ -197,7 +193,7 @@ export async function fetchEmpleadoDetalle(personaId: string) {
     .from('rrhh_liquidaciones')
     .select(`
       *,
-      contrato:rrhh_contratos(id, puesto, modalidad),
+      contrato:rrhh_contratos(id, modalidad),
       aprobada_por:personas!rrhh_liquidaciones_aprobada_por_id_fkey(id, nombre, apellido)
     `)
     .eq('tenant_id', TENANT_ID)
@@ -220,7 +216,6 @@ export async function fetchContratos(filters?: {
   search?: string
   modalidad?: string
   estado?: string
-  area?: string
 }) {
   const supabase = await createClient()
 
@@ -239,9 +234,6 @@ export async function fetchContratos(filters?: {
   }
   if (filters?.estado) {
     query = query.eq('estado', filters.estado)
-  }
-  if (filters?.area) {
-    query = query.eq('area', filters.area)
   }
 
   const { data, error } = await query
@@ -268,6 +260,22 @@ export async function fetchContratos(filters?: {
     })
   }
 
+  // Enrich with datos laborales
+  const personaIds = [...new Set(result.map((c) => c.persona_id))]
+  if (personaIds.length > 0) {
+    const { data: datosLab } = await supabase
+      .from('personas_datos_laborales')
+      .select('persona_id, area_trabajo_slug, puesto_slug')
+      .eq('tenant_id', TENANT_ID)
+      .in('persona_id', personaIds)
+
+    const labMap = new Map((datosLab ?? []).map((d) => [d.persona_id, d]))
+    result = result.map((c) => ({
+      ...c,
+      datos_laborales: labMap.get(c.persona_id) ?? null,
+    }))
+  }
+
   return result
 }
 
@@ -288,20 +296,29 @@ export async function fetchContratoDetalle(contratoId: string) {
 
   if (contratoError) return null
 
-  // Liquidaciones de este contrato
-  const { data: liquidaciones } = await supabase
-    .from('rrhh_liquidaciones')
-    .select(`
-      *,
-      aprobada_por:personas!rrhh_liquidaciones_aprobada_por_id_fkey(id, nombre, apellido)
-    `)
-    .eq('tenant_id', TENANT_ID)
-    .eq('contrato_id', contratoId)
-    .is('deleted_at', null)
-    .order('periodo', { ascending: false })
+  // Datos laborales de la persona + liquidaciones en paralelo
+  const [{ data: datosLab }, { data: liquidaciones }] = await Promise.all([
+    supabase
+      .from('personas_datos_laborales')
+      .select('*, area:catalogo_areas_trabajo(slug, nombre), puesto:catalogo_puestos(slug, nombre), rol:catalogo_roles_laborales(slug, nombre), obra_social:catalogo_obras_sociales(slug, nombre)')
+      .eq('persona_id', contrato.persona_id)
+      .eq('tenant_id', TENANT_ID)
+      .maybeSingle(),
+    supabase
+      .from('rrhh_liquidaciones')
+      .select(`
+        *,
+        aprobada_por:personas!rrhh_liquidaciones_aprobada_por_id_fkey(id, nombre, apellido)
+      `)
+      .eq('tenant_id', TENANT_ID)
+      .eq('contrato_id', contratoId)
+      .is('deleted_at', null)
+      .order('periodo', { ascending: false }),
+  ])
 
   return {
     ...contrato,
+    datos_laborales: datosLab ?? null,
     liquidaciones: liquidaciones ?? [],
   }
 }
@@ -321,7 +338,7 @@ export async function fetchLiquidaciones(filters?: {
     .from('rrhh_liquidaciones')
     .select(`
       *,
-      contrato:rrhh_contratos(id, puesto, modalidad, area),
+      contrato:rrhh_contratos(id, modalidad),
       persona:personas!rrhh_liquidaciones_persona_id_fkey(id, nombre, apellido, numero_documento, foto_perfil_url),
       aprobada_por:personas!rrhh_liquidaciones_aprobada_por_id_fkey(id, nombre, apellido)
     `)
@@ -352,7 +369,7 @@ export async function fetchLiquidacionDetalle(liquidacionId: string) {
     .from('rrhh_liquidaciones')
     .select(`
       *,
-      contrato:rrhh_contratos(id, puesto, modalidad, area, categoria_convenio, monto, moneda, frecuencia),
+      contrato:rrhh_contratos(id, modalidad, categoria_convenio, monto, moneda, frecuencia),
       persona:personas!rrhh_liquidaciones_persona_id_fkey(id, nombre, apellido, numero_documento, foto_perfil_url, email_principal, cuil_cuit),
       aprobada_por:personas!rrhh_liquidaciones_aprobada_por_id_fkey(id, nombre, apellido)
     `)
@@ -395,4 +412,70 @@ export async function fetchPersonasParaContrato() {
 
   if (error) return []
   return data ?? []
+}
+
+// =============================================================================
+// Buscar personas (autocomplete para selector de contrato)
+// =============================================================================
+
+export async function buscarPersonasRRHH(query: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('personas')
+    .select('id, nombre, apellido, numero_documento, cuil_cuit')
+    .eq('tenant_id', TENANT_ID)
+    .is('deleted_at', null)
+    .or(`nombre.ilike.%${query}%,apellido.ilike.%${query}%,numero_documento.ilike.%${query}%`)
+    .order('apellido')
+    .limit(15)
+
+  if (error) return []
+  return data ?? []
+}
+
+// =============================================================================
+// Datos laborales de una persona
+// =============================================================================
+
+export async function fetchDatosLaborales(personaId: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('personas_datos_laborales')
+    .select(`
+      *,
+      area:catalogo_areas_trabajo(slug, nombre),
+      puesto:catalogo_puestos(slug, nombre),
+      rol:catalogo_roles_laborales(slug, nombre),
+      obra_social:catalogo_obras_sociales(slug, nombre)
+    `)
+    .eq('persona_id', personaId)
+    .eq('tenant_id', TENANT_ID)
+    .maybeSingle()
+
+  if (error) return null
+  return data
+}
+
+// =============================================================================
+// Catálogos laborales (para selects en forms)
+// =============================================================================
+
+export async function fetchCatalogosLaborales() {
+  const supabase = await createClient()
+
+  const [areas, puestos, roles, obrasSociales] = await Promise.all([
+    supabase.from('catalogo_areas_trabajo').select('slug, nombre').eq('activo', true).order('nombre'),
+    supabase.from('catalogo_puestos').select('slug, nombre').eq('activo', true).order('nombre'),
+    supabase.from('catalogo_roles_laborales').select('slug, nombre').eq('activo', true).order('nombre'),
+    supabase.from('catalogo_obras_sociales').select('slug, nombre').eq('activo', true).order('nombre'),
+  ])
+
+  return {
+    areas: areas.data ?? [],
+    puestos: puestos.data ?? [],
+    roles: roles.data ?? [],
+    obrasSociales: obrasSociales.data ?? [],
+  }
 }

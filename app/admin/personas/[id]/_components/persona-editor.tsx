@@ -18,6 +18,7 @@ import { SeccionProfesional } from './secciones/profesional'
 import { SeccionEducacion } from './secciones/educacion'
 import { SeccionMembresia } from './secciones/membresia'
 import { SeccionNotas } from './secciones/notas'
+import { SeccionDatosLaborales } from './secciones/datos-laborales'
 import { SeccionSalud } from './secciones/salud'
 import { SeccionFichaTotal } from './secciones/ficha-total'
 import { SeccionDocumentos } from './secciones/documentos'
@@ -147,7 +148,9 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
     else toast.error(result.message)
   }
 
-  const atributosActivos = (persona.personas_atributos as { activo: boolean }[] ?? []).filter((a) => a.activo).length
+  const atributosArr = (persona.personas_atributos ?? []) as { atributo_slug: string; activo: boolean }[]
+  const atributosActivos = atributosArr.filter((a) => a.activo).length
+  const esEmpleado = atributosArr.some((a) => a.atributo_slug === 'rrhh.empleado' && a.activo)
 
   return (
     <>
@@ -244,10 +247,13 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
           <SeccionSalud personaId={persona.id as string} tenantId={persona.tenant_id as string} />
         </TabsContent>
 
-        {/* PROFESIONAL: profesional + educación */}
+        {/* PROFESIONAL: profesional + educación + datos laborales si es empleado */}
         <TabsContent value="profesional" className="mt-4 space-y-4">
           <SeccionProfesional form={form} update={update} s={s} />
           <SeccionEducacion form={form} update={update} s={s} />
+          {esEmpleado && !esMiPerfil && (
+            <SeccionDatosLaborales personaId={persona.id as string} />
+          )}
         </TabsContent>
 
         {/* CLUB: membresía + notas */}

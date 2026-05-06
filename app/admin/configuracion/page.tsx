@@ -259,6 +259,9 @@ export default async function ConfiguracionPage({
             tiposDocumento={catalogos.tiposDocumento}
             tiposEstudio={catalogos.tiposEstudio}
             obrasSociales={catalogos.obrasSociales}
+            areasTrabajo={catalogos.areasTrabajo}
+            puestos={catalogos.puestos}
+            rolesLaborales={catalogos.rolesLaborales}
           />
         </TabsContent>
 

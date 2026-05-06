@@ -102,6 +102,9 @@ type CatalogoTabla =
   | 'catalogo_tipos_documento'
   | 'catalogo_tipos_estudio'
   | 'catalogo_obras_sociales'
+  | 'catalogo_areas_trabajo'
+  | 'catalogo_puestos'
+  | 'catalogo_roles_laborales'
 
 const TABLAS_PERMITIDAS: CatalogoTabla[] = [
   'catalogo_atributos',
@@ -115,6 +118,9 @@ const TABLAS_PERMITIDAS: CatalogoTabla[] = [
   'catalogo_tipos_documento',
   'catalogo_tipos_estudio',
   'catalogo_obras_sociales',
+  'catalogo_areas_trabajo',
+  'catalogo_puestos',
+  'catalogo_roles_laborales',
 ]
 
 // Tables that use 'slug' as PK (the rest use 'id' or also 'slug')
@@ -128,6 +134,9 @@ const SLUG_PK_TABLES = [
   'catalogo_tipos_documento',
   'catalogo_tipos_estudio',
   'catalogo_obras_sociales',
+  'catalogo_areas_trabajo',
+  'catalogo_puestos',
+  'catalogo_roles_laborales',
 ]
 
 export async function crearItemCatalogo(tabla: string, data: { slug: string; nombre: string; categoria?: string; descripcion?: string }) {

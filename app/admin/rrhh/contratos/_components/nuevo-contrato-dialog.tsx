@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,67 +19,110 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Plus } from 'lucide-react'
+import { Plus, Search, User, ExternalLink } from 'lucide-react'
 import { crearContrato } from '@/app/admin/rrhh/_actions'
+import { buscarPersonasRRHH, fetchDatosLaborales } from '@/app/admin/rrhh/_lib/queries'
 import { toast } from 'sonner'
+import Link from 'next/link'
 
-interface Persona {
+interface DatosLaborales {
+  area_trabajo_slug: string | null
+  puesto_slug: string | null
+  rol_laboral_slug: string | null
+  numero_legajo: string | null
+  obra_social_slug: string | null
+  sindicato: string | null
+  area?: { slug: string; nombre: string }[] | null
+  puesto?: { slug: string; nombre: string }[] | null
+  rol?: { slug: string; nombre: string }[] | null
+  obra_social?: { slug: string; nombre: string }[] | null
+}
+
+interface PersonaResult {
   id: string
   nombre: string
   apellido: string
+  numero_documento: string | null
+  cuil_cuit: string | null
 }
 
-interface NuevoContratoDialogProps {
-  personas: Persona[]
-}
-
-export function NuevoContratoDialog({ personas }: NuevoContratoDialogProps) {
+export function NuevoContratoDialog() {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
-  // Form state
-  const [personaId, setPersonaId] = useState('')
+  // Persona search
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<PersonaResult[]>([])
+  const [showResults, setShowResults] = useState(false)
+  const [selectedPersona, setSelectedPersona] = useState<PersonaResult | null>(null)
+  const [datosLaborales, setDatosLaborales] = useState<DatosLaborales | null>(null)
+  const [loadingDatos, setLoadingDatos] = useState(false)
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const resultsRef = useRef<HTMLDivElement>(null)
+
+  // Contract fields
   const [modalidad, setModalidad] = useState('')
-  const [puesto, setPuesto] = useState('')
-  const [area, setArea] = useState('')
   const [fechaInicio, setFechaInicio] = useState('')
   const [fechaFin, setFechaFin] = useState('')
   const [monto, setMonto] = useState('')
   const [moneda, setMoneda] = useState('ARS')
   const [frecuencia, setFrecuencia] = useState('mensual')
-  const [cuil, setCuil] = useState('')
-  const [numeroLegajo, setNumeroLegajo] = useState('')
 
   function resetForm() {
-    setPersonaId('')
+    setSearchQuery('')
+    setSearchResults([])
+    setSelectedPersona(null)
+    setDatosLaborales(null)
     setModalidad('')
-    setPuesto('')
-    setArea('')
     setFechaInicio('')
     setFechaFin('')
     setMonto('')
     setMoneda('ARS')
     setFrecuencia('mensual')
-    setCuil('')
-    setNumeroLegajo('')
+  }
+
+  // Search personas with debounce
+  useEffect(() => {
+    if (searchQuery.length < 2) {
+      setSearchResults([])
+      return
+    }
+    if (searchTimeout.current) clearTimeout(searchTimeout.current)
+    searchTimeout.current = setTimeout(async () => {
+      const results = await buscarPersonasRRHH(searchQuery)
+      setSearchResults(results)
+      setShowResults(true)
+    }, 300)
+    return () => { if (searchTimeout.current) clearTimeout(searchTimeout.current) }
+  }, [searchQuery])
+
+  // Load datos laborales when persona selected
+  async function handleSelectPersona(persona: PersonaResult) {
+    setSelectedPersona(persona)
+    setSearchQuery('')
+    setShowResults(false)
+    setLoadingDatos(true)
+    const datos = await fetchDatosLaborales(persona.id)
+    setDatosLaborales(datos)
+    setLoadingDatos(false)
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!selectedPersona) {
+      toast.error('Seleccione una persona')
+      return
+    }
 
     const formData = new FormData()
-    formData.set('persona_id', personaId)
+    formData.set('persona_id', selectedPersona.id)
     formData.set('modalidad', modalidad)
-    formData.set('puesto', puesto)
-    if (area) formData.set('area', area)
     formData.set('fecha_inicio', fechaInicio)
     if (fechaFin) formData.set('fecha_fin', fechaFin)
     formData.set('monto', monto)
     formData.set('moneda', moneda)
     formData.set('frecuencia', frecuencia)
-    if (cuil) formData.set('cuil', cuil)
-    if (numeroLegajo) formData.set('numero_legajo', numeroLegajo)
 
     startTransition(async () => {
       const result = await crearContrato(formData)
@@ -94,8 +137,15 @@ export function NuevoContratoDialog({ personas }: NuevoContratoDialogProps) {
     })
   }
 
+  // Helper to get FK join name (PostgREST returns array)
+  function fkName(fkArr: { slug: string; nombre: string }[] | null | undefined): string {
+    if (!fkArr) return '-'
+    const item = Array.isArray(fkArr) ? fkArr[0] : fkArr
+    return item?.nombre ?? '-'
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm() }}>
       <DialogTrigger render={<Button />}>
         <Plus className="h-4 w-4 mr-1" />
         Nuevo contrato
@@ -105,24 +155,126 @@ export function NuevoContratoDialog({ personas }: NuevoContratoDialogProps) {
           <DialogTitle>Nuevo contrato</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Persona */}
-            <div className="space-y-1 sm:col-span-2">
-              <Label>Persona *</Label>
-              <Select value={personaId} onValueChange={(v) => setPersonaId(v ?? '')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar persona..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {personas.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.apellido}, {p.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Persona autocomplete */}
+          <div className="space-y-1">
+            <Label>Persona *</Label>
+            {selectedPersona ? (
+              <div className="flex items-center gap-3 rounded-md border p-3 bg-muted/30">
+                <User className="h-5 w-5 text-muted-foreground shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm">
+                    {selectedPersona.apellido}, {selectedPersona.nombre}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedPersona.numero_documento && `DNI ${selectedPersona.numero_documento}`}
+                    {selectedPersona.cuil_cuit && ` · CUIL ${selectedPersona.cuil_cuit}`}
+                  </p>
+                </div>
+                <Button type="button" variant="ghost" size="sm" onClick={() => { setSelectedPersona(null); setDatosLaborales(null) }}>
+                  Cambiar
+                </Button>
+              </div>
+            ) : (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => searchResults.length > 0 && setShowResults(true)}
+                  onBlur={() => setTimeout(() => setShowResults(false), 200)}
+                  placeholder="Buscar por nombre, apellido o DNI..."
+                  className="pl-9"
+                  autoFocus
+                />
+                {showResults && searchResults.length > 0 && (
+                  <div ref={resultsRef} className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-md max-h-48 overflow-y-auto">
+                    {searchResults.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        className="w-full text-left px-3 py-2 hover:bg-accent text-sm flex items-center gap-2"
+                        onMouseDown={() => handleSelectPersona(p)}
+                      >
+                        <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="font-medium">{p.apellido}, {p.nombre}</span>
+                        {p.numero_documento && (
+                          <span className="text-muted-foreground ml-auto text-xs">DNI {p.numero_documento}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {showResults && searchQuery.length >= 2 && searchResults.length === 0 && (
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-md px-3 py-2 text-sm text-muted-foreground">
+                    No se encontraron personas
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
+          {/* Datos laborales read-only */}
+          {selectedPersona && (
+            <div className="rounded-md border p-3 space-y-2 bg-muted/20">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Datos laborales de la persona</p>
+                <Link
+                  href={`/admin/personas/${selectedPersona.id}`}
+                  target="_blank"
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                >
+                  {datosLaborales ? 'Editar ficha' : 'Completar ficha'}
+                  <ExternalLink className="h-3 w-3" />
+                </Link>
+              </div>
+              {loadingDatos ? (
+                <p className="text-xs text-muted-foreground">Cargando...</p>
+              ) : datosLaborales ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Area</p>
+                    <p>{fkName(datosLaborales.area)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Puesto</p>
+                    <p>{fkName(datosLaborales.puesto)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Rol</p>
+                    <p>{fkName(datosLaborales.rol)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Legajo</p>
+                    <p>{datosLaborales.numero_legajo ?? '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">CUIL</p>
+                    <p>{selectedPersona.cuil_cuit ?? '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Obra social</p>
+                    <p>{fkName(datosLaborales.obra_social)}</p>
+                  </div>
+                  {datosLaborales.sindicato && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">Sindicato</p>
+                      <p>{datosLaborales.sindicato}</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-amber-600">
+                  Esta persona no tiene datos laborales cargados.{' '}
+                  <Link href={`/admin/personas/${selectedPersona.id}`} target="_blank" className="underline font-medium">
+                    Completar ficha de {selectedPersona.nombre}
+                  </Link>
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Contract fields */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Modalidad */}
             <div className="space-y-1">
               <Label>Modalidad *</Label>
@@ -139,26 +291,6 @@ export function NuevoContratoDialog({ personas }: NuevoContratoDialogProps) {
                   <SelectItem value="voluntariado">Voluntariado</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            {/* Puesto */}
-            <div className="space-y-1">
-              <Label>Puesto *</Label>
-              <Input
-                value={puesto}
-                onChange={(e) => setPuesto(e.target.value)}
-                placeholder="Ej: Director tecnico"
-              />
-            </div>
-
-            {/* Area */}
-            <div className="space-y-1">
-              <Label>Area</Label>
-              <Input
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
-                placeholder="Ej: Futbol juvenil"
-              />
             </div>
 
             {/* Fecha inicio */}
@@ -225,26 +357,6 @@ export function NuevoContratoDialog({ personas }: NuevoContratoDialogProps) {
                 </SelectContent>
               </Select>
             </div>
-
-            {/* CUIL */}
-            <div className="space-y-1">
-              <Label>CUIL</Label>
-              <Input
-                value={cuil}
-                onChange={(e) => setCuil(e.target.value)}
-                placeholder="20-12345678-9"
-              />
-            </div>
-
-            {/* Numero legajo */}
-            <div className="space-y-1">
-              <Label>Numero de legajo</Label>
-              <Input
-                value={numeroLegajo}
-                onChange={(e) => setNumeroLegajo(e.target.value)}
-                placeholder="Ej: LEG-001"
-              />
-            </div>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
@@ -256,7 +368,7 @@ export function NuevoContratoDialog({ personas }: NuevoContratoDialogProps) {
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending || !selectedPersona}>
               {isPending ? 'Creando...' : 'Crear contrato'}
             </Button>
           </div>

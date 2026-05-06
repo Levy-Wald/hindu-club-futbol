@@ -24,8 +24,6 @@ export async function crearContrato(formData: FormData): Promise<ActionResult> {
 
   const personaId = formData.get('persona_id') as string | null
   const modalidad = formData.get('modalidad') as string | null
-  const puesto = formData.get('puesto') as string | null
-  const area = formData.get('area') as string | null
   const categoriaConvenio = formData.get('categoria_convenio') as string | null
   const fechaInicio = formData.get('fecha_inicio') as string | null
   const fechaFin = formData.get('fecha_fin') as string | null
@@ -33,13 +31,9 @@ export async function crearContrato(formData: FormData): Promise<ActionResult> {
   const moneda = (formData.get('moneda') as string) || 'ARS'
   const frecuencia = (formData.get('frecuencia') as string) || 'mensual'
   const horasSemanalesRaw = formData.get('horas_semanales') as string | null
-  const cuil = formData.get('cuil') as string | null
-  const obraSocial = formData.get('obra_social') as string | null
-  const sindicato = formData.get('sindicato') as string | null
-  const numeroLegajo = formData.get('numero_legajo') as string | null
 
-  if (!personaId || !modalidad || !puesto || !fechaInicio || !montoRaw) {
-    return fail('Persona, modalidad, puesto, fecha de inicio y monto son obligatorios')
+  if (!personaId || !modalidad || !fechaInicio || !montoRaw) {
+    return fail('Persona, modalidad, fecha de inicio y monto son obligatorios')
   }
 
   const monto = parseFloat(montoRaw)
@@ -49,15 +43,13 @@ export async function crearContrato(formData: FormData): Promise<ActionResult> {
 
   const horasSemanales = horasSemanalesRaw ? parseFloat(horasSemanalesRaw) : null
 
-  // Crear contrato
+  // Crear contrato (puesto/area/cuil/legajo ya no van acá, son datos de la persona)
   const { data, error } = await supabase
     .from('rrhh_contratos')
     .insert({
       tenant_id: TENANT_ID,
       persona_id: personaId,
       modalidad,
-      puesto,
-      area: area || null,
       categoria_convenio: categoriaConvenio || null,
       fecha_inicio: fechaInicio,
       fecha_fin: fechaFin || null,
@@ -65,10 +57,6 @@ export async function crearContrato(formData: FormData): Promise<ActionResult> {
       moneda,
       frecuencia,
       horas_semanales: horasSemanales,
-      cuil: cuil || null,
-      obra_social: obraSocial || null,
-      sindicato: sindicato || null,
-      numero_legajo: numeroLegajo || null,
     })
     .select('id')
     .single()
@@ -109,10 +97,7 @@ export async function crearContrato(formData: FormData): Promise<ActionResult> {
 export async function editarContrato(id: string, formData: FormData): Promise<ActionResult> {
   const supabase = await createClient()
 
-  const personaId = formData.get('persona_id') as string | null
   const modalidad = formData.get('modalidad') as string | null
-  const puesto = formData.get('puesto') as string | null
-  const area = formData.get('area') as string | null
   const categoriaConvenio = formData.get('categoria_convenio') as string | null
   const fechaInicio = formData.get('fecha_inicio') as string | null
   const fechaFin = formData.get('fecha_fin') as string | null
@@ -120,13 +105,9 @@ export async function editarContrato(id: string, formData: FormData): Promise<Ac
   const moneda = formData.get('moneda') as string | null
   const frecuencia = formData.get('frecuencia') as string | null
   const horasSemanalesRaw = formData.get('horas_semanales') as string | null
-  const cuil = formData.get('cuil') as string | null
-  const obraSocial = formData.get('obra_social') as string | null
-  const sindicato = formData.get('sindicato') as string | null
-  const numeroLegajo = formData.get('numero_legajo') as string | null
 
-  if (!personaId || !modalidad || !puesto || !fechaInicio || !montoRaw) {
-    return fail('Persona, modalidad, puesto, fecha de inicio y monto son obligatorios')
+  if (!modalidad || !fechaInicio || !montoRaw) {
+    return fail('Modalidad, fecha de inicio y monto son obligatorios')
   }
 
   const monto = parseFloat(montoRaw)
@@ -135,18 +116,11 @@ export async function editarContrato(id: string, formData: FormData): Promise<Ac
   }
 
   const updateData: Record<string, unknown> = {
-    persona_id: personaId,
     modalidad,
-    puesto,
-    area: area || null,
     categoria_convenio: categoriaConvenio || null,
     fecha_inicio: fechaInicio,
     fecha_fin: fechaFin || null,
     monto,
-    cuil: cuil || null,
-    obra_social: obraSocial || null,
-    sindicato: sindicato || null,
-    numero_legajo: numeroLegajo || null,
   }
   if (moneda) updateData.moneda = moneda
   if (frecuencia) updateData.frecuencia = frecuencia
@@ -229,6 +203,48 @@ export async function eliminarContrato(id: string): Promise<ActionResult> {
   if (error) return fail(`Error al eliminar contrato: ${error.message}`)
 
   revalidatePath('/admin/rrhh')
+  return ok()
+}
+
+// =============================================================================
+// Datos laborales de persona
+// =============================================================================
+
+export async function guardarDatosLaborales(personaId: string, formData: FormData): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  const areaTrabajo = formData.get('area_trabajo_slug') as string | null
+  const puestoSlug = formData.get('puesto_slug') as string | null
+  const rolLaboral = formData.get('rol_laboral_slug') as string | null
+  const numeroLegajo = formData.get('numero_legajo') as string | null
+  const obraSocial = formData.get('obra_social_slug') as string | null
+  const sindicato = formData.get('sindicato') as string | null
+
+  const datos = {
+    persona_id: personaId,
+    tenant_id: TENANT_ID,
+    area_trabajo_slug: areaTrabajo || null,
+    puesto_slug: puestoSlug || null,
+    rol_laboral_slug: rolLaboral || null,
+    numero_legajo: numeroLegajo || null,
+    obra_social_slug: obraSocial || null,
+    sindicato: sindicato || null,
+  }
+
+  // Upsert — persona_id is PK
+  const { error } = await supabase
+    .from('personas_datos_laborales')
+    .upsert(datos, { onConflict: 'persona_id' })
+
+  if (error) {
+    if (error.message.includes('idx_personas_datos_laborales_legajo')) {
+      return fail('Ese número de legajo ya está asignado a otra persona')
+    }
+    return fail(`Error al guardar datos laborales: ${error.message}`)
+  }
+
+  revalidatePath('/admin/rrhh')
+  revalidatePath(`/admin/personas/${personaId}`)
   return ok()
 }
 

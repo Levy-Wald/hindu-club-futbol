@@ -100,13 +100,13 @@ export default async function LiquidacionesPage({ searchParams }: PageProps) {
   const { data: contratosVigentes } = await supabase
     .from('rrhh_contratos')
     .select(`
-      id, puesto, monto, moneda,
+      id, modalidad, monto, moneda,
       persona:personas(id, nombre, apellido)
     `)
     .eq('tenant_id', TENANT_ID)
     .eq('estado', 'vigente')
     .is('deleted_at', null)
-    .order('puesto')
+    .order('created_at', { ascending: false })
 
   // Fetch cajas para pagar
   const cajas = await fetchCajasParaLiquidacion()
@@ -141,7 +141,6 @@ export default async function LiquidacionesPage({ searchParams }: PageProps) {
                   <TableRow>
                     <TableHead>Periodo</TableHead>
                     <TableHead>Persona</TableHead>
-                    <TableHead>Puesto</TableHead>
                     <TableHead className="text-right">Bruto</TableHead>
                     <TableHead className="text-right">Deducciones</TableHead>
                     <TableHead className="text-right">Neto</TableHead>
@@ -157,14 +156,6 @@ export default async function LiquidacionesPage({ searchParams }: PageProps) {
                       id: string
                       nombre: string
                       apellido: string
-                    } | null
-
-                    const contratoRaw = liq.contrato as unknown
-                    const contrato = (Array.isArray(contratoRaw) ? contratoRaw[0] : contratoRaw) as {
-                      id: string
-                      puesto: string
-                      modalidad: string
-                      area: string | null
                     } | null
 
                     const esAnulada = liq.estado === 'anulada'
@@ -185,9 +176,6 @@ export default async function LiquidacionesPage({ searchParams }: PageProps) {
                           ) : (
                             '-'
                           )}
-                        </TableCell>
-                        <TableCell className={esAnulada ? 'line-through' : ''}>
-                          {contrato?.puesto ?? '-'}
                         </TableCell>
                         <TableCell className={`text-right whitespace-nowrap ${esAnulada ? 'line-through' : ''}`}>
                           {formatMoney(liq.monto_bruto)}

@@ -76,6 +76,7 @@ export async function fetchCatalogos() {
     atributos, estadosPadron, tiposSocio, rolesEquipo,
     motivosBaja, tiposVinculo, disciplinas, nivelesCompetencia,
     tiposDocumento, tiposEstudio, obrasSociales,
+    areasTrabajo, puestos, rolesLaborales,
   ] = await Promise.all([
     supabase.from('catalogo_atributos').select('slug, nombre, descripcion, categoria, activo').order('categoria'),
     supabase.from('catalogo_estados_padron').select('id, slug, nombre, activo').order('nombre'),
@@ -88,6 +89,9 @@ export async function fetchCatalogos() {
     supabase.from('catalogo_tipos_documento').select('slug, nombre, activo').order('nombre'),
     supabase.from('catalogo_tipos_estudio').select('slug, nombre, activo').order('nombre'),
     supabase.from('catalogo_obras_sociales').select('slug, nombre, activo').order('nombre'),
+    supabase.from('catalogo_areas_trabajo').select('slug, nombre, activo').order('nombre'),
+    supabase.from('catalogo_puestos').select('slug, nombre, activo').order('nombre'),
+    supabase.from('catalogo_roles_laborales').select('slug, nombre, activo').order('nombre'),
   ])
 
   if (atributos.error) throw atributos.error
@@ -107,5 +111,8 @@ export async function fetchCatalogos() {
     tiposDocumento: tiposDocumento.data ?? [],
     tiposEstudio: tiposEstudio.data ?? [],
     obrasSociales: obrasSociales.data ?? [],
+    areasTrabajo: areasTrabajo.data ?? [],
+    puestos: puestos.data ?? [],
+    rolesLaborales: rolesLaborales.data ?? [],
   }
 }

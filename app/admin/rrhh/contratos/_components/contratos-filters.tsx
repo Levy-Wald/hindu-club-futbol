@@ -21,7 +21,6 @@ export function ContratosFilters() {
 
   const modalidad = searchParams.get('modalidad') ?? ''
   const estado = searchParams.get('estado') ?? ''
-  const area = searchParams.get('area') ?? ''
   const q = searchParams.get('q') ?? ''
 
   function updateFilter(key: string, value: string | undefined) {
@@ -40,7 +39,7 @@ export function ContratosFilters() {
     router.push(pathname)
   }
 
-  const hasFilters = modalidad || estado || area || q
+  const hasFilters = modalidad || estado || q
 
   return (
     <Card>
@@ -55,7 +54,7 @@ export function ContratosFilters() {
             </Button>
           )}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Buscar persona */}
           <div className="space-y-1">
             <Label className="text-xs">Buscar persona</Label>
@@ -107,17 +106,6 @@ export function ContratosFilters() {
                 <SelectItem value="suspendido">Suspendido</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          {/* Area */}
-          <div className="space-y-1">
-            <Label className="text-xs">Area</Label>
-            <Input
-              type="text"
-              placeholder="Area..."
-              value={area}
-              onChange={(e) => updateFilter('area', e.target.value || undefined)}
-            />
           </div>
         </div>
       </CardContent>

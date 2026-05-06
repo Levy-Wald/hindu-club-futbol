@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
-import { Plus, Search, Users, Trophy, Heart, FileText } from 'lucide-react'
+import { Plus, Search, Users, Trophy, Heart, FileText, Briefcase } from 'lucide-react'
 import { crearItemCatalogo, toggleItemCatalogo } from '../_actions'
 
 interface CatalogoItem {
@@ -70,6 +70,16 @@ const GROUPS: CatalogoGroup[] = [
       { key: 'obrasSociales', tabla: 'catalogo_obras_sociales', label: 'Obras sociales / Prepagas', usesSlugAsPK: true, showCategoria: false },
     ],
   },
+  {
+    key: 'rrhh',
+    label: 'RRHH',
+    icon: Briefcase,
+    catalogs: [
+      { key: 'areasTrabajo', tabla: 'catalogo_areas_trabajo', label: 'Areas de trabajo', usesSlugAsPK: true, showCategoria: false },
+      { key: 'puestos', tabla: 'catalogo_puestos', label: 'Puestos laborales', usesSlugAsPK: true, showCategoria: false },
+      { key: 'rolesLaborales', tabla: 'catalogo_roles_laborales', label: 'Roles laborales', usesSlugAsPK: true, showCategoria: false },
+    ],
+  },
 ]
 
 interface CatalogosPanelProps {
@@ -84,6 +94,9 @@ interface CatalogosPanelProps {
   tiposDocumento: CatalogoItem[]
   tiposEstudio: CatalogoItem[]
   obrasSociales: CatalogoItem[]
+  areasTrabajo: CatalogoItem[]
+  puestos: CatalogoItem[]
+  rolesLaborales: CatalogoItem[]
 }
 
 function CatalogoList({

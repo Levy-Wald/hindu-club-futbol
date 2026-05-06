@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { FileText } from 'lucide-react'
-import { fetchContratos, fetchPersonasParaContrato } from '@/app/admin/rrhh/_lib/queries'
+import { fetchContratos } from '@/app/admin/rrhh/_lib/queries'
 import { ContratosFilters } from './_components/contratos-filters'
 import { NuevoContratoDialog } from './_components/nuevo-contrato-dialog'
 import { ContratoRowActions } from './_components/contrato-row-actions'
@@ -96,7 +96,6 @@ interface PageProps {
   searchParams: Promise<{
     modalidad?: string
     estado?: string
-    area?: string
     q?: string
   }>
 }
@@ -104,21 +103,17 @@ interface PageProps {
 export default async function ContratosPage({ searchParams }: PageProps) {
   const filters = await searchParams
 
-  const [contratos, personas] = await Promise.all([
-    fetchContratos({
-      modalidad: filters.modalidad,
-      estado: filters.estado,
-      area: filters.area,
-      search: filters.q,
-    }),
-    fetchPersonasParaContrato(),
-  ])
+  const contratos = await fetchContratos({
+    modalidad: filters.modalidad,
+    estado: filters.estado,
+    search: filters.q,
+  })
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl sm:text-2xl font-bold">Contratos</h1>
-        <NuevoContratoDialog personas={personas} />
+        <NuevoContratoDialog />
       </div>
 
       {/* Filtros */}
@@ -143,8 +138,6 @@ export default async function ContratosPage({ searchParams }: PageProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Persona</TableHead>
-                    <TableHead>Puesto</TableHead>
-                    <TableHead>Area</TableHead>
                     <TableHead>Modalidad</TableHead>
                     <TableHead>Frecuencia</TableHead>
                     <TableHead className="text-right">Monto</TableHead>
@@ -179,8 +172,6 @@ export default async function ContratosPage({ searchParams }: PageProps) {
                             <span className="text-muted-foreground">-</span>
                           )}
                         </TableCell>
-                        <TableCell>{contrato.puesto ?? '-'}</TableCell>
-                        <TableCell>{contrato.area ?? '-'}</TableCell>
                         <TableCell>
                           <Badge variant="secondary">
                             {modalidadLabel(contrato.modalidad)}

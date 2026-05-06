@@ -26,7 +26,7 @@ import { crearLiquidacion } from '../../_actions'
 
 interface Contrato {
   id: string
-  puesto: string
+  modalidad: string
   monto: number
   moneda: string
   persona: unknown
@@ -116,7 +116,7 @@ export function NuevaLiquidacionDialog({ contratos }: NuevaLiquidacionDialogProp
     const nombreCompleto = persona
       ? `${persona.apellido}, ${persona.nombre}`
       : 'Sin persona'
-    return `${nombreCompleto} - ${contrato.puesto}`
+    return `${nombreCompleto} — ${formatMoney(contrato.monto, contrato.moneda)}`
   }
 
   return (
