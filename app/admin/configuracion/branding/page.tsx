@@ -12,7 +12,7 @@ export default async function BrandingPage() {
     .from('tenant_config_publica')
     .select('*')
     .eq('tenant_id', TENANT_ID)
-    .single()
+    .maybeSingle()
 
   return (
     <div className="space-y-6">

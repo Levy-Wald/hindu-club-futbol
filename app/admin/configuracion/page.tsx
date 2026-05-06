@@ -56,7 +56,7 @@ export default async function ConfiguracionPage({
     0
   )
 
-  const config = tenant.configuracion as Record<string, unknown> | null
+  const config = (tenant.configuracion ?? null) as Record<string, unknown> | null
 
   // Completion steps
   const completionSteps = [
@@ -70,7 +70,8 @@ export default async function ConfiguracionPage({
   const completedCount = completionSteps.filter((s) => s.done).length
   const completionPct = Math.round((completedCount / completionSteps.length) * 100)
 
-  const planStyle = PLAN_STYLES[tenant.plan_slug] ?? { label: tenant.plan_slug, className: 'bg-muted text-muted-foreground border-border' }
+  const planSlug = (tenant as { plan_slug?: string }).plan_slug ?? 'pro'
+  const planStyle = PLAN_STYLES[planSlug] ?? { label: planSlug, className: 'bg-muted text-muted-foreground border-border' }
 
   return (
     <div className="space-y-6">
@@ -326,7 +327,7 @@ export default async function ConfiguracionPage({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3">
                 <InfoField label="Tenant ID" value={tenant.id} mono />
                 <InfoField label="Slug" value={tenant.slug} mono />
-                <InfoField label="Dominio custom" value={tenant.dominio_custom ?? 'No configurado'} />
+                <InfoField label="Dominio custom" value={(tenant as { dominio_custom?: string | null }).dominio_custom ?? 'No configurado'} />
                 <InfoField label="Plan" value={planStyle.label} />
                 <InfoField label="Timezone" value={(tenant as { timezone?: string }).timezone ?? 'America/Argentina/Buenos_Aires'} />
                 <div className="space-y-1">

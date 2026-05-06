@@ -27,16 +27,12 @@ export async function actualizarTenant(data: {
 
   const supabase = await createClient()
 
+  // Only update columns that exist on the remote tenants table
   const updateData: Record<string, unknown> = {
     nombre: data.nombre.trim(),
     tipo: data.tipo,
-    idioma_default: data.idioma_default,
-    timezone: data.timezone,
   }
   if (data.slug !== undefined) updateData.slug = data.slug.trim()
-  if (data.plan_slug !== undefined) updateData.plan_slug = data.plan_slug
-  if (data.dominio_custom !== undefined) updateData.dominio_custom = data.dominio_custom
-  if (data.configuracion !== undefined) updateData.configuracion = data.configuracion
 
   const { error } = await supabase
     .from('tenants')
