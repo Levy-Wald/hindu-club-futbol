@@ -272,6 +272,10 @@ Tailwind 4 defaults:
 ### Fonts
 - Geist Sans/Mono: preloaded via `next/font/google`
 - `display: swap` para evitar FOIT
+- Fonts dinámicas por tenant: `fuente_titulos` y `fuente_cuerpo` en `tenant_config_publica`
+- Se cargan via Google Fonts `<link>` en root layout
+- CSS variables: `--font-heading` (h1-h6), `--font-body` (body)
+- Fonts soportadas: Inter, Poppins, Montserrat, Oswald, Playfair Display, Roboto, Open Sans, Lato
 
 ### CSS
 - Tailwind purge automático
@@ -330,6 +334,49 @@ Tailwind 4 defaults:
 
 ---
 
-**Última actualización:** 2026-05-05
-**Versión:** Sprint 8
+## Storage buckets para assets
+
+| Bucket | Acceso | Contenido | Policies |
+|--------|--------|-----------|----------|
+| `public-assets` | Público | Logos, favicon, hero, fotos equipo, indumentaria | SELECT, INSERT, UPDATE, DELETE |
+| `private-fotos-personales` | URL firmada | Fotos de perfil | SELECT, INSERT por tenant |
+| `private-documentos` | URL firmada | Aptos médicos, DNIs, contratos | SELECT, INSERT por tenant |
+
+### Specs de archivos (mostrar siempre en UI)
+
+| Tipo | Formatos | Peso máx | Dimensiones |
+|------|----------|----------|-------------|
+| Logo | PNG, SVG, WebP | 2 MB | 400×400 px |
+| Logo dark | PNG, SVG, WebP | 2 MB | 400×400 px |
+| Favicon | PNG, ICO, SVG | 500 KB | 32×32 o 64×64 px |
+| Hero imagen | PNG, JPG, WebP | 5 MB | 1920×600 px |
+| Foto equipo | PNG, JPG, WebP | 5 MB | Libre |
+| Documento | PDF, PNG, JPG | 10 MB | Libre |
+
+## Mapping tenant_config_publica → renderizado
+
+| Campo DB | Dónde se aplica |
+|----------|----------------|
+| `nombre_display` | Header, footer, SEO title, metadata |
+| `slogan` | Hero subtitle |
+| `descripcion` | SEO description |
+| `logo_url` | Header, footer, PDF membretado |
+| `logo_dark_url` | Header en dark mode |
+| `favicon_url` | Browser tab (generateMetadata) |
+| `color_primario` | Brand colors CSS |
+| `color_secundario` | Brand colors CSS |
+| `fuente_titulos` | `--font-heading` (h1-h6) |
+| `fuente_cuerpo` | `--font-body` (body) |
+| `seccion_*_visible` | Switches de visibilidad (plantel, calendario, staff, capitanes, asociate, contacto) |
+| `hero_titulo`, `hero_bajada` | Home hero section |
+| `asociate_titulo`, `asociate_bajada` | CTA asociate |
+| `terminos_html`, `privacidad_html` | Páginas legales |
+| `palmares` | Logros en home (jsonb) |
+| `media` | Galería media (jsonb) |
+| `redes_sociales` | Footer links |
+
+---
+
+**Última actualización:** 2026-05-06
+**Versión:** Sprint 9
 **Owner:** Yair Levy Wald

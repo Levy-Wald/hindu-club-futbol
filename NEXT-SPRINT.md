@@ -12,8 +12,10 @@ Lee estos archivos antes de empezar:
 
 ## Contexto rapido
 
-**Estado actual:** Sprints 1-9 completos (Sprint 9 = Finanzas mini-ERP, pendiente validación visual).
+**Estado actual:** Sprints 1-9 completos (Sprint 9 = Finanzas mini-ERP, pendiente validación visual por Yair).
 **Proximo:** Sprint 10.
+
+> **IMPORTANTE:** Sprint 9 tiene items PENDIENTE_VALIDACION_VISUAL. Yair debe validar el módulo Finanzas completo, branding dinámico (fonts/favicon), y soft-delete antes de arrancar Sprint 10. Si Yair ya validó, ignorar esta nota.
 
 ---
 

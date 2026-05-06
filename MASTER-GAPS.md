@@ -5,10 +5,21 @@ Alineado al plan original de 15 sprints → Hindu LIVE.
 
 ---
 
-## Estado actual: Sprint 9 COMPLETADO (~90%, pendiente validación visual)
+## Estado actual: Sprint 9 COMPLETADO (~95%, pendiente validación visual)
 
 Los primeros 9 sprints del plan original están completos (Sprint 9 pendiente de validación visual por Yair).
 Sprint 9 = módulo Finanzas completo: mini-ERP con Cajas, Movimientos, Productos, Cuotas, Plan de Cuentas y Mi Cuenta.
+
+### Mejoras post-Sprint 9 (sesión 2026-05-06)
+- [x] Branding dinámico: fonts y favicon se aplican desde DB (root layout reescrito)
+- [x] Revalidación de root layout al guardar branding (`revalidatePath('/', 'layout')`)
+- [x] Reordenamiento de Configuración: checklist → plan → accesos rápidos → datos org → ubicación → regional
+- [x] Soft-delete en Equipos, Personas, Padrones, Entidades (con AlertDialog de confirmación)
+- [x] Dropdown de acciones (tres puntos) en lista de Equipos
+- [x] Botón eliminar en detalle de todos los módulos
+- [x] Protección financiera: personas y entidades con movimientos de caja o cuotas NO se pueden eliminar
+- [x] Componente AlertDialog de shadcn agregado
+- [x] Documentación completa actualizada (README, ARCHITECTURE, POSTGRES, UI-UX, DESIGN-SYSTEM, WORKFLOW, BRAND-DESIGN-SYSTEM)
 
 ### Ajustes post-validación (después de Sprint 6)
 - [x] "Externos" renombrado a "Entidades" en todo el sistema (sidebar, mobile, search, títulos)
@@ -257,6 +268,9 @@ Aplicado a personas, padrones, equipos, externos:
 23. **Proveedores = Entidades** con `es_proveedor = true`. Tabla `producto_proveedor` es many-to-many entre productos y entidades
 24. **Dedup en import**: por SKU (unique per tenant) o EAN-13 (unique per tenant). Si existe, se omite
 25. **Sidebar collapsible**: Finanzas es sección colapsable con sub-items (no link directo)
+26. **Soft-delete con protección financiera**: personas/entidades con movimientos de caja o cuotas no se pueden eliminar. Datos financieros (cajas, plan de cuentas, movimientos) solo se desactivan/anulan.
+27. **Branding dinámico**: fonts y favicon leídos de `tenant_config_publica` y aplicados via root layout. Google Fonts cargadas dinámicamente. `revalidatePath('/', 'layout')` para invalidar cache.
+28. **Upload specs**: todos los campos de upload muestran formato, peso máximo y dimensiones aceptadas
 
 ---
 

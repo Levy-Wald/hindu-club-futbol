@@ -1,4 +1,6 @@
-# Design System
+# Design System — Panel Admin
+
+Sistema de diseño para el panel de administración. Para páginas públicas y branding, ver `docs/BRAND-DESIGN-SYSTEM.md`.
 
 ## Paleta de colores
 
@@ -9,16 +11,29 @@ Usamos las CSS variables de shadcn/ui (modo claro y oscuro soportados):
 - `--muted` / `--muted-foreground` — texto y fondos atenuados
 - `--destructive` — acciones peligrosas (eliminar)
 - `--border` — bordes
+- `--accent` — fondos de hover
 
-No usar colores hex hardcodeados. Siempre usar variables del tema.
+**Regla:** En el admin, usar siempre variables del tema. No usar colores hex hardcodeados.
 
-## Tipografia
+**Excepción:** Las páginas públicas (`app/(public)/`) usan brand colors hex (`#3A8FC5`, `#F2C531`, `#1E3A5F`) definidos como CSS utilities (`bg-brand-hero`, `text-brand-blue`, etc.) — ver `BRAND-DESIGN-SYSTEM.md`.
 
-- Font: system font stack (via Tailwind)
-- Titulos de pagina: `text-xl sm:text-2xl font-bold`
-- Subtitulos de seccion: `text-lg font-semibold`
-- Texto body: `text-sm` (14px)
-- Texto auxiliar: `text-xs text-muted-foreground`
+## Tipografía
+
+- **Font heading:** Configurable por tenant via `--font-heading` (default: Geist Sans)
+- **Font body:** Configurable por tenant via `--font-body` (default: Geist Sans)
+- **Font mono:** Geist Mono — `var(--font-geist-mono)`
+- Fonts dinámicas cargadas desde Google Fonts según config en `tenant_config_publica`
+
+### Escala
+
+| Elemento | Clase | Uso |
+|----------|-------|-----|
+| Título de página | `text-xl sm:text-2xl font-semibold` | H1 en cada page |
+| Subtítulo sección | `text-base font-semibold` | CardTitle |
+| Descripción | `text-sm text-muted-foreground` | CardDescription |
+| Texto body | `text-sm` (14px) | Contenido general |
+| Texto auxiliar | `text-xs text-muted-foreground` | Labels, metadata |
+| Texto micro | `text-[10px] text-muted-foreground` | Counters, tracking |
 
 ## Espaciado
 
@@ -28,8 +43,8 @@ No usar colores hex hardcodeados. Siempre usar variables del tema.
 
 ## Iconos
 
-- Libreria: `lucide-react`
-- Tamano estandar: `h-4 w-4`
+- Librería: `lucide-react`
+- Tamaño estándar: `h-4 w-4`
 - En botones: icon + texto en desktop, solo icon en mobile:
   ```tsx
   <Icon className="h-4 w-4 sm:mr-2" />
@@ -38,48 +53,65 @@ No usar colores hex hardcodeados. Siempre usar variables del tema.
 
 ## Badges
 
-- Estado activo: `<Badge variant="default">`
-- Estado inactivo: `<Badge variant="secondary">`
-- Info/metadata: `<Badge variant="outline">`
+| Variante | Uso |
+|----------|-----|
+| `default` | Activo, estado positivo |
+| `secondary` | Inactivo, neutral |
+| `outline` | Info/metadata |
+| `destructive` | Error, rechazado |
+| Custom success (bg-emerald) | Aprobado, completado |
+| Custom warning (bg-amber) | Pendiente, atención |
 
 ## Tablas
 
-- Desktop: componente `Table` de shadcn
+- Desktop: componente `Table` de shadcn con checkboxes de selección
 - Mobile: cards con datos relevantes
-- Siempre incluir estado vacio con mensaje descriptivo
+- Siempre incluir estado vacío con mensaje descriptivo
+- Nombres clickeables → link al detalle
+- Acciones en `DropdownMenu` (tres puntos), NO botones inline
+- Columna de acciones: `<TableHead className="w-10" />`
 
 ## Formularios
 
 - Inputs con `Label` arriba
 - Select para opciones finitas (< 20 items)
-- Combobox para opciones muchas (> 20 items) con busqueda
-- Switch para booleans
+- Combobox para opciones muchas (> 20 items) con búsqueda
+- Switch para booleans (ej: activo/inactivo)
 - Textarea para texto largo
+- Uploads con specs visibles (formato, peso, dimensiones)
 
-## Dialogs
+## Dialogs y AlertDialogs
 
-- Usar para acciones que requieren input (crear, editar)
-- Titulo claro de la accion
-- Boton de submit con texto descriptivo ("Crear equipo", no "Aceptar")
-- Cerrar automaticamente al completar con exito
+- `Dialog` para acciones que requieren input (crear, editar)
+- `AlertDialog` para confirmaciones destructivas (eliminar)
+- Título claro de la acción
+- Botón de submit con texto descriptivo ("Crear equipo", no "Aceptar")
+- Cerrar automáticamente al completar con éxito
+
+## Sticky save bar
+
+Para formularios con muchos campos (ej: TenantForm, BrandingForm):
+```tsx
+<div className={`sticky bottom-0 z-40 border-t bg-background/95 backdrop-blur-sm
+  ${isDirty ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+  <p>Cambios sin guardar</p>
+  <Button onClick={handleSave}>Guardar cambios</Button>
+</div>
+```
 
 ---
 
-## Auditoria de consistencia (checklist periodico)
+## Auditoría de consistencia (checklist periódico)
 
-Usar para revisar la UI cuando se acumulan varios sprints:
-
-| Dimension | Que verificar |
+| Dimensión | Qué verificar |
 |-----------|---------------|
-| Color | Estamos usando variables del tema o hay hex sueltos? |
-| Tipografia | Jerarquia clara h1 > h2 > h3 > body? |
-| Espaciado | Scale consistente (space-y-4, gap-2/3/4) o valores arbitrarios? |
-| Componentes | Elementos similares se ven igual en todos los modulos? |
-| Responsive | Funciona en mobile (320px) y desktop (1280px)? |
-| Dark mode | Completo o hay partes rotas? |
-| Estados vacios | Todos los listados tienen mensaje cuando no hay datos? |
-| Loading | Botones deshabilitados durante submit? |
-| Hover/Focus | Todos los interactivos tienen feedback visual? |
-| Consistencia | Mismo patron de tabla/cards en personas, equipos, padrones? |
-
-Cada dimension se puede puntuar 0-10. Objetivo: >7 en todas.
+| Color | Variables del tema en admin, brand colors solo en público |
+| Tipografía | Jerarquía clara h1 > h2 > h3 > body |
+| Espaciado | Scale consistente (space-y-4, gap-2/3/4) |
+| Componentes | Mismo patrón tabla/cards en todos los módulos |
+| Responsive | Funciona en mobile (320px) y desktop (1280px) |
+| Dark mode | Completo en admin y público |
+| Estados vacíos | Todos los listados tienen mensaje |
+| Loading | Botones deshabilitados durante submit |
+| Eliminación | AlertDialog en todos los módulos que lo soportan |
+| Uploads | Specs visibles (formato, peso, dimensiones) |

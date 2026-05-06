@@ -330,7 +330,8 @@ pnpm dev
 | `docs/POSTGRES.md` | Indices, RLS optimizada, migraciones seguras, Supabase CLI |
 | `docs/WORKFLOW.md` | Proceso de desarrollo, checklists, verificacion, ABM de docs |
 | `docs/SKILL-CHALLENGE.md` | Pre-mortem /challenge para analizar planes antes de ejecutar |
-| `docs/BRAND-DESIGN-SYSTEM.md` | Colores, tipografía, componentes, responsive, dark mode, SEO, performance, seguridad |
+| `docs/BRAND-DESIGN-SYSTEM.md` | Colores, tipografía, componentes, responsive, dark mode, SEO, storage, uploads |
+| `docs/MENORES-TUTORES.md` | Spec menores/tutores (parcialmente implementado en Sprint 7) |
 
 ---
 
