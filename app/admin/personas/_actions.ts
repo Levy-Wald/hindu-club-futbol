@@ -179,6 +179,26 @@ export async function editarPersona(id: string, input: EditarPersonaInput) {
 
 export async function softDeletePersona(id: string) {
   const supabase = await createClient()
+
+  // Verificar si tiene movimientos financieros
+  const { count: movCount } = await supabase
+    .from('movimientos_caja')
+    .select('id', { count: 'exact', head: true })
+    .eq('persona_id', id)
+
+  if (movCount && movCount > 0) {
+    return formatResult(false, 'No se puede eliminar: esta persona tiene movimientos de caja asociados. Podés desactivarla en su lugar.')
+  }
+
+  const { count: cuotasCount } = await supabase
+    .from('cuotas_generadas')
+    .select('id', { count: 'exact', head: true })
+    .eq('persona_id', id)
+
+  if (cuotasCount && cuotasCount > 0) {
+    return formatResult(false, 'No se puede eliminar: esta persona tiene cuotas generadas. Podés desactivarla en su lugar.')
+  }
+
   const { error } = await supabase
     .from('personas')
     .update({

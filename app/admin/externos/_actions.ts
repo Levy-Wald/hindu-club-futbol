@@ -184,6 +184,16 @@ export async function quitarRepresentante(id: string, entidadId: string) {
 export async function eliminarEntidad(id: string) {
   const supabase = await createClient()
 
+  // Verificar si tiene movimientos financieros
+  const { count: movCount } = await supabase
+    .from('movimientos_caja')
+    .select('id', { count: 'exact', head: true })
+    .eq('entidad_id', id)
+
+  if (movCount && movCount > 0) {
+    return formatResult(false, 'No se puede eliminar: esta entidad tiene movimientos de caja asociados. Podés desactivarla en su lugar.')
+  }
+
   const { error } = await supabase
     .from('entidades')
     .update({ deleted_at: new Date().toISOString(), activo: false })
