@@ -13,7 +13,7 @@ import { ArrowLeftRight, FileText } from 'lucide-react'
 import { MovimientosFilters } from './_components/movimientos-filters'
 import { NuevoMovimientoDialog } from './_components/nuevo-movimiento-dialog'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
+const TENANT_ID = '62e25f3c-7c86-42f1-9b43-cdbab28dacde'
 
 function formatMoney(amount: number | null, currency = 'ARS') {
   if (amount == null) return '-'

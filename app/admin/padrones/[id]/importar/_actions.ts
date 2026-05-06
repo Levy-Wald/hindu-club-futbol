@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import type { FieldKey, ImportSummary } from './_lib/types'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
+const TENANT_ID = '62e25f3c-7c86-42f1-9b43-cdbab28dacde'
 
 /**
  * Fetch existing personas for dedup matching.

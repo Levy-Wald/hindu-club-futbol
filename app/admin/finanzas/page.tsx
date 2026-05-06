@@ -26,7 +26,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
+const TENANT_ID = '62e25f3c-7c86-42f1-9b43-cdbab28dacde'
 
 function formatMoney(amount: number, currency = 'ARS') {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency }).format(amount)

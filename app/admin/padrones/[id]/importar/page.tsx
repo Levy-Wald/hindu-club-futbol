@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { ImportWizard } from './_components/import-wizard'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
+const TENANT_ID = '62e25f3c-7c86-42f1-9b43-cdbab28dacde'
 
 interface Props {
   params: Promise<{ id: string }>

@@ -29,7 +29,7 @@ export default async function AsociatePage() {
       <section className="py-8 sm:py-12">
         <FormInscripcion
           categorias={categorias}
-          tenantId="11111111-1111-1111-1111-111111111111"
+          tenantId="62e25f3c-7c86-42f1-9b43-cdbab28dacde"
         />
       </section>
     </div>
