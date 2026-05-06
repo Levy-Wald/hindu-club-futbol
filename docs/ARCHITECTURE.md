@@ -143,9 +143,51 @@ export default function Page() { redirect('/admin/finanzas/cajas') }
 - **Datos financieros** (cajas, plan de cuentas, movimientos): solo se desactivan o anulan, nunca se eliminan
 - Confirmación con `AlertDialog` antes de cualquier eliminación
 
-## Preparación para conexión externa (Sprint 13+)
+## Modulos implementados
 
-Las queries y actions están diseñadas para ser envueltas como:
+### RRHH (`app/admin/rrhh/`)
+
+```
+app/admin/rrhh/
+├── page.tsx                 # Dashboard RRHH
+├── contratos/
+│   ├── page.tsx             # Lista (server) + ContratosTable (client)
+│   └── _components/         # contratos-table, nuevo-contrato-dialog, contratos-filters
+├── liquidaciones/
+│   ├── page.tsx             # Lista (server) + LiquidacionesTable (client)
+│   └── _components/         # liquidaciones-table, nueva-liquidacion-dialog, liquidaciones-filters
+├── _lib/queries.ts          # Queries compartidas RRHH
+└── _actions.ts              # Server actions compartidas RRHH
+```
+
+Empleado = persona con atributo `rrhh.empleado`. No hay tabla `rrhh_empleados`.
+Liquidacion genera/anula movimiento_caja automatico via server action.
+
+### Operaciones (`app/admin/operaciones/`)
+
+Ops semanales cross-equipo, confirmaciones asistencia, scouting CRUD completo.
+Esquemas tacticos: tablas creadas, UI diferido a Sprint 13.
+
+## Capa de servicios pura (Decision D3)
+
+Desde Sprint 11.5 en adelante, todo modulo nuevo debe tener:
+
+```
+lib/modulos/{slug}/
+├── services.ts       # Logica pura, NO usa Next ni bypass RLS
+├── queries.ts        # SELECTs tipicos
+├── mutations.ts      # INSERTs/UPDATEs/DELETEs
+├── events.ts         # Emision de module_events
+├── permissions.ts    # Que atributo puede que
+├── types.ts          # Tipos TS
+└── mcp.ts            # MCP tools del modulo
+```
+
+Ver `docs/PROPUESTA-ARQUITECTONICA.md` seccion 3.5 para el patron completo.
+
+## Preparacion para conexion externa (Sprint 13+)
+
+Las queries y actions estan disenadas para ser envueltas como:
 - **API REST**: route handlers en `app/api/v1/` que llaman las mismas query functions
 - **MCP Server**: tools que wrappean las mismas funciones con Zod schemas
-- **Webhooks**: triggered desde server actions después de mutations exitosas
+- **Webhooks**: triggered desde server actions despues de mutations exitosas

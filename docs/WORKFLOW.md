@@ -1,46 +1,49 @@
 # Workflow de desarrollo
 
-## Prompt base (inicio de sesión)
+## Prompt base (inicio de sesion)
 
-Al comenzar cualquier sesión de trabajo, el agente debe:
+Al comenzar cualquier sesion de trabajo, el agente debe:
 
-1. Leer `CLAUDE.md` (cargado automáticamente)
+1. Leer `CLAUDE.md` (cargado automaticamente)
 2. Leer `MASTER-GAPS.md` para contexto de pendientes
-3. Leer docs relevantes según la tarea:
+3. Leer `NEXT-SPRINT.md` para saber que hacer ahora
+4. Leer docs relevantes segun la tarea:
    - Cambios de UI → `docs/UI-UX.md` + `docs/DESIGN-SYSTEM.md`
-   - Páginas públicas → `docs/BRAND-DESIGN-SYSTEM.md`
+   - Paginas publicas → `docs/BRAND-DESIGN-SYSTEM.md`
    - Cambios de DB/queries → `docs/POSTGRES.md`
    - Cambios de estructura → `docs/ARCHITECTURE.md`
-   - Nuevos módulos → `docs/ARCHITECTURE.md`
+   - Nuevos modulos → `docs/ARCHITECTURE.md` + `docs/PROPUESTA-ARQUITECTONICA.md`
+   - Decisiones arquitectonicas → `docs/PROPUESTA-ARQUITECTONICA.md`
    - Pre-mortem de plan → `docs/SKILL-CHALLENGE.md`
-   - Menores/tutores → `docs/MENORES-TUTORES.md`
+   - Estado de seguridad DB → `docs/REPORTE-CLEANUP-POST-SPRINT11.md`
 
 ## Checklist pre-feature (SaaS)
 
 Antes de implementar cualquier feature nueva:
 
-- [ ] Necesita migración? (nueva tabla o columna)
-- [ ] Necesita RLS? (si toca la DB, qué policies aplican)
+- [ ] Necesita migracion? (nueva tabla o columna)
+- [ ] Necesita RLS? (si toca la DB, que policies aplican)
 - [ ] Es multi-tenant? (tiene `tenant_id`?)
-- [ ] Scope: persona, equipo, padrón, o tenant?
+- [ ] Scope: persona, equipo, padron, o tenant?
 - [ ] Afecta auth/permisos? (necesita atributo nuevo?)
-- [ ] Tiene exportación? (estándar en todos los módulos)
-- [ ] Tiene eliminación? (soft-delete con AlertDialog, protección financiera)
+- [ ] Tiene exportacion? (estandar en todos los modulos)
+- [ ] Tiene eliminacion? (soft-delete con AlertDialog, proteccion financiera)
 - [ ] Tiene upload de archivos? (specs de formato/peso/dimensiones visibles)
-- [ ] Patrón de módulo existente aplica? (queries/actions/components)
+- [ ] Patron de modulo existente aplica? (queries/actions/components)
+- [ ] Tabla nueva usa prefijo de modulo? (ver convencion en PROPUESTA-ARQUITECTONICA.md)
 
 ## Durante el desarrollo
 
-- Seguir el patrón de módulo existente (queries, actions, components).
-- No inventar patrones nuevos sin justificación documentada.
+- Seguir el patron de modulo existente (queries, actions, components).
+- No inventar patrones nuevos sin justificacion documentada.
 - Si algo no encaja en los patrones existentes, documentarlo.
-- Commits atómicos: una funcionalidad = un commit.
+- Commits atomicos: una funcionalidad = un commit.
 - Server Components por defecto. `'use client'` solo con: useState, useEffect, onClick, onChange.
 - `Promise.all` para queries independientes en paralelo.
 - Select solo columnas necesarias en listas (no `select('*')`).
 - shadcn v4: usar `render` prop, NO `asChild`.
 
-## Verificación post-desarrollo
+## Verificacion post-desarrollo
 
 Correr antes de entregar:
 
@@ -54,11 +57,11 @@ Si falla, PARAR y arreglar antes de continuar.
 ```bash
 npx tsc --noEmit
 ```
-Reportar errores de tipo. Arreglar los críticos.
+Reportar errores de tipo. Arreglar los criticos.
 
-### 3. Seguridad rápida
+### 3. Seguridad rapida
 Verificar que no haya:
-- `console.log` en código de producción
+- `console.log` en codigo de produccion
 - Keys o tokens hardcodeados
 - `SUPABASE_SERVICE_ROLE_KEY` expuesto en client components
 - Inputs de usuario sin sanitizar en queries
@@ -72,32 +75,49 @@ Revisar cada archivo modificado por cambios no intencionales.
 ## Checklist pre-entrega
 
 - [ ] `pnpm build` sin errores
-- [ ] No hay `any` sin justificación
+- [ ] No hay `any` sin justificacion
 - [ ] Server Components donde se pueda, Client solo donde se necesita
 - [ ] Mutations con `revalidatePath`
 - [ ] UI responsive (mobile + desktop)
-- [ ] Estados vacíos manejados
+- [ ] Estados vacios manejados
 - [ ] Toasts de feedback
 - [ ] Migraciones siguen checklist de `docs/POSTGRES.md`
 - [ ] RLS policies si hay tablas nuevas
-- [ ] Eliminación con AlertDialog + protección financiera si aplica
+- [ ] Eliminacion con AlertDialog + proteccion financiera si aplica
 - [ ] Uploads con specs visibles
 - [ ] MASTER-GAPS actualizado
 
 ## Al finalizar (ABM de docs)
 
-Después de completar trabajo significativo:
+Despues de completar trabajo significativo:
 
 1. **MASTER-GAPS.md** — Marcar items completados, agregar nuevos si surgieron.
-2. **docs/** — Si se estableció un patrón nuevo o se tomó una decisión arquitectónica, documentarla.
-3. **README.md** — Si se agregó un módulo nuevo o cambió la estructura, actualizarlo.
+2. **NEXT-SPRINT.md** — Actualizar si cambia el proximo paso.
+3. **docs/** — Si se establecio un patron nuevo o se tomo una decision arquitectonica, documentarla.
+4. **README.md** — Si se agrego un modulo nuevo o cambio la estructura, actualizarlo.
+
+## Documentos de referencia
+
+| Documento | Cuando consultarlo |
+|-----------|-------------------|
+| `CLAUDE.md` | Siempre (se carga automaticamente) |
+| `MASTER-GAPS.md` | Inicio de sesion, fin de sesion |
+| `NEXT-SPRINT.md` | Inicio de sesion |
+| `docs/PROPUESTA-ARQUITECTONICA.md` | Decisiones de diseno, nuevos modulos, convenciones |
+| `docs/REPORTE-CLEANUP-POST-SPRINT11.md` | Estado de seguridad de la DB |
+| `docs/ARCHITECTURE.md` | Estructura de capas, patron de modulo |
+| `docs/POSTGRES.md` | Migraciones, RLS, indices |
+| `docs/UI-UX.md` | Patrones React, responsive, shadcn v4 |
+| `docs/DESIGN-SYSTEM.md` | Colores, tipografia, componentes |
+| `docs/BRAND-DESIGN-SYSTEM.md` | Paginas publicas, branding |
+| `docs/SKILL-CHALLENGE.md` | Pre-mortem antes de planes complejos |
 
 ## Reglas de sprint
 
 - Sprint = 1 funcionalidad bien terminada.
-- No avanzar al siguiente sprint sin validación de Yair.
+- No avanzar al siguiente sprint sin validacion de Yair.
 - Marcar `PENDIENTE_VALIDACION_VISUAL` en lo que no se pudo probar end-to-end.
-- Cada sprint cierra con: código + UI + RLS + docs actualizados.
+- Cada sprint cierra con: codigo + UI + RLS + docs actualizados.
 
 ## Deploy
 
@@ -106,11 +126,11 @@ Después de completar trabajo significativo:
 3. Verificar en `hindu-club.vercel.app` que el deploy fue exitoso
 4. Si hay cambios de DB: aplicar migrations via Supabase dashboard o CLI
 
-## Preparación para conexión externa
+## Preparacion para conexion externa
 
 ### API REST (Sprint 13+)
 - Route handlers en `app/api/v1/` que llaman las mismas query functions.
-- Autenticación via API key (tabla `api_keys` con tenant_id).
+- Autenticacion via API key (tabla `api_keys` con tenant_id).
 - Rate limiting por key.
 
 ### MCP Server (Sprint 13+)
@@ -118,9 +138,9 @@ Después de completar trabajo significativo:
 - Actions en `_actions.ts` son mutations autocontenidas.
 
 ### Webhooks (Sprint 13+)
-- Triggered desde server actions después de mutations exitosas.
+- Triggered desde server actions despues de mutations exitosas.
 - Eventos: persona_creada, cuota_pagada, movimiento_registrado, etc.
 
 ### WhatsApp Business (Sprint 16+)
 - Ventana de 24hs: mensajes fuera de ventana requieren templates aprobados por Meta.
-- Números en formato E.164: +54 para Argentina.
+- Numeros en formato E.164: +54 para Argentina.

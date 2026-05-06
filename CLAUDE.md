@@ -146,13 +146,19 @@ Mejor parar y aclarar que avanzar mal. Yair está disponible.
 ```
 hindu-v2/
 ├── app/
-│   ├── (public)/              # Páginas públicas (home, equipos, asociate, legal)
+│   ├── (public)/              # Paginas publicas (home, equipos, asociate, legal)
 │   ├── admin/                 # Dashboard con sidebar
-│   │   ├── personas/          # CRUD + ficha en tabs
+│   │   ├── personas/          # CRUD + ficha en tabs (10 tabs)
 │   │   ├── equipos/           # CRUD + detalle (plantel, staff, horarios)
 │   │   ├── padrones/          # CRUD + miembros + comparador
-│   │   ├── externos/          # CRUD entidades externas
-│   │   └── ...                # Placeholders (operaciones, cajas, etc.)
+│   │   ├── externos/          # CRUD entidades (proveedores, federaciones)
+│   │   ├── finanzas/          # Dashboard + cajas + movimientos + productos + cuotas + plan
+│   │   ├── operaciones/       # Ops semanales + asistencia + scouting
+│   │   ├── rrhh/              # Dashboard + contratos + liquidaciones
+│   │   ├── mi-perfil/         # Perfil usuario logueado
+│   │   ├── mi-equipo/         # Vista por rol
+│   │   ├── mi-cuenta/         # Cuenta corriente personal
+│   │   └── configuracion/     # Config tenant + branding
 │   └── api/                   # Route handlers
 ├── components/
 │   ├── ui/                    # shadcn + vistas-panel, selection-bar, export
@@ -163,13 +169,13 @@ hindu-v2/
 │   ├── vistas/                # column-defs.ts, actions.ts
 │   └── search/                # global-search.ts
 ├── supabase/
-│   ├── migrations/            # Numeradas por timestamp
-│   └── seed.sql
-├── docs/                      # Estándares técnicos
+│   └── migrations/            # 16+ migrations por timestamp
+├── docs/                      # 10 archivos de documentacion
 ├── middleware.ts              # Auth middleware
 ├── CLAUDE.md                  # ESTE archivo (instrucciones agente)
 ├── README.md                  # Para humanos
 ├── MASTER-GAPS.md             # Estado + roadmap + pendientes
+├── NEXT-SPRINT.md             # Que hacer ahora
 └── package.json
 ```
 
@@ -239,8 +245,10 @@ SELECT modulo_activo('disciplina_futbol');
 - `private-documentos`: aptos médicos, DNIs, contratos. URL firmada con expiración.
 - `private-fotos-personales`: fotos de perfil. Solo dentro del tenant.
 - `private-comprobantes`: facturas, recibos. URL firmada.
+- `private-recibos-sueldo`: recibos de sueldo RRHH (PDF, JPG, PNG, WebP). 10MB max.
 
 RLS estricta para buckets privados.
+Storage paths: `{bucket}/{tenant_id}/{module_slug}/{entity_id}/{filename}`
 
 ---
 
@@ -324,14 +332,15 @@ pnpm dev
 
 | Archivo | Contenido |
 |---------|-----------|
+| `docs/PROPUESTA-ARQUITECTONICA.md` | Decisiones arquitectonicas firmes (D1-D13), convenciones, mapa modular |
+| `docs/REPORTE-CLEANUP-POST-SPRINT11.md` | Cleanup seguridad DB, estado actual, hallazgos |
 | `docs/ARCHITECTURE.md` | Separacion de capas, patron de modulo, multi-tenant |
 | `docs/UI-UX.md` | Responsive, patrones React, shadcn v4, accesibilidad, performance frontend |
 | `docs/DESIGN-SYSTEM.md` | Colores, tipografia, espaciado, componentes, auditoria visual |
 | `docs/POSTGRES.md` | Indices, RLS optimizada, migraciones seguras, Supabase CLI |
 | `docs/WORKFLOW.md` | Proceso de desarrollo, checklists, verificacion, ABM de docs |
 | `docs/SKILL-CHALLENGE.md` | Pre-mortem /challenge para analizar planes antes de ejecutar |
-| `docs/BRAND-DESIGN-SYSTEM.md` | Colores, tipografía, componentes, responsive, dark mode, SEO, storage, uploads |
-| `docs/MENORES-TUTORES.md` | Spec menores/tutores (parcialmente implementado en Sprint 7) |
+| `docs/BRAND-DESIGN-SYSTEM.md` | Colores, tipografia, componentes, responsive, dark mode, SEO, storage, uploads |
 
 ---
 
@@ -350,37 +359,42 @@ Esto garantiza que la documentacion siempre refleja el estado real del proyecto.
 
 ## Progreso actual
 
-Sprints 1-9 del plan original de 15: COMPLETADOS + UX transversal.
-Sprint 9 (Finanzas mini-ERP) pendiente de validación visual por Yair.
-Sprint pendiente: 10 (Operaciones deportivas avanzadas).
-Ver `NEXT-SPRINT.md` para instrucciones exactas de qué hacer ahora.
+Sprints 1-11.1 COMPLETADOS. Bugs Sprint 9 FIXEADOS. Cleanup de seguridad HECHO.
+Pendiente: validacion visual de Yair para Sprints 9, 10, 11.
+Proximo: Sprint 11.5 (refactor eventos).
+Ver `NEXT-SPRINT.md` para instrucciones exactas de que hacer ahora.
 Ver `MASTER-GAPS.md` para roadmap completo.
+Ver `docs/PROPUESTA-ARQUITECTONICA.md` para decisiones arquitectonicas.
 
-## Plan de 15 sprints → Hindu LIVE
+## Plan de sprints → Hindu LIVE
 
 | Sprint | Contenido | Estado |
 |--------|-----------|--------|
 | 1 | Foundation (migrations, auth, layout, RLS, deploy) | HECHO |
 | 2 | ABM Personas + Vista Global | HECHO |
-| 3 | Padrones + Importación masiva | HECHO |
-| 4 | Equipos + Categorías + Horarios + Asignaciones | HECHO |
-| 5 | Vínculos + Tutores/Padres + Bajas | HECHO |
+| 3 | Padrones + Importacion masiva | HECHO |
+| 4 | Equipos + Categorias + Horarios + Asignaciones | HECHO |
+| 5 | Vinculos + Tutores/Padres + Bajas | HECHO |
 | 6 | Entidades + Federaciones + Fusiones | HECHO |
 | 7 | Mi Perfil + Mi Equipo + Calendario/Eventos | HECHO |
-| 8 | Páginas públicas + Branding + Pre-inscripción | HECHO |
-| 9 | Finanzas: Cajas + Movimientos + Productos + Cuotas | HECHO (validación pendiente) |
-| 10 | Operaciones deportivas avanzadas | PENDIENTE ← PRÓXIMO |
-| 11 | Empleados + Contratos + Liquidaciones | PENDIENTE |
-| 12 | Comunicaciones | PENDIENTE |
-| 13 | API + Webhooks + MCP | PENDIENTE |
-| 14 | Conectores + Padrón consolidación | PENDIENTE |
-| 15 | Auditoría + Hardening + Hindu LIVE | PENDIENTE |
+| 8 | Paginas publicas + Branding + Pre-inscripcion | HECHO |
+| 9 | Finanzas: Cajas + Movimientos + Productos + Cuotas | HECHO |
+| 10 | Operaciones deportivas (scouting, asistencia, ops semanales) | HECHO |
+| 11 | RRHH: Empleados + Contratos + Liquidaciones + Datos laborales | HECHO |
+| 11.5 | Refactor Eventos (tabla central + satelites) | PROXIMO |
+| 11.6 | Atributos namespacing (`{slug}.{rol}`) | PENDIENTE |
+| 11.7 | Renombres finanzas (prefijo `fin_*`) | PENDIENTE |
+| 12 | Comunicaciones + Notificaciones + module_events | PENDIENTE |
+| 13 | API REST + MCP + Webhooks | PENDIENTE |
+| 14 | Mantenimiento + Mapa + Inventario + Reservas | PENDIENTE |
+| 15 | Shop completo | PENDIENTE |
+| 16 | Hardening + Tests E2E + Hindu LIVE | PENDIENTE |
 
-Post-LIVE: bot WA, Capitán Oliver, más disciplinas, countries, app móvil.
+Post-LIVE: bot WA, Captain Oliver, mas disciplinas, countries, app movil.
 
 ---
 
-**Última actualización:** 2026-05-06
-**Versión:** Sprints 1-9 completos (validación visual pendiente Sprint 9)
-**Plan:** 15 sprints hasta Hindu LIVE
+**Ultima actualizacion:** 2026-05-06
+**Version:** Sprints 1-11.1 completos + cleanup seguridad
+**Plan:** 16 sprints hasta Hindu LIVE
 **Owner:** Yair Levy Wald

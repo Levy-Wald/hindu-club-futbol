@@ -1,375 +1,269 @@
 # MASTER-GAPS — Estado del proyecto y roadmap
 
-Única fuente de verdad de pendientes y progreso.
-Alineado al plan original de 15 sprints → Hindu LIVE.
+Unica fuente de verdad de pendientes y progreso.
+Alineado a la propuesta arquitectonica integral (ver `docs/PROPUESTA-ARQUITECTONICA.md`).
 
 ---
 
-## Estado actual: Sprint 11 COMPLETADO (PENDIENTE_VALIDACION_VISUAL)
+## Estado actual: Sprint 11.1 COMPLETADO + Sprint 9 bugs FIXEADOS
 
-Sprint 11 = RRHH (Empleados + Contratos + Liquidaciones). Los primeros 11 sprints están completos.
-Sprints 9, 10 y 11 pendientes de validación visual por Yair.
+Sprint 11.1 = RRHH refactor datos laborales. Sprint 9 = Finanzas bugs arreglados.
+Pendiente validacion visual de Yair antes de continuar.
 
-### Mejoras post-Sprint 9 (sesión 2026-05-06)
-- [x] Branding dinámico: fonts y favicon se aplican desde DB (root layout reescrito)
-- [x] Revalidación de root layout al guardar branding (`revalidatePath('/', 'layout')`)
-- [x] Reordenamiento de Configuración: checklist → plan → accesos rápidos → datos org → ubicación → regional
-- [x] Soft-delete en Equipos, Personas, Padrones, Entidades (con AlertDialog de confirmación)
+### Fixes Sprint 9 (sesion 2026-05-06)
+- [x] Fix cajas: `saldo` → `saldo_actual` (columna correcta en DB)
+- [x] Fix movimientos: `categorias_movimiento` → `catalogo_categorias_movimiento` (nombre real de tabla para PostgREST embed)
+- [x] Fix movimientos: `activa` → `activo` (columna correcta en catalogo_categorias_movimiento)
+- [x] Productos: boton "Importar" + "Descargar modelo" + filtro estado (activos/inactivos)
+- [x] Cuotas: boton "Descargar modelo" en tabs Planes y Estado de cuotas
+- [x] Plan de cuentas: 18 cuentas nuevas (buffet, estacionamiento, expensas, seguridad, marketing, pasarelas, hosting, diferencia cambio, intereses, mora)
+- [x] RRHH Contratos/Liquidaciones: componentes client con seleccion, bulk ops (eliminar/rescindir/anular), export multi-formato
+- [x] Eliminado `contrato-row-actions.tsx` (reemplazado por contratos-table.tsx)
+
+### Cleanup Post-Sprint 11 (ejecutado por Chat)
+- [x] 2 VIEWs financieras recreadas con SECURITY INVOKER (antes bypassaban RLS)
+- [x] 3 funciones con search_path mutable corregidas
+- [x] Modulo `rrhh_basico` activado en tenant Hindu
+- [x] Bucket `private-recibos-sueldo` creado con RLS
+- [x] 0 ERRORS de seguridad (advisor limpio)
+
+### Sprint 11.1 — Datos laborales refactor (HECHO)
+- [x] Decision: datos laborales son de la PERSONA, no del contrato
+- [x] 3 catalogos nuevos: `catalogo_areas_trabajo` (10 seeds), `catalogo_puestos` (10 seeds), `catalogo_roles_laborales` (6 seeds)
+- [x] Tabla `personas_datos_laborales` 1:1 con persona
+- [x] Drop 6 columnas de `rrhh_contratos`: cuil, obra_social, sindicato, numero_legajo, area, puesto
+- [x] Selector de persona con autocomplete (debounce 300ms)
+- [x] Datos laborales read-only en form contrato + link "Completar ficha"
+- [x] Seccion "Datos laborales" en tab Profesional del editor de persona
+- [x] Catalogos gestionables desde admin Configuracion
+
+### Mejoras post-Sprint 9 (sesion anterior)
+- [x] Branding dinamico: fonts y favicon se aplican desde DB
+- [x] Reordenamiento de Configuracion: checklist → plan → accesos rapidos → datos org → ubicacion → regional
+- [x] Soft-delete en Equipos, Personas, Padrones, Entidades
 - [x] Dropdown de acciones (tres puntos) en lista de Equipos
-- [x] Botón eliminar en detalle de todos los módulos
-- [x] Protección financiera: personas y entidades con movimientos de caja o cuotas NO se pueden eliminar
-- [x] Componente AlertDialog de shadcn agregado
-- [x] Documentación completa actualizada (README, ARCHITECTURE, POSTGRES, UI-UX, DESIGN-SYSTEM, WORKFLOW, BRAND-DESIGN-SYSTEM)
-
-### Ajustes post-validación (después de Sprint 6)
-- [x] "Externos" renombrado a "Entidades" en todo el sistema (sidebar, mobile, search, títulos)
-- [x] "Dar de baja" reemplazado por "Desactivar/Activar" (toggle simple, baja formal queda para ERP Sprint 9+)
-- [x] Vínculos separados en "Familia / Tutores" y "Otros vínculos"
-- [x] Menor no puede quitar vínculo padre/madre/tutor (protección en UI)
-- [x] Tutores y Bajas removidos del menú principal (son atributos de personas, no módulos)
-- [x] Tabla entidades clickeable → detalle con DropdownMenu (patrón UX unificado)
+- [x] Proteccion financiera: personas y entidades con movimientos no se pueden eliminar
 
 ---
 
 ## Sprints COMPLETADOS
 
 ### Sprint 1 — Foundation (HECHO)
-
 - [x] Bootstrap Next.js 16 + Tailwind 4 + shadcn/ui v4
-- [x] Conexión Supabase
-- [x] Migration clubcore_init: tablas core (tenants, personas, atributos, vínculos, entidades, sedes, canchas, equipos, categorias, competencias, horarios, personas_equipos, padrones, personas_padrones, audit_log, catálogos, tenant_modulos)
-- [x] Auth magic link
-- [x] Seed: tenant Hindu, federaciones (FACCMA, AIF, APDCC), persona Yair admin
+- [x] Conexion Supabase + Migration clubcore_init
+- [x] Auth magic link + Seed Hindu
 - [x] Layout: sidebar + topbar + dark mode
-- [x] RLS básica (get_tenant_actual SECURITY DEFINER)
-- [x] Deploy Vercel funcionando
+- [x] RLS basica + Deploy Vercel
 
 ### Sprint 2 — ABM Personas + Vista Global (HECHO)
-
 - [x] CRUD personas con todos los campos
-- [x] Ficha persona en tabs: Personal, Deportivo, Salud, Profesional, Club, Documentos, Roles, Vínculos, Padrones, Ficha total
-- [x] Asignar atributos y vínculos manualmente
-- [x] Estados de persona
-- [x] Multi-deporte por persona
-- [x] Categoría sugerida por edad
-- [x] Lesiones y rehabilitaciones (tablas + UI)
-- [x] Vehículos (CRUD completo con seguro)
+- [x] Ficha persona en 10 tabs
+- [x] Atributos, vinculos, multi-deporte, categoria sugerida por edad
+- [x] Lesiones, rehabilitaciones, vehiculos
 
-### Sprint 3 — Padrones + Importación masiva (HECHO)
-
+### Sprint 3 — Padrones + Importacion masiva (HECHO)
 - [x] ABM padrones, personas_padrones
-- [x] Importación bulk CSV con validación + dedupe por DNI
-- [x] Comparador de padrones (diferencias entre dos)
-- [x] Importación en todos los módulos (personas, equipos, padrones, externos)
+- [x] Importacion bulk CSV con validacion + dedupe por DNI
+- [x] Comparador de padrones
 
-### Sprint 4 — Equipos + Categorías + Horarios + Asignaciones (HECHO)
+### Sprint 4 — Equipos + Categorias + Horarios (HECHO)
+- [x] ABM equipos con categoria, disciplina, modalidad, colores
+- [x] Horarios con recurrencia
+- [x] Asignaciones personas-equipos con rol
 
-- [x] ABM equipos con categoría, disciplina, modalidad, colores
-- [x] Categorías con edad_min/edad_max
-- [x] Horarios con recurrencia (semanal/quincenal/mensual × N repeticiones)
-- [x] Vista calendario semanal (desktop 7 columnas + mobile día a día)
-- [x] Asignar personas a equipos con rol (plantel + staff)
-- [x] Detalle equipo: composición (DT, capitán, delegados, cuerpo técnico)
-- [x] Plantel/Staff con tabla, búsqueda, filtros, selección, export
+### UX Transversal (HECHO)
+- [x] Columnas configurables, vistas guardadas por usuario
+- [x] Export multi-formato: CSV, XLSX, PDF, PDF membretado
+- [x] Templates descargables, SelectionBar, busqueda global Cmd+K
 
-### UX Transversal (HECHO — no era sprint original)
-
-Aplicado a personas, padrones, equipos, externos:
-- [x] Columnas configurables por módulo (VistasPanel)
-- [x] Guardar/cargar/eliminar vistas con nombre por usuario (tabla user_vistas)
-- [x] Exportación multi-formato: CSV, XLSX, PDF simple, PDF membretado
-- [x] PDF membretado con logo, nombre, dirección, email, web, fecha, usuario
-- [x] Templates descargables en CSV + XLSX
-- [x] Selección con checkboxes en todas las tablas + SelectionBar
-- [x] Buscador + filtros en cada módulo
-- [x] Búsqueda global Cmd+K con resultados agrupados
-- [x] Vista mobile (cards) + desktop (tabla) responsive
-
-### Sprint 5 — Vínculos + Tutores/Padres + Bajas (HECHO)
-
-- [x] Vínculos bidireccionales con labels humanos (Padre de / Hijo/a de)
-- [x] Vínculos separados en "Familia / Tutores" y "Otros vínculos"
-- [x] Menor no puede quitar vínculo padre/madre/tutor
-- [x] Tooltips de notas y fecha inicio en vínculos
-- [x] Página /admin/tutores (accesible por URL, no en menú principal)
-- [x] Página /admin/bajas (accesible por URL, no en menú principal)
-- [x] Toggle Desactivar/Activar en ficha persona (baja formal diferida a ERP)
-- [x] Server actions: cambiarEstadoPersona, reactivarPersona
-- [x] Spec documentado: docs/MENORES-TUTORES.md (para sprints 7 y 9)
+### Sprint 5 — Vinculos + Tutores/Padres + Bajas (HECHO)
+- [x] Vinculos bidireccionales con labels humanos
+- [x] Toggle Desactivar/Activar en ficha persona
 
 ### Sprint 6 — Entidades + Federaciones + Fusiones (HECHO)
-
-- [x] Módulo renombrado de "Externos" a "Entidades" en todo el sistema
-- [x] Página detalle de entidad /admin/externos/[id] con tabs (Info, Representantes, Entidades hijas)
-- [x] Dirección completa con links a Google Maps y Waze
-- [x] Jerarquía de entidades (entidad_padre_id, entidades hijas)
-- [x] Migration entidades_representantes (tabla pivote persona-entidad con roles)
-- [x] Asignar/quitar representantes con roles (presidente, vice, secretario, tesorero, vocal, contacto, delegado, otro+custom)
-- [x] Dirección y entidad padre en forms de crear/editar entidad
-- [x] Nombres clickeables en listado → detalle con DropdownMenu
-- [x] Labels de fusión en vínculos bidireccionales
-- [x] Fusiones operativas documentadas para Sprint 10 (requiere tabla partidos)
-
----
+- [x] Renombrado "Externos" a "Entidades"
+- [x] Detalle entidad con tabs, representantes, jerarquia
 
 ### Sprint 7 — Mi Perfil + Mi Equipo + Calendario/Eventos (HECHO)
+- [x] Mi Perfil, Mi Equipo, Tarjeta jugador
+- [x] Calendario con recurrencia Google Calendar
+- [x] ICS download, indumentaria upload, aptos medicos
 
-- [x] Página /admin/mi-perfil (datos personales del user logueado, edición limitada)
-- [x] Tarjeta jugador con foto, datos deportivos (pie, altura, peso, edad)
-- [x] Página /admin/mi-equipo según rol del usuario (jugador, DT, staff)
-- [x] Plantel completo con info de contacto, posición, dorsal
-- [x] Calendario/Eventos: sistema de eventos con fecha real (no solo día de semana)
-- [x] Crear eventos con recurrencia estilo Google Calendar (diario, semanal, quincenal, mensual × N repeticiones o hasta fecha)
-- [x] Editar eventos desde admin (Equipos > Calendario) y desde Mi Equipo (DT, capitanes, delegados, preparadores)
-- [x] Vista calendario semanal con navegación por semanas
-- [x] Vista lista cronológica de próximos eventos
-- [x] Descarga ICS para agregar eventos a calendarios externos (Google, iCloud, Outlook, Yahoo)
-- [x] Indumentaria: upload de fotos + descripción por tipo
-- [x] Foto de equipo: upload y visualización
-- [x] Export plantel a PNG (html-to-image)
-- [x] Aptos médicos (upload a storage privado)
-- [x] Migration `20260505220000_eventos_calendario.sql` aplicada (campos: fecha, titulo, hora_citacion, descripcion)
-
----
-
-### Sprint 8 — Páginas públicas + Branding + Pre-inscripción (HECHO)
-
-- [x] Rutas públicas sin auth: /, /equipos, /equipos/[id], /asociate, /terminos, /privacidad
-- [x] Layout público con header (logo, nav, login) + footer (contacto, redes, legal)
-- [x] Home page con 7 secciones: Hero, Próximos Eventos, Ligas/Torneos, Capitanes, Staff, Asociate CTA, Contacto
-- [x] Listado público de equipos agrupados por disciplina
-- [x] Detalle público de equipo con plantel (inicial+apellido), staff, eventos, QR
-- [x] Formulario multi-step estilo Typeform: 7 pasos (tipo, datos, contacto, tutor, deporte, info, confirmación)
-- [x] Server action para crear pre-inscripción con validación
-- [x] Admin: panel Pre-inscripciones con stats, filtros, aprobar/rechazar, crear persona al aprobar (con dedupe DNI)
-- [x] Admin: Branding Studio en Configuración > Branding, 6 tabs (Identidad, Contenido, Contacto, Visibilidad, Legal, Galería)
-- [x] Upload de logo, logo dark, favicon a Supabase Storage
-- [x] Colores configurables por tenant (primario, secundario)
-- [x] Switches de visibilidad (plantel, calendario, staff, capitanes, pre-inscripción)
-- [x] Términos y condiciones + Política de privacidad (editables desde admin)
-- [x] QR auto-generado por equipo
-- [x] Dark mode completo en todas las páginas públicas
-- [x] Full responsive (mobile, tablet, desktop)
+### Sprint 8 — Paginas publicas + Branding + Pre-inscripcion (HECHO)
+- [x] Rutas publicas, home 7 secciones, pre-inscripcion multi-step
+- [x] Branding Studio (6 tabs), QR por equipo
 - [x] Brand colors Hindu: Blue #3A8FC5, Gold #F2C531, Navy #1E3A5F
-- [x] Migration: tenant_config_publica + pre_inscripciones + RLS + seed
-- [x] Design system documentado: docs/BRAND-DESIGN-SYSTEM.md
-- [x] Middleware actualizado: solo /admin/* requiere auth
-- [x] Sidebar + Mobile nav: Pre-inscripciones agregado, Branding accesible desde Configuración
+
+### Sprint 9 — Finanzas (HECHO — VALIDADO parcialmente, bugs fixeados)
+- [x] Dashboard, ABM Cajas, ABM Movimientos
+- [x] Productos ERP (30+ campos, 13 tipos), Import masivo
+- [x] Cuotas (planes, emisiones, estado), Plan de cuentas
+- [x] Mi Cuenta, Filtros avanzados
+
+### Sprint 10 — Operaciones deportivas (HECHO — PENDIENTE_VALIDACION_VISUAL)
+- [x] Operaciones semanales cross-equipo
+- [x] Confirmaciones asistencia
+- [x] Scouting basico (CRUD completo)
+- [ ] Esquemas tacticos UI (tablas creadas, UI diferido)
+
+### Sprint 11 — RRHH (HECHO — PENDIENTE_VALIDACION_VISUAL)
+- [x] Empleados = personas con atributo `rrhh.empleado`
+- [x] ABM Contratos + Liquidaciones
+- [x] Liquidacion genera/anula movimiento_caja automatico
+- [x] Dashboard RRHH, filtros, RLS
 
 ---
 
-### Sprint 9 — Finanzas: Cajas + Movimientos + Productos + Cuotas + Plan de Cuentas (HECHO — PENDIENTE_VALIDACION_VISUAL)
+## Sprints PENDIENTES (plan revisado segun propuesta arquitectonica)
 
-- [x] Módulo Finanzas como sección colapsable en sidebar (reemplaza "Cajas" standalone)
-- [x] Dashboard Finanzas: resumen con tarjetas de saldo, gráficos de ingresos/egresos
-- [x] ABM Cajas: crear/editar cajas con tipo, saldo, responsable, cuenta contable
-- [x] Detalle caja: movimientos asociados, saldo, metadata
-- [x] ABM Movimientos: CRUD con tipo (ingreso/egreso/transferencia), persona, caja, categoría, comprobante
-- [x] Filtros avanzados en movimientos: por tipo, caja, categoría, fechas, persona
-- [x] ABM Productos full ERP: 30+ campos (SKU, EAN13, EAN14, marca, modelo, color, material, origen, unidad_medida, descripcion_larga, precio venta/compra, IVA venta/compra, stock actual/minimo, peso, cupo, instalacion)
-- [x] 13 tipos de producto: producto, servicio, cuota, actividad, alquiler, insumo, activo, gasto, locker, cochera, expensa, multa, consumo
-- [x] Import masivo de productos (wizard 4 pasos: archivo/paste → mapeo → confirmar → resultados)
-- [x] Cuotas: 3 tabs (Planes, Emisiones, Estado de cuotas) con search/filter/export/selection en cada una
-- [x] Plan de Cuentas: ABM con jerarquía (código, nombre, tipo: activo/pasivo/patrimonio/ingreso/egreso)
-- [x] Mi Cuenta: vista por persona con saldo, movimientos, cuotas pendientes
-- [x] Migrations aplicadas: tablas finanzas (cajas, movimientos, categorias_movimiento, plan_cuentas, cuotas_planes, cuotas_emisiones, cuotas_personas) + producto ERP (18 columnas nuevas + producto_proveedor)
-- [x] UX estándar en todas las páginas: búsqueda, filtros, checkboxes, SelectionBar, export multi-formato (CSV, XLSX, PDF simple, PDF membretado)
+### Sprint 11.5 — Refactor Eventos
+- [ ] Renombrar `equipos_horarios` → `eventos` + VIEW compat
+- [ ] Crear `entrenamientos_detalle`, `partidos_detalle` (satelites 1:1)
+- [ ] Renombrar `catalogo_tipos_evento_personal` → `catalogo_tipos_evento`
+- [ ] Absorber `personas_eventos_personales` en `eventos`
+- [ ] Crear VIEW `v_vencimientos_proximos`
+- [ ] Actualizar todo el codigo TS que referencia `equipos_horarios`
 
----
+### Sprint 11.6 — Atributos namespacing
+- [ ] Crear `tiene_atributo_namespace()` function
+- [ ] Migrar atributos existentes a namespaced con aliases
+- [ ] Actualizar RLS policies
 
-## Sprints PENDIENTES
+### Sprint 11.7 — Renombres finanzas (fin_*)
+- [ ] Renombrar tablas de finanzas con prefijo `fin_`
+- [ ] Crear VIEWs de compatibilidad
+- [ ] Refactor gradual del codigo
 
-### Sprint 10 — Operaciones deportivas avanzadas (HECHO — PENDIENTE_VALIDACION_VISUAL)
-
-- [x] Operaciones semanales: vista "Esta semana" cross-equipo con navegación semanal, filtros por equipo/tipo, agrupación por día
-- [x] Eventos avanzados: campos rival, notas_pre, notas_post en create/edit de eventos
-- [x] Confirmaciones de asistencia: componente AsistenciasEvento con estados (pendiente/confirmado/rechazado/presente/ausente), generar lista automática desde plantel, resumen de asistencias
-- [x] Scouting básico: CRUD completo con list, create dialog, detail page, edición inline, evaluación con estrellas (1-5), estados (observado/contactado/en_negociacion/descartado/incorporado), filtros y búsqueda
-- [x] Sidebar: Operaciones como sección colapsable con sub-items (Esta semana, Scouting) — mismo patrón que Finanzas
-- [x] API routes: /api/operaciones/eventos (week fetch), /api/asistencias/[eventoId] (attendance fetch)
-- [x] Migration aplicada: equipos_horarios +3 cols, evento_asistencias, esquemas_tacticos, esquema_posiciones, scouting_fichas — todas con RLS, triggers, indexes
-- [ ] Esquemas tácticos UI (tablas creadas, UI diferido — visual cancha con posiciones es complejo, se puede hacer en Sprint 10.5 o post-LIVE)
-
-### Sprint 11 — Empleados + Contratos + Liquidaciones (HECHO — PENDIENTE_VALIDACION_VISUAL)
-
-- [x] Empleados = personas con atributo `rrhh.empleado` (no tabla separada)
-- [x] Atributos namespaceados: `rrhh.empleado`, `rrhh.admin`, `rrhh.consulta` (primera implementación de la convención acordada)
-- [x] ABM Contratos (`rrhh_contratos`): CRUD completo con modalidad (rel_dependencia, monotributo, honorarios, informal, pasantia, voluntariado), frecuencia (mensual/quincenal/semanal/por_hora/por_evento), vigencia, monto
-- [x] Rescisión de contratos con motivo obligatorio
-- [x] Soft-delete en contratos (protegido si tiene liquidaciones pagadas)
-- [x] ABM Liquidaciones (`rrhh_liquidaciones`): CRUD con estados (borrador → aprobada → pagada / anulada)
-- [x] Liquidación genera movimiento_caja automático al pagarse (tipo egreso, con referencia bidireccional)
-- [x] Anulación de liquidación anula también el movimiento_caja asociado (cascada controlada)
-- [x] Dashboard RRHH: 4 tarjetas (empleados, contratos vigentes, costo mensual estimado, liquidaciones pendientes)
-- [x] Sidebar: RRHH como sección colapsable con sub-items (Dashboard, Contratos, Liquidaciones)
-- [x] Filtros URL-synced en contratos (modalidad, estado, búsqueda) y liquidaciones (periodo, estado, búsqueda)
-- [x] RLS: `puede_operar_rrhh()` (admin_tenant + rrhh.admin), política _own para empleados que ven sus propios contratos/liquidaciones
-- [x] Migration aplicada vía Supabase MCP: rrhh_contratos, rrhh_liquidaciones + RLS + triggers + indices
-- [x] Vínculos empleado-actividad se resuelven via personas_equipos existente (un kine en 3 equipos = 3 filas en personas_equipos con rol_equipo_slug adecuado)
-
-### Sprint 11.1 — Datos laborales refactor (HECHO — PENDIENTE_VALIDACION_VISUAL)
-
-- [x] Decisión: datos laborales son de la PERSONA, no del contrato. El contrato solo los lee.
-- [x] 3 catálogos nuevos: `catalogo_areas_trabajo` (10 seeds), `catalogo_puestos` (10 seeds), `catalogo_roles_laborales` (6 seeds)
-- [x] Tabla `personas_datos_laborales` 1:1 con persona (area, puesto, rol, legajo, obra social, sindicato)
-- [x] Legajo único por tenant (partial unique index)
-- [x] Drop 6 columnas de `rrhh_contratos`: cuil, obra_social, sindicato, numero_legajo, area, puesto
-- [x] Migración de datos existentes (contratos → personas_datos_laborales) antes del drop
-- [x] Selector de persona con autocomplete (busca por nombre/apellido/DNI, debounce 300ms)
-- [x] Al seleccionar persona en form contrato: muestra datos laborales read-only (area, puesto, rol, legajo, CUIL, obra social, sindicato)
-- [x] Si la persona no tiene datos laborales: link "Completar ficha" → /admin/personas/[id]
-- [x] Sección "Datos laborales" en tab Profesional del editor de persona (solo si tiene atributo rrhh.empleado)
-- [x] Catálogos gestionables desde admin Configuración → Catálogos → RRHH
-- [x] RLS estándar + política _own en personas_datos_laborales
-
-### Sprint 12 — Comunicaciones
-
-- [ ] Mensajería intra-club (notificaciones in-app)
+### Sprint 12 — Comunicaciones + Notificaciones
+- [ ] Crear tabla `module_events` (eventos de dominio)
 - [ ] Bell icon en topbar con notificaciones
-- [ ] Plantillas de comunicación
+- [ ] Mensajeria intra-club (in-app)
+- [ ] Plantillas de comunicacion
+- [ ] Dispatcher centralizado
 - [ ] Conector Resend para emails transaccionales (opcional)
-- [ ] Envíos masivos por padrón/equipo
 
 ### Sprint 13 — API + Webhooks + MCP
-
 - [ ] API REST v1 documentada (OpenAPI 3.1)
-- [ ] Endpoints: personas, equipos, padrones, vistas, importar
-- [ ] API keys gestionadas desde admin
-- [ ] Rate limiting
-- [ ] Webhooks salientes en eventos (persona creada, cuota pagada, etc.)
-- [ ] MCP server con tools: buscar_persona, crear_persona, listar_equipos, asignar_equipo
+- [ ] Endpoints por modulo
+- [ ] API keys + rate limiting
+- [ ] Webhooks salientes
+- [ ] MCP server con tools por modulo
+- [ ] Esquemas tacticos UI
 
-### Sprint 14 — Conectores + Padrón consolidación
+### Sprint 14 — Mantenimiento + Mapa + Inventario + Reservas
+- [ ] Modulo mantenimiento_instalaciones (mant_*)
+- [ ] Modulo mapa_instalaciones (map_*)
+- [ ] Modulo inventario_productos (inv_*)
+- [ ] Modulo reservas_espacios (res_*)
+- [ ] Conectores iniciales
 
-- [ ] Conector Zoho CRM (sync bidireccional)
-- [ ] Conector MercadoPago (cobros)
-- [ ] Sync mensual con padrón global del Hindu Club
-- [ ] Scrapping federaciones (opcional)
-- [ ] Tabla padron_consolidaciones
+### Sprint 15 — Shop completo
+- [ ] Modulo ecommerce_shop (shop_*)
+- [ ] Catalogo publico + checkout
+- [ ] Conector MercadoPago
 
-### Sprint 15 — Auditoría + Hardening + Hindu LIVE
-
-- [ ] Audit log consultable en UI (quién hizo qué, cuándo)
-- [ ] Tests E2E en flujos críticos (Playwright)
-- [ ] Performance audit (queries pesadas, lazy loading)
-- [ ] Permisos granulares (quién exporta, quién ve qué)
-- [ ] Onboarding masivo del padrón Hindu
-- [ ] Hindu Club V2 LIVE
+### Sprint 16 — Hardening + Hindu LIVE
+- [ ] Audit log consultable en UI
+- [ ] Tests E2E (Playwright)
+- [ ] Performance audit
+- [ ] Clasificar 24 funciones SECURITY DEFINER
+- [ ] Cleanup atributos viejos (drop aliases deprecated)
+- [ ] Onboarding masivo padron Hindu
+- [ ] **Hindu Club V2 LIVE**
 
 ---
 
 ## Bugs conocidos y resueltos
 
-### BUG-001: get_tenant_actual() recursión infinita en RLS
-- **Sprint:** 1
-- **Causa:** SECURITY INVOKER en función usada por RLS que consultaba tabla con RLS → loop.
-- **Fix:** SECURITY DEFINER + `SET search_path = public, pg_temp` + revocar anon/public.
-- **Lección:** Funciones helper usadas en RLS DEBEN ser SECURITY DEFINER.
+### BUG-001: get_tenant_actual() recursion infinita en RLS
+- **Sprint:** 1 — **Fix:** SECURITY DEFINER + SET search_path
+
+### BUG-002: cajas.saldo no existe
+- **Sprint:** 9 — **Fix:** columna es `saldo_actual`, no `saldo`
+
+### BUG-003: movimientos FK categorias_movimiento no encontrada
+- **Sprint:** 9 — **Fix:** tabla real es `catalogo_categorias_movimiento`
+
+### BUG-004: VIEWs financieras con SECURITY DEFINER
+- **Sprint:** 11 — **Fix:** recreadas con `security_invoker=true`
 
 ---
 
-## Decisiones técnicas tomadas
+## Decisiones tecnicas tomadas
 
-1. **shadcn v4 usa `render` prop**, no `asChild` (base-ui bajo el capó)
+1. **shadcn v4 usa `render` prop**, no `asChild`
 2. **searchParams en Next.js 16** es `Promise<Record<string, string | undefined>>`
-3. **Exports usan dynamic import** para mantener bundle chico (`lib/export/formats.ts`)
-4. **Vistas se guardan en DB** (tabla `user_vistas`) para persistir entre dispositivos
-5. **Columnas de tabla** se sincronizan via localStorage + custom events para reactividad
-6. **Trigger updated_at** se llama `trg_set_updated_at()` (NO `set_updated_at()`)
-7. **Tutores/Bajas** no son módulos del menú — son atributos/estados de Personas
-8. **"Dar de baja"** diferido al ERP (Sprint 9+). Por ahora: Desactivar/Activar simple
-9. **UX unificado**: nombres clickeables → detalle, acciones en DropdownMenu, no botones inline
-10. **"Externos" renombrado a "Entidades"** en UI (URLs siguen siendo `/admin/externos`)
-11. **Calendario/Eventos** reemplaza "Horarios": eventos con fecha real, `dia_semana` auto-computado desde `fecha` para backward compat
-12. **Recurrencia estilo Google Calendar**: genera filas individuales por fecha (no regla abstracta)
-13. **Edición de eventos por rol**: DT, capitán, subcapitán, delegado, preparador_fisico, ayudante_campo pueden editar desde Mi Equipo
-14. **ICS download client-side**: genera archivos .ics para integración con calendarios externos
-15. **Páginas públicas** bajo `app/(public)/` con layout propio (header+footer). Solo `/admin/*` requiere auth
-16. **Pre-inscripción pública** permite inserción anónima (RLS: INSERT WITH CHECK true)
-17. **Brand colors** del tenant en `tenant_config_publica`, aplicados via CSS utilities (bg-brand-hero, text-brand-blue, etc.)
-18. **Multi-step form** estilo Typeform con state management en useState, sin dependencias extra
-19. **QR por equipo** generado via API externa `api.qrserver.com` (sin dependencia local)
-20. **Finanzas como módulo independiente** bajo `/admin/finanzas/` con sub-páginas (dashboard, cajas, movimientos, productos, cuotas, plan-cuentas)
-21. **Producto ERP completo**: identidad (SKU, EAN, marca, modelo, color, material, origen) + precios (venta/compra, IVA, moneda) + inventario (stock, peso, cupo) + contabilidad (cuentas, centro costo)
-22. **13 tipos de producto** para cubrir clubes y countries: producto, servicio, cuota, actividad, alquiler, insumo, activo, gasto, locker, cochera, expensa, multa, consumo
-23. **Proveedores = Entidades** con `es_proveedor = true`. Tabla `producto_proveedor` es many-to-many entre productos y entidades
-24. **Dedup en import**: por SKU (unique per tenant) o EAN-13 (unique per tenant). Si existe, se omite
-25. **Sidebar collapsible**: Finanzas y Operaciones son secciones colapsables con sub-items (no link directo)
-26. **Soft-delete con protección financiera**: personas/entidades con movimientos de caja o cuotas no se pueden eliminar. Datos financieros (cajas, plan de cuentas, movimientos) solo se desactivan/anulan.
-27. **Branding dinámico**: fonts y favicon leídos de `tenant_config_publica` y aplicados via root layout. Google Fonts cargadas dinámicamente. `revalidatePath('/', 'layout')` para invalidar cache.
-28. **Upload specs**: todos los campos de upload muestran formato, peso máximo y dimensiones aceptadas
-29. **Asistencias upsert**: usa `onConflict: 'tenant_id,evento_id,persona_id'` para evitar duplicados al cambiar estado
-30. **Scouting hard-delete**: fichas de scouting se eliminan de verdad (no soft-delete), ya que son datos de seguimiento temporal
-31. **Esquemas tácticos diferidos**: tablas DB creadas (esquemas_tacticos, esquema_posiciones) pero UI de cancha visual diferida por complejidad
-32. **Prefijo `rrhh_` en tablas nuevas**: convención acordada en propuesta arquitectónica — tablas nuevas usan prefijo de módulo, tablas existentes no se renombran
-33. **Atributos namespaceados**: desde Sprint 11, atributos nuevos usan formato `{modulo}.{rol}` (ej: `rrhh.empleado`, `rrhh.admin`). Atributos existentes (jugador, dt, etc.) se mantienen sin namespace
-34. **Empleado = persona + atributo**: no hay tabla `rrhh_empleados`. Un empleado es una persona con atributo `rrhh.empleado` y un contrato vigente en `rrhh_contratos`
-35. **Liquidación → movimiento_caja**: al pagar una liquidación, se genera un egreso en movimientos_caja. Al anular la liquidación, se anula el movimiento. Cascada controlada en server action, no en trigger DB
+3. **Exports usan dynamic import** para bundle chico
+4. **Vistas se guardan en DB** (tabla `user_vistas`)
+5. **Trigger updated_at** se llama `trg_set_updated_at()`
+6. **Tutores/Bajas** no son modulos del menu — son atributos/estados
+7. **UX unificado**: nombres clickeables → detalle, acciones en DropdownMenu
+8. **Calendario/Eventos** reemplaza "Horarios": eventos con fecha real
+9. **Recurrencia estilo Google Calendar**: genera filas individuales por fecha
+10. **Pre-inscripcion publica** permite insercion anonima (RLS INSERT WITH CHECK true)
+11. **Finanzas como modulo independiente** bajo `/admin/finanzas/`
+12. **Producto ERP completo**: 13 tipos, 30+ campos
+13. **Proveedores = Entidades** con `es_proveedor = true`
+14. **Soft-delete con proteccion financiera**
+15. **Branding dinamico**: fonts y favicon de DB
+16. **Scouting hard-delete**: datos temporales
+17. **Prefijo `rrhh_` en tablas nuevas**: convencion acordada
+18. **Atributos namespaceados** desde Sprint 11: formato `{modulo}.{rol}`
+19. **Empleado = persona + atributo**: no hay tabla `rrhh_empleados`
+20. **Liquidacion → movimiento_caja**: cascada controlada en server action
+21. **Datos laborales en persona, no en contrato**: tabla `personas_datos_laborales` 1:1
+22. **Capa de servicios pura** (D3): inquebrantable desde proximos sprints — UI/API/MCP/Bot consumen lo mismo
+23. **Tabla `eventos` central** (D4): absorbera `equipos_horarios` en Sprint 11.5
+24. **module_events** (D6): eventos de dominio para dispatcher centralizado
+25. **Storage paths predecibles**: `{bucket}/{tenant_id}/{module_slug}/{entity_id}/{filename}`
 
 ---
 
-## Post Hindu LIVE (Sprint 16+)
+## DB stats actuales
 
-Una vez que Hindu está en producción, se construyen módulos sobre el mismo tronco:
-
-### Sprint 16-19: Bot WhatsApp + Capitán Oliver
-- Módulo `bot_whatsapp_equipo` (WhatsApp Cloud API)
-- Producto "Capitán Oliver Fútbol" (tronco + futbol + bot WA + cuotas)
-- Producto "Capitán Oliver Pádel" (mismo pero con disciplina_padel)
-- Convocatorias, confirmaciones, cobros — todo por WA
-
-### Sprint 20-24: Más disciplinas y verticales
-- Hockey, tenis, pádel, golf, rugby, básquet, actividades recreativas
-- Módulo `country_deportivo` (propietarios, accesos, invitados)
-- Módulo `escuela_deportiva`
-
-### Sprint 25-27: Integraciones avanzadas
-- Conectores: ATC Sports, Ondepor, HubSpot, Salesforce
-- App móvil propia (módulo premium)
-- Módulo `federacion_hub` (cross-club, fixtures, sanciones)
-
-### Futuro sin fecha
-- Módulos premium: polo_educativo, inmobiliario, competencias_profesionales
-- Multi-torneo, competencia_internacional
-- Revista publicación, contabilidad avanzada
+```
+Tablas:        86
+Columnas:      1416
+Funciones:     66
+RLS Policies:  277
+FKs:           210
+Buckets:       5
+Migrations:    16+ archivos (11 registradas en schema_migrations)
+ERRORS seguridad: 0
+```
 
 ---
 
 ## Arquitectura modular (referencia)
 
 ```
-TRONCO (Sprints 1-15)
-├── Personas + Atributos + Vínculos
-├── Padrones múltiples
-├── Equipos + Categorías + Horarios
-├── Cajas + Movimientos + Cuotas + Productos
-├── Empleados + Contratos
-├── Eventos + Comunicaciones
-├── Audit log + Auth + Storage + RLS
-│
-MÓDULOS VENDIBLES (Post-LIVE)
-├── Disciplinas: futbol, hockey, tenis, padel, golf, rugby, basquet...
-├── Verticales: country, federacion, escuela, inmobiliario
-├── Canales: bot_whatsapp, app_movil, api_publica, mcp_server
-└── Conectores: zoho, mercadopago, atc_sports, ondepor, stripe, resend...
+TRONCO (siempre activo, sin prefijo)
+|- Personas + Atributos + Vinculos
+|- Padrones multiples
+|- Equipos + Categorias
+|- Eventos (Sprint 11.5)
+|- Audit log + Auth + Storage + RLS
+|- module_events (Sprint 12)
+
+MODULOS VENDIBLES (activables por tenant)
+|- Finanzas (fin_*): cajas, movimientos, cuotas, productos, plan cuentas
+|- RRHH (rrhh_*): contratos, liquidaciones
+|- Operaciones (ops_*): scouting, esquemas tacticos
+|- Comunicaciones (com_*): mensajes, plantillas, envios
+|- Mantenimiento (mant_*): ordenes, planes
+|- Reservas (res_*): reservas, reglas
+|- Shop (shop_*): pedidos, carrito, envios
+|- Inventario (inv_*): movimientos
+|- Mapa (map_*): zonas
+|- Disciplinas: futbol, hockey, padel, tenis...
+|- Verticales: country, federacion, escuela
+|- Canales: bot_whatsapp, app_movil, api_publica, mcp_server
+|- Conectores: zoho, mercadopago, atc_sports, ondepor, stripe, resend
 ```
 
-La diferencia entre clientes es CONFIGURACIÓN, no CÓDIGO:
-- Hindu: tronco + futbol + conectores = USD 249/mes
-- Hacoaj: enterprise + 14 disciplinas + multi-sede = USD 2,099/mes
-- Country del Pilar: tronco + country + 3 disciplinas = USD 269/mes
-- Capitán Oliver: light + 1 disciplina + bot WA = USD 25/mes
-
 ---
 
-## Tiempo estimado restante hasta Hindu LIVE
-
-Sprints 12-16 = 5 sprints pendientes (plan revisado en propuesta arquitectónica).
-Sprint 11.5 (rename equipos_horarios → eventos + partidos_detalle) pendiente.
-
----
-
-**Última actualización:** 2026-05-06
-**Próximo sprint:** 12 (Comunicaciones + Notificaciones)
+**Ultima actualizacion:** 2026-05-06
+**Proximo:** Validacion visual de Yair → Sprint 11.5 (eventos refactor)
 **Instrucciones:** ver `NEXT-SPRINT.md`
 **Owner:** Yair Levy Wald
