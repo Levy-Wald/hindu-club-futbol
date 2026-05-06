@@ -2,7 +2,15 @@
 
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
-import { Building2, MapPin, Phone, Globe, Save, Loader2, Shield } from 'lucide-react'
+import {
+  Building2,
+  MapPin,
+  Globe,
+  Shield,
+  Save,
+  Loader2,
+  CheckCircle2,
+} from 'lucide-react'
 import {
   Card,
   CardContent,
@@ -21,6 +29,7 @@ import {
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 import { actualizarTenant } from '../_actions'
 
 interface TenantFormProps {
@@ -82,10 +91,8 @@ const PLAN_LABELS: Record<string, string> = {
   enterprise: 'Enterprise',
 }
 
-export function TenantForm({ tenant }: TenantFormProps) {
-  const [isPending, startTransition] = useTransition()
-
-  const [formData, setFormData] = useState({
+function buildInitialState(tenant: TenantFormProps['tenant']) {
+  return {
     nombre: tenant.nombre,
     tipo: tenant.tipo,
     idioma_default: tenant.idioma_default ?? 'es-AR',
@@ -103,7 +110,16 @@ export function TenantForm({ tenant }: TenantFormProps) {
       codigo_postal: (tenant.configuracion as any)?.direccion_fiscal?.codigo_postal ?? '',
       pais: (tenant.configuracion as any)?.direccion_fiscal?.pais ?? 'Argentina',
     },
-  })
+  }
+}
+
+export function TenantForm({ tenant }: TenantFormProps) {
+  const [isPending, startTransition] = useTransition()
+
+  const initialState = buildInitialState(tenant)
+  const [formData, setFormData] = useState(initialState)
+
+  const isDirty = JSON.stringify(formData) !== JSON.stringify(initialState)
 
   function updateField(field: string, value: string) {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -116,7 +132,7 @@ export function TenantForm({ tenant }: TenantFormProps) {
     }))
   }
 
-  async function handleSave() {
+  function handleSave() {
     startTransition(async () => {
       const result = await actualizarTenant({
         nombre: formData.nombre,
@@ -134,48 +150,62 @@ export function TenantForm({ tenant }: TenantFormProps) {
           direccion_fiscal: formData.direccion_fiscal,
         },
       })
-      if (result.ok) toast.success(result.message)
-      else toast.error(result.message)
+      if (result.ok) {
+        toast.success(result.message)
+      } else {
+        toast.error(result.message)
+      }
     })
   }
 
   return (
-    <div className="space-y-6 pb-24">
-      {/* Card 1: Datos institucionales */}
+    <div className="space-y-6 pb-4">
+
+      {/* ── Seccion 1: Datos de la organizacion ── */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-muted-foreground" />
-            <CardTitle>Datos institucionales</CardTitle>
+          <div className="flex items-center gap-2.5">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <CardTitle className="text-base">Datos de la organizacion</CardTitle>
+              <CardDescription className="mt-0.5">
+                Informacion legal e identidad del club
+              </CardDescription>
+            </div>
           </div>
-          <CardDescription>
-            Informacion basica de la organizacion
-          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-2 sm:col-span-2 lg:col-span-2">
-              <Label htmlFor="nombre">Nombre de la organizacion *</Label>
+        <CardContent className="space-y-5">
+          {/* Fila 1: nombre + slug */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="nombre">
+                Nombre de la organizacion <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="nombre"
                 value={formData.nombre}
                 onChange={(e) => updateField('nombre', e.target.value)}
                 placeholder="Ej: Hindu Club"
-                required
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="slug">Slug</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="slug">
+                Slug
+              </Label>
               <Input
                 id="slug"
                 value={tenant.slug}
                 readOnly
-                className="font-mono bg-muted"
+                className="font-mono bg-muted text-muted-foreground"
               />
+              <p className="text-xs text-muted-foreground">Solo lectura</p>
             </div>
+          </div>
 
-            <div className="space-y-2">
+          {/* Fila 2: razon social + cuit + tipo */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="space-y-1.5">
               <Label htmlFor="razon_social">Razon social</Label>
               <Input
                 id="razon_social"
@@ -185,8 +215,8 @@ export function TenantForm({ tenant }: TenantFormProps) {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="cuit">CUIT/CUIL</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="cuit">CUIT / CUIL</Label>
               <Input
                 id="cuit"
                 value={formData.cuit}
@@ -195,7 +225,7 @@ export function TenantForm({ tenant }: TenantFormProps) {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="tipo">Tipo de organizacion</Label>
               <Select
                 value={formData.tipo}
@@ -217,20 +247,23 @@ export function TenantForm({ tenant }: TenantFormProps) {
         </CardContent>
       </Card>
 
-      {/* Card 2: Direccion fiscal */}
+      {/* ── Seccion 2: Ubicacion y contacto ── */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-muted-foreground" />
-            <CardTitle>Direccion fiscal</CardTitle>
+          <div className="flex items-center gap-2.5">
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <CardTitle className="text-base">Ubicacion y contacto</CardTitle>
+              <CardDescription className="mt-0.5">
+                Domicilio fiscal y datos de contacto oficiales
+              </CardDescription>
+            </div>
           </div>
-          <CardDescription>
-            Domicilio legal de la organizacion
-          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-2 sm:col-span-2">
+        <CardContent className="space-y-5">
+          {/* Direccion */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-6">
+            <div className="space-y-1.5 sm:col-span-4">
               <Label htmlFor="calle">Calle y numero</Label>
               <Input
                 id="calle"
@@ -240,27 +273,7 @@ export function TenantForm({ tenant }: TenantFormProps) {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="localidad">Localidad</Label>
-              <Input
-                id="localidad"
-                value={formData.direccion_fiscal.localidad}
-                onChange={(e) => updateDireccion('localidad', e.target.value)}
-                placeholder="Ej: CABA"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="provincia">Provincia</Label>
-              <Input
-                id="provincia"
-                value={formData.direccion_fiscal.provincia}
-                onChange={(e) => updateDireccion('provincia', e.target.value)}
-                placeholder="Ej: Buenos Aires"
-              />
-            </div>
-
-            <div className="space-y-2">
+            <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="codigo_postal">Codigo postal</Label>
               <Input
                 id="codigo_postal"
@@ -270,7 +283,27 @@ export function TenantForm({ tenant }: TenantFormProps) {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="localidad">Localidad</Label>
+              <Input
+                id="localidad"
+                value={formData.direccion_fiscal.localidad}
+                onChange={(e) => updateDireccion('localidad', e.target.value)}
+                placeholder="Ej: CABA"
+              />
+            </div>
+
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="provincia">Provincia</Label>
+              <Input
+                id="provincia"
+                value={formData.direccion_fiscal.provincia}
+                onChange={(e) => updateDireccion('provincia', e.target.value)}
+                placeholder="Ej: Buenos Aires"
+              />
+            </div>
+
+            <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="pais">Pais</Label>
               <Input
                 id="pais"
@@ -280,23 +313,12 @@ export function TenantForm({ tenant }: TenantFormProps) {
               />
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Card 3: Contacto institucional */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Phone className="h-5 w-5 text-muted-foreground" />
-            <CardTitle>Contacto institucional</CardTitle>
-          </div>
-          <CardDescription>
-            Datos de contacto oficiales
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-2">
+          <Separator />
+
+          {/* Contacto */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="space-y-1.5">
               <Label htmlFor="email_institucional">Email institucional</Label>
               <Input
                 id="email_institucional"
@@ -307,8 +329,8 @@ export function TenantForm({ tenant }: TenantFormProps) {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="telefono_institucional">Telefono institucional</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="telefono_institucional">Telefono</Label>
               <Input
                 id="telefono_institucional"
                 type="tel"
@@ -318,7 +340,7 @@ export function TenantForm({ tenant }: TenantFormProps) {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="sitio_web">Sitio web</Label>
               <Input
                 id="sitio_web"
@@ -332,20 +354,22 @@ export function TenantForm({ tenant }: TenantFormProps) {
         </CardContent>
       </Card>
 
-      {/* Card 4: Configuracion regional */}
+      {/* ── Seccion 3: Configuracion regional ── */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-muted-foreground" />
-            <CardTitle>Configuracion regional</CardTitle>
+          <div className="flex items-center gap-2.5">
+            <Globe className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <CardTitle className="text-base">Configuracion regional</CardTitle>
+              <CardDescription className="mt-0.5">
+                Idioma, zona horaria y moneda de la plataforma
+              </CardDescription>
+            </div>
           </div>
-          <CardDescription>
-            Idioma, zona horaria y moneda
-          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-2">
+        <CardContent>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="space-y-1.5">
               <Label htmlFor="idioma">Idioma</Label>
               <Select
                 value={formData.idioma_default}
@@ -364,7 +388,7 @@ export function TenantForm({ tenant }: TenantFormProps) {
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="timezone">Zona horaria</Label>
               <Select
                 value={formData.timezone}
@@ -383,7 +407,7 @@ export function TenantForm({ tenant }: TenantFormProps) {
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="moneda">Moneda principal</Label>
               <Select
                 value={formData.moneda_principal}
@@ -405,72 +429,79 @@ export function TenantForm({ tenant }: TenantFormProps) {
         </CardContent>
       </Card>
 
-      {/* Card 5: Plan y suscripcion */}
-      <Card>
+      {/* ── Seccion 4: Plan y suscripcion (solo lectura) ── */}
+      <Card className="bg-muted/30">
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-muted-foreground" />
-            <CardTitle>Plan y suscripcion</CardTitle>
+          <div className="flex items-center gap-2.5">
+            <Shield className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <CardTitle className="text-base">Plan y suscripcion</CardTitle>
+              <CardDescription className="mt-0.5">
+                Resumen del plan activo. Para cambios, contacta a soporte.
+              </CardDescription>
+            </div>
           </div>
-          <CardDescription>
-            Informacion de tu plan actual
-          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-2">
-              <Label>Plan actual</Label>
-              <div>
-                <Badge variant="secondary" className="text-sm">
-                  {PLAN_LABELS[tenant.plan_slug] ?? tenant.plan_slug}
-                </Badge>
-              </div>
+        <CardContent>
+          <div className="flex flex-wrap items-center gap-6">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Plan</p>
+              <Badge variant="secondary" className="text-sm font-medium">
+                {PLAN_LABELS[tenant.plan_slug] ?? tenant.plan_slug}
+              </Badge>
             </div>
 
-            <div className="space-y-2">
-              <Label>Estado</Label>
-              <div>
-                <Badge variant={tenant.activo ? 'default' : 'destructive'} className="text-sm">
-                  {tenant.activo ? 'Activo' : 'Inactivo'}
-                </Badge>
-              </div>
+            <Separator orientation="vertical" className="h-8 hidden sm:block" />
+
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Estado</p>
+              <Badge
+                variant={tenant.activo ? 'default' : 'destructive'}
+                className="text-sm font-medium"
+              >
+                {tenant.activo ? (
+                  <><CheckCircle2 className="mr-1 h-3 w-3" />Activo</>
+                ) : (
+                  'Inactivo'
+                )}
+              </Badge>
             </div>
 
-            <div className="space-y-2">
-              <Label>Dominio custom</Label>
-              <p className="text-sm text-muted-foreground pt-1">
+            <Separator orientation="vertical" className="h-8 hidden sm:block" />
+
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Dominio custom</p>
+              <p className="text-sm text-muted-foreground">
                 {tenant.dominio_custom ?? 'No configurado'}
               </p>
             </div>
           </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row pt-2">
-            <Button
-              variant="outline"
-              onClick={() => toast.info('Solicitud de cambio de plan enviada. Nos pondremos en contacto.')}
-            >
-              Solicitar cambio de plan
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => toast.info('Solicitud de soporte enviada. Te responderemos a la brevedad.')}
-            >
-              Solicitar soporte
-            </Button>
-          </div>
         </CardContent>
       </Card>
 
-      {/* Boton guardar fijo */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background p-4">
-        <div className="mx-auto flex max-w-4xl justify-end">
-          <Button onClick={handleSave} disabled={isPending} size="lg">
+      {/* ── Sticky save bar (solo cuando hay cambios) ── */}
+      <div
+        className={[
+          'sticky bottom-0 z-40 border-t bg-background/95 backdrop-blur-sm px-4 py-3',
+          'transition-all duration-200',
+          isDirty ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none',
+        ].join(' ')}
+      >
+        <div className="flex items-center justify-between gap-4 max-w-full">
+          <p className="text-sm text-muted-foreground">
+            Cambios sin guardar
+          </p>
+          <Button
+            onClick={handleSave}
+            disabled={isPending || !isDirty}
+            size="sm"
+          >
             {isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Save className="mr-2 h-4 w-4" />
+              <Save className="mr-2 h-3.5 w-3.5" />
             )}
-            Guardar cambios
+            {isPending ? 'Guardando...' : 'Guardar cambios'}
           </Button>
         </div>
       </div>

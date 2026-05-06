@@ -21,9 +21,38 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {
-  User, CreditCard, CheckCircle2, AlertTriangle, Clock, FileText,
-  Search, Download, ArrowRightLeft, Wallet, Shield, LogOut, ChevronRight,
-  Mail, Phone, Calendar, Hash, Building2,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  User,
+  CreditCard,
+  CheckCircle2,
+  AlertTriangle,
+  Clock,
+  FileText,
+  Search,
+  ArrowRightLeft,
+  Wallet,
+  Shield,
+  LogOut,
+  Mail,
+  Phone,
+  Calendar,
+  Hash,
+  Building2,
+  MoreHorizontal,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -174,10 +203,14 @@ export function MiCuentaClient({
   const saldo = cuentaCorriente?.saldo ?? 0
   const cuotasVencidas = cuotas.filter((c) => c.estado === 'vencida')
   const cuotasPendientes = cuotas.filter((c) => c.estado === 'pendiente' || c.estado === 'vencida')
+  const proximaVencida = cuotasPendientes
+    .slice()
+    .sort((a, b) => a.fecha_vencimiento.localeCompare(b.fecha_vencimiento))[0]
   const alDia = cuotasVencidas.length === 0
 
   const esSocio = atributos.includes('socio_padron')
-  const esAdmin = atributos.includes('admin_tenant') || atributos.includes('admin_sistema')
+
+  const ultimoMovimiento = movimientos[0] ?? null
 
   // Filter cuotas
   const filteredCuotas = useMemo(() => {
@@ -240,493 +273,638 @@ export function MiCuentaClient({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <User className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold">Mi cuenta</h1>
-            <p className="text-sm text-muted-foreground">
-              Gestioná tu membresía, cuotas y medios de pago
-            </p>
-          </div>
+
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Mi cuenta</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Gestioná tu membresía, cuotas y medios de pago
+          </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => toast.info('Tu solicitud de cambio de plan fue enviada. Te contactaremos a la brevedad.')}
-          >
-            <ArrowRightLeft className="h-4 w-4 mr-1.5" />
-            Cambiar de plan
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-destructive hover:text-destructive"
-            onClick={() => toast.info('Tu solicitud de baja fue enviada. Te contactaremos para confirmar.')}
-          >
-            <LogOut className="h-4 w-4 mr-1.5" />
-            Solicitar baja
-          </Button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Button variant="outline" size="icon" className="shrink-0">
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Más acciones</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuItem
+              onClick={() =>
+                toast.info(
+                  'Tu solicitud de cambio de plan fue enviada. Te contactaremos a la brevedad.'
+                )
+              }
+            >
+              <ArrowRightLeft className="h-4 w-4 mr-2" />
+              Cambiar de plan
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() =>
+                toast.info(
+                  'Tu solicitud de baja fue enviada. Te contactaremos para confirmar.'
+                )
+              }
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Solicitar baja
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      {/* Row 1: Carnet + Saldo */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* Carnet de socio */}
-        <Card className="lg:col-span-3">
-          <CardContent className="p-5">
-            <div className="flex flex-col sm:flex-row gap-5">
-              {/* Avatar */}
-              <div className="shrink-0 flex sm:flex-col items-center gap-3 sm:gap-2">
-                {persona.foto_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={persona.foto_url}
-                    alt={persona.nombre}
-                    className="h-20 w-20 rounded-xl object-cover border-2 border-primary/20"
-                  />
-                ) : (
-                  <div className="h-20 w-20 rounded-xl bg-primary/10 flex items-center justify-center border-2 border-primary/20">
-                    <User className="h-10 w-10 text-primary/50" />
-                  </div>
-                )}
-                <Badge
-                  variant={esSocio ? 'default' : 'secondary'}
-                  className="text-xs"
-                >
-                  {esSocio ? 'Socio activo' : 'Usuario'}
-                </Badge>
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0 space-y-3">
-                <div>
-                  <h2 className="text-lg font-bold truncate">
-                    {persona.apellido?.toUpperCase()}, {persona.nombre}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">{tenant.nombre}</p>
+      {/* ── Carnet de socio ── */}
+      <Card className="overflow-hidden">
+        {/* Accent top border */}
+        <div className="h-1 w-full bg-gradient-to-r from-primary via-primary/70 to-primary/30" />
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row gap-6">
+            {/* Avatar + badge */}
+            <div className="shrink-0 flex sm:flex-col items-center gap-3 sm:gap-3">
+              {persona.foto_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={persona.foto_url}
+                  alt={persona.nombre}
+                  className="h-20 w-20 rounded-2xl object-cover ring-2 ring-primary/20"
+                />
+              ) : (
+                <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center ring-2 ring-primary/20">
+                  <User className="h-10 w-10 text-primary/50" />
                 </div>
+              )}
+              <Badge
+                variant={esSocio ? 'default' : 'secondary'}
+                className="text-xs whitespace-nowrap"
+              >
+                {esSocio ? 'Socio activo' : 'Usuario'}
+              </Badge>
+            </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm">
-                  {membresia.numero_socio && (
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <Hash className="h-3.5 w-3.5 shrink-0" />
-                      <span className="font-mono font-medium text-foreground">
-                        N° {membresia.numero_socio}
-                      </span>
-                    </div>
-                  )}
-                  {persona.dni && (
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <Shield className="h-3.5 w-3.5 shrink-0" />
-                      <span>DNI {persona.dni}</span>
-                    </div>
-                  )}
-                  {persona.email && (
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <Mail className="h-3.5 w-3.5 shrink-0" />
-                      <span className="truncate">{persona.email}</span>
-                    </div>
-                  )}
-                  {persona.telefono && (
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <Phone className="h-3.5 w-3.5 shrink-0" />
-                      <span>{persona.telefono}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Calendar className="h-3.5 w-3.5 shrink-0" />
-                    <span>Desde {formatFechaCorta(membresia.fecha_alta ?? persona.created_at)}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Building2 className="h-3.5 w-3.5 shrink-0" />
-                    <span>Plan {PLAN_LABELS[tenant.plan] ?? tenant.plan}</span>
-                  </div>
-                </div>
-
+            {/* Info */}
+            <div className="flex-1 min-w-0 space-y-4">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight">
+                  {persona.apellido?.toUpperCase()}, {persona.nombre}
+                </h2>
+                <p className="text-sm text-muted-foreground">{tenant.nombre}</p>
                 {membresia.padron_nombre && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground/70 mt-0.5">
                     Padrón: {membresia.padron_nombre}
                   </p>
                 )}
               </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3">
+                {membresia.numero_socio && (
+                  <div className="flex items-start gap-2">
+                    <Hash className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+                        N° socio
+                      </p>
+                      <p className="text-sm font-mono font-semibold">
+                        {membresia.numero_socio}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {persona.dni && (
+                  <div className="flex items-start gap-2">
+                    <Shield className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+                        DNI
+                      </p>
+                      <p className="text-sm font-medium">{persona.dni}</p>
+                    </div>
+                  </div>
+                )}
+                {persona.email && (
+                  <div className="flex items-start gap-2">
+                    <Mail className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+                        Email
+                      </p>
+                      <p className="text-sm font-medium truncate">{persona.email}</p>
+                    </div>
+                  </div>
+                )}
+                {persona.telefono && (
+                  <div className="flex items-start gap-2">
+                    <Phone className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+                        Teléfono
+                      </p>
+                      <p className="text-sm font-medium">{persona.telefono}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-start gap-2">
+                  <Calendar className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+                      Desde
+                    </p>
+                    <p className="text-sm font-medium">
+                      {formatFechaCorta(membresia.fecha_alta ?? persona.created_at)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Building2 className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+                      Plan
+                    </p>
+                    <p className="text-sm font-medium">
+                      {PLAN_LABELS[tenant.plan] ?? tenant.plan}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Financial summary row ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Saldo */}
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Saldo cuenta corriente
+                </p>
+                <p
+                  className={cn(
+                    'text-2xl font-bold mt-1 tabular-nums',
+                    saldo > 0
+                      ? 'text-green-600 dark:text-green-400'
+                      : saldo < 0
+                        ? 'text-red-600 dark:text-red-400'
+                        : 'text-foreground'
+                  )}
+                >
+                  {formatMonto(saldo)}
+                </p>
+              </div>
+              <div
+                className={cn(
+                  'h-9 w-9 rounded-lg flex items-center justify-center shrink-0',
+                  saldo > 0
+                    ? 'bg-green-100 dark:bg-green-900/30'
+                    : saldo < 0
+                      ? 'bg-red-100 dark:bg-red-900/30'
+                      : 'bg-muted'
+                )}
+              >
+                {saldo > 0 ? (
+                  <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                ) : saldo < 0 ? (
+                  <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
+                ) : (
+                  <Minus className="h-4 w-4 text-muted-foreground" />
+                )}
+              </div>
+            </div>
+            <div className="mt-3">
+              {alDia ? (
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700 dark:text-green-400">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Al día
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-700 dark:text-red-400">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  {cuotasVencidas.length} cuota{cuotasVencidas.length > 1 ? 's' : ''} vencida{cuotasVencidas.length > 1 ? 's' : ''}
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Saldo */}
-        <Card className="lg:col-span-2">
-          <CardContent className="p-5 flex flex-col justify-between h-full">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Saldo cuenta corriente
-              </p>
-              <p
-                className={cn(
-                  'text-3xl font-bold mt-1',
-                  saldo > 0
-                    ? 'text-green-600 dark:text-green-400'
-                    : saldo < 0
-                      ? 'text-red-600 dark:text-red-400'
-                      : 'text-foreground'
-                )}
-              >
-                {formatMonto(saldo)}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {saldo > 0
-                  ? 'Saldo a favor'
-                  : saldo < 0
-                    ? 'Saldo deudor'
-                    : 'Sin saldo'}
-              </p>
-            </div>
-
-            <div className="mt-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {alDia ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Al día
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-800 dark:bg-red-900/30 dark:text-red-400">
-                    <AlertTriangle className="h-4 w-4" />
-                    {cuotasVencidas.length} vencida{cuotasVencidas.length > 1 ? 's' : ''}
-                  </span>
-                )}
-              </div>
-              {cuotasPendientes.length > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  {cuotasPendientes.length} pendiente{cuotasPendientes.length > 1 ? 's' : ''}
+        {/* Cuotas pendientes */}
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Cuotas pendientes
                 </p>
+                <p className="text-2xl font-bold mt-1 tabular-nums">
+                  {cuotasPendientes.length}
+                </p>
+              </div>
+              <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </div>
+            <div className="mt-3">
+              {proximaVencida ? (
+                <p className="text-xs text-muted-foreground">
+                  Próximo: {formatFecha(proximaVencida.fecha_vencimiento)}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">Sin vencimientos próximos</p>
               )}
             </div>
+          </CardContent>
+        </Card>
 
-            {cuentaCorriente?.ultimo_movimiento_at && (
-              <p className="text-xs text-muted-foreground mt-2">
-                Último mov: {formatFecha(cuentaCorriente.ultimo_movimiento_at.split('T')[0])}
-              </p>
-            )}
+        {/* Último movimiento */}
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Último movimiento
+                </p>
+                <p className="text-2xl font-bold mt-1 tabular-nums">
+                  {ultimoMovimiento
+                    ? formatFechaCorta(ultimoMovimiento.fecha)
+                    : '—'}
+                </p>
+              </div>
+              <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </div>
+            <div className="mt-3">
+              {ultimoMovimiento ? (
+                <p className="text-xs text-muted-foreground">
+                  {ultimoMovimiento.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'}{' '}
+                  {ultimoMovimiento.descripcion
+                    ? `· ${ultimoMovimiento.descripcion.slice(0, 28)}${ultimoMovimiento.descripcion.length > 28 ? '…' : ''}`
+                    : ''}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">Sin movimientos registrados</p>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Medio de pago */}
-      <Card>
-        <CardContent className="p-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                <Wallet className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">Medio de pago</p>
-                <p className="text-xs text-muted-foreground">
-                  No hay medio de pago configurado
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                toast.info(
-                  'Tu solicitud fue enviada. El club te contactará para configurar tu medio de pago.'
-                )
-              }
-            >
-              <CreditCard className="h-4 w-4 mr-1.5" />
-              Solicitar cambio de medio de pago
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* ── Quick actions ── */}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() =>
+            toast.info('Tus comprobantes están disponibles. Próximamente podrás descargarlos desde acá.')
+          }
+        >
+          <FileText className="h-4 w-4 mr-1.5" />
+          Mis comprobantes
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() =>
+            toast.info(
+              'Tu solicitud fue enviada. El club te contactará para configurar tu medio de pago.'
+            )
+          }
+        >
+          <CreditCard className="h-4 w-4 mr-1.5" />
+          Medio de pago
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() =>
+            toast.info(
+              'Tu solicitud de cambio de plan fue enviada. Te contactaremos a la brevedad.'
+            )
+          }
+        >
+          <ArrowRightLeft className="h-4 w-4 mr-1.5" />
+          Cambiar plan
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/60 hover:bg-destructive/5"
+          onClick={() =>
+            toast.info(
+              'Tu solicitud de baja fue enviada. Te contactaremos para confirmar.'
+            )
+          }
+        >
+          <LogOut className="h-4 w-4 mr-1.5" />
+          Solicitar baja
+        </Button>
+      </div>
 
-      {/* Convenios de pago vigentes */}
+      {/* ── Convenios de pago ── */}
       {convenios.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Convenios de pago
+              <Wallet className="h-4 w-4 text-muted-foreground" />
+              Convenios de pago vigentes
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {convenios.map((convenio) => (
-                <div
-                  key={convenio.id}
-                  className="border rounded-lg px-4 py-3 space-y-2"
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">
-                      Convenio desde {formatFecha(convenio.fecha_inicio)}
+          <CardContent className="space-y-3">
+            {convenios.map((convenio) => (
+              <div
+                key={convenio.id}
+                className="rounded-xl border bg-muted/30 px-4 py-4 space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">
+                    Convenio desde {formatFecha(convenio.fecha_inicio)}
+                  </p>
+                  <Badge variant="outline" className="text-xs">
+                    Vigente
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                  <div>
+                    <p className="text-muted-foreground mb-0.5">Deuda original</p>
+                    <p className="font-semibold text-foreground">
+                      {formatMonto(convenio.deuda_original)}
                     </p>
-                    <Badge variant="outline" className="text-xs">
-                      Vigente
-                    </Badge>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <p className="text-muted-foreground mb-0.5">Cuota</p>
+                    <p className="font-semibold text-foreground">
+                      {formatMonto(convenio.monto_cuota)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground mb-0.5">Progreso</p>
+                    <p className="font-semibold text-foreground">
+                      {convenio.cuotas_pagadas} / {convenio.cantidad_cuotas} pagadas
+                    </p>
+                  </div>
+                  {convenio.proximo_vencimiento && (
                     <div>
-                      <p className="text-muted-foreground">Deuda original</p>
-                      <p className="font-medium text-foreground">{formatMonto(convenio.deuda_original)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Cuota</p>
-                      <p className="font-medium text-foreground">{formatMonto(convenio.monto_cuota)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Progreso</p>
-                      <p className="font-medium text-foreground">
-                        {convenio.cuotas_pagadas}/{convenio.cantidad_cuotas} pagadas
+                      <p className="text-muted-foreground mb-0.5">Próximo vencimiento</p>
+                      <p className="font-semibold text-foreground">
+                        {formatFecha(convenio.proximo_vencimiento)}
                       </p>
                     </div>
-                    {convenio.proximo_vencimiento && (
-                      <div>
-                        <p className="text-muted-foreground">Próximo vencimiento</p>
-                        <p className="font-medium text-foreground">{formatFecha(convenio.proximo_vencimiento)}</p>
-                      </div>
-                    )}
-                  </div>
-                  {/* Progress bar */}
-                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-primary transition-all"
-                      style={{ width: `${(convenio.cuotas_pagadas / convenio.cantidad_cuotas) * 100}%` }}
-                    />
-                  </div>
+                  )}
                 </div>
-              ))}
-            </div>
+                {/* Progress bar */}
+                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{
+                      width: `${Math.round((convenio.cuotas_pagadas / convenio.cantidad_cuotas) * 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
           </CardContent>
         </Card>
       )}
 
-      {/* Cuotas */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Cuotas
-                {cuotas.length > 0 && (
-                  <Badge variant="secondary" className="text-xs ml-1">
-                    {cuotas.length}
-                  </Badge>
-                )}
-              </CardTitle>
-              <CardDescription className="mt-0.5">
-                Historial completo de cuotas emitidas
-              </CardDescription>
-            </div>
-            <ExportFormatSelector
-              getData={() => cuotasExportData}
-            />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-2 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por periodo o monto..."
-                value={cuotaSearch}
-                onChange={(e) => setCuotaSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select
-              value={cuotaFilter}
-              onValueChange={(v) => setCuotaFilter(v ?? 'todos')}
-            >
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                <SelectItem value="pendiente">Pendiente</SelectItem>
-                <SelectItem value="vencida">Vencida</SelectItem>
-                <SelectItem value="pagada">Pagada</SelectItem>
-                <SelectItem value="parcial">Parcial</SelectItem>
-                <SelectItem value="anulada">Anulada</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      {/* ── Cuotas + Movimientos tabs ── */}
+      <Tabs defaultValue="cuotas">
+        <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="cuotas" className="flex-1 sm:flex-none gap-2">
+            <Clock className="h-3.5 w-3.5" />
+            Cuotas
+            {cuotas.length > 0 && (
+              <Badge variant="secondary" className="text-xs ml-0.5 px-1.5 h-4">
+                {cuotas.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="movimientos" className="flex-1 sm:flex-none gap-2">
+            <ArrowRightLeft className="h-3.5 w-3.5" />
+            Movimientos
+            {movimientos.length > 0 && (
+              <Badge variant="secondary" className="text-xs ml-0.5 px-1.5 h-4">
+                {movimientos.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
 
-          {filteredCuotas.length === 0 ? (
-            <div className="py-8 text-center">
-              <Clock className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">
-                {cuotas.length === 0
-                  ? 'No tenés cuotas emitidas. Todo en orden.'
-                  : 'No se encontraron cuotas con esos filtros.'}
-              </p>
-            </div>
-          ) : (
-            <div className="rounded-md border overflow-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Periodo</TableHead>
-                    <TableHead>Monto</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="hidden sm:table-cell">Emisión</TableHead>
-                    <TableHead>Vencimiento</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredCuotas.map((cuota) => (
-                    <TableRow key={cuota.id}>
-                      <TableCell className="font-medium">{cuota.periodo}</TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {formatMonto(cuota.monto_final, cuota.moneda)}
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={cn(
-                            'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium',
-                            ESTADO_CUOTA_STYLES[cuota.estado] ?? 'bg-gray-100 text-gray-800'
-                          )}
-                        >
-                          {ESTADO_CUOTA_LABELS[cuota.estado] ?? cuota.estado}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground hidden sm:table-cell">
-                        {formatFecha(cuota.fecha_emision)}
-                      </TableCell>
-                      <TableCell className="text-xs">
-                        {formatFecha(cuota.fecha_vencimiento)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        {/* Cuotas tab */}
+        <TabsContent value="cuotas" className="mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <CardTitle className="text-base">Historial de cuotas</CardTitle>
+                  <CardDescription className="mt-0.5">
+                    Cuotas emitidas en tu cuenta
+                  </CardDescription>
+                </div>
+                <ExportFormatSelector getData={() => cuotasExportData} />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por periodo o monto..."
+                    value={cuotaSearch}
+                    onChange={(e) => setCuotaSearch(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Select
+                  value={cuotaFilter}
+                  onValueChange={(v) => setCuotaFilter(v ?? 'todos')}
+                >
+                  <SelectTrigger className="w-full sm:w-40">
+                    <SelectValue placeholder="Estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    <SelectItem value="pendiente">Pendiente</SelectItem>
+                    <SelectItem value="vencida">Vencida</SelectItem>
+                    <SelectItem value="pagada">Pagada</SelectItem>
+                    <SelectItem value="parcial">Parcial</SelectItem>
+                    <SelectItem value="anulada">Anulada</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-      {/* Movimientos */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <CardTitle className="text-base flex items-center gap-2">
-                <ArrowRightLeft className="h-4 w-4" />
-                Historial de movimientos
-                {movimientos.length > 0 && (
-                  <Badge variant="secondary" className="text-xs ml-1">
-                    {movimientos.length}
-                  </Badge>
-                )}
-              </CardTitle>
-              <CardDescription className="mt-0.5">
-                Últimos movimientos en tu cuenta
-              </CardDescription>
-            </div>
-            <ExportFormatSelector
-              getData={() => movimientosExportData}
-            />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-2 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por descripción o número..."
-                value={movSearch}
-                onChange={(e) => setMovSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select
-              value={movFilter}
-              onValueChange={(v) => setMovFilter(v ?? 'todos')}
-            >
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                <SelectItem value="ingreso">Ingresos</SelectItem>
-                <SelectItem value="egreso">Egresos</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              {filteredCuotas.length === 0 ? (
+                <div className="py-12 text-center">
+                  <div className="mx-auto h-12 w-12 rounded-xl bg-muted flex items-center justify-center mb-3">
+                    <Clock className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm font-medium text-foreground">
+                    {cuotas.length === 0 ? 'Sin cuotas emitidas' : 'Sin resultados'}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {cuotas.length === 0
+                      ? 'No tenés cuotas emitidas. Todo en orden.'
+                      : 'Probá con otros filtros de búsqueda.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-lg border overflow-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/40">
+                        <TableHead>Periodo</TableHead>
+                        <TableHead>Monto</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead className="hidden sm:table-cell">Emisión</TableHead>
+                        <TableHead>Vencimiento</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredCuotas.map((cuota) => (
+                        <TableRow key={cuota.id}>
+                          <TableCell className="font-medium">{cuota.periodo}</TableCell>
+                          <TableCell className="font-mono text-sm tabular-nums">
+                            {formatMonto(cuota.monto_final, cuota.moneda)}
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={cn(
+                                'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                                ESTADO_CUOTA_STYLES[cuota.estado] ?? 'bg-gray-100 text-gray-800'
+                              )}
+                            >
+                              {ESTADO_CUOTA_LABELS[cuota.estado] ?? cuota.estado}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground hidden sm:table-cell">
+                            {formatFecha(cuota.fecha_emision)}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            {formatFecha(cuota.fecha_vencimiento)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          {filteredMovimientos.length === 0 ? (
-            <div className="py-8 text-center">
-              <ArrowRightLeft className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">
-                {movimientos.length === 0
-                  ? 'No hay movimientos registrados en tu cuenta.'
-                  : 'No se encontraron movimientos con esos filtros.'}
-              </p>
-            </div>
-          ) : (
-            <div className="rounded-md border overflow-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-16">#</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Descripción</TableHead>
-                    <TableHead className="text-right">Monto</TableHead>
-                    <TableHead>Fecha</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredMovimientos.map((mov) => (
-                    <TableRow key={mov.id}>
-                      <TableCell className="text-xs font-mono text-muted-foreground">
-                        {mov.numero ? `#${mov.numero}` : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={cn(
-                            'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium',
-                            mov.tipo === 'ingreso'
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                              : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                          )}
-                        >
-                          {mov.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-sm truncate max-w-[200px]">
-                        {mov.descripcion ?? '-'}
-                      </TableCell>
-                      <TableCell
-                        className={cn(
-                          'text-right font-mono text-sm font-medium',
-                          mov.tipo === 'ingreso'
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-red-600 dark:text-red-400'
-                        )}
-                      >
-                        {mov.tipo === 'ingreso' ? '+' : '-'}
-                        {formatMonto(Math.abs(mov.monto_neto), mov.moneda)}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {formatFecha(mov.fecha)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        {/* Movimientos tab */}
+        <TabsContent value="movimientos" className="mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <CardTitle className="text-base">Historial de movimientos</CardTitle>
+                  <CardDescription className="mt-0.5">
+                    Últimos movimientos en tu cuenta
+                  </CardDescription>
+                </div>
+                <ExportFormatSelector getData={() => movimientosExportData} />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por descripción o número..."
+                    value={movSearch}
+                    onChange={(e) => setMovSearch(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Select
+                  value={movFilter}
+                  onValueChange={(v) => setMovFilter(v ?? 'todos')}
+                >
+                  <SelectTrigger className="w-full sm:w-40">
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    <SelectItem value="ingreso">Ingresos</SelectItem>
+                    <SelectItem value="egreso">Egresos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {filteredMovimientos.length === 0 ? (
+                <div className="py-12 text-center">
+                  <div className="mx-auto h-12 w-12 rounded-xl bg-muted flex items-center justify-center mb-3">
+                    <ArrowRightLeft className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm font-medium text-foreground">
+                    {movimientos.length === 0 ? 'Sin movimientos' : 'Sin resultados'}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {movimientos.length === 0
+                      ? 'No hay movimientos registrados en tu cuenta.'
+                      : 'Probá con otros filtros de búsqueda.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-lg border overflow-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/40">
+                        <TableHead className="w-16">#</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Descripción</TableHead>
+                        <TableHead className="text-right">Monto</TableHead>
+                        <TableHead>Fecha</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredMovimientos.map((mov) => (
+                        <TableRow key={mov.id}>
+                          <TableCell className="text-xs font-mono text-muted-foreground">
+                            {mov.numero ? `#${mov.numero}` : '—'}
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={cn(
+                                'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                                mov.tipo === 'ingreso'
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                  : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                              )}
+                            >
+                              {mov.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground truncate max-w-[180px]">
+                            {mov.descripcion ?? '—'}
+                          </TableCell>
+                          <TableCell
+                            className={cn(
+                              'text-right font-mono text-sm font-semibold tabular-nums',
+                              mov.tipo === 'ingreso'
+                                ? 'text-green-600 dark:text-green-400'
+                                : 'text-red-600 dark:text-red-400'
+                            )}
+                          >
+                            {mov.tipo === 'ingreso' ? '+' : '−'}
+                            {formatMonto(Math.abs(mov.monto_neto), mov.moneda)}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                            {formatFecha(mov.fecha)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
