@@ -5,10 +5,10 @@ Alineado al plan original de 15 sprints → Hindu LIVE.
 
 ---
 
-## Estado actual: Sprint 10 COMPLETADO (PENDIENTE_VALIDACION_VISUAL)
+## Estado actual: Sprint 11 COMPLETADO (PENDIENTE_VALIDACION_VISUAL)
 
-Sprint 10 = Operaciones deportivas avanzadas. Los primeros 10 sprints del plan original están completos.
-Sprint 9 pendiente de validación visual por Yair.
+Sprint 11 = RRHH (Empleados + Contratos + Liquidaciones). Los primeros 11 sprints están completos.
+Sprints 9, 10 y 11 pendientes de validación visual por Yair.
 
 ### Mejoras post-Sprint 9 (sesión 2026-05-06)
 - [x] Branding dinámico: fonts y favicon se aplican desde DB (root layout reescrito)
@@ -190,13 +190,22 @@ Aplicado a personas, padrones, equipos, externos:
 - [x] Migration aplicada: equipos_horarios +3 cols, evento_asistencias, esquemas_tacticos, esquema_posiciones, scouting_fichas — todas con RLS, triggers, indexes
 - [ ] Esquemas tácticos UI (tablas creadas, UI diferido — visual cancha con posiciones es complejo, se puede hacer en Sprint 10.5 o post-LIVE)
 
-### Sprint 11 — Empleados + Contratos + Liquidaciones
+### Sprint 11 — Empleados + Contratos + Liquidaciones (HECHO — PENDIENTE_VALIDACION_VISUAL)
 
-- [ ] ABM empleados (persona con vínculo laboral)
-- [ ] Modalidades: relación dependencia, monotributo, honorarios, negro
-- [ ] ABM contratos_laborales (monto, frecuencia, vigencia)
-- [ ] Liquidaciones mensuales → genera movimiento_caja
-- [ ] Vinculos empleado-actividad (kine en varios equipos)
+- [x] Empleados = personas con atributo `rrhh.empleado` (no tabla separada)
+- [x] Atributos namespaceados: `rrhh.empleado`, `rrhh.admin`, `rrhh.consulta` (primera implementación de la convención acordada)
+- [x] ABM Contratos (`rrhh_contratos`): CRUD completo con modalidad (rel_dependencia, monotributo, honorarios, informal, pasantia, voluntariado), puesto, area, frecuencia (mensual/quincenal/semanal/por_hora/por_evento), vigencia, monto, CUIL, legajo
+- [x] Rescisión de contratos con motivo obligatorio
+- [x] Soft-delete en contratos (protegido si tiene liquidaciones pagadas)
+- [x] ABM Liquidaciones (`rrhh_liquidaciones`): CRUD con estados (borrador → aprobada → pagada / anulada)
+- [x] Liquidación genera movimiento_caja automático al pagarse (tipo egreso, con referencia bidireccional)
+- [x] Anulación de liquidación anula también el movimiento_caja asociado (cascada controlada)
+- [x] Dashboard RRHH: 4 tarjetas (empleados, contratos vigentes, costo mensual estimado, liquidaciones pendientes)
+- [x] Sidebar: RRHH como sección colapsable con sub-items (Dashboard, Contratos, Liquidaciones)
+- [x] Filtros URL-synced en contratos (modalidad, estado, area, búsqueda) y liquidaciones (periodo, estado, búsqueda)
+- [x] RLS: `puede_operar_rrhh()` (admin_tenant + rrhh.admin), política _own para empleados que ven sus propios contratos/liquidaciones
+- [x] Migration aplicada vía Supabase MCP: rrhh_contratos, rrhh_liquidaciones + RLS + triggers + indices
+- [x] Vínculos empleado-actividad se resuelven via personas_equipos existente (un kine en 3 equipos = 3 filas en personas_equipos con rol_equipo_slug adecuado)
 
 ### Sprint 12 — Comunicaciones
 
@@ -277,6 +286,10 @@ Aplicado a personas, padrones, equipos, externos:
 29. **Asistencias upsert**: usa `onConflict: 'tenant_id,evento_id,persona_id'` para evitar duplicados al cambiar estado
 30. **Scouting hard-delete**: fichas de scouting se eliminan de verdad (no soft-delete), ya que son datos de seguimiento temporal
 31. **Esquemas tácticos diferidos**: tablas DB creadas (esquemas_tacticos, esquema_posiciones) pero UI de cancha visual diferida por complejidad
+32. **Prefijo `rrhh_` en tablas nuevas**: convención acordada en propuesta arquitectónica — tablas nuevas usan prefijo de módulo, tablas existentes no se renombran
+33. **Atributos namespaceados**: desde Sprint 11, atributos nuevos usan formato `{modulo}.{rol}` (ej: `rrhh.empleado`, `rrhh.admin`). Atributos existentes (jugador, dt, etc.) se mantienen sin namespace
+34. **Empleado = persona + atributo**: no hay tabla `rrhh_empleados`. Un empleado es una persona con atributo `rrhh.empleado` y un contrato vigente en `rrhh_contratos`
+35. **Liquidación → movimiento_caja**: al pagar una liquidación, se genera un egreso en movimientos_caja. Al anular la liquidación, se anula el movimiento. Cascada controlada en server action, no en trigger DB
 
 ---
 
@@ -336,13 +349,12 @@ La diferencia entre clientes es CONFIGURACIÓN, no CÓDIGO:
 
 ## Tiempo estimado restante hasta Hindu LIVE
 
-Sprints 11-15 = 5 sprints pendientes.
-Estimado: 30-50 horas agente + 5-10 horas validación Yair.
-Calendario: 1.5-2.5 semanas a 4-6h/día.
+Sprints 12-16 = 5 sprints pendientes (plan revisado en propuesta arquitectónica).
+Sprint 11.5 (rename equipos_horarios → eventos + partidos_detalle) pendiente.
 
 ---
 
 **Última actualización:** 2026-05-06
-**Próximo sprint:** 11 (Empleados + Contratos + Liquidaciones)
+**Próximo sprint:** 12 (Comunicaciones + Notificaciones)
 **Instrucciones:** ver `NEXT-SPRINT.md`
 **Owner:** Yair Levy Wald

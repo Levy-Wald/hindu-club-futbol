@@ -30,6 +30,9 @@ import {
   BarChart3,
   Calendar,
   Search,
+  Briefcase,
+  FileText,
+  DollarSign,
 } from 'lucide-react'
 
 const bottomNavItems = [
@@ -48,6 +51,12 @@ interface NavItemDef {
 const operacionesSubItems: NavItemDef[] = [
   { label: 'Esta semana', href: '/admin/operaciones', icon: Calendar },
   { label: 'Scouting', href: '/admin/operaciones/scouting', icon: Search },
+]
+
+const rrhhSubItems: NavItemDef[] = [
+  { label: 'Dashboard', href: '/admin/rrhh', icon: BarChart3 },
+  { label: 'Contratos', href: '/admin/rrhh/contratos', icon: FileText },
+  { label: 'Liquidaciones', href: '/admin/rrhh/liquidaciones', icon: DollarSign },
 ]
 
 const finanzasSubItems: NavItemDef[] = [
@@ -83,6 +92,9 @@ export function MobileNav() {
   const [finanzasOpen, setFinanzasOpen] = useState(
     pathname.startsWith('/admin/finanzas')
   )
+  const [rrhhOpen, setRRHHOpen] = useState(
+    pathname.startsWith('/admin/rrhh')
+  )
 
   // Split menu items: Mi perfil through Entidades (0-7), then Comunicaciones onward (8+)
   const beforeCollapsible = fullMenuItems.slice(0, 8) // Mi perfil through Entidades
@@ -90,6 +102,7 @@ export function MobileNav() {
 
   const isOperacionesActive = pathname.startsWith('/admin/operaciones')
   const isFinanzasActive = pathname.startsWith('/admin/finanzas')
+  const isRRHHActive = pathname.startsWith('/admin/rrhh')
 
   return (
     <>
@@ -230,6 +243,50 @@ export function MobileNav() {
                 {finanzasSubItems.map((sub) => {
                   const isSubActive = sub.href === '/admin/finanzas'
                     ? pathname === '/admin/finanzas'
+                    : pathname.startsWith(sub.href)
+                  return (
+                    <Link
+                      key={sub.href}
+                      href={sub.href}
+                      onClick={() => setMenuOpen(false)}
+                      className={cn(
+                        'flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
+                        isSubActive
+                          ? 'bg-accent text-accent-foreground'
+                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      )}
+                    >
+                      <sub.icon className="h-4 w-4" />
+                      {sub.label}
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* RRHH collapsible section */}
+            <button
+              onClick={() => setRRHHOpen(!rrhhOpen)}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors w-full text-left',
+                isRRHHActive
+                  ? 'bg-accent text-accent-foreground'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+              )}
+            >
+              <Briefcase className="h-5 w-5" />
+              <span className="flex-1">RRHH</span>
+              {rrhhOpen ? (
+                <ChevronDown className="h-5 w-5" />
+              ) : (
+                <ChevronRight className="h-5 w-5" />
+              )}
+            </button>
+            {rrhhOpen && (
+              <div className="space-y-0.5 ml-4">
+                {rrhhSubItems.map((sub) => {
+                  const isSubActive = sub.href === '/admin/rrhh'
+                    ? pathname === '/admin/rrhh'
                     : pathname.startsWith(sub.href)
                   return (
                     <Link

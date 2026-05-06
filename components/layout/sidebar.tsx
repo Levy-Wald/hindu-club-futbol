@@ -28,6 +28,9 @@ import {
   BarChart3,
   Calendar,
   Search,
+  Briefcase,
+  FileText,
+  DollarSign,
 } from 'lucide-react'
 
 interface NavItemDef {
@@ -45,6 +48,12 @@ const personalItems: NavItemDef[] = [
 const operacionesSubItems: NavItemDef[] = [
   { label: 'Esta semana', href: '/admin/operaciones', icon: Calendar },
   { label: 'Scouting', href: '/admin/operaciones/scouting', icon: Search },
+]
+
+const rrhhSubItems: NavItemDef[] = [
+  { label: 'Dashboard', href: '/admin/rrhh', icon: BarChart3 },
+  { label: 'Contratos', href: '/admin/rrhh/contratos', icon: FileText },
+  { label: 'Liquidaciones', href: '/admin/rrhh/liquidaciones', icon: DollarSign },
 ]
 
 const finanzasSubItems: NavItemDef[] = [
@@ -159,8 +168,10 @@ export function Sidebar() {
   const pathname = usePathname()
   const isOperacionesActive = pathname.startsWith('/admin/operaciones')
   const isFinanzasActive = pathname.startsWith('/admin/finanzas')
+  const isRRHHActive = pathname.startsWith('/admin/rrhh')
   const [operacionesOpen, setOperacionesOpen] = useState(isOperacionesActive)
   const [finanzasOpen, setFinanzasOpen] = useState(isFinanzasActive)
+  const [rrhhOpen, setRRHHOpen] = useState(isRRHHActive)
 
   // Split adminItems: Dashboard through Entidades (0-4), then Comunicaciones onward (5+)
   const beforeCollapsible = adminItems.slice(0, 5) // Dashboard through Entidades
@@ -199,6 +210,16 @@ export function Sidebar() {
           isOpen={finanzasOpen}
           onToggle={() => setFinanzasOpen(!finanzasOpen)}
           subItems={finanzasSubItems}
+          pathname={pathname}
+        />
+
+        <CollapsibleSection
+          label="RRHH"
+          icon={Briefcase}
+          isActive={isRRHHActive}
+          isOpen={rrhhOpen}
+          onToggle={() => setRRHHOpen(!rrhhOpen)}
+          subItems={rrhhSubItems}
           pathname={pathname}
         />
 
