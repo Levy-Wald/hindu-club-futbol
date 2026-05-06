@@ -45,7 +45,7 @@ export function BrandingForm({ config }: BrandingFormProps) {
   }
 
   function getRedes(): Record<string, string> {
-    const val = formData.redes_sociales
+    const val = formData.redes
     if (val && typeof val === 'object' && !Array.isArray(val)) {
       return val as Record<string, string>
     }
@@ -60,8 +60,31 @@ export function BrandingForm({ config }: BrandingFormProps) {
     const redes = getRedes()
     setFormData((prev) => ({
       ...prev,
-      redes_sociales: { ...redes, [red]: value },
+      redes: { ...redes, [red]: value },
     }))
+  }
+
+  function getPalmares(): Array<{ anio: number; titulo: string; tipo: string; descripcion: string }> {
+    const val = formData.palmares
+    if (Array.isArray(val)) return val as Array<{ anio: number; titulo: string; tipo: string; descripcion: string }>
+    return []
+  }
+
+  function updatePalmares(index: number, field: string, value: unknown) {
+    const items = [...getPalmares()]
+    items[index] = { ...items[index], [field]: value }
+    setField('palmares', items)
+  }
+
+  function addPalmares() {
+    const items = [...getPalmares()]
+    items.push({ anio: new Date().getFullYear(), titulo: '', tipo: 'copa', descripcion: '' })
+    setField('palmares', items)
+  }
+
+  function removePalmares(index: number) {
+    const items = getPalmares().filter((_, i) => i !== index)
+    setField('palmares', items)
   }
 
   function handleSave(fields: string[]) {
@@ -342,12 +365,76 @@ export function BrandingForm({ config }: BrandingFormProps) {
           </CardContent>
         </Card>
 
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Trophy className="h-4 w-4" />
+              Palmarés
+            </CardTitle>
+            <CardDescription>Trofeos, copas y campeonatos del club</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {(getPalmares()).map((item, i) => (
+              <div key={i} className="flex items-start gap-3 rounded-lg border p-3">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Año</Label>
+                    <Input
+                      type="number"
+                      value={item.anio || ''}
+                      onChange={(e) => updatePalmares(i, 'anio', parseInt(e.target.value) || 0)}
+                      placeholder="2024"
+                    />
+                  </div>
+                  <div className="space-y-1 sm:col-span-2">
+                    <Label className="text-xs">Título</Label>
+                    <Input
+                      value={item.titulo || ''}
+                      onChange={(e) => updatePalmares(i, 'titulo', e.target.value)}
+                      placeholder="Campeón Torneo Apertura"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Tipo</Label>
+                    <Input
+                      value={item.tipo || ''}
+                      onChange={(e) => updatePalmares(i, 'tipo', e.target.value)}
+                      placeholder="copa"
+                    />
+                  </div>
+                  <div className="space-y-1 sm:col-span-4">
+                    <Label className="text-xs">Descripción</Label>
+                    <Input
+                      value={item.descripcion || ''}
+                      onChange={(e) => updatePalmares(i, 'descripcion', e.target.value)}
+                      placeholder="FACCMA - Junior +28"
+                    />
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0 mt-5"
+                  onClick={() => removePalmares(i)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            <Button variant="outline" size="sm" onClick={addPalmares}>
+              <Plus className="h-4 w-4 mr-2" />
+              Agregar trofeo
+            </Button>
+          </CardContent>
+        </Card>
+
         <div className="flex justify-end">
           <Button
             onClick={() =>
               handleSave([
                 'hero_titulo', 'hero_bajada',
                 'asociate_titulo', 'asociate_bajada', 'asociate_descripcion',
+                'palmares',
               ])
             }
             disabled={isPending}
@@ -368,32 +455,32 @@ export function BrandingForm({ config }: BrandingFormProps) {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="contacto_email">Email</Label>
+                <Label htmlFor="email_contacto">Email</Label>
                 <Input
-                  id="contacto_email"
+                  id="email_contacto"
                   type="email"
-                  value={getValue('contacto_email')}
-                  onChange={(e) => setField('contacto_email', e.target.value)}
+                  value={getValue('email_contacto')}
+                  onChange={(e) => setField('email_contacto', e.target.value)}
                   placeholder="info@hinduclub.com"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contacto_telefono">Telefono</Label>
+                <Label htmlFor="telefono">Telefono</Label>
                 <Input
-                  id="contacto_telefono"
+                  id="telefono"
                   type="tel"
-                  value={getValue('contacto_telefono')}
-                  onChange={(e) => setField('contacto_telefono', e.target.value)}
+                  value={getValue('telefono')}
+                  onChange={(e) => setField('telefono', e.target.value)}
                   placeholder="+54 11 1234-5678"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contacto_whatsapp">WhatsApp</Label>
+                <Label htmlFor="whatsapp">WhatsApp</Label>
                 <Input
-                  id="contacto_whatsapp"
+                  id="whatsapp"
                   type="tel"
-                  value={getValue('contacto_whatsapp')}
-                  onChange={(e) => setField('contacto_whatsapp', e.target.value)}
+                  value={getValue('whatsapp')}
+                  onChange={(e) => setField('whatsapp', e.target.value)}
                   placeholder="+54 11 1234-5678"
                 />
               </div>
@@ -446,8 +533,8 @@ export function BrandingForm({ config }: BrandingFormProps) {
           <Button
             onClick={() =>
               handleSave([
-                'contacto_email', 'contacto_telefono', 'contacto_whatsapp',
-                'direccion', 'mapa_url', 'redes_sociales',
+                'email_contacto', 'telefono', 'whatsapp',
+                'direccion', 'mapa_url', 'redes',
               ])
             }
             disabled={isPending}

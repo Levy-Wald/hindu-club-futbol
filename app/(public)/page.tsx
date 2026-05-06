@@ -654,6 +654,69 @@ function StaffGroup({ title, items }: { title: string; items: StaffRow[] }) {
   )
 }
 
+interface PalmaresItem {
+  anio: number
+  titulo: string
+  tipo: string
+  descripcion?: string
+}
+
+function PalmaresSection({ palmares }: { palmares: PalmaresItem[] }) {
+  if (palmares.length === 0) return null
+
+  const tipoIcon: Record<string, string> = {
+    copa: '🏆',
+    trofeo: '🥇',
+    medalla: '🥈',
+    escudo: '🛡️',
+  }
+
+  return (
+    <section className="bg-muted py-16 sm:py-24">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-12 text-center">
+          <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
+            Palmarés
+          </h2>
+          <p className="mt-2 text-muted-foreground">
+            Trofeos y copas de nuestra historia
+          </p>
+        </div>
+
+        <div className="mx-auto grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {palmares
+            .sort((a, b) => b.anio - a.anio)
+            .map((item, i) => (
+            <div
+              key={i}
+              className="group relative overflow-hidden rounded-xl border border-[#F2C531]/30 bg-card p-5 transition-all hover:border-[#F2C531] hover:shadow-lg"
+            >
+              <div className="flex items-start gap-3">
+                <span className="text-3xl" role="img" aria-label={item.tipo}>
+                  {tipoIcon[item.tipo] ?? '🏆'}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-[#F2C531]">{item.anio}</p>
+                  <h3 className="mt-0.5 font-semibold text-foreground leading-tight">
+                    {item.titulo}
+                  </h3>
+                  {item.descripcion && (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {item.descripcion}
+                    </p>
+                  )}
+                </div>
+              </div>
+              {/* Decorative gold accent */}
+              <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-[#F2C531] to-[#F2C531]/0 opacity-0 transition-opacity group-hover:opacity-100" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function AsociateCTASection({ config }: { config: ConfigPublica }) {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#F2C531] via-[#e5b820] to-[#d4a510]">
@@ -827,6 +890,7 @@ export default async function HomePage() {
       />
       <CapitanesSection capitanes={capitanes} />
       <StaffSection staff={staff} />
+      <PalmaresSection palmares={((config?.palmares ?? []) as PalmaresItem[])} />
       <AsociateCTASection config={config} />
       <ContactoSection config={config} />
     </>
