@@ -946,6 +946,46 @@ export function BrandingForm({ config }: BrandingFormProps) {
 
 // ======== Subcomponentes ========
 
+const FILE_SPECS: Record<string, { formats: string; maxSize: string; dimensions: string; accept: string }> = {
+  logo: {
+    formats: 'PNG, SVG, WebP',
+    maxSize: '2 MB',
+    dimensions: '400×400 px (cuadrado o rectangular)',
+    accept: 'image/png,image/svg+xml,image/webp',
+  },
+  logo_dark: {
+    formats: 'PNG, SVG, WebP',
+    maxSize: '2 MB',
+    dimensions: '400×400 px (cuadrado o rectangular)',
+    accept: 'image/png,image/svg+xml,image/webp',
+  },
+  favicon: {
+    formats: 'PNG, ICO, SVG',
+    maxSize: '500 KB',
+    dimensions: '32×32 o 64×64 px',
+    accept: 'image/png,image/x-icon,image/svg+xml',
+  },
+  hero_imagen: {
+    formats: 'JPG, PNG, WebP',
+    maxSize: '5 MB',
+    dimensions: '1920×800 px (panorámico)',
+    accept: 'image/jpeg,image/png,image/webp',
+  },
+  media: {
+    formats: 'JPG, PNG, WebP',
+    maxSize: '5 MB',
+    dimensions: 'Mín. 800×600 px',
+    accept: 'image/jpeg,image/png,image/webp',
+  },
+}
+
+const DEFAULT_SPEC = {
+  formats: 'JPG, PNG, WebP',
+  maxSize: '5 MB',
+  dimensions: 'Recomendado 800×600 px mín.',
+  accept: 'image/jpeg,image/png,image/webp',
+}
+
 function FileUploadField({
   label,
   tipo,
@@ -959,10 +999,18 @@ function FileUploadField({
 }) {
   const [uploading, setUploading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const spec = FILE_SPECS[tipo] ?? DEFAULT_SPEC
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+
+    // Validate file size
+    const maxBytes = parseFloat(spec.maxSize) * (spec.maxSize.includes('KB') ? 1024 : 1024 * 1024)
+    if (file.size > maxBytes) {
+      toast.error(`El archivo supera el límite de ${spec.maxSize}`)
+      return
+    }
 
     setUploading(true)
     try {
@@ -1007,11 +1055,11 @@ function FileUploadField({
           <ImageIcon className="h-6 w-6 text-muted-foreground" />
         </div>
       )}
-      <div>
+      <div className="space-y-1.5">
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept={spec.accept}
           onChange={handleUpload}
           className="hidden"
           id={`upload-${tipo}`}
@@ -1030,6 +1078,11 @@ function FileUploadField({
           )}
           {uploading ? 'Subiendo...' : 'Subir'}
         </Button>
+        <div className="text-[10px] text-muted-foreground leading-relaxed space-y-0.5">
+          <p><span className="font-medium">Formatos:</span> {spec.formats}</p>
+          <p><span className="font-medium">Peso máx:</span> {spec.maxSize}</p>
+          <p><span className="font-medium">Dimensiones:</span> {spec.dimensions}</p>
+        </div>
       </div>
     </div>
   )
@@ -1076,7 +1129,7 @@ function MediaUploader({
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp"
         multiple
         onChange={handleUpload}
         className="hidden"
@@ -1095,11 +1148,13 @@ function MediaUploader({
           <div className="flex flex-col items-center gap-2">
             <Upload className="h-8 w-8 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              Arrastra imagenes o hace click para subir
+              Arrastrá imágenes o hacé click para subir
             </p>
-            <p className="text-xs text-muted-foreground">
-              PNG, JPG, WEBP hasta 5MB
-            </p>
+            <div className="text-[10px] text-muted-foreground space-y-0.5 mt-1">
+              <p><span className="font-medium">Formatos:</span> JPG, PNG, WebP</p>
+              <p><span className="font-medium">Peso máx:</span> 5 MB por archivo</p>
+              <p><span className="font-medium">Dimensiones:</span> Mín. 800×600 px</p>
+            </div>
           </div>
         )}
       </div>

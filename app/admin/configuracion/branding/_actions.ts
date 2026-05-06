@@ -33,12 +33,12 @@ export async function uploadBrandingAsset(formData: FormData) {
   const path = `branding/${tipo}.${ext}`
 
   const { error } = await supabase.storage
-    .from('public-assets')
+    .from('config-sitio')
     .upload(path, file, { upsert: true })
 
   if (error) return { ok: false, message: error.message }
 
-  const { data } = supabase.storage.from('public-assets').getPublicUrl(path)
+  const { data } = supabase.storage.from('config-sitio').getPublicUrl(path)
 
   return { ok: true, message: 'Archivo subido', data: { url: data.publicUrl } }
 }
