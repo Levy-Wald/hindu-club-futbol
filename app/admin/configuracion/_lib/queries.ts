@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 
-const TENANT_ID = '62e25f3c-7c86-42f1-9b43-cdbab28dacde'
+const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 export async function fetchTenantConfig() {
   const supabase = await createClient()
@@ -8,9 +8,9 @@ export async function fetchTenantConfig() {
   const [tenantRes, modulosRes, brandingRes] = await Promise.all([
     supabase
       .from('tenants')
-      .select('id, nombre, slug, tipo, activo')
+      .select('id, nombre, slug, tipo, plan_slug, dominio_custom, configuracion, logo_url, color_principal, color_secundario, idioma_default, timezone, activo')
       .eq('id', TENANT_ID)
-      .maybeSingle(),
+      .single(),
     supabase
       .from('tenant_modulos')
       .select('modulo_slug, activo, fecha_activacion')
@@ -22,30 +22,13 @@ export async function fetchTenantConfig() {
       .maybeSingle(),
   ])
 
-  // Fallback tenant data if query fails or returns null
-  const tenantData = tenantRes.data ?? {
-    id: TENANT_ID,
-    nombre: 'Hindu Club',
-    slug: 'hindu-club',
-    tipo: 'club_deportivo',
-    activo: true,
-  }
-  const modulosData = modulosRes.error ? [] : (modulosRes.data ?? [])
+  if (tenantRes.error) throw tenantRes.error
+  if (modulosRes.error) throw modulosRes.error
 
   return {
-    tenant: {
-      ...tenantData,
-      plan_slug: 'pro',
-      dominio_custom: null,
-      configuracion: null,
-      logo_url: null,
-      color_principal: null,
-      color_secundario: null,
-      idioma_default: 'es',
-      timezone: 'America/Argentina/Buenos_Aires',
-    },
-    modulosActivos: modulosData,
-    branding: brandingRes.error ? null : (brandingRes.data ?? null),
+    tenant: tenantRes.data,
+    modulosActivos: modulosRes.data ?? [],
+    branding: brandingRes.data ?? null,
   }
 }
 
@@ -64,9 +47,8 @@ export async function fetchModulos() {
       .eq('tenant_id', TENANT_ID),
   ])
 
-  // Tables may not exist on remote — return empty
-  if (catalogoRes.error) return []
-  if (tenantModulosRes.error) return []
+  if (catalogoRes.error) throw catalogoRes.error
+  if (tenantModulosRes.error) throw tenantModulosRes.error
 
   const catalogo = catalogoRes.data
   const tenantModulos = tenantModulosRes.data
@@ -87,13 +69,6 @@ export async function fetchModulos() {
   }))
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function safeFetch(supabase: Awaited<ReturnType<typeof createClient>>, table: string, select: string, orderBy: string): Promise<any[]> {
-  const res = await supabase.from(table).select(select).order(orderBy)
-  if (res.error) return []
-  return res.data ?? []
-}
-
 export async function fetchCatalogos() {
   const supabase = await createClient()
 
@@ -102,30 +77,35 @@ export async function fetchCatalogos() {
     motivosBaja, tiposVinculo, disciplinas, nivelesCompetencia,
     tiposDocumento, tiposEstudio, obrasSociales,
   ] = await Promise.all([
-    safeFetch(supabase, 'catalogo_atributos', 'slug, nombre, descripcion, categoria, activo', 'categoria'),
-    safeFetch(supabase, 'catalogo_estados_padron', 'id, slug, nombre, activo', 'nombre'),
-    safeFetch(supabase, 'catalogo_tipos_socio', 'id, slug, nombre, activo', 'nombre'),
-    safeFetch(supabase, 'catalogo_roles_equipo', 'slug, nombre, categoria, activo', 'categoria'),
-    safeFetch(supabase, 'catalogo_motivos_baja', 'slug, nombre, activo', 'nombre'),
-    safeFetch(supabase, 'catalogo_tipos_vinculo', 'slug, nombre, categoria, activo', 'categoria'),
-    safeFetch(supabase, 'catalogo_disciplinas', 'slug, nombre, categoria, activo', 'nombre'),
-    safeFetch(supabase, 'catalogo_niveles_competencia', 'slug, nombre, activo', 'nombre'),
-    safeFetch(supabase, 'catalogo_tipos_documento', 'slug, nombre, activo', 'nombre'),
-    safeFetch(supabase, 'catalogo_tipos_estudio', 'slug, nombre, activo', 'nombre'),
-    safeFetch(supabase, 'catalogo_obras_sociales', 'slug, nombre, activo', 'nombre'),
+    supabase.from('catalogo_atributos').select('slug, nombre, descripcion, categoria, activo').order('categoria'),
+    supabase.from('catalogo_estados_padron').select('id, slug, nombre, activo').order('nombre'),
+    supabase.from('catalogo_tipos_socio').select('id, slug, nombre, activo').order('nombre'),
+    supabase.from('catalogo_roles_equipo').select('slug, nombre, categoria, activo').order('categoria'),
+    supabase.from('catalogo_motivos_baja').select('slug, nombre, activo').order('nombre'),
+    supabase.from('catalogo_tipos_vinculo').select('slug, nombre, categoria, activo').order('categoria'),
+    supabase.from('catalogo_disciplinas').select('slug, nombre, categoria, activo').order('nombre'),
+    supabase.from('catalogo_niveles_competencia').select('slug, nombre, activo').order('orden'),
+    supabase.from('catalogo_tipos_documento').select('slug, nombre, activo').order('nombre'),
+    supabase.from('catalogo_tipos_estudio').select('slug, nombre, activo').order('nombre'),
+    supabase.from('catalogo_obras_sociales').select('slug, nombre, activo').order('nombre'),
   ])
 
+  if (atributos.error) throw atributos.error
+  if (estadosPadron.error) throw estadosPadron.error
+  if (tiposSocio.error) throw tiposSocio.error
+  if (rolesEquipo.error) throw rolesEquipo.error
+
   return {
-    atributos,
-    estadosPadron,
-    tiposSocio,
-    rolesEquipo,
-    motivosBaja,
-    tiposVinculo,
-    disciplinas,
-    nivelesCompetencia,
-    tiposDocumento,
-    tiposEstudio,
-    obrasSociales,
+    atributos: atributos.data ?? [],
+    estadosPadron: estadosPadron.data ?? [],
+    tiposSocio: tiposSocio.data ?? [],
+    rolesEquipo: rolesEquipo.data ?? [],
+    motivosBaja: motivosBaja.data ?? [],
+    tiposVinculo: tiposVinculo.data ?? [],
+    disciplinas: disciplinas.data ?? [],
+    nivelesCompetencia: nivelesCompetencia.data ?? [],
+    tiposDocumento: tiposDocumento.data ?? [],
+    tiposEstudio: tiposEstudio.data ?? [],
+    obrasSociales: obrasSociales.data ?? [],
   }
 }

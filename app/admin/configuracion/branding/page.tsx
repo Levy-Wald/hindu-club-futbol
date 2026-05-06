@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-const TENANT_ID = '62e25f3c-7c86-42f1-9b43-cdbab28dacde'
+const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 export default async function BrandingPage() {
   const supabase = await createClient()

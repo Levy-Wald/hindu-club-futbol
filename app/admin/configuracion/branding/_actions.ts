@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
-const TENANT_ID = '62e25f3c-7c86-42f1-9b43-cdbab28dacde'
+const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 export async function actualizarConfigPublica(input: Record<string, unknown>) {
   const supabase = await createClient()
@@ -33,12 +33,12 @@ export async function uploadBrandingAsset(formData: FormData) {
   const path = `branding/${tipo}.${ext}`
 
   const { error } = await supabase.storage
-    .from('config-sitio')
+    .from('public-assets')
     .upload(path, file, { upsert: true })
 
   if (error) return { ok: false, message: error.message }
 
-  const { data } = supabase.storage.from('config-sitio').getPublicUrl(path)
+  const { data } = supabase.storage.from('public-assets').getPublicUrl(path)
 
   return { ok: true, message: 'Archivo subido', data: { url: data.publicUrl } }
 }

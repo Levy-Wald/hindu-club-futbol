@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
-const TENANT_ID = '62e25f3c-7c86-42f1-9b43-cdbab28dacde'
+const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 function formatResult(ok: boolean, message: string) {
   return { ok, message }
@@ -27,12 +27,16 @@ export async function actualizarTenant(data: {
 
   const supabase = await createClient()
 
-  // Only update columns that exist on the remote tenants table
   const updateData: Record<string, unknown> = {
     nombre: data.nombre.trim(),
     tipo: data.tipo,
+    idioma_default: data.idioma_default,
+    timezone: data.timezone,
   }
   if (data.slug !== undefined) updateData.slug = data.slug.trim()
+  if (data.plan_slug !== undefined) updateData.plan_slug = data.plan_slug
+  if (data.dominio_custom !== undefined) updateData.dominio_custom = data.dominio_custom
+  if (data.configuracion !== undefined) updateData.configuracion = data.configuracion
 
   const { error } = await supabase
     .from('tenants')
