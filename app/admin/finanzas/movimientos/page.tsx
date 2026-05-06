@@ -87,7 +87,7 @@ export default async function MovimientosPage({ searchParams }: PageProps) {
       caja_id,
       persona:personas!movimientos_caja_persona_id_fkey(id, nombre, apellido),
       caja:cajas!movimientos_caja_caja_id_fkey(id, nombre),
-      categoria:categorias_movimiento!movimientos_caja_categoria_id_fkey(id, nombre)
+      categoria:catalogo_categorias_movimiento!movimientos_caja_categoria_id_fkey(id, nombre)
     `)
     .eq('tenant_id', TENANT_ID)
     .order('fecha', { ascending: false })
@@ -121,10 +121,10 @@ export default async function MovimientosPage({ searchParams }: PageProps) {
       .eq('activa', true)
       .order('nombre'),
     supabase
-      .from('categorias_movimiento')
+      .from('catalogo_categorias_movimiento')
       .select('id, nombre, tipo')
       .eq('tenant_id', TENANT_ID)
-      .eq('activa', true)
+      .eq('activo', true)
       .order('nombre'),
     supabase
       .from('medios_pago')

@@ -54,7 +54,7 @@ export default async function CajasPage() {
       id,
       nombre,
       tipo,
-      saldo,
+      saldo_actual,
       moneda,
       activa,
       responsable_id,
@@ -94,11 +94,11 @@ export default async function CajasPage() {
   // Calculate totals
   const totalArs = (cajas ?? [])
     .filter((c) => c.activa && c.moneda === 'ARS')
-    .reduce((sum, c) => sum + (c.saldo ?? 0), 0)
+    .reduce((sum, c) => sum + (c.saldo_actual ?? 0), 0)
 
   const totalUsd = (cajas ?? [])
     .filter((c) => c.activa && c.moneda === 'USD')
-    .reduce((sum, c) => sum + (c.saldo ?? 0), 0)
+    .reduce((sum, c) => sum + (c.saldo_actual ?? 0), 0)
 
   return (
     <div className="space-y-6">
@@ -148,10 +148,10 @@ export default async function CajasPage() {
             const responsableRaw = caja.responsable as unknown
             const responsable = (Array.isArray(responsableRaw) ? responsableRaw[0] : responsableRaw) as { id: string; nombre: string; apellido: string } | null
             const saldoUsdEquiv =
-              caja.moneda === 'ARS' && tasaUsd && caja.saldo != null
-                ? caja.saldo / tasaUsd
+              caja.moneda === 'ARS' && tasaUsd && caja.saldo_actual != null
+                ? caja.saldo_actual / tasaUsd
                 : caja.moneda === 'USD'
-                  ? caja.saldo
+                  ? caja.saldo_actual
                   : null
 
             return (
@@ -178,7 +178,7 @@ export default async function CajasPage() {
                 <CardContent className="space-y-3">
                   <div>
                     <p className="text-2xl font-bold">
-                      {formatMoney(caja.saldo, caja.moneda ?? 'ARS')}
+                      {formatMoney(caja.saldo_actual, caja.moneda ?? 'ARS')}
                     </p>
                     {saldoUsdEquiv != null && caja.moneda === 'ARS' && (
                       <p className="text-xs text-muted-foreground">

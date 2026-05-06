@@ -59,6 +59,7 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import { SelectionBar } from '@/components/ui/selection-bar'
 import { ExportFormatSelector } from '@/components/ui/export-format-selector'
+import { DownloadTemplateButton } from '@/components/ui/download-template-button'
 import type { ExportData } from '@/lib/export/formats'
 import {
   crearPlan,
@@ -487,6 +488,11 @@ function PlanesTab() {
           />
         </div>
         <div className="flex items-center gap-2">
+          <DownloadTemplateButton
+            headers={['nombre', 'periodicidad', 'monto', 'moneda', 'dia_vencimiento', 'mora_porcentaje']}
+            filename="modelo_cuotas_planes"
+            sampleRow={['Cuota social', 'mensual', '25000', 'ARS', '10', '5']}
+          />
           <ExportFormatSelector getData={getPlanesExportData} />
           <Button onClick={openCreatePlan} size="sm">
             <Plus className="h-4 w-4 mr-1" />
@@ -1539,7 +1545,14 @@ function EstadoCuotasTab() {
             className="pl-9"
           />
         </div>
-        <ExportFormatSelector getData={getCuotasExportData} />
+        <div className="flex items-center gap-2">
+          <DownloadTemplateButton
+            headers={['persona_documento', 'plan_nombre', 'periodo', 'monto']}
+            filename="modelo_cuotas_emitidas"
+            sampleRow={['12345678', 'Cuota social', '2026-06', '25000']}
+          />
+          <ExportFormatSelector getData={getCuotasExportData} />
+        </div>
       </div>
 
       {/* Filtros */}

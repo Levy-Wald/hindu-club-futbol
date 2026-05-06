@@ -66,7 +66,9 @@ import {
   Coffee,
   ChevronDown,
   ChevronRight,
+  Upload,
 } from 'lucide-react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {
   crearProducto,
@@ -74,6 +76,7 @@ import {
   toggleProductoActivo,
   eliminarProducto,
 } from './_actions'
+import { DownloadTemplateButton } from '@/components/ui/download-template-button'
 import type { ExportData } from '@/lib/export/formats'
 
 // -------------------------------------------------------------------
@@ -319,6 +322,7 @@ function resolveJoin<T>(raw: unknown): T | null {
 export default function ProductosPage() {
   const [productos, setProductos] = useState<Producto[]>([])
   const [filtro, setFiltro] = useState('todos')
+  const [filtroEstado, setFiltroEstado] = useState('todos')
   const [search, setSearch] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -421,6 +425,8 @@ export default function ProductosPage() {
 
   const productosFiltrados = productos.filter((p) => {
     if (filtro !== 'todos' && p.tipo !== filtro) return false
+    if (filtroEstado === 'activos' && !p.activo) return false
+    if (filtroEstado === 'inactivos' && p.activo) return false
     if (search.trim()) {
       const q = search.toLowerCase().trim()
       const searchable = [p.nombre, p.sku, p.marca, p.modelo].filter(Boolean).join(' ').toLowerCase()
@@ -654,6 +660,15 @@ export default function ProductosPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <DownloadTemplateButton
+            headers={['nombre', 'tipo', 'sku', 'precio', 'moneda', 'descripcion']}
+            filename="modelo_productos"
+            sampleRow={['Pelota futbol 5', 'producto', 'PEL-001', '15000', 'ARS', 'Pelota reglamentaria']}
+          />
+          <Button variant="outline" size="sm" render={<Link href="/admin/finanzas/productos/importar" />}>
+            <Upload className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">Importar</span>
+          </Button>
           <ExportFormatSelector getData={getAllExportData} />
           <Button onClick={openCreate} size="sm">
             <Plus className="h-4 w-4 mr-1" />
@@ -662,15 +677,27 @@ export default function ProductosPage() {
         </div>
       </div>
 
-      {/* Buscador */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por nombre, SKU, marca..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      {/* Buscador + filtro estado */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nombre, SKU, marca..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={filtroEstado} onValueChange={(val) => setFiltroEstado(val ?? 'todos')}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos</SelectItem>
+            <SelectItem value="activos">Activos</SelectItem>
+            <SelectItem value="inactivos">Inactivos</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Filtros por tipo */}

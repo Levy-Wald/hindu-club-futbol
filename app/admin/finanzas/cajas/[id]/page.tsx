@@ -103,7 +103,7 @@ export default async function CajaDetailPage({ params }: PageProps) {
       id,
       nombre,
       tipo,
-      saldo,
+      saldo_actual,
       moneda,
       activa,
       responsable_id,
@@ -165,7 +165,7 @@ export default async function CajaDetailPage({ params }: PageProps) {
       motivo_anulacion,
       persona_id,
       persona:personas!movimientos_caja_persona_id_fkey(id, nombre, apellido),
-      categoria:categorias_movimiento!movimientos_caja_categoria_id_fkey(id, nombre)
+      categoria:catalogo_categorias_movimiento!movimientos_caja_categoria_id_fkey(id, nombre)
     `)
     .eq('tenant_id', TENANT_ID)
     .eq('caja_id', id)
@@ -204,7 +204,7 @@ export default async function CajaDetailPage({ params }: PageProps) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">{tipoLabel(caja.tipo)}</p>
-                <p className="text-2xl font-bold">{formatMoney(caja.saldo, moneda)}</p>
+                <p className="text-2xl font-bold">{formatMoney(caja.saldo_actual, moneda)}</p>
               </div>
             </div>
             {cuentaContable && (
