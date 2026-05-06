@@ -1,4 +1,4 @@
-# Proximo Sprint: 10 — Operaciones deportivas avanzadas
+# Proximo Sprint: 11 — Empleados + Contratos + Liquidaciones
 
 ## Para el humano o agente que va a trabajar
 
@@ -12,61 +12,53 @@ Lee estos archivos antes de empezar:
 
 ## Contexto rapido
 
-**Estado actual:** Sprints 1-9 completos (Sprint 9 = Finanzas mini-ERP, pendiente validación visual por Yair).
-**Proximo:** Sprint 10.
+**Estado actual:** Sprints 1-10 completos (Sprint 9 y 10 = pendiente validación visual por Yair).
+**Proximo:** Sprint 11.
 
-> **IMPORTANTE:** Sprint 9 tiene items PENDIENTE_VALIDACION_VISUAL. Yair debe validar el módulo Finanzas completo, branding dinámico (fonts/favicon), y soft-delete antes de arrancar Sprint 10. Si Yair ya validó, ignorar esta nota.
+> **IMPORTANTE:** Sprint 10 tiene items PENDIENTE_VALIDACION_VISUAL. Yair debe validar Operaciones (Esta semana, Scouting, Asistencias, eventos avanzados) y Sprint 9 (Finanzas completo) antes de arrancar Sprint 11. Si Yair ya validó, ignorar esta nota.
 
 ---
 
-## Que hay que hacer en Sprint 10
+## Que hay que hacer en Sprint 11
 
 ### Objetivo
-Operaciones deportivas avanzadas: eventos con asistencia, esquemas tácticos, operación semanal del club, scouting básico.
+Empleados, contratos laborales y liquidaciones: modelar relaciones laborales del club con su personal.
 
 ### Entregables
 
-#### 1. Eventos avanzados (entrenamientos, partidos, viajes)
-- Eventos ya existen (Sprint 7), pero necesitan:
-  - Tipo de evento: entrenamiento, partido_amistoso, partido_oficial, viaje, reunion, otro
-  - Rival y sede (para partidos)
-  - Citación con hora y lugar
-  - Notas del DT pre/post evento
+#### 1. ABM Empleados
+- Persona con vínculo laboral (atributo `empleado`)
+- Modalidades: relación de dependencia, monotributo, honorarios, informal
+- Datos laborales: CUIL, categoría, fecha ingreso, puesto, área
+- Vista lista con filtros por modalidad, estado, área
 
-#### 2. Confirmaciones de asistencia
-- Cada persona citada puede: confirmar, rechazar, sin respuesta
-- Vista para DT: quiénes confirmaron, quiénes no
-- Integración futura con bot WA (Sprint 16+)
+#### 2. ABM Contratos Laborales
+- Vinculado a persona empleado
+- Monto, frecuencia (mensual, quincenal, por evento), moneda
+- Fecha inicio, fecha fin (nullable = indefinido)
+- Estado: vigente, vencido, rescindido
+- Historial de contratos por persona
 
-#### 3. Esquemas tácticos (disciplina_futbol)
-- Formación (4-3-3, 4-4-2, etc.)
-- Posición de cada jugador en el esquema
-- Titulares vs suplentes
-- Pelotas paradas (corners, tiros libres)
-- Visual: cancha con jugadores posicionados
+#### 3. Liquidaciones
+- Generación de liquidación mensual
+- Liquidación → genera movimiento_caja automáticamente
+- Estados: borrador, aprobada, pagada, anulada
+- Vista de liquidaciones con filtros por período, estado, persona
 
-#### 4. Operaciones semanales
-- Vista "Esta semana": próximos eventos de todos los equipos del club
-- Filtro por equipo/disciplina
-- Para dirigentes/managers: panorama general del club
-
-#### 5. Scouting básico
-- Ficha de jugador externo (persona sin vínculo con el club)
-- Notas de observación
-- Estado: observado, contactado, en_negociacion, descartado, incorporado
-- Si se incorpora → crear persona en el club
+#### 4. Vínculos empleado-actividad
+- Un kinesiólogo puede estar en 3 equipos
+- Un preparador físico puede cubrir 2 disciplinas
+- Tabla junction: persona_id + equipo_id + actividad
 
 ### Tablas a crear/modificar
 
-- `eventos` — agregar campos: tipo_evento, rival, sede, notas_pre, notas_post
-- `evento_asistencias` — persona_id, evento_id, estado (confirmado/rechazado/pendiente), nota
-- `esquemas_tacticos` — equipo_id, evento_id (opcional), formacion, notas
-- `esquema_posiciones` — esquema_id, persona_id, posicion, es_titular
-- `scouting_fichas` — persona externa, equipo interesado, estado, observaciones
+- `contratos_laborales` — persona_id, modalidad, monto, frecuencia, vigencia, estado
+- `liquidaciones` — contrato_id, periodo, monto_bruto, deducciones, monto_neto, estado, movimiento_caja_id
+- Extender `personas` o `personas_atributos` con datos laborales específicos
 
 ### Archivos relevantes
-- `app/admin/equipos/[id]/_components/` — calendario y eventos ya existen
-- `app/admin/mi-equipo/` — vista de equipo para DT/capitanes
+- `app/admin/personas/` — empleados son personas con atributo
+- `app/admin/finanzas/movimientos/` — liquidaciones generan movimientos
 - `supabase/migrations/` — agregar migration numerada
 
 ---
@@ -82,23 +74,26 @@ Operaciones deportivas avanzadas: eventos con asistencia, esquemas tácticos, op
 
 ---
 
-## Sprint 9 completado (referencia)
+## Sprint 10 completado (referencia)
 
-Sprint 9 entregó el módulo Finanzas completo:
-- Dashboard, Cajas, Movimientos, Productos (ERP 30+ campos), Cuotas (planes/emisiones/estado), Plan de Cuentas, Mi Cuenta
-- Import masivo de productos (wizard 4 pasos)
-- 13 tipos de producto (producto, servicio, cuota, actividad, alquiler, insumo, activo, gasto, locker, cochera, expensa, multa, consumo)
-- UX estándar: búsqueda, filtros, checkboxes, SelectionBar, export multi-formato
-- Migrations aplicadas en producción
+Sprint 10 entregó operaciones deportivas avanzadas:
+- Operaciones "Esta semana": vista cross-equipo semanal con navegación, filtros, agrupación por día
+- Eventos avanzados: rival, notas pre/post evento en create/edit
+- Asistencias: componente con estados, generar lista automática, resumen
+- Scouting: CRUD completo con estrellas, estados, filtros
+- Sidebar colapsable para Operaciones (Esta semana, Scouting)
+- APIs: /api/operaciones/eventos, /api/asistencias/[eventoId]
+- Migration: 4 tablas nuevas + 3 columnas en equipos_horarios
+- Esquemas tácticos: tablas DB creadas, UI diferida
 
 ---
 
 ## Vision global
 
 ```
-Sprints 1-9:  ████████████████████████████████████████████████ HECHO
-Sprint 10:    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ <- ESTAS ACA (operaciones deportivas)
-Sprint 11:    ░░░░░░░░░░░░░░░░░░ (empleados, contratos)
-Sprints 12-14:░░░░░░░░░░░░░░░░░░ (comunicaciones, API/MCP, conectores)
+Sprints 1-10: ████████████████████████████████████████████████████████ HECHO
+Sprint 11:    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ <- ESTAS ACA (empleados, contratos)
+Sprint 12:    ░░░░░░░░░░░░░░░░░░ (comunicaciones)
+Sprints 13-14:░░░░░░░░░░░░░░░░░░ (API/MCP, conectores)
 Sprint 15:    ░░░░░░░░░░░░░░░░░░ (hardening -> HINDU LIVE)
 ```

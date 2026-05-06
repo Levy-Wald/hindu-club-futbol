@@ -32,9 +32,12 @@ import {
   ChevronRight,
   Clock,
   Pencil,
+  Users,
+  Swords,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { crearEvento, editarEvento, eliminarEvento } from '../../_actions'
+import { AsistenciasEvento } from './asistencias-evento'
 
 // --- Tipos ---
 
@@ -51,7 +54,12 @@ interface Evento {
   activo: boolean
   sede_id: string | null
   cancha_id: string | null
+  rival: string | null
+  notas_pre: string | null
+  notas_post: string | null
 }
+
+const TIPOS_CON_RIVAL = ['partido_local', 'partido_visitante', 'amistoso', 'torneo']
 
 interface Sede {
   id: string
@@ -277,6 +285,7 @@ function ListaView({
   isPending,
   onEliminar,
   onEditar,
+  onAsistencias,
   sedes,
   canchas,
 }: {
@@ -284,6 +293,7 @@ function ListaView({
   isPending: boolean
   onEliminar: (id: string) => void
   onEditar: (evento: Evento) => void
+  onAsistencias: (evento: Evento) => void
   sedes: Sede[]
   canchas: Cancha[]
 }) {
@@ -342,6 +352,12 @@ function ListaView({
               {ev.titulo && (
                 <p className="text-sm font-medium truncate">{ev.titulo}</p>
               )}
+              {ev.rival && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Swords className="h-3 w-3 shrink-0" />
+                  vs {ev.rival}
+                </p>
+              )}
               {ubicacion && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <MapPin className="h-3 w-3 shrink-0" />
@@ -359,6 +375,15 @@ function ListaView({
               )}
             </div>
             <div className="flex items-center gap-1 shrink-0">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                title="Asistencias"
+                onClick={() => onAsistencias(ev)}
+              >
+                <Users className="h-3.5 w-3.5" />
+              </Button>
               <Button
                 size="icon"
                 variant="ghost"
@@ -623,6 +648,10 @@ export function CalendarioPanel({
   const [isPending, startTransition] = useTransition()
   const [viewMode, setViewMode] = useState<ViewMode>('lista')
 
+  // Asistencias state
+  const [asistenciasOpen, setAsistenciasOpen] = useState(false)
+  const [asistenciasEvento, setAsistenciasEvento] = useState<Evento | null>(null)
+
   // Edit state
   const [editOpen, setEditOpen] = useState(false)
   const [editEvento, setEditEvento] = useState<Evento | null>(null)
@@ -635,6 +664,9 @@ export function CalendarioPanel({
   const [editCanchaId, setEditCanchaId] = useState('')
   const [editHoraCitacion, setEditHoraCitacion] = useState('')
   const [editDescripcion, setEditDescripcion] = useState('')
+  const [editRival, setEditRival] = useState('')
+  const [editNotasPre, setEditNotasPre] = useState('')
+  const [editNotasPost, setEditNotasPost] = useState('')
 
   // Form state (crear)
   const [fecha, setFecha] = useState('')
@@ -646,6 +678,7 @@ export function CalendarioPanel({
   const [canchaId, setCanchaId] = useState('')
   const [horaCitacion, setHoraCitacion] = useState('')
   const [descripcion, setDescripcion] = useState('')
+  const [rival, setRival] = useState('')
   const [recurrencia, setRecurrencia] = useState('no_repite')
   const [finRecurrencia, setFinRecurrencia] = useState<FinRecurrencia>('cantidad')
   const [cantidadRepeticiones, setCantidadRepeticiones] = useState(4)
@@ -666,6 +699,7 @@ export function CalendarioPanel({
     setCanchaId('')
     setHoraCitacion('')
     setDescripcion('')
+    setRival('')
     setRecurrencia('no_repite')
     setFinRecurrencia('cantidad')
     setCantidadRepeticiones(4)
@@ -696,6 +730,7 @@ export function CalendarioPanel({
         cancha_id: canchaId || null,
         hora_citacion: horaCitacion || null,
         descripcion: descripcion.trim() || null,
+        rival: rival.trim() || null,
       }
 
       if (recurrencia === 'no_repite') {
@@ -777,6 +812,11 @@ export function CalendarioPanel({
     })
   }
 
+  function openAsistencias(evento: Evento) {
+    setAsistenciasEvento(evento)
+    setAsistenciasOpen(true)
+  }
+
   function openEditDialog(evento: Evento) {
     setEditEvento(evento)
     setEditFecha(evento.fecha ?? '')
@@ -788,6 +828,9 @@ export function CalendarioPanel({
     setEditCanchaId(evento.cancha_id ?? '')
     setEditHoraCitacion(evento.hora_citacion?.slice(0, 5) ?? '')
     setEditDescripcion(evento.descripcion ?? '')
+    setEditRival(evento.rival ?? '')
+    setEditNotasPre(evento.notas_pre ?? '')
+    setEditNotasPost(evento.notas_post ?? '')
     setEditOpen(true)
   }
 
@@ -815,6 +858,9 @@ export function CalendarioPanel({
         cancha_id: editCanchaId || null,
         hora_citacion: editHoraCitacion || null,
         descripcion: editDescripcion || null,
+        rival: editRival || null,
+        notas_pre: editNotasPre || null,
+        notas_post: editNotasPost || null,
       })
       if (result.ok) {
         toast.success(result.message)
@@ -932,6 +978,20 @@ export function CalendarioPanel({
                     placeholder="Ej: Partido vs River"
                   />
                 </div>
+
+                {/* Rival - solo para partidos */}
+                {TIPOS_CON_RIVAL.includes(tipoActividad) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="evento-rival">Rival (opcional)</Label>
+                    <Input
+                      id="evento-rival"
+                      type="text"
+                      value={rival}
+                      onChange={(e) => setRival(e.target.value)}
+                      placeholder="Ej: River Plate"
+                    />
+                  </div>
+                )}
 
                 {/* Sede */}
                 <div className="space-y-2">
@@ -1102,6 +1162,7 @@ export function CalendarioPanel({
           isPending={isPending}
           onEliminar={handleEliminar}
           onEditar={openEditDialog}
+          onAsistencias={openAsistencias}
           sedes={sedes}
           canchas={canchas}
         />
@@ -1114,6 +1175,28 @@ export function CalendarioPanel({
           canchas={canchas}
         />
       )}
+
+      {/* Dialog asistencias */}
+      <Dialog open={asistenciasOpen} onOpenChange={setAsistenciasOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Asistencias — {asistenciasEvento?.titulo ?? getTipoLabel(asistenciasEvento?.tipo_actividad ?? '')}
+              {asistenciasEvento?.fecha && (
+                <span className="text-sm font-normal text-muted-foreground ml-2">
+                  {formatFechaCorta(asistenciasEvento.fecha)}
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          {asistenciasEvento && (
+            <AsistenciasEvento
+              eventoId={asistenciasEvento.id}
+              equipoId={equipoId}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog editar evento */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
@@ -1247,6 +1330,44 @@ export function CalendarioPanel({
                 onChange={(e) => setEditDescripcion(e.target.value)}
                 rows={2}
                 placeholder="Notas adicionales..."
+              />
+            </div>
+
+            {/* Rival - solo para partidos */}
+            {TIPOS_CON_RIVAL.includes(editTipoActividad) && (
+              <div className="space-y-2">
+                <Label htmlFor="edit-rival">Rival (opcional)</Label>
+                <Input
+                  id="edit-rival"
+                  type="text"
+                  value={editRival}
+                  onChange={(e) => setEditRival(e.target.value)}
+                  placeholder="Ej: River Plate"
+                />
+              </div>
+            )}
+
+            {/* Notas pre-evento */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-notas-pre">Notas pre-evento (opcional)</Label>
+              <Textarea
+                id="edit-notas-pre"
+                value={editNotasPre}
+                onChange={(e) => setEditNotasPre(e.target.value)}
+                rows={2}
+                placeholder="Indicaciones previas al evento..."
+              />
+            </div>
+
+            {/* Notas post-evento */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-notas-post">Notas post-evento (opcional)</Label>
+              <Textarea
+                id="edit-notas-post"
+                value={editNotasPost}
+                onChange={(e) => setEditNotasPost(e.target.value)}
+                rows={2}
+                placeholder="Resumen, observaciones posteriores..."
               />
             </div>
 

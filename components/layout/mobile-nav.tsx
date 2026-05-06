@@ -28,6 +28,8 @@ import {
   BookOpen,
   CreditCard,
   BarChart3,
+  Calendar,
+  Search,
 } from 'lucide-react'
 
 const bottomNavItems = [
@@ -42,6 +44,11 @@ interface NavItemDef {
   href: string
   icon: React.ComponentType<{ className?: string }>
 }
+
+const operacionesSubItems: NavItemDef[] = [
+  { label: 'Esta semana', href: '/admin/operaciones', icon: Calendar },
+  { label: 'Scouting', href: '/admin/operaciones/scouting', icon: Search },
+]
 
 const finanzasSubItems: NavItemDef[] = [
   { label: 'Dashboard', href: '/admin/finanzas', icon: BarChart3 },
@@ -61,8 +68,7 @@ const fullMenuItems: NavItemDef[] = [
   { label: 'Padrones', href: '/admin/padrones', icon: ClipboardList },
   { label: 'Equipos', href: '/admin/equipos', icon: Shield },
   { label: 'Entidades', href: '/admin/externos', icon: Building2 },
-  { label: 'Operaciones', href: '/admin/operaciones', icon: CalendarDays },
-  // Finanzas is handled as collapsible section inline
+  // Operaciones and Finanzas are handled as collapsible sections
   { label: 'Comunicaciones', href: '/admin/comunicaciones', icon: MessageSquare },
   { label: 'Pre-inscripciones', href: '/admin/pre-inscripciones', icon: UserPlus },
   { label: 'Configuracion', href: '/admin/configuracion', icon: Settings },
@@ -71,14 +77,18 @@ const fullMenuItems: NavItemDef[] = [
 export function MobileNav() {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [operacionesOpen, setOperacionesOpen] = useState(
+    pathname.startsWith('/admin/operaciones')
+  )
   const [finanzasOpen, setFinanzasOpen] = useState(
     pathname.startsWith('/admin/finanzas')
   )
 
-  // Split menu items around Finanzas (insert after Operaciones = index 8)
-  const beforeFinanzas = fullMenuItems.slice(0, 9) // Mi perfil through Operaciones
-  const afterFinanzas = fullMenuItems.slice(9)       // Comunicaciones onward
+  // Split menu items: Mi perfil through Entidades (0-7), then Comunicaciones onward (8+)
+  const beforeCollapsible = fullMenuItems.slice(0, 8) // Mi perfil through Entidades
+  const afterCollapsible = fullMenuItems.slice(8)       // Comunicaciones onward
 
+  const isOperacionesActive = pathname.startsWith('/admin/operaciones')
   const isFinanzasActive = pathname.startsWith('/admin/finanzas')
 
   return (
@@ -131,7 +141,7 @@ export function MobileNav() {
             </button>
           </div>
           <nav className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-3.5rem)]">
-            {beforeFinanzas.map((item) => {
+            {beforeCollapsible.map((item) => {
               const isActive = item.href === '/admin'
                 ? pathname === '/admin'
                 : pathname.startsWith(item.href)
@@ -152,6 +162,50 @@ export function MobileNav() {
                 </Link>
               )
             })}
+
+            {/* Operaciones collapsible section */}
+            <button
+              onClick={() => setOperacionesOpen(!operacionesOpen)}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors w-full text-left',
+                isOperacionesActive
+                  ? 'bg-accent text-accent-foreground'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+              )}
+            >
+              <CalendarDays className="h-5 w-5" />
+              <span className="flex-1">Operaciones</span>
+              {operacionesOpen ? (
+                <ChevronDown className="h-5 w-5" />
+              ) : (
+                <ChevronRight className="h-5 w-5" />
+              )}
+            </button>
+            {operacionesOpen && (
+              <div className="space-y-0.5 ml-4">
+                {operacionesSubItems.map((sub) => {
+                  const isSubActive = sub.href === '/admin/operaciones'
+                    ? pathname === '/admin/operaciones'
+                    : pathname.startsWith(sub.href)
+                  return (
+                    <Link
+                      key={sub.href}
+                      href={sub.href}
+                      onClick={() => setMenuOpen(false)}
+                      className={cn(
+                        'flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
+                        isSubActive
+                          ? 'bg-accent text-accent-foreground'
+                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      )}
+                    >
+                      <sub.icon className="h-4 w-4" />
+                      {sub.label}
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
 
             {/* Finanzas collapsible section */}
             <button
@@ -197,7 +251,7 @@ export function MobileNav() {
               </div>
             )}
 
-            {afterFinanzas.map((item) => {
+            {afterCollapsible.map((item) => {
               const isActive = pathname.startsWith(item.href)
               return (
                 <Link

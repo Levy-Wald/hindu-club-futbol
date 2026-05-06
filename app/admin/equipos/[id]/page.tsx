@@ -77,6 +77,9 @@ export default async function EquipoDetallePage({ params }: PageProps) {
     activo: boolean
     sede_id: string | null
     cancha_id: string | null
+    rival: string | null
+    notas_pre: string | null
+    notas_post: string | null
   }>
 
   const rolesJugador = roles.filter((r) => r.categoria === 'deportivo')

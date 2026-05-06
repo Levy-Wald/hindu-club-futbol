@@ -242,6 +242,9 @@ export async function crearEvento(input: {
   cancha_id?: string | null
   hora_citacion?: string | null
   descripcion?: string | null
+  rival?: string | null
+  notas_pre?: string | null
+  notas_post?: string | null
 }) {
   const supabase = await createClient()
 
@@ -265,6 +268,9 @@ export async function crearEvento(input: {
       cancha_id: input.cancha_id || null,
       hora_citacion: input.hora_citacion || null,
       descripcion: input.descripcion?.trim() || null,
+      rival: input.rival?.trim() || null,
+      notas_pre: input.notas_pre?.trim() || null,
+      notas_post: input.notas_post?.trim() || null,
     })
 
   if (error) return formatResult(false, error.message)
@@ -289,6 +295,9 @@ export async function editarEvento(
     cancha_id?: string | null
     hora_citacion?: string | null
     descripcion?: string | null
+    rival?: string | null
+    notas_pre?: string | null
+    notas_post?: string | null
   }
 ) {
   const supabase = await createClient()
@@ -309,6 +318,9 @@ export async function editarEvento(
   if (input.cancha_id !== undefined) updates.cancha_id = input.cancha_id || null
   if (input.hora_citacion !== undefined) updates.hora_citacion = input.hora_citacion || null
   if (input.descripcion !== undefined) updates.descripcion = input.descripcion?.trim() || null
+  if (input.rival !== undefined) updates.rival = input.rival?.trim() || null
+  if (input.notas_pre !== undefined) updates.notas_pre = input.notas_pre?.trim() || null
+  if (input.notas_post !== undefined) updates.notas_post = input.notas_post?.trim() || null
 
   const { error } = await supabase
     .from('equipos_horarios')

@@ -5,10 +5,10 @@ Alineado al plan original de 15 sprints → Hindu LIVE.
 
 ---
 
-## Estado actual: Sprint 9 COMPLETADO (~95%, pendiente validación visual)
+## Estado actual: Sprint 10 COMPLETADO (PENDIENTE_VALIDACION_VISUAL)
 
-Los primeros 9 sprints del plan original están completos (Sprint 9 pendiente de validación visual por Yair).
-Sprint 9 = módulo Finanzas completo: mini-ERP con Cajas, Movimientos, Productos, Cuotas, Plan de Cuentas y Mi Cuenta.
+Sprint 10 = Operaciones deportivas avanzadas. Los primeros 10 sprints del plan original están completos.
+Sprint 9 pendiente de validación visual por Yair.
 
 ### Mejoras post-Sprint 9 (sesión 2026-05-06)
 - [x] Branding dinámico: fonts y favicon se aplican desde DB (root layout reescrito)
@@ -179,13 +179,16 @@ Aplicado a personas, padrones, equipos, externos:
 
 ## Sprints PENDIENTES
 
-### Sprint 10 — Operaciones deportivas avanzadas (PRÓXIMO)
+### Sprint 10 — Operaciones deportivas avanzadas (HECHO — PENDIENTE_VALIDACION_VISUAL)
 
-- [ ] Eventos (entrenamientos, partidos, viajes) con calendario
-- [ ] Confirmaciones de asistencia por persona
-- [ ] Esquemas tácticos / pelotas paradas (disciplina_futbol)
-- [ ] Operaciones semanales (qué pasa esta semana en el club)
-- [ ] Scouting básico
+- [x] Operaciones semanales: vista "Esta semana" cross-equipo con navegación semanal, filtros por equipo/tipo, agrupación por día
+- [x] Eventos avanzados: campos rival, notas_pre, notas_post en create/edit de eventos
+- [x] Confirmaciones de asistencia: componente AsistenciasEvento con estados (pendiente/confirmado/rechazado/presente/ausente), generar lista automática desde plantel, resumen de asistencias
+- [x] Scouting básico: CRUD completo con list, create dialog, detail page, edición inline, evaluación con estrellas (1-5), estados (observado/contactado/en_negociacion/descartado/incorporado), filtros y búsqueda
+- [x] Sidebar: Operaciones como sección colapsable con sub-items (Esta semana, Scouting) — mismo patrón que Finanzas
+- [x] API routes: /api/operaciones/eventos (week fetch), /api/asistencias/[eventoId] (attendance fetch)
+- [x] Migration aplicada: equipos_horarios +3 cols, evento_asistencias, esquemas_tacticos, esquema_posiciones, scouting_fichas — todas con RLS, triggers, indexes
+- [ ] Esquemas tácticos UI (tablas creadas, UI diferido — visual cancha con posiciones es complejo, se puede hacer en Sprint 10.5 o post-LIVE)
 
 ### Sprint 11 — Empleados + Contratos + Liquidaciones
 
@@ -267,10 +270,13 @@ Aplicado a personas, padrones, equipos, externos:
 22. **13 tipos de producto** para cubrir clubes y countries: producto, servicio, cuota, actividad, alquiler, insumo, activo, gasto, locker, cochera, expensa, multa, consumo
 23. **Proveedores = Entidades** con `es_proveedor = true`. Tabla `producto_proveedor` es many-to-many entre productos y entidades
 24. **Dedup en import**: por SKU (unique per tenant) o EAN-13 (unique per tenant). Si existe, se omite
-25. **Sidebar collapsible**: Finanzas es sección colapsable con sub-items (no link directo)
+25. **Sidebar collapsible**: Finanzas y Operaciones son secciones colapsables con sub-items (no link directo)
 26. **Soft-delete con protección financiera**: personas/entidades con movimientos de caja o cuotas no se pueden eliminar. Datos financieros (cajas, plan de cuentas, movimientos) solo se desactivan/anulan.
 27. **Branding dinámico**: fonts y favicon leídos de `tenant_config_publica` y aplicados via root layout. Google Fonts cargadas dinámicamente. `revalidatePath('/', 'layout')` para invalidar cache.
 28. **Upload specs**: todos los campos de upload muestran formato, peso máximo y dimensiones aceptadas
+29. **Asistencias upsert**: usa `onConflict: 'tenant_id,evento_id,persona_id'` para evitar duplicados al cambiar estado
+30. **Scouting hard-delete**: fichas de scouting se eliminan de verdad (no soft-delete), ya que son datos de seguimiento temporal
+31. **Esquemas tácticos diferidos**: tablas DB creadas (esquemas_tacticos, esquema_posiciones) pero UI de cancha visual diferida por complejidad
 
 ---
 
@@ -330,13 +336,13 @@ La diferencia entre clientes es CONFIGURACIÓN, no CÓDIGO:
 
 ## Tiempo estimado restante hasta Hindu LIVE
 
-Sprints 10-15 = 6 sprints pendientes.
-Estimado: 40-60 horas agente + 7-12 horas validación Yair.
-Calendario: 2-3 semanas a 4-6h/día.
+Sprints 11-15 = 5 sprints pendientes.
+Estimado: 30-50 horas agente + 5-10 horas validación Yair.
+Calendario: 1.5-2.5 semanas a 4-6h/día.
 
 ---
 
 **Última actualización:** 2026-05-06
-**Próximo sprint:** 10 (Operaciones deportivas avanzadas)
+**Próximo sprint:** 11 (Empleados + Contratos + Liquidaciones)
 **Instrucciones:** ver `NEXT-SPRINT.md`
 **Owner:** Yair Levy Wald

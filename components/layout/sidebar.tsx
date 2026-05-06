@@ -26,6 +26,8 @@ import {
   BookOpen,
   CreditCard,
   BarChart3,
+  Calendar,
+  Search,
 } from 'lucide-react'
 
 interface NavItemDef {
@@ -38,6 +40,11 @@ const personalItems: NavItemDef[] = [
   { label: 'Mi perfil', href: '/admin/mi-perfil', icon: UserCircle },
   { label: 'Mi equipo', href: '/admin/mi-equipo', icon: Trophy },
   { label: 'Mi cuenta', href: '/admin/mi-cuenta', icon: CreditCard },
+]
+
+const operacionesSubItems: NavItemDef[] = [
+  { label: 'Esta semana', href: '/admin/operaciones', icon: Calendar },
+  { label: 'Scouting', href: '/admin/operaciones/scouting', icon: Search },
 ]
 
 const finanzasSubItems: NavItemDef[] = [
@@ -55,8 +62,7 @@ const adminItems: NavItemDef[] = [
   { label: 'Padrones', href: '/admin/padrones', icon: ClipboardList },
   { label: 'Equipos', href: '/admin/equipos', icon: Shield },
   { label: 'Entidades', href: '/admin/externos', icon: Building2 },
-  { label: 'Operaciones', href: '/admin/operaciones', icon: CalendarDays },
-  // Finanzas is handled separately as a collapsible section
+  // Operaciones and Finanzas are handled as collapsible sections
   { label: 'Comunicaciones', href: '/admin/comunicaciones', icon: MessageSquare },
   { label: 'Pre-inscripciones', href: '/admin/pre-inscripciones', icon: UserPlus },
   { label: 'Configuración', href: '/admin/configuracion', icon: Settings },
@@ -102,14 +108,63 @@ function SubNavItem({ item, pathname }: { item: NavItemDef; pathname: string }) 
   )
 }
 
+function CollapsibleSection({
+  label,
+  icon: Icon,
+  isActive,
+  isOpen,
+  onToggle,
+  subItems,
+  pathname,
+}: {
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  isActive: boolean
+  isOpen: boolean
+  onToggle: () => void
+  subItems: NavItemDef[]
+  pathname: string
+}) {
+  return (
+    <>
+      <button
+        onClick={onToggle}
+        className={cn(
+          'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors w-full text-left',
+          isActive
+            ? 'bg-accent text-accent-foreground'
+            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+        )}
+      >
+        <Icon className="h-4 w-4" />
+        <span className="flex-1">{label}</span>
+        {isOpen ? (
+          <ChevronDown className="h-4 w-4" />
+        ) : (
+          <ChevronRight className="h-4 w-4" />
+        )}
+      </button>
+      {isOpen && (
+        <div className="space-y-0.5">
+          {subItems.map((item) => (
+            <SubNavItem key={item.href} item={item} pathname={pathname} />
+          ))}
+        </div>
+      )}
+    </>
+  )
+}
+
 export function Sidebar() {
   const pathname = usePathname()
+  const isOperacionesActive = pathname.startsWith('/admin/operaciones')
   const isFinanzasActive = pathname.startsWith('/admin/finanzas')
+  const [operacionesOpen, setOperacionesOpen] = useState(isOperacionesActive)
   const [finanzasOpen, setFinanzasOpen] = useState(isFinanzasActive)
 
-  // Split adminItems around the Finanzas section (after Operaciones)
-  const beforeFinanzas = adminItems.slice(0, 6) // Dashboard through Operaciones
-  const afterFinanzas = adminItems.slice(6)       // Comunicaciones onward
+  // Split adminItems: Dashboard through Entidades (0-4), then Comunicaciones onward (5+)
+  const beforeCollapsible = adminItems.slice(0, 5) // Dashboard through Entidades
+  const afterCollapsible = adminItems.slice(5)       // Comunicaciones onward
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col border-r bg-sidebar">
@@ -123,37 +178,31 @@ export function Sidebar() {
           <NavItem key={item.href} item={item} pathname={pathname} />
         ))}
         <div className="my-2 border-t" />
-        {beforeFinanzas.map((item) => (
+        {beforeCollapsible.map((item) => (
           <NavItem key={item.href} item={item} pathname={pathname} />
         ))}
 
-        {/* Finanzas collapsible section */}
-        <button
-          onClick={() => setFinanzasOpen(!finanzasOpen)}
-          className={cn(
-            'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors w-full text-left',
-            isFinanzasActive
-              ? 'bg-accent text-accent-foreground'
-              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-          )}
-        >
-          <Wallet className="h-4 w-4" />
-          <span className="flex-1">Finanzas</span>
-          {finanzasOpen ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
-        </button>
-        {finanzasOpen && (
-          <div className="space-y-0.5">
-            {finanzasSubItems.map((item) => (
-              <SubNavItem key={item.href} item={item} pathname={pathname} />
-            ))}
-          </div>
-        )}
+        <CollapsibleSection
+          label="Operaciones"
+          icon={CalendarDays}
+          isActive={isOperacionesActive}
+          isOpen={operacionesOpen}
+          onToggle={() => setOperacionesOpen(!operacionesOpen)}
+          subItems={operacionesSubItems}
+          pathname={pathname}
+        />
 
-        {afterFinanzas.map((item) => (
+        <CollapsibleSection
+          label="Finanzas"
+          icon={Wallet}
+          isActive={isFinanzasActive}
+          isOpen={finanzasOpen}
+          onToggle={() => setFinanzasOpen(!finanzasOpen)}
+          subItems={finanzasSubItems}
+          pathname={pathname}
+        />
+
+        {afterCollapsible.map((item) => (
           <NavItem key={item.href} item={item} pathname={pathname} />
         ))}
       </nav>
