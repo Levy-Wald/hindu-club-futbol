@@ -77,6 +77,21 @@ export async function editarPadron(id: string, input: EditarPadronInput) {
   return formatResult(true, 'Padrón actualizado')
 }
 
+export async function eliminarPadron(id: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('padrones')
+    .update({ deleted_at: new Date().toISOString(), activo: false })
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return formatResult(false, error.message)
+
+  revalidatePath('/admin/padrones')
+  return formatResult(true, 'Padrón eliminado')
+}
+
 export async function toggleActivoPadron(id: string) {
   const supabase = await createClient()
 

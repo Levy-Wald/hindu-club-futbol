@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { PersonaAvatar } from '../_components/persona-avatar'
 import { PersonaEditor } from './_components/persona-editor'
 import { ToggleActivoButton } from './_components/toggle-activo-button'
+import { EliminarPersonaButton } from './_components/eliminar-persona-button'
 import { ArrowLeft, History } from 'lucide-react'
 
 interface PageProps {
@@ -55,6 +56,7 @@ export default async function PersonaDetallePage({ params }: PageProps) {
             personaId={persona.id}
             personaEstado={persona.estado}
           />
+          <EliminarPersonaButton personaId={persona.id} />
           <Link href={`/admin/personas/${persona.id}/historial`} className="shrink-0">
             <Button variant="outline" size="sm">
               <History className="h-3.5 w-3.5 sm:mr-2" />

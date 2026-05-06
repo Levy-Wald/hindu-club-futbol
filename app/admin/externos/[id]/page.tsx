@@ -13,6 +13,7 @@ import {
 import { EntidadInfo } from './_components/entidad-info'
 import { EntidadRepresentantes } from './_components/entidad-representantes'
 import { EntidadHijas } from './_components/entidad-hijas'
+import { EliminarEntidadButton } from './_components/eliminar-entidad-button'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -62,9 +63,12 @@ export default async function EntidadDetallePage({ params }: PageProps) {
               )}
             </div>
           </div>
-          <Badge variant={entidad.activo ? 'default' : 'secondary'}>
-            {entidad.activo ? 'activo' : 'inactivo'}
-          </Badge>
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge variant={entidad.activo ? 'default' : 'secondary'}>
+              {entidad.activo ? 'activo' : 'inactivo'}
+            </Badge>
+            <EliminarEntidadButton id={entidad.id} nombre={entidad.nombre} />
+          </div>
         </div>
       </div>
 

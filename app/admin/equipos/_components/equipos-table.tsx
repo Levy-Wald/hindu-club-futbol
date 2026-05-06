@@ -1,9 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -12,10 +29,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Users } from 'lucide-react'
+import { MoreHorizontal, Eye, Trash2, Users } from 'lucide-react'
+import { toast } from 'sonner'
 import { useVistasColumns } from '@/components/ui/vistas-panel'
 import { EQUIPOS_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
 import { SelectionBar } from '@/components/ui/selection-bar'
+import { eliminarEquipo } from '../_actions'
 import type { ExportData } from '@/lib/export/formats'
 
 interface Equipo {
@@ -45,8 +64,11 @@ const EQUIPOS_COLUMNS = [
 export const EQUIPOS_COLUMN_DEFS = EQUIPOS_COLUMNS
 
 export function EquiposTable({ equipos }: EquiposTableProps) {
+  const router = useRouter()
   const { isVisible } = useVistasColumns('equipos-columns', EQUIPOS_DEFAULT_COLUMNS)
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [isPending, startTransition] = useTransition()
+  const [equipoAEliminar, setEquipoAEliminar] = useState<Equipo | null>(null)
 
   function toggleSelect(id: string) {
     setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n })
@@ -54,6 +76,20 @@ export function EquiposTable({ equipos }: EquiposTableProps) {
   function selectAll() { setSelected(new Set(equipos.map((e) => e.id))) }
   function clearSelection() { setSelected(new Set()) }
   const allSelected = equipos.length > 0 && selected.size === equipos.length
+
+  function handleConfirmarEliminar() {
+    if (!equipoAEliminar) return
+    const id = equipoAEliminar.id
+    startTransition(async () => {
+      const result = await eliminarEquipo(id)
+      if (result.ok) {
+        toast.success(result.message)
+      } else {
+        toast.error(result.message)
+      }
+      setEquipoAEliminar(null)
+    })
+  }
 
   function getExportData(): ExportData | null {
     const items = equipos.filter((e) => selected.has(e.id))
@@ -66,6 +102,27 @@ export function EquiposTable({ equipos }: EquiposTableProps) {
   }
 
   return (
+    <>
+    {/* Confirmation dialog */}
+    <Dialog open={!!equipoAEliminar} onOpenChange={(open) => { if (!open) setEquipoAEliminar(null) }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Eliminar equipo</DialogTitle>
+          <DialogDescription>
+            ¿Estás seguro que querés eliminar <strong>{equipoAEliminar?.nombre}</strong>? Esta acción desactiva el equipo y no se puede deshacer fácilmente.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setEquipoAEliminar(null)} disabled={isPending}>
+            Cancelar
+          </Button>
+          <Button variant="destructive" onClick={handleConfirmarEliminar} disabled={isPending}>
+            {isPending ? 'Eliminando...' : 'Eliminar'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
     <div className="space-y-4">
       {/* Mobile cards */}
       <div className="sm:hidden space-y-2">
@@ -115,6 +172,7 @@ export function EquiposTable({ equipos }: EquiposTableProps) {
               {isVisible('miembros') && <TableHead className="text-center">Miembros</TableHead>}
               {isVisible('estado') && <TableHead>Estado</TableHead>}
               {isVisible('color') && <TableHead>Color</TableHead>}
+              <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -163,6 +221,28 @@ export function EquiposTable({ equipos }: EquiposTableProps) {
                       ) : '—'}
                     </TableCell>
                   )}
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8" />}>
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Acciones</span>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => router.push(`/admin/equipos/${e.id}`)}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver detalle
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => setEquipoAEliminar(e)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Eliminar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -178,5 +258,6 @@ export function EquiposTable({ equipos }: EquiposTableProps) {
         getData={getExportData}
       />
     </div>
+    </>
   )
 }

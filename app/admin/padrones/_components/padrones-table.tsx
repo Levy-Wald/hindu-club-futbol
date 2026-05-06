@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -17,10 +17,21 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Eye, Power } from 'lucide-react'
-import { toggleActivoPadron } from '../_actions'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { MoreHorizontal, Eye, Power, Trash2 } from 'lucide-react'
+import { toggleActivoPadron, eliminarPadron } from '../_actions'
 import { toast } from 'sonner'
 import { useVistasColumns } from '@/components/ui/vistas-panel'
 import { PADRONES_LIST_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
@@ -53,6 +64,9 @@ const TIPO_LABELS: Record<string, string> = {
 export function PadronesTable({ padrones }: PadronesTableProps) {
   const { isVisible } = useVistasColumns('padrones-columns', PADRONES_LIST_DEFAULT_COLUMNS)
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
   function toggleSelect(id: string) {
     setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n })
@@ -75,6 +89,22 @@ export function PadronesTable({ padrones }: PadronesTableProps) {
     const result = await toggleActivoPadron(id)
     if (result.ok) toast.success(result.message)
     else toast.error(result.message)
+  }
+
+  function handleDeleteClick(id: string) {
+    setDeletingId(id)
+    setConfirmOpen(true)
+  }
+
+  function handleConfirmDelete() {
+    if (!deletingId) return
+    startTransition(async () => {
+      const result = await eliminarPadron(deletingId)
+      if (result.ok) toast.success(result.message)
+      else toast.error(result.message)
+      setDeletingId(null)
+      setConfirmOpen(false)
+    })
   }
 
   return (
@@ -168,6 +198,14 @@ export function PadronesTable({ padrones }: PadronesTableProps) {
                           <Power className="mr-2 h-4 w-4" />
                           {p.activo ? 'Desactivar' : 'Activar'}
                         </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteClick(p.id)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Eliminar
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -190,6 +228,27 @@ export function PadronesTable({ padrones }: PadronesTableProps) {
       <p className="text-sm text-muted-foreground">
         {padrones.length} padr{padrones.length !== 1 ? 'ones' : 'on'} en total
       </p>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar padrón?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción es permanente. El padrón quedará marcado como eliminado y no aparecerá en el listado. Los miembros no se eliminan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isPending ? 'Eliminando...' : 'Eliminar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

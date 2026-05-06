@@ -18,11 +18,22 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Pencil, Power } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { MoreHorizontal, Pencil, Power, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { toggleActivoEntidad } from '../_actions'
+import { toggleActivoEntidad, eliminarEntidad } from '../_actions'
 import { useVistasColumns } from '@/components/ui/vistas-panel'
 import { EXTERNOS_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
 import { SelectionBar } from '@/components/ui/selection-bar'
@@ -50,6 +61,7 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
   const { isVisible } = useVistasColumns('entidades-columns', EXTERNOS_DEFAULT_COLUMNS)
   const [isPending, startTransition] = useTransition()
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [entidadAEliminar, setEntidadAEliminar] = useState<Entidad | null>(null)
 
   function toggleSelect(id: string) {
     setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n })
@@ -73,6 +85,16 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
       const result = await toggleActivoEntidad(id)
       if (result.ok) toast.success(result.message)
       else toast.error(result.message)
+    })
+  }
+
+  function handleEliminar() {
+    if (!entidadAEliminar) return
+    startTransition(async () => {
+      const result = await eliminarEntidad(entidadAEliminar.id)
+      if (result.ok) toast.success(result.message)
+      else toast.error(result.message)
+      setEntidadAEliminar(null)
     })
   }
 
@@ -176,6 +198,15 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
                           <Power className="mr-2 h-4 w-4" />
                           {e.activo ? 'Desactivar' : 'Activar'}
                         </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => setEntidadAEliminar(e)}
+                          disabled={isPending}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Eliminar
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -200,6 +231,28 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
           {entidades.length} entidad{entidades.length !== 1 ? 'es' : ''} en total
         </p>
       </div>
+
+      {/* Confirmar eliminación */}
+      <AlertDialog open={!!entidadAEliminar} onOpenChange={(open) => { if (!open) setEntidadAEliminar(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar entidad?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vas a eliminar <strong>{entidadAEliminar?.nombre}</strong>. Esta acción no se puede deshacer fácilmente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleEliminar}
+              disabled={isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

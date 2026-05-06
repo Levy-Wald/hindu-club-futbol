@@ -180,3 +180,18 @@ export async function quitarRepresentante(id: string, entidadId: string) {
   revalidatePath(`/admin/externos/${entidadId}`)
   return formatResult(true, 'Representante removido')
 }
+
+export async function eliminarEntidad(id: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('entidades')
+    .update({ deleted_at: new Date().toISOString(), activo: false })
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return formatResult(false, error.message)
+
+  revalidatePath('/admin/externos')
+  return formatResult(true, 'Entidad eliminada')
+}

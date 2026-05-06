@@ -11,6 +11,7 @@ import { EditarEquipoForm } from './_components/editar-equipo-form'
 import { EquipoComposicion } from './_components/equipo-composicion'
 import { CalendarioPanel } from './_components/horarios-panel'
 import { IndumentariaPanel } from './_components/indumentaria-panel'
+import { EliminarEquipoButton } from './_components/eliminar-equipo-button'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -300,6 +301,10 @@ export default async function EquipoDetallePage({ params }: PageProps) {
               }))}
               federaciones={federaciones}
             />
+            <div className="border-t pt-6">
+              <p className="text-sm text-muted-foreground mb-3">Zona de peligro</p>
+              <EliminarEquipoButton equipoId={equipo.id} equipoNombre={equipo.nombre} />
+            </div>
           </div>
         </TabsContent>
       </Tabs>

@@ -90,6 +90,28 @@ export async function editarEquipo(
   return formatResult(true, 'Equipo actualizado correctamente.')
 }
 
+// --- ELIMINAR EQUIPO (soft delete) ---
+
+export async function eliminarEquipo(id: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('equipos')
+    .update({
+      deleted_at: new Date().toISOString(),
+      activo: false,
+    })
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) {
+    return formatResult(false, `Error al eliminar equipo: ${error.message}`)
+  }
+
+  revalidatePath('/admin/equipos')
+  return formatResult(true, 'Equipo eliminado correctamente.')
+}
+
 // --- AGREGAR MIEMBRO ---
 
 export async function agregarMiembro(input: {

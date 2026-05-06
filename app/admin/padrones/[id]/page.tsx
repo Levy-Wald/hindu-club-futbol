@@ -16,6 +16,7 @@ import { ArrowLeft, Users, Sparkles } from 'lucide-react'
 import { AgregarMiembroDialog } from './_components/agregar-miembro-dialog'
 import { ImportarMiembrosDialog } from './_components/importar-miembros-dialog'
 import { ExportPadronButton } from './_components/export-padron-button'
+import { EliminarPadronButton } from './_components/eliminar-padron-button'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -93,6 +94,7 @@ export default async function PadronDetallePage({ params }: PageProps) {
               Import inteligente
             </Button>
           </Link>
+          <EliminarPadronButton padronId={padron.id} padronNombre={padron.nombre} />
           <ExportPadronButton
             padronNombre={padron.nombre}
             miembros={miembrosActivos.map((m) => ({
