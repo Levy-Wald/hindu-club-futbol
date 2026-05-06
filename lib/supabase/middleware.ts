@@ -33,12 +33,10 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Si no hay usuario y no está en rutas públicas, redirigir a login
+  // Solo proteger rutas /admin/*. Todo lo demás es público.
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/api/auth') &&
-    request.nextUrl.pathname !== '/'
+    request.nextUrl.pathname.startsWith('/admin')
   ) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'

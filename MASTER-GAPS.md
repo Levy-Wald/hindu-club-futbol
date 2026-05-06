@@ -5,9 +5,9 @@ Alineado al plan original de 15 sprints → Hindu LIVE.
 
 ---
 
-## Estado actual: Sprint 7 COMPLETADO + UX transversal + Ajustes post-validación
+## Estado actual: Sprint 8 COMPLETADO + UX transversal + Ajustes post-validación
 
-Los primeros 7 sprints del plan original están completos.
+Los primeros 8 sprints del plan original están completos.
 Adicionalmente se implementó un bloque de UX transversal (no planificado originalmente) que mejora la experiencia en todos los módulos existentes.
 
 ### Ajustes post-validación (después de Sprint 6)
@@ -121,14 +121,33 @@ Aplicado a personas, padrones, equipos, externos:
 
 ---
 
+### Sprint 8 — Páginas públicas + Branding + Pre-inscripción (HECHO)
+
+- [x] Rutas públicas sin auth: /, /equipos, /equipos/[id], /asociate, /terminos, /privacidad
+- [x] Layout público con header (logo, nav, login) + footer (contacto, redes, legal)
+- [x] Home page con 7 secciones: Hero, Próximos Eventos, Ligas/Torneos, Capitanes, Staff, Asociate CTA, Contacto
+- [x] Listado público de equipos agrupados por disciplina
+- [x] Detalle público de equipo con plantel (inicial+apellido), staff, eventos, QR
+- [x] Formulario multi-step estilo Typeform: 7 pasos (tipo, datos, contacto, tutor, deporte, info, confirmación)
+- [x] Server action para crear pre-inscripción con validación
+- [x] Admin: panel Pre-inscripciones con stats, filtros, aprobar/rechazar, crear persona al aprobar (con dedupe DNI)
+- [x] Admin: Branding Studio en 6 tabs (Identidad, Contenido, Contacto, Visibilidad, Legal, Galería)
+- [x] Upload de logo, logo dark, favicon a Supabase Storage
+- [x] Colores configurables por tenant (primario, secundario)
+- [x] Switches de visibilidad (plantel, calendario, staff, capitanes, pre-inscripción)
+- [x] Términos y condiciones + Política de privacidad (editables desde admin)
+- [x] QR auto-generado por equipo
+- [x] Dark mode completo en todas las páginas públicas
+- [x] Full responsive (mobile, tablet, desktop)
+- [x] Brand colors Hindu: Blue #3A8FC5, Gold #F2C531, Navy #1E3A5F
+- [x] Migration: tenant_config_publica + pre_inscripciones + RLS + seed
+- [x] Design system documentado: docs/BRAND-DESIGN-SYSTEM.md
+- [x] Middleware actualizado: solo /admin/* requiere auth
+- [x] Sidebar + Mobile nav: Pre-inscripciones + Branding agregados
+
+---
+
 ## Sprints PENDIENTES
-
-### Sprint 8 — Páginas públicas + Branding + Pre-inscripción
-
-- [ ] Páginas públicas /equipos/[id] (lectura sin auth)
-- [ ] Branding Studio (logo, colores, nombre del tenant)
-- [ ] Form pre-inscripción pública + flujo revisión admin
-- [ ] Tabla pre_inscripciones con estados
 
 ### Sprint 9 — Cajas + Movimientos + Productos
 
@@ -217,6 +236,11 @@ Aplicado a personas, padrones, equipos, externos:
 12. **Recurrencia estilo Google Calendar**: genera filas individuales por fecha (no regla abstracta)
 13. **Edición de eventos por rol**: DT, capitán, subcapitán, delegado, preparador_fisico, ayudante_campo pueden editar desde Mi Equipo
 14. **ICS download client-side**: genera archivos .ics para integración con calendarios externos
+15. **Páginas públicas** bajo `app/(public)/` con layout propio (header+footer). Solo `/admin/*` requiere auth
+16. **Pre-inscripción pública** permite inserción anónima (RLS: INSERT WITH CHECK true)
+17. **Brand colors** del tenant en `tenant_config_publica`, aplicados via CSS utilities (bg-brand-hero, text-brand-blue, etc.)
+18. **Multi-step form** estilo Typeform con state management en useState, sin dependencias extra
+19. **QR por equipo** generado via API externa `api.qrserver.com` (sin dependencia local)
 
 ---
 
@@ -276,13 +300,13 @@ La diferencia entre clientes es CONFIGURACIÓN, no CÓDIGO:
 
 ## Tiempo estimado restante hasta Hindu LIVE
 
-Sprints 8-15 = 8 sprints pendientes.
-Estimado: 60-90 horas agente + 10-16 horas validación Yair.
-Calendario: 3-5 semanas a 4-6h/día.
+Sprints 9-15 = 7 sprints pendientes.
+Estimado: 50-75 horas agente + 8-14 horas validación Yair.
+Calendario: 3-4 semanas a 4-6h/día.
 
 ---
 
 **Última actualización:** 2026-05-05
-**Próximo sprint:** 8 (Páginas públicas + Branding + Pre-inscripción)
+**Próximo sprint:** 9 (Cajas + Movimientos + Productos)
 **Instrucciones:** ver `NEXT-SPRINT.md`
 **Owner:** Yair Levy Wald

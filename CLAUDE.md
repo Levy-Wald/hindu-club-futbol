@@ -146,7 +146,7 @@ Mejor parar y aclarar que avanzar mal. Yair está disponible.
 ```
 hindu-v2/
 ├── app/
-│   ├── (public)/              # Login (magic link)
+│   ├── (public)/              # Páginas públicas (home, equipos, asociate, legal)
 │   ├── admin/                 # Dashboard con sidebar
 │   │   ├── personas/          # CRUD + ficha en tabs
 │   │   ├── equipos/           # CRUD + detalle (plantel, staff, horarios)
@@ -330,6 +330,7 @@ pnpm dev
 | `docs/POSTGRES.md` | Indices, RLS optimizada, migraciones seguras, Supabase CLI |
 | `docs/WORKFLOW.md` | Proceso de desarrollo, checklists, verificacion, ABM de docs |
 | `docs/SKILL-CHALLENGE.md` | Pre-mortem /challenge para analizar planes antes de ejecutar |
+| `docs/BRAND-DESIGN-SYSTEM.md` | Colores, tipografía, componentes, responsive, dark mode, SEO, performance, seguridad |
 
 ---
 
@@ -348,8 +349,8 @@ Esto garantiza que la documentacion siempre refleja el estado real del proyecto.
 
 ## Progreso actual
 
-Sprints 1-7 del plan original de 15: COMPLETADOS + UX transversal.
-Sprint pendiente: 8 (Páginas públicas + Branding + Pre-inscripción).
+Sprints 1-8 del plan original de 15: COMPLETADOS + UX transversal.
+Sprint pendiente: 9 (Cajas + Movimientos + Productos).
 Ver `NEXT-SPRINT.md` para instrucciones exactas de qué hacer ahora.
 Ver `MASTER-GAPS.md` para roadmap completo.
 
@@ -364,8 +365,8 @@ Ver `MASTER-GAPS.md` para roadmap completo.
 | 5 | Vínculos + Tutores/Padres + Bajas | HECHO |
 | 6 | Entidades + Federaciones + Fusiones | HECHO |
 | 7 | Mi Perfil + Mi Equipo + Calendario/Eventos | HECHO |
-| 8 | Páginas públicas + Branding + Pre-inscripción | PENDIENTE ← PRÓXIMO |
-| 9 | Cajas + Movimientos + Productos | PENDIENTE |
+| 8 | Páginas públicas + Branding + Pre-inscripción | HECHO |
+| 9 | Cajas + Movimientos + Productos | PENDIENTE ← PRÓXIMO |
 | 10 | Operaciones deportivas avanzadas | PENDIENTE |
 | 11 | Empleados + Contratos + Liquidaciones | PENDIENTE |
 | 12 | Comunicaciones | PENDIENTE |
@@ -378,6 +379,6 @@ Post-LIVE: bot WA, Capitán Oliver, más disciplinas, countries, app móvil.
 ---
 
 **Última actualización:** 2026-05-05
-**Versión:** Sprints 1-7 completos + UX transversal
+**Versión:** Sprints 1-8 completos + UX transversal
 **Plan:** 15 sprints hasta Hindu LIVE
 **Owner:** Yair Levy Wald

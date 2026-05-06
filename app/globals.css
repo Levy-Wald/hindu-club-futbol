@@ -141,3 +141,28 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
+
+/* Brand gradient utilities */
+@layer utilities {
+  .bg-brand-hero {
+    background: linear-gradient(135deg, #3A8FC5 0%, #1E3A5F 100%);
+  }
+  .bg-brand-gold {
+    background: linear-gradient(135deg, #F2C531 0%, #D4A818 100%);
+  }
+  .bg-brand-navy {
+    background-color: #1E3A5F;
+  }
+  .text-brand-blue {
+    color: #3A8FC5;
+  }
+  .text-brand-gold {
+    color: #F2C531;
+  }
+  .border-brand-blue {
+    border-color: #3A8FC5;
+  }
+  .ring-brand-blue {
+    --tw-ring-color: #3A8FC5;
+  }
+}
