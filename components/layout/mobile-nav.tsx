@@ -18,7 +18,6 @@ import {
   UserCircle,
   Trophy,
   UserPlus,
-  Palette,
 } from 'lucide-react'
 
 const bottomNavItems = [
@@ -40,7 +39,6 @@ const fullMenuItems = [
   { label: 'Cajas', href: '/admin/cajas', icon: Wallet },
   { label: 'Comunicaciones', href: '/admin/comunicaciones', icon: MessageSquare },
   { label: 'Pre-inscripciones', href: '/admin/pre-inscripciones', icon: UserPlus },
-  { label: 'Branding', href: '/admin/configuracion/branding', icon: Palette },
   { label: 'Configuración', href: '/admin/configuracion', icon: Settings },
 ]
 

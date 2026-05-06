@@ -131,7 +131,7 @@ Aplicado a personas, padrones, equipos, externos:
 - [x] Formulario multi-step estilo Typeform: 7 pasos (tipo, datos, contacto, tutor, deporte, info, confirmación)
 - [x] Server action para crear pre-inscripción con validación
 - [x] Admin: panel Pre-inscripciones con stats, filtros, aprobar/rechazar, crear persona al aprobar (con dedupe DNI)
-- [x] Admin: Branding Studio en 6 tabs (Identidad, Contenido, Contacto, Visibilidad, Legal, Galería)
+- [x] Admin: Branding Studio en Configuración > Branding, 6 tabs (Identidad, Contenido, Contacto, Visibilidad, Legal, Galería)
 - [x] Upload de logo, logo dark, favicon a Supabase Storage
 - [x] Colores configurables por tenant (primario, secundario)
 - [x] Switches de visibilidad (plantel, calendario, staff, capitanes, pre-inscripción)
@@ -143,7 +143,7 @@ Aplicado a personas, padrones, equipos, externos:
 - [x] Migration: tenant_config_publica + pre_inscripciones + RLS + seed
 - [x] Design system documentado: docs/BRAND-DESIGN-SYSTEM.md
 - [x] Middleware actualizado: solo /admin/* requiere auth
-- [x] Sidebar + Mobile nav: Pre-inscripciones + Branding agregados
+- [x] Sidebar + Mobile nav: Pre-inscripciones agregado, Branding accesible desde Configuración
 
 ---
 

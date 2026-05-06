@@ -1,7 +1,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Settings, Package, Database, Building2 } from 'lucide-react'
+import { Settings, Package, Database, Building2, Palette, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import { fetchTenantConfig, fetchModulos, fetchCatalogos } from './_lib/queries'
 import { ModulosPanel } from './_components/modulos-panel'
 import { CatalogosPanel } from './_components/catalogos-panel'
@@ -91,9 +93,18 @@ export default async function ConfiguracionPage() {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Branding</CardTitle>
-                <CardDescription>Logo y colores de tu organizacion</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Palette className="h-4 w-4" />
+                    Branding y pagina publica
+                  </CardTitle>
+                  <CardDescription>Logo, colores, contenido y configuracion de tu sitio publico</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" render={<Link href="/admin/configuracion/branding" />}>
+                  Abrir Branding Studio
+                  <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
