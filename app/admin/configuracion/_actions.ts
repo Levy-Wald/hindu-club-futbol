@@ -9,6 +9,46 @@ function formatResult(ok: boolean, message: string) {
   return { ok, message }
 }
 
+// --- TENANT ---
+
+export async function actualizarTenant(data: {
+  nombre: string
+  slug?: string
+  tipo: string
+  plan_slug?: string
+  dominio_custom?: string | null
+  idioma_default: string
+  timezone: string
+  configuracion?: Record<string, unknown>
+}) {
+  if (!data.nombre.trim()) {
+    return formatResult(false, 'El nombre es requerido')
+  }
+
+  const supabase = await createClient()
+
+  const updateData: Record<string, unknown> = {
+    nombre: data.nombre.trim(),
+    tipo: data.tipo,
+    idioma_default: data.idioma_default,
+    timezone: data.timezone,
+  }
+  if (data.slug !== undefined) updateData.slug = data.slug.trim()
+  if (data.plan_slug !== undefined) updateData.plan_slug = data.plan_slug
+  if (data.dominio_custom !== undefined) updateData.dominio_custom = data.dominio_custom
+  if (data.configuracion !== undefined) updateData.configuracion = data.configuracion
+
+  const { error } = await supabase
+    .from('tenants')
+    .update(updateData)
+    .eq('id', TENANT_ID)
+
+  if (error) return formatResult(false, error.message)
+
+  revalidatePath('/admin/configuracion')
+  return formatResult(true, 'Datos del club actualizados')
+}
+
 // --- MODULOS ---
 
 export async function toggleModulo(moduloSlug: string) {
