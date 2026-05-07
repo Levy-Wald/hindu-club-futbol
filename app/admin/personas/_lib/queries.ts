@@ -30,7 +30,16 @@ export async function fetchPersonas(params: PersonasQueryParams) {
   let query = supabase
     .from('personas')
     .select(
-      `id, nombre, apellido, numero_documento, email_principal, telefono_principal, fecha_nacimiento, genero, direccion_ciudad, estado, deleted_at, created_at, personas_atributos!personas_atributos_persona_id_fkey(atributo_slug, activo)`,
+      `id, nombre, apellido, tipo_documento, numero_documento, cuil_cuit,
+       fecha_nacimiento, genero, nacionalidad, estado_civil,
+       email_principal, email_secundario, telefono_principal, telefono_secundario, whatsapp,
+       direccion_calle, direccion_numero, direccion_piso, direccion_depto, direccion_barrio,
+       direccion_ciudad, direccion_provincia, direccion_codigo_postal,
+       altura_cm, peso_kg, lateralidad, pie_dominante,
+       deporte_principal_slug, categoria_historica_max, nivel_actividad_actual,
+       fecha_primera_relacion_club,
+       estado, deleted_at, created_at,
+       personas_atributos!personas_atributos_persona_id_fkey(atributo_slug, activo)`,
       { count: 'exact' }
     )
 
