@@ -9,7 +9,7 @@ import { VistasPanel } from '@/components/ui/vistas-panel'
 import { PADRONES_LIST_MODULES, PADRONES_LIST_DEFAULT_COLUMNS } from '@/lib/vistas/column-defs'
 import { DownloadTemplateButton } from '@/components/ui/download-template-button'
 import { Button } from '@/components/ui/button'
-import { GitCompareArrows } from 'lucide-react'
+import { GitCompareArrows, RefreshCw } from 'lucide-react'
 
 interface Props {
   searchParams: Promise<Record<string, string | undefined>>
@@ -34,6 +34,12 @@ export default async function PadronesPage({ searchParams }: Props) {
             filename="modelo_padrones.csv"
             sampleRow={['Socios Activos', 'global', '', 'false']}
           />
+          <Link href="/admin/padrones/sincronizar">
+            <Button variant="outline" size="sm">
+              <RefreshCw className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Sincronizar</span>
+            </Button>
+          </Link>
           <Link href="/admin/padrones/comparar">
             <Button variant="outline" size="sm">
               <GitCompareArrows className="h-4 w-4 mr-1" />

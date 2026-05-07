@@ -5,11 +5,11 @@ Alineado a la propuesta arquitectonica integral (ver `docs/PROPUESTA-ARQUITECTON
 
 ---
 
-## Estado actual: Sprint 13 COMPLETADO
+## Estado actual: Sprint 14a COMPLETADO
 
-Sprints 11.5-11.7 + Sprint 12 + Sprint 13 completados.
-Sprint 13 = API REST v1 + API Keys + rate limiting + logs.
-Pendiente validacion visual de Yair + configurar RESEND_API_KEY, CRON_SECRET y SUPABASE_SERVICE_ROLE_KEY en Vercel.
+Sprints 11.5-11.7 + Sprint 12 + Sprint 13 + Sprint 14a completados.
+Sprint 14a = Sync de padrones (tablas, parsers, procesador, UI wizard + revisión).
+Pendiente validacion visual de Yair + configurar env vars en Vercel.
 
 ### Fixes Sprint 9 (sesion 2026-05-06)
 - [x] Fix cajas: `saldo` → `saldo_actual` (columna correcta en DB)
@@ -172,7 +172,21 @@ Pendiente validacion visual de Yair + configurar RESEND_API_KEY, CRON_SECRET y S
 - [ ] Esquemas tacticos UI — diferido
 - [ ] docs/API.md documentacion — PENDIENTE_VALIDACION_VISUAL
 
-### Sprint 14 — Mantenimiento + Mapa + Inventario + Reservas
+### Sprint 14a — Sync de padrones (HECHO)
+- [x] Tablas padron_syncs + padron_sync_diffs + RLS + triggers + indices
+- [x] 6 columnas nuevas en personas_padrones (categoria_club, actividad_club, etc.)
+- [x] Atributos padron.admin + padron.consulta
+- [x] Parsers: Excel serial dates, split APELLIDO Y NOMBRE, categorías Hindu
+- [x] Procesador: genera diffs (altas/bajas/cambios/rechazados) sin aplicar
+- [x] /admin/padrones/sincronizar: upload Excel + historial de syncs
+- [x] /admin/padrones/sincronizar/[syncId]: revisión con tabs + aplicar + rollback
+- [x] Botón "Sincronizar" en /admin/padrones
+- [x] Hash de archivo para idempotencia (no procesa el mismo archivo 2 veces)
+- [ ] Importador por equipo (jugadores/suscriptores sin DNI) — Sprint 14b
+- [ ] VIEW v_jugadores_elegibles — Sprint 16
+
+### Sprint 14b+ — Pendiente
+- [ ] Importador por equipo (/admin/equipos/sincronizar-jugadores)
 - [ ] Modulo mantenimiento_instalaciones (mant_*)
 - [ ] Modulo mapa_instalaciones (map_*)
 - [ ] Modulo inventario_productos (inv_*)
@@ -244,7 +258,7 @@ Pendiente validacion visual de Yair + configurar RESEND_API_KEY, CRON_SECRET y S
 ## DB stats actuales
 
 ```
-Tablas:        88
+Tablas:        90
 Columnas:      1416
 Funciones:     66
 RLS Policies:  277
