@@ -5,10 +5,12 @@ Alineado a la propuesta arquitectonica integral (ver `docs/PROPUESTA-ARQUITECTON
 
 ---
 
-## Estado actual: Sprint 11.1 COMPLETADO + Sprint 9 bugs FIXEADOS
+## Estado actual: Sprints 11.5 + 11.6 + 11.7 COMPLETADOS
 
-Sprint 11.1 = RRHH refactor datos laborales. Sprint 9 = Finanzas bugs arreglados.
-Pendiente validacion visual de Yair antes de continuar.
+Sprint 11.5 = Refactor eventos (tabla central + partidos_detalle).
+Sprint 11.6 = Atributos namespacing ({modulo}.{rol}).
+Sprint 11.7 = VIEWs fin_* para forward-compatible naming.
+Pendiente validacion visual de Yair.
 
 ### Fixes Sprint 9 (sesion 2026-05-06)
 - [x] Fix cajas: `saldo` → `saldo_actual` (columna correcta en DB)
@@ -116,23 +118,28 @@ Pendiente validacion visual de Yair antes de continuar.
 
 ## Sprints PENDIENTES (plan revisado segun propuesta arquitectonica)
 
-### Sprint 11.5 — Refactor Eventos
-- [ ] Renombrar `equipos_horarios` → `eventos` + VIEW compat
-- [ ] Crear `entrenamientos_detalle`, `partidos_detalle` (satelites 1:1)
-- [ ] Renombrar `catalogo_tipos_evento_personal` → `catalogo_tipos_evento`
-- [ ] Absorber `personas_eventos_personales` en `eventos`
-- [ ] Crear VIEW `v_vencimientos_proximos`
-- [ ] Actualizar todo el codigo TS que referencia `equipos_horarios`
+### Sprint 11.5 — Refactor Eventos (HECHO)
+- [x] Tabla central `eventos` creada (absorbe `equipos_horarios`)
+- [x] `partidos_detalle` satelite 1:1
+- [x] VIEW `equipos_horarios` backward compat
+- [x] Datos migrados de equipos_horarios → eventos
+- [x] Codigo TS actualizado (queries, actions, components)
+- [ ] `entrenamientos_detalle` satelite (diferido — no hay UI aun)
+- [ ] VIEW `v_vencimientos_proximos` (diferido a Sprint 12+)
 
-### Sprint 11.6 — Atributos namespacing
-- [ ] Crear `tiene_atributo_namespace()` function
-- [ ] Migrar atributos existentes a namespaced con aliases
-- [ ] Actualizar RLS policies
+### Sprint 11.6 — Atributos namespacing (HECHO)
+- [x] 15 atributos namespaced insertados en catalogo_atributos
+- [x] personas_atributos migrados (admin_sistema → sistema.admin, etc.)
+- [x] Funcion `tiene_atributo_namespace(modulo, roles[])` creada
+- [x] ATRIBUTO_COLORS en UI actualizado con slugs namespaced
+- [ ] Actualizar RLS policies para usar tiene_atributo_namespace (Sprint 16)
 
-### Sprint 11.7 — Renombres finanzas (fin_*)
-- [ ] Renombrar tablas de finanzas con prefijo `fin_`
-- [ ] Crear VIEWs de compatibilidad
-- [ ] Refactor gradual del codigo
+### Sprint 11.7 — Renombres finanzas (HECHO)
+- [x] 10 VIEWs fin_* creadas con SECURITY INVOKER
+- [x] fin_cajas, fin_movimientos, fin_productos, fin_categorias_movimiento
+- [x] fin_plan_cuentas, fin_cuotas_planes, fin_cuotas_emitidas
+- [x] fin_emisiones_cuota, fin_cuotas_bonificaciones, fin_producto_proveedor
+- [ ] Refactor gradual del codigo para usar fin_* (Sprint 16)
 
 ### Sprint 12 — Comunicaciones + Notificaciones
 - [ ] Crear tabla `module_events` (eventos de dominio)
@@ -263,7 +270,7 @@ MODULOS VENDIBLES (activables por tenant)
 
 ---
 
-**Ultima actualizacion:** 2026-05-06
-**Proximo:** Validacion visual de Yair → Sprint 11.5 (eventos refactor)
+**Ultima actualizacion:** 2026-05-07
+**Proximo:** Validacion visual de Yair → Sprint 12 (comunicaciones + module_events)
 **Instrucciones:** ver `NEXT-SPRINT.md`
 **Owner:** Yair Levy Wald
