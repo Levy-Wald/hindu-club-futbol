@@ -1,4 +1,4 @@
-# Proximo Sprint: 12 — Comunicaciones + module_events
+# Proximo Sprint: 14 — Mantenimiento + Inventario + Reservas + Mapa
 
 ## Para el humano o agente que va a trabajar
 
@@ -13,80 +13,71 @@ Lee estos archivos antes de empezar:
 
 ## Contexto rapido
 
-**Estado actual:** Sprints 1-11.7 completos. DB cleanup hecho. 0 errores seguridad.
-**Pendiente:** Validacion visual de Yair para ultimos cambios.
-**Proximo:** Sprint 12 (comunicaciones + module_events).
+**Estado actual:** Sprints 1-13 completos. DB cleanup hecho. 0 errores seguridad.
+**Pendiente:** Validacion visual de Yair para ultimos cambios + configurar env vars en Vercel.
+**Proximo:** Sprint 14 (Mantenimiento + Inventario + Reservas + Mapa).
 
 ---
 
 ## Sprints recien completados (resumen)
 
-### Sprint 11.5 — Refactor Eventos (HECHO)
-- Tabla central `eventos` reemplaza `equipos_horarios`
-- Satelite `partidos_detalle` 1:1
-- VIEW backward compat `equipos_horarios`
-- Codigo TS actualizado completo
+### Sprint 12 — Comunicaciones + Notificaciones (HECHO)
+- 3 tablas com_* + VIEW v_vencimientos_proximos
+- Bell dropdown + /admin/comunicaciones + /admin/notificaciones
+- Cron dispatcher vencimientos (9 AM UTC)
+- 18 plantillas seed Hindu
 
-### Sprint 11.6 — Atributos namespacing (HECHO)
-- 15 atributos namespaced en catalogo (`{modulo}.{rol}`)
-- Funcion `tiene_atributo_namespace(modulo, roles[])`
-- personas_atributos migrados
-- UI actualizado (ATRIBUTO_COLORS)
-
-### Sprint 11.7 — VIEWs fin_* (HECHO)
-- 10 VIEWs con SECURITY INVOKER apuntando a tablas existentes
-- Codigo existente sigue funcionando, codigo nuevo puede usar fin_*
+### Sprint 13 — API REST + API Keys (HECHO)
+- Tablas api_keys + api_logs + funciones de validacion
+- 5 endpoints: GET/POST /personas, GET/PATCH /personas/:id, GET /equipos
+- Auth Bearer token + rate limiting + request logging
+- /admin/integraciones (dashboard + keys ABM + logs viewer)
+- Cron cleanup-api-logs (domingos 3 AM, retiene 90 dias)
 
 ---
 
-## Sprint 12 — Comunicaciones + module_events
+## Sprint 14 — Mantenimiento + Inventario + Reservas + Mapa
 
 ### Objetivo
-Sistema de notificaciones in-app + eventos de dominio para dispatcher centralizado.
+4 modulos operativos nuevos para gestion de instalaciones, inventario, reservas y mapa.
 
 ### Entregables
 
-1. **Migration: module_events**
-   - Tabla `module_events` (eventos de dominio centralizados)
-   - Columnas: id, tenant_id, event_type, entity_type, entity_id, actor_id, payload jsonb, processed boolean, created_at
-   - Trigger en tablas core que inserta evento al cambiar datos
-   - Indices para consultas frecuentes
-
-2. **Migration: comunicaciones**
-   - Tabla `com_notificaciones` (notificaciones in-app por persona)
-   - Tabla `com_plantillas` (templates de comunicacion)
-   - Tabla `com_envios` (log de envios: email, push, whatsapp)
+1. **Migration: mantenimiento (mant_*)**
+   - Tabla `mant_ordenes` (ordenes de trabajo)
+   - Tabla `mant_planes` (planes de mantenimiento preventivo)
    - RLS + triggers + indices
 
-3. **UI: Bell icon en topbar**
-   - Badge con count de no leidas
-   - Dropdown con lista de notificaciones recientes
-   - Marcar como leida/leidas todas
-   - Link a la entidad afectada
+2. **Migration: inventario (inv_*)**
+   - Tabla `inv_items` (items del inventario)
+   - Tabla `inv_movimientos` (entradas/salidas)
+   - RLS + triggers + indices
 
-4. **Dispatcher (server-side)**
-   - Procesa module_events y genera notificaciones segun reglas
-   - Configurable por tenant (que eventos generan que notificaciones)
+3. **Migration: reservas (res_*)**
+   - Tabla `res_espacios` (canchas, salones, etc.)
+   - Tabla `res_reservas` (reservas de espacios)
+   - Tabla `res_reglas` (horarios disponibles, precios)
+   - RLS + triggers + indices
 
-5. **VIEW `v_vencimientos_proximos`** (diferido de Sprint 11.5)
-   - Unifica vencimientos: cuotas, aptos, documentos, seguros
-   - Alimenta notificaciones automaticas
+4. **Migration: mapa (map_*)**
+   - Tabla `map_zonas` (zonas del predio)
+   - RLS + triggers + indices
 
-6. **Opcional: Conector Resend**
-   - Emails transaccionales (bienvenida, cuota vencida, etc.)
+5. **UI para cada modulo**
+   - Dashboard, listados, ABM basico
+   - Sidebar sections
 
 ### Riesgos
-- module_events puede generar mucho volumen — definir retention policy
-- Notificaciones deben ser granulares por persona (no spam)
+- 4 modulos en un sprint puede ser mucho — priorizar mantenimiento y reservas
+- Mapa puede necesitar integracion con leaflet/mapbox
 
 ---
 
 ## Vision global
 
 ```
-Sprints 1-12:    ████████████████████████████████████████████████████████████ HECHO
-Sprint 13:       ▓▓▓▓▓▓▓▓▓▓▓▓▓▓ <- PROXIMO (API + MCP + webhooks)
-Sprint 14:       ░░░░░░░░░░░░░░ (mantenimiento, inventario, reservas, mapa)
+Sprints 1-13:    ████████████████████████████████████████████████████████████ HECHO
+Sprint 14:       ▓▓▓▓▓▓▓▓▓▓▓▓▓▓ <- PROXIMO (mantenimiento, inventario, reservas, mapa)
 Sprint 15:       ░░░░░░░░░░░░░░ (shop)
 Sprint 16:       ░░░░░░░░░░░░░░ (hardening → HINDU LIVE)
 ```

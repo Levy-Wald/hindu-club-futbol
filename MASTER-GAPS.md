@@ -5,11 +5,11 @@ Alineado a la propuesta arquitectonica integral (ver `docs/PROPUESTA-ARQUITECTON
 
 ---
 
-## Estado actual: Sprint 12 COMPLETADO
+## Estado actual: Sprint 13 COMPLETADO
 
-Sprints 11.5-11.7 + Sprint 12 completados.
-Sprint 12 = Comunicaciones + Notificaciones (com_*, bell, plantillas, cron).
-Pendiente validacion visual de Yair + configurar RESEND_API_KEY y CRON_SECRET en Vercel.
+Sprints 11.5-11.7 + Sprint 12 + Sprint 13 completados.
+Sprint 13 = API REST v1 + API Keys + rate limiting + logs.
+Pendiente validacion visual de Yair + configurar RESEND_API_KEY, CRON_SECRET y SUPABASE_SERVICE_ROLE_KEY en Vercel.
 
 ### Fixes Sprint 9 (sesion 2026-05-06)
 - [x] Fix cajas: `saldo` → `saldo_actual` (columna correcta en DB)
@@ -155,13 +155,22 @@ Pendiente validacion visual de Yair + configurar RESEND_API_KEY y CRON_SECRET en
 - [ ] Configurar RESEND_API_KEY + CRON_SECRET en Vercel env vars (Yair)
 - [ ] module_events (eventos de dominio) — diferido a Sprint 13+
 
-### Sprint 13 — API + Webhooks + MCP
-- [ ] API REST v1 documentada (OpenAPI 3.1)
-- [ ] Endpoints por modulo
-- [ ] API keys + rate limiting
-- [ ] Webhooks salientes
-- [ ] MCP server con tools por modulo
-- [ ] Esquemas tacticos UI
+### Sprint 13 — API REST + API Keys (HECHO)
+- [x] Tablas api_keys + api_logs + RLS + indices + triggers
+- [x] Funciones fn_validar_api_key() + fn_chequear_rate_limit()
+- [x] Atributo api.admin + modulo api_publica activado
+- [x] lib/api/auth.ts (hash, validate, generate, log) + scopes.ts + helpers.ts
+- [x] API endpoints: GET/POST /api/v1/personas, GET/PATCH /api/v1/personas/:id, GET /api/v1/equipos
+- [x] Auth via Bearer token (SHA-256 hash, prefix identification)
+- [x] Rate limiting via DB (count api_logs in last 60s)
+- [x] /admin/integraciones dashboard + API Keys ABM + Logs viewer
+- [x] Cron cleanup-api-logs (domingos 3 AM, retiene 90 dias)
+- [x] Sidebar: Integraciones con icono Plug
+- [ ] Configurar SUPABASE_SERVICE_ROLE_KEY en Vercel env vars (Yair)
+- [ ] Webhooks salientes — diferido a Sprint 14+
+- [ ] MCP server — diferido a Sprint 14+
+- [ ] Esquemas tacticos UI — diferido
+- [ ] docs/API.md documentacion — PENDIENTE_VALIDACION_VISUAL
 
 ### Sprint 14 — Mantenimiento + Mapa + Inventario + Reservas
 - [ ] Modulo mantenimiento_instalaciones (mant_*)
@@ -235,7 +244,7 @@ Pendiente validacion visual de Yair + configurar RESEND_API_KEY y CRON_SECRET en
 ## DB stats actuales
 
 ```
-Tablas:        86
+Tablas:        88
 Columnas:      1416
 Funciones:     66
 RLS Policies:  277
@@ -277,6 +286,6 @@ MODULOS VENDIBLES (activables por tenant)
 ---
 
 **Ultima actualizacion:** 2026-05-07
-**Proximo:** Validacion visual de Yair → Sprint 13 (API REST + MCP + Webhooks)
+**Proximo:** Validacion visual de Yair → Sprint 14 (Mantenimiento + Mapa + Inventario + Reservas)
 **Instrucciones:** ver `NEXT-SPRINT.md`
 **Owner:** Yair Levy Wald

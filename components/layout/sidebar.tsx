@@ -33,6 +33,7 @@ import {
   DollarSign,
   Send,
   FileEdit,
+  Plug,
 } from 'lucide-react'
 
 interface NavItemDef {
@@ -80,6 +81,7 @@ const adminItems: NavItemDef[] = [
   { label: 'Equipos', href: '/admin/equipos', icon: Shield },
   { label: 'Entidades', href: '/admin/externos', icon: Building2 },
   // Operaciones, Finanzas, RRHH, Comunicaciones are handled as collapsible sections
+  { label: 'Integraciones', href: '/admin/integraciones', icon: Plug },
   { label: 'Pre-inscripciones', href: '/admin/pre-inscripciones', icon: UserPlus },
   { label: 'Configuración', href: '/admin/configuracion', icon: Settings },
 ]
@@ -185,9 +187,9 @@ export function Sidebar() {
   const [rrhhOpen, setRRHHOpen] = useState(isRRHHActive)
   const [comunicacionesOpen, setComunicacionesOpen] = useState(isComunicacionesActive)
 
-  // Split adminItems: Dashboard through Entidades (0-4), then Pre-inscripciones onward (5+)
+  // Split adminItems: Dashboard through Entidades (0-4), then Integraciones onward (5+)
   const beforeCollapsible = adminItems.slice(0, 5) // Dashboard through Entidades
-  const afterCollapsible = adminItems.slice(5)       // Pre-inscripciones, Configuración
+  const afterCollapsible = adminItems.slice(5)       // Integraciones, Pre-inscripciones, Configuración
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col border-r bg-sidebar">
