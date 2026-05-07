@@ -124,9 +124,89 @@ export async function procesarArchivoSync(
 }
 
 // ============================================================
-// Paso 4: Aplicar sync
+// Paso 3: Acciones de revisión
 // ============================================================
-export async function aplicarSync(syncId: string) {
+export async function actualizarEstadoRevision(
+  diffIds: string[],
+  estado: 'aprobado' | 'descartado' | 'pospuesto' | 'pendiente',
+  razonDescarte?: string
+) {
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  let revisadoPor: string | null = null
+  if (session) {
+    const { data: persona } = await supabase
+      .from('personas')
+      .select('id')
+      .eq('user_id', session.user.id)
+      .maybeSingle()
+    revisadoPor = persona?.id ?? null
+  }
+
+  const update: Record<string, unknown> = {
+    estado_revision: estado,
+    revisado_por_persona_id: revisadoPor,
+    revisado_at: new Date().toISOString(),
+  }
+  if (razonDescarte) update.razon_descarte = razonDescarte
+
+  // Reset descarte reason if not discarding
+  if (estado !== 'descartado') update.razon_descarte = null
+
+  for (let i = 0; i < diffIds.length; i += 100) {
+    const batch = diffIds.slice(i, i + 100)
+    await supabase
+      .from('padron_sync_diffs')
+      .update(update)
+      .in('id', batch)
+  }
+
+  return { success: true, count: diffIds.length }
+}
+
+export async function editarDiff(
+  diffId: string,
+  updates: {
+    nombre_archivo?: string
+    dni_archivo?: string
+    numero_socio_archivo?: string
+    categoria_archivo?: string
+    actividad_archivo?: string
+    datos_despues?: Record<string, unknown>
+    tipo_cambio?: string
+    motivo_rechazo?: string | null
+  }
+) {
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  let revisadoPor: string | null = null
+  if (session) {
+    const { data: persona } = await supabase
+      .from('personas')
+      .select('id')
+      .eq('user_id', session.user.id)
+      .maybeSingle()
+    revisadoPor = persona?.id ?? null
+  }
+
+  const { error } = await supabase
+    .from('padron_sync_diffs')
+    .update({
+      ...updates,
+      estado_revision: 'editado',
+      revisado_por_persona_id: revisadoPor,
+      revisado_at: new Date().toISOString(),
+    })
+    .eq('id', diffId)
+
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
+// ============================================================
+// Paso 4: Aplicar sync (solo aprobados o todos)
+// ============================================================
+export async function aplicarSync(syncId: string, soloAprobados = false) {
   const supabase = await createClient()
 
   // Verificar estado
@@ -154,13 +234,20 @@ export async function aplicarSync(syncId: string) {
     revisadoPor = persona?.id ?? null
   }
 
-  // Get all diffs that need to be applied
-  const { data: diffs } = await supabase
+  // Get diffs that need to be applied
+  let query = supabase
     .from('padron_sync_diffs')
     .select('*')
     .eq('sync_id', syncId)
     .eq('aplicado', false)
     .in('tipo_cambio', ['alta', 'baja', 'modificacion'])
+    .neq('estado_revision', 'descartado')
+
+  if (soloAprobados) {
+    query = query.in('estado_revision', ['aprobado', 'editado'])
+  }
+
+  const { data: diffs } = await query
 
   let aplicados = 0
   let errores = 0
