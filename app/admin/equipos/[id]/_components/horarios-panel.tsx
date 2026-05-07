@@ -157,7 +157,9 @@ function getRecurrenciaOptions(fechaStr: string) {
   options.push(
     { value: 'diario', label: 'Todos los días' },
     { value: 'semanal', label: `Cada semana, el ${diaNombre}` },
+    { value: 'quincenal', label: `Cada 2 semanas, el ${diaNombre}` },
     { value: 'mensual', label: `Todos los meses, el ${ordinal} ${diaNombre}` },
+    { value: 'mensual_dia', label: `Todos los meses, el día ${d.getDate()}` },
     { value: 'anual', label: `Anualmente, el ${d.getDate()} de ${mesNombre}` },
     { value: 'dias_habiles', label: 'Todos los días hábiles (lunes a viernes)' },
   )
@@ -253,7 +255,6 @@ function calcularFechasRecurrentes(
     const targetWeek = Math.ceil(inicio.getDate() / 7)
     const cursor = new Date(inicio)
     for (let m = 0; m < 24; m++) {
-      // Buscar el N-ésimo targetDow del mes
       const year = cursor.getFullYear()
       const month = cursor.getMonth()
       const firstDay = new Date(year, month, 1)
@@ -275,8 +276,23 @@ function calcularFechasRecurrentes(
     return fechas
   }
 
-  // diario, semanal, anual
-  const incrementDays = recurrencia === 'semanal' ? 7 : recurrencia === 'anual' ? 0 : 1
+  if (recurrencia === 'mensual_dia') {
+    // "El día N de cada mes" (ej: el día 15)
+    const targetDay = inicio.getDate()
+    const cursor = new Date(inicio)
+    for (let m = 0; m < 24; m++) {
+      const year = cursor.getFullYear()
+      const month = cursor.getMonth()
+      // Clamp al último día del mes si el mes tiene menos días
+      const lastDay = new Date(year, month + 1, 0).getDate()
+      const day = Math.min(targetDay, lastDay)
+      const d = new Date(year, month, day, 12, 0, 0)
+      if (d > limite) return fechas
+      if (d >= inicio) fechas.push(dateToYMD(d))
+      cursor.setMonth(cursor.getMonth() + 1)
+    }
+    return fechas
+  }
 
   if (recurrencia === 'anual') {
     const cursor = new Date(inicio)
@@ -287,6 +303,9 @@ function calcularFechasRecurrentes(
     }
     return fechas
   }
+
+  // diario, semanal, quincenal
+  const incrementDays = recurrencia === 'quincenal' ? 14 : recurrencia === 'semanal' ? 7 : 1
 
   const cursor = new Date(inicio)
   for (let i = 0; i < 365; i++) {
