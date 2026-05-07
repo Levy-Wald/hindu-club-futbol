@@ -78,8 +78,9 @@ export async function fetchEquipoDetalle(id: string) {
     .order('rol_equipo_slug', { ascending: true })
 
   const { data: horarios } = await supabase
-    .from('equipos_horarios')
-    .select('id, dia_semana, hora_inicio, hora_fin, tipo_actividad, activo, sede_id, cancha_id, metadata, fecha, titulo, hora_citacion, descripcion, rival, notas_pre, notas_post')
+    .from('eventos')
+    .select(`id, dia_semana, hora_inicio, hora_fin, tipo_evento_slug, activo, sede_id, cancha_id, metadata, fecha, titulo, hora_citacion, descripcion, notas_pre, notas_post,
+      partidos_detalle(rival_texto, condicion, torneo_slug, marcador_local, marcador_visitante)`)
     .eq('equipo_id', id)
     .eq('tenant_id', TENANT_ID)
     .eq('activo', true)

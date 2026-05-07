@@ -192,7 +192,7 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
       </div>
 
       {/* Desktop table */}
-      <div className="hidden sm:block rounded-md border">
+      <div className="hidden sm:block rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

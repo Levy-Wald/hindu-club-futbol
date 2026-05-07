@@ -64,9 +64,10 @@ export async function fetchHorariosEquipo(equipoId: string) {
   const supabase = await createClient()
 
   const { data } = await supabase
-    .from('equipos_horarios')
+    .from('eventos')
     .select(`
-      id, dia_semana, hora_inicio, hora_fin, tipo_actividad, activo, metadata, fecha, titulo, hora_citacion, descripcion,
+      id, dia_semana, hora_inicio, hora_fin, tipo_evento_slug, activo, metadata, fecha, titulo, hora_citacion, descripcion,
+      partidos_detalle(rival_texto, condicion),
       sede:sedes!sede_id(id, nombre, direccion),
       cancha:canchas!cancha_id(id, nombre)
     `)

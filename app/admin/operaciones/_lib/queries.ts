@@ -2,19 +2,27 @@ import { createClient } from '@/lib/supabase/server'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
+export interface PartidoDetalle {
+  rival_texto: string | null
+  condicion: string | null
+  torneo_slug: string | null
+  marcador_local: number | null
+  marcador_visitante: number | null
+}
+
 export interface EventoSemana {
   id: string
   fecha: string | null
   dia_semana: number | null
   hora_inicio: string
   hora_fin: string
-  tipo_actividad: string
+  tipo_evento_slug: string
   titulo: string | null
   hora_citacion: string | null
   descripcion: string | null
-  rival: string | null
   notas_pre: string | null
   notas_post: string | null
+  partido: PartidoDetalle | null
   equipo: {
     id: string
     nombre: string
@@ -32,10 +40,11 @@ export async function fetchEventosSemana(
   const supabase = await createClient()
 
   const { data, error } = await supabase
-    .from('equipos_horarios')
+    .from('eventos')
     .select(
-      `id, fecha, dia_semana, hora_inicio, hora_fin, tipo_actividad, titulo,
-       hora_citacion, descripcion, rival, notas_pre, notas_post,
+      `id, fecha, dia_semana, hora_inicio, hora_fin, tipo_evento_slug, titulo,
+       hora_citacion, descripcion, notas_pre, notas_post,
+       partidos_detalle(rival_texto, condicion, torneo_slug, marcador_local, marcador_visitante),
        equipos!equipo_id(id, nombre, color_principal, escudo_url),
        sedes!sede_id(id, nombre),
        canchas!cancha_id(id, nombre)`
@@ -49,23 +58,26 @@ export async function fetchEventosSemana(
 
   if (error) throw error
 
-  return (data ?? []).map((row) => ({
-    id: row.id,
-    fecha: row.fecha,
-    dia_semana: row.dia_semana,
-    hora_inicio: row.hora_inicio,
-    hora_fin: row.hora_fin,
-    tipo_actividad: row.tipo_actividad,
-    titulo: row.titulo,
-    hora_citacion: row.hora_citacion,
-    descripcion: row.descripcion,
-    rival: (row as Record<string, unknown>).rival as string | null,
-    notas_pre: (row as Record<string, unknown>).notas_pre as string | null,
-    notas_post: (row as Record<string, unknown>).notas_post as string | null,
-    equipo: row.equipos as unknown as EventoSemana['equipo'],
-    sede: row.sedes as unknown as EventoSemana['sede'],
-    cancha: row.canchas as unknown as EventoSemana['cancha'],
-  }))
+  return (data ?? []).map((row) => {
+    const pdArr = row.partidos_detalle as unknown as PartidoDetalle[] | null
+    return {
+      id: row.id,
+      fecha: row.fecha,
+      dia_semana: row.dia_semana,
+      hora_inicio: row.hora_inicio,
+      hora_fin: row.hora_fin,
+      tipo_evento_slug: row.tipo_evento_slug,
+      titulo: row.titulo,
+      hora_citacion: row.hora_citacion,
+      descripcion: row.descripcion,
+      notas_pre: (row as Record<string, unknown>).notas_pre as string | null,
+      notas_post: (row as Record<string, unknown>).notas_post as string | null,
+      partido: pdArr && pdArr.length > 0 ? pdArr[0] : null,
+      equipo: row.equipos as unknown as EventoSemana['equipo'],
+      sede: row.sedes as unknown as EventoSemana['sede'],
+      cancha: row.canchas as unknown as EventoSemana['cancha'],
+    }
+  })
 }
 
 // --- Asistencias ---

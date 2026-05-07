@@ -58,12 +58,12 @@ const ROLES_STAFF = ['dt', 'preparador_fisico', 'kinesiologo', 'delegado', 'ayud
 const ROLES_REFERENTES = ['capitan', 'subcapitan']
 const ROLES_PUEDEN_EDITAR_EVENTOS = ['dt', 'capitan', 'subcapitan', 'delegado', 'preparador_fisico', 'ayudante_campo']
 
-const TIPOS_ACTIVIDAD = [
+const TIPOS_EVENTO = [
   { value: 'entrenamiento', label: 'Entrenamiento' },
-  { value: 'partido_local', label: 'Partido local' },
-  { value: 'partido_visitante', label: 'Partido visitante' },
-  { value: 'amistoso', label: 'Amistoso' },
-  { value: 'torneo', label: 'Torneo' },
+  { value: 'partido', label: 'Partido' },
+  { value: 'practica_informal', label: 'Práctica informal' },
+  { value: 'reunion', label: 'Reunión' },
+  { value: 'evaluacion_fisica', label: 'Evaluación física' },
   { value: 'otro', label: 'Otro' },
 ]
 
@@ -172,7 +172,7 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
   const [editFecha, setEditFecha] = useState('')
   const [editHoraInicio, setEditHoraInicio] = useState('')
   const [editHoraFin, setEditHoraFin] = useState('')
-  const [editTipoActividad, setEditTipoActividad] = useState('')
+  const [editTipoEvento, setEditTipoEvento] = useState('')
   const [editTitulo, setEditTitulo] = useState('')
   const [editHoraCitacion, setEditHoraCitacion] = useState('')
   const [editDescripcion, setEditDescripcion] = useState('')
@@ -182,7 +182,7 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
     setEditFecha((evento.fecha as string) ?? '')
     setEditHoraInicio(((evento.hora_inicio as string) ?? '').slice(0, 5))
     setEditHoraFin(((evento.hora_fin as string) ?? '').slice(0, 5))
-    setEditTipoActividad((evento.tipo_actividad as string) ?? '')
+    setEditTipoEvento((evento.tipo_evento_slug as string) ?? '')
     setEditTitulo((evento.titulo as string) ?? '')
     setEditHoraCitacion(((evento.hora_citacion as string) ?? '').slice(0, 5))
     setEditDescripcion((evento.descripcion as string) ?? '')
@@ -191,7 +191,7 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
 
   function handleEditarEvento(e: React.FormEvent) {
     e.preventDefault()
-    if (!editFecha || !editHoraInicio || !editHoraFin || !editTipoActividad) {
+    if (!editFecha || !editHoraInicio || !editHoraFin || !editTipoEvento) {
       toast.error('Fecha, hora inicio, hora fin y tipo son obligatorios.')
       return
     }
@@ -200,7 +200,7 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
         fecha: editFecha,
         hora_inicio: editHoraInicio,
         hora_fin: editHoraFin,
-        tipo_actividad: editTipoActividad,
+        tipo_evento_slug: editTipoEvento,
         titulo: editTitulo || null,
         hora_citacion: editHoraCitacion || null,
         descripcion: editDescripcion || null,
@@ -250,7 +250,7 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
                   ) : null}
                   <div className="flex items-center gap-2">
                     <Badge variant="default" className="capitalize">
-                      {formatTipoActividad(proximaActividad.tipo_actividad as string)}
+                      {formatTipoEvento(proximaActividad.tipo_evento_slug as string)}
                     </Badge>
                     {(proximaActividad.hora_citacion as string | null) ? (
                       <span className="text-xs text-muted-foreground">
@@ -617,11 +617,11 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Tipo de actividad</Label>
-                <Select value={editTipoActividad} onValueChange={(v) => setEditTipoActividad(v ?? '')}>
+                <Label>Tipo de evento</Label>
+                <Select value={editTipoEvento} onValueChange={(v) => setEditTipoEvento(v ?? '')}>
                   <SelectTrigger><SelectValue placeholder="Seleccionar tipo" /></SelectTrigger>
                   <SelectContent>
-                    {TIPOS_ACTIVIDAD.map((t) => (
+                    {TIPOS_EVENTO.map((t) => (
                       <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                     ))}
                   </SelectContent>
@@ -685,7 +685,7 @@ function EventoCard({ evento, equipoNombre, puedeEditar, onEditar }: {
           {(evento.hora_inicio as string)?.slice(0, 5)} – {(evento.hora_fin as string)?.slice(0, 5)}
         </div>
         <Badge variant="outline" className="text-[10px] capitalize shrink-0">
-          {formatTipoActividad(evento.tipo_actividad as string)}
+          {formatTipoEvento(evento.tipo_evento_slug as string)}
         </Badge>
       </div>
 
@@ -829,8 +829,16 @@ function PersonaCardCompleta({
 
 /* ─── Helpers ─── */
 
-function formatTipoActividad(tipo: string): string {
-  return tipo.replace(/_/g, ' ')
+function formatTipoEvento(tipo: string): string {
+  const labels: Record<string, string> = {
+    entrenamiento: 'Entrenamiento',
+    partido: 'Partido',
+    practica_informal: 'Práctica informal',
+    reunion: 'Reunión',
+    evaluacion_fisica: 'Evaluación física',
+    otro: 'Otro',
+  }
+  return labels[tipo] ?? tipo.replace(/_/g, ' ')
 }
 
 function deduplicarPorId(arr: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
@@ -871,7 +879,7 @@ function downloadICS(
 
   const horaInicio = (evento.hora_inicio as string) || '00:00'
   const horaFin = (evento.hora_fin as string) || '23:59'
-  const titulo = (evento.titulo as string) || formatTipoActividad(evento.tipo_actividad as string)
+  const titulo = (evento.titulo as string) || formatTipoEvento(evento.tipo_evento_slug as string)
   const horaCitacion = evento.hora_citacion as string | null
   const descripcionEvento = evento.descripcion as string | null
 

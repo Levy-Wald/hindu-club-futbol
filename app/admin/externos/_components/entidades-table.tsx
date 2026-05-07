@@ -130,7 +130,7 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
       </div>
 
       {/* Desktop table */}
-      <div className="hidden sm:block rounded-md border">
+      <div className="hidden sm:block rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

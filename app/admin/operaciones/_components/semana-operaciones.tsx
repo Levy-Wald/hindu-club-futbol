@@ -26,12 +26,12 @@ import type { EventoSemana, EquipoSimple } from '../_lib/queries'
 // Constantes
 // ---------------------------------------------------------------------------
 
-const TIPOS_ACTIVIDAD = [
+const TIPOS_EVENTO = [
   { value: 'entrenamiento', label: 'Entrenamiento', color: 'bg-blue-100 text-blue-800' },
-  { value: 'partido_oficial', label: 'Partido oficial', color: 'bg-red-100 text-red-800' },
-  { value: 'partido_amistoso', label: 'Amistoso', color: 'bg-orange-100 text-orange-800' },
-  { value: 'viaje', label: 'Viaje', color: 'bg-purple-100 text-purple-800' },
-  { value: 'reunion', label: 'Reunion', color: 'bg-yellow-100 text-yellow-800' },
+  { value: 'partido', label: 'Partido', color: 'bg-green-100 text-green-800' },
+  { value: 'practica_informal', label: 'Práctica informal', color: 'bg-cyan-100 text-cyan-800' },
+  { value: 'reunion', label: 'Reunión', color: 'bg-yellow-100 text-yellow-800' },
+  { value: 'evaluacion_fisica', label: 'Evaluación física', color: 'bg-amber-100 text-amber-800' },
   { value: 'otro', label: 'Otro', color: 'bg-gray-100 text-gray-800' },
 ] as const
 
@@ -89,7 +89,7 @@ function formatRangoSemana(lunes: Date): string {
 }
 
 function getTipoBadge(tipo: string) {
-  const found = TIPOS_ACTIVIDAD.find((t) => t.value === tipo)
+  const found = TIPOS_EVENTO.find((t) => t.value === tipo)
   return found ?? { value: tipo, label: tipo, color: 'bg-gray-100 text-gray-800' }
 }
 
@@ -168,7 +168,7 @@ export function SemanaOperaciones({
       filtered = filtered.filter((e) => e.equipo?.id === filtroEquipo)
     }
     if (filtroTipo) {
-      filtered = filtered.filter((e) => e.tipo_actividad === filtroTipo)
+      filtered = filtered.filter((e) => e.tipo_evento_slug === filtroTipo)
     }
     return filtered
   }, [eventos, filtroEquipo, filtroTipo])
@@ -249,7 +249,7 @@ export function SemanaOperaciones({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">Todos los tipos</SelectItem>
-              {TIPOS_ACTIVIDAD.map((t) => (
+              {TIPOS_EVENTO.map((t) => (
                 <SelectItem key={t.value} value={t.value}>
                   {t.label}
                 </SelectItem>
@@ -299,10 +299,8 @@ export function SemanaOperaciones({
               ) : (
                 <div className="mt-1 space-y-1.5">
                   {eventosDelDia.map((ev) => {
-                    const tipoBadge = getTipoBadge(ev.tipo_actividad)
-                    const esPartido =
-                      ev.tipo_actividad === 'partido_oficial' ||
-                      ev.tipo_actividad === 'partido_amistoso'
+                    const tipoBadge = getTipoBadge(ev.tipo_evento_slug)
+                    const esPartido = ev.tipo_evento_slug === 'partido'
 
                     return (
                       <Card key={ev.id} className="border-l-4" style={{
@@ -344,10 +342,10 @@ export function SemanaOperaciones({
                             {ev.titulo && (
                               <span className="font-medium">{ev.titulo}</span>
                             )}
-                            {esPartido && ev.rival && (
+                            {esPartido && ev.partido?.rival_texto && (
                               <span className="inline-flex items-center gap-1 ml-2 text-muted-foreground">
                                 <Swords className="h-3.5 w-3.5" />
-                                vs {ev.rival}
+                                vs {ev.partido.rival_texto}
                               </span>
                             )}
                           </div>

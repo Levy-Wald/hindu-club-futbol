@@ -1160,6 +1160,7 @@ function EmisionesTab() {
               <p className="text-sm text-muted-foreground">No hay emisiones registradas.</p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -1211,6 +1212,7 @@ function EmisionesTab() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -1629,7 +1631,7 @@ function EstadoCuotasTab() {
       ) : (
         <>
           {/* Desktop table */}
-          <Card className="hidden md:block">
+          <Card className="hidden md:block overflow-x-auto">
             <CardContent className="p-0">
               <Table>
                 <TableHeader>

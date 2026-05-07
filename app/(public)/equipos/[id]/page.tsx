@@ -287,7 +287,7 @@ export default async function EquipoDetallePublicoPage({
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-sm truncate">
-                      {ev.titulo || ev.tipo_actividad || 'Actividad'}
+                      {ev.titulo || ev.tipo_evento_slug || 'Actividad'}
                     </p>
                     {ev.hora_inicio && (
                       <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">

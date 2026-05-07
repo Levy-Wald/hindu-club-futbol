@@ -368,6 +368,7 @@ export default async function FinanzasDashboardPage() {
               </p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -415,6 +416,7 @@ export default async function FinanzasDashboardPage() {
                 })}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

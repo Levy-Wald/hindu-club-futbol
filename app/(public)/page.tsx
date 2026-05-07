@@ -50,12 +50,13 @@ const ROL_LABELS: Record<string, string> = {
   director_deportivo: 'Director Deportivo',
 }
 
-const TIPO_ACTIVIDAD_LABELS: Record<string, string> = {
+const TIPO_EVENTO_LABELS: Record<string, string> = {
   entrenamiento: 'Entrenamiento',
   partido: 'Partido',
-  amistoso: 'Amistoso',
-  torneo: 'Torneo',
+  practica_informal: 'Práctica informal',
   reunion: 'Reunión',
+  evaluacion_fisica: 'Evaluación física',
+  otro: 'Otro',
 }
 
 const CUERPO_TECNICO_SLUGS = ['dt', 'ayudante_campo', 'preparador_fisico']
@@ -235,12 +236,12 @@ function ProximosEventosSection({ eventos }: { eventos: Evento[] }) {
                 >
                   <div className="mb-3 flex items-center gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-[#3A8FC5]/10 px-3 py-1 text-xs font-medium text-[#3A8FC5] dark:bg-[#3A8FC5]/20">
-                      {ev.tipo_actividad === 'partido' ? (
+                      {ev.tipo_evento_slug === 'partido' ? (
                         <Trophy className="h-3 w-3" />
                       ) : (
                         <Calendar className="h-3 w-3" />
                       )}
-                      {TIPO_ACTIVIDAD_LABELS[ev.tipo_actividad] ?? ev.tipo_actividad}
+                      {TIPO_EVENTO_LABELS[ev.tipo_evento_slug] ?? ev.tipo_evento_slug}
                     </span>
                   </div>
 

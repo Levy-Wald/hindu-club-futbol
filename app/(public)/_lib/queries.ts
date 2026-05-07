@@ -58,8 +58,8 @@ export async function fetchEquipoPublico(id: string) {
   // Proximos eventos
   const hoy = new Date().toISOString().split('T')[0]
   const { data: eventos } = await supabase
-    .from('equipos_horarios')
-    .select('id, fecha, dia_semana, hora_inicio, hora_fin, tipo_actividad, titulo, sede_id')
+    .from('eventos')
+    .select('id, fecha, dia_semana, hora_inicio, hora_fin, tipo_evento_slug, titulo, sede_id')
     .eq('equipo_id', id)
     .eq('tenant_id', TENANT_ID)
     .eq('activo', true)
@@ -133,9 +133,9 @@ export async function fetchProximosEventos() {
   const supabase = await createClient()
   const hoy = new Date().toISOString().split('T')[0]
   const { data } = await supabase
-    .from('equipos_horarios')
+    .from('eventos')
     .select(`
-      id, fecha, hora_inicio, hora_fin, tipo_actividad, titulo,
+      id, fecha, hora_inicio, hora_fin, tipo_evento_slug, titulo,
       equipo:equipos!equipo_id(id, nombre, escudo_url, color_principal,
         categoria:categorias_equipo!categoria_id(nombre_display)
       )

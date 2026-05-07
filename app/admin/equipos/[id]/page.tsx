@@ -70,16 +70,22 @@ export default async function EquipoDetallePage({ params }: PageProps) {
     dia_semana: number
     hora_inicio: string
     hora_fin: string
-    tipo_actividad: string
+    tipo_evento_slug: string
     titulo: string | null
     hora_citacion: string | null
     descripcion: string | null
     activo: boolean
     sede_id: string | null
     cancha_id: string | null
-    rival: string | null
     notas_pre: string | null
     notas_post: string | null
+    partidos_detalle: Array<{
+      rival_texto: string | null
+      condicion: string | null
+      torneo_slug: string | null
+      marcador_local: number | null
+      marcador_visitante: number | null
+    }> | null
   }>
 
   const rolesJugador = roles.filter((r) => r.categoria === 'deportivo')

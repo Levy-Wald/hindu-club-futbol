@@ -41,25 +41,36 @@ import { AsistenciasEvento } from './asistencias-evento'
 
 // --- Tipos ---
 
+interface PartidoDetalle {
+  rival_texto: string | null
+  condicion: string | null
+  torneo_slug: string | null
+  marcador_local: number | null
+  marcador_visitante: number | null
+}
+
 interface Evento {
   id: string
   fecha: string | null
   dia_semana: number
   hora_inicio: string
   hora_fin: string
-  tipo_actividad: string
+  tipo_evento_slug: string
   titulo: string | null
   hora_citacion: string | null
   descripcion: string | null
   activo: boolean
   sede_id: string | null
   cancha_id: string | null
-  rival: string | null
   notas_pre: string | null
   notas_post: string | null
+  partidos_detalle: PartidoDetalle[] | null
 }
 
-const TIPOS_CON_RIVAL = ['partido_local', 'partido_visitante', 'amistoso', 'torneo']
+function getPartido(ev: Evento): PartidoDetalle | null {
+  const arr = ev.partidos_detalle
+  return arr && arr.length > 0 ? arr[0] : null
+}
 
 interface Sede {
   id: string
@@ -82,30 +93,36 @@ interface CalendarioPanelProps {
 
 // --- Constantes ---
 
-const TIPOS_ACTIVIDAD = [
+const TIPOS_EVENTO = [
   { value: 'entrenamiento', label: 'Entrenamiento' },
-  { value: 'partido_local', label: 'Partido local' },
-  { value: 'partido_visitante', label: 'Partido visitante' },
-  { value: 'amistoso', label: 'Amistoso' },
-  { value: 'torneo', label: 'Torneo' },
+  { value: 'partido', label: 'Partido' },
+  { value: 'practica_informal', label: 'Práctica informal' },
+  { value: 'reunion', label: 'Reunión' },
+  { value: 'evaluacion_fisica', label: 'Evaluación física' },
   { value: 'otro', label: 'Otro' },
+]
+
+const CONDICIONES = [
+  { value: 'local', label: 'Local' },
+  { value: 'visitante', label: 'Visitante' },
+  { value: 'neutral', label: 'Neutral' },
 ]
 
 const TIPO_COLORES: Record<string, string> = {
   entrenamiento: 'bg-blue-500/80 border-blue-600 text-white',
-  partido_local: 'bg-green-500/80 border-green-600 text-white',
-  partido_visitante: 'bg-orange-500/80 border-orange-600 text-white',
-  amistoso: 'bg-purple-500/80 border-purple-600 text-white',
-  torneo: 'bg-red-500/80 border-red-600 text-white',
+  partido: 'bg-green-500/80 border-green-600 text-white',
+  practica_informal: 'bg-cyan-500/80 border-cyan-600 text-white',
+  reunion: 'bg-purple-500/80 border-purple-600 text-white',
+  evaluacion_fisica: 'bg-amber-500/80 border-amber-600 text-white',
   otro: 'bg-gray-500/80 border-gray-600 text-white',
 }
 
 const TIPO_BADGE_COLORES: Record<string, string> = {
   entrenamiento: 'bg-blue-100 text-blue-800 border-blue-200',
-  partido_local: 'bg-green-100 text-green-800 border-green-200',
-  partido_visitante: 'bg-orange-100 text-orange-800 border-orange-200',
-  amistoso: 'bg-purple-100 text-purple-800 border-purple-200',
-  torneo: 'bg-red-100 text-red-800 border-red-200',
+  partido: 'bg-green-100 text-green-800 border-green-200',
+  practica_informal: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+  reunion: 'bg-purple-100 text-purple-800 border-purple-200',
+  evaluacion_fisica: 'bg-amber-100 text-amber-800 border-amber-200',
   otro: 'bg-gray-100 text-gray-800 border-gray-200',
 }
 
@@ -133,7 +150,7 @@ type FinRecurrencia = 'cantidad' | 'fecha'
 // --- Utilidades ---
 
 function getTipoLabel(tipo: string): string {
-  return TIPOS_ACTIVIDAD.find((t) => t.value === tipo)?.label ?? tipo
+  return TIPOS_EVENTO.find((t) => t.value === tipo)?.label ?? tipo
 }
 
 function getTipoColor(tipo: string): string {
@@ -232,7 +249,7 @@ function generateICS(
   const dtstart = fecha.replace(/-/g, '') + 'T' + evento.hora_inicio.replace(/:/g, '').slice(0, 6)
   const dtend = fecha.replace(/-/g, '') + 'T' + evento.hora_fin.replace(/:/g, '').slice(0, 6)
 
-  const summary = evento.titulo ?? getTipoLabel(evento.tipo_actividad)
+  const summary = evento.titulo ?? getTipoLabel(evento.tipo_evento_slug)
   const locationParts = [sedeNombre, canchaNombre].filter(Boolean)
   const location = locationParts.length > 0 ? locationParts.join(' - ') : ''
 
@@ -344,18 +361,18 @@ function ListaView({
                 </p>
                 <Badge
                   variant="outline"
-                  className={`text-[10px] px-1.5 py-0 h-4 ${getTipoBadgeColor(ev.tipo_actividad)}`}
+                  className={`text-[10px] px-1.5 py-0 h-4 ${getTipoBadgeColor(ev.tipo_evento_slug)}`}
                 >
-                  {getTipoLabel(ev.tipo_actividad)}
+                  {getTipoLabel(ev.tipo_evento_slug)}
                 </Badge>
               </div>
               {ev.titulo && (
                 <p className="text-sm font-medium truncate">{ev.titulo}</p>
               )}
-              {ev.rival && (
+              {getPartido(ev)?.rival_texto && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Swords className="h-3 w-3 shrink-0" />
-                  vs {ev.rival}
+                  vs {getPartido(ev)!.rival_texto}
                 </p>
               )}
               {ubicacion && (
@@ -597,13 +614,13 @@ function CalendarioSemanalView({
                     return (
                       <div
                         key={ev.id}
-                        className={`absolute left-0.5 right-0.5 rounded px-1 py-0.5 border text-[10px] leading-tight overflow-hidden cursor-default ${getTipoColor(ev.tipo_actividad)}`}
+                        className={`absolute left-0.5 right-0.5 rounded px-1 py-0.5 border text-[10px] leading-tight overflow-hidden cursor-default ${getTipoColor(ev.tipo_evento_slug)}`}
                         style={{
                           top: `${topPx}px`,
                           height: `${Math.max(heightPx, 16)}px`,
                         }}
                         title={[
-                          ev.titulo ?? getTipoLabel(ev.tipo_actividad),
+                          ev.titulo ?? getTipoLabel(ev.tipo_evento_slug),
                           `${formatTime(ev.hora_inicio)} – ${formatTime(ev.hora_fin)}`,
                           ubicacion,
                         ]
@@ -615,7 +632,7 @@ function CalendarioSemanalView({
                         </span>
                         {heightPx >= 28 && (
                           <span className="block truncate">
-                            {ev.titulo ?? getTipoLabel(ev.tipo_actividad)}
+                            {ev.titulo ?? getTipoLabel(ev.tipo_evento_slug)}
                           </span>
                         )}
                         {heightPx >= 44 && ubicacion && (
@@ -658,13 +675,14 @@ export function CalendarioPanel({
   const [editFecha, setEditFecha] = useState('')
   const [editHoraInicio, setEditHoraInicio] = useState('')
   const [editHoraFin, setEditHoraFin] = useState('')
-  const [editTipoActividad, setEditTipoActividad] = useState('')
+  const [editTipoEvento, setEditTipoEvento] = useState('')
   const [editTitulo, setEditTitulo] = useState('')
   const [editSedeId, setEditSedeId] = useState('')
   const [editCanchaId, setEditCanchaId] = useState('')
   const [editHoraCitacion, setEditHoraCitacion] = useState('')
   const [editDescripcion, setEditDescripcion] = useState('')
   const [editRival, setEditRival] = useState('')
+  const [editCondicion, setEditCondicion] = useState('local')
   const [editNotasPre, setEditNotasPre] = useState('')
   const [editNotasPost, setEditNotasPost] = useState('')
 
@@ -672,13 +690,14 @@ export function CalendarioPanel({
   const [fecha, setFecha] = useState('')
   const [horaInicio, setHoraInicio] = useState('')
   const [horaFin, setHoraFin] = useState('')
-  const [tipoActividad, setTipoActividad] = useState('')
+  const [tipoEvento, setTipoEvento] = useState('')
   const [titulo, setTitulo] = useState('')
   const [sedeId, setSedeId] = useState('')
   const [canchaId, setCanchaId] = useState('')
   const [horaCitacion, setHoraCitacion] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [rival, setRival] = useState('')
+  const [condicion, setCondicion] = useState('local')
   const [recurrencia, setRecurrencia] = useState('no_repite')
   const [finRecurrencia, setFinRecurrencia] = useState<FinRecurrencia>('cantidad')
   const [cantidadRepeticiones, setCantidadRepeticiones] = useState(4)
@@ -693,13 +712,14 @@ export function CalendarioPanel({
     setFecha('')
     setHoraInicio('')
     setHoraFin('')
-    setTipoActividad('')
+    setTipoEvento('')
     setTitulo('')
     setSedeId('')
     setCanchaId('')
     setHoraCitacion('')
     setDescripcion('')
     setRival('')
+    setCondicion('local')
     setRecurrencia('no_repite')
     setFinRecurrencia('cantidad')
     setCantidadRepeticiones(4)
@@ -709,8 +729,8 @@ export function CalendarioPanel({
   function handleCrear(e: React.FormEvent) {
     e.preventDefault()
 
-    if (!fecha || !horaInicio || !horaFin || !tipoActividad) {
-      toast.error('Fecha, hora inicio, hora fin y tipo de actividad son obligatorios.')
+    if (!fecha || !horaInicio || !horaFin || !tipoEvento) {
+      toast.error('Fecha, hora inicio, hora fin y tipo de evento son obligatorios.')
       return
     }
 
@@ -724,13 +744,14 @@ export function CalendarioPanel({
         equipo_id: equipoId,
         hora_inicio: horaInicio,
         hora_fin: horaFin,
-        tipo_actividad: tipoActividad,
+        tipo_evento_slug: tipoEvento,
         titulo: titulo.trim() || null,
         sede_id: sedeId || null,
         cancha_id: canchaId || null,
         hora_citacion: horaCitacion || null,
         descripcion: descripcion.trim() || null,
-        rival: rival.trim() || null,
+        rival: tipoEvento === 'partido' ? (rival.trim() || null) : null,
+        condicion: tipoEvento === 'partido' ? condicion : null,
       }
 
       if (recurrencia === 'no_repite') {
@@ -822,13 +843,15 @@ export function CalendarioPanel({
     setEditFecha(evento.fecha ?? '')
     setEditHoraInicio(evento.hora_inicio?.slice(0, 5) ?? '')
     setEditHoraFin(evento.hora_fin?.slice(0, 5) ?? '')
-    setEditTipoActividad(evento.tipo_actividad)
+    setEditTipoEvento(evento.tipo_evento_slug)
     setEditTitulo(evento.titulo ?? '')
     setEditSedeId(evento.sede_id ?? '')
     setEditCanchaId(evento.cancha_id ?? '')
     setEditHoraCitacion(evento.hora_citacion?.slice(0, 5) ?? '')
     setEditDescripcion(evento.descripcion ?? '')
-    setEditRival(evento.rival ?? '')
+    const pd = getPartido(evento)
+    setEditRival(pd?.rival_texto ?? '')
+    setEditCondicion(pd?.condicion ?? 'local')
     setEditNotasPre(evento.notas_pre ?? '')
     setEditNotasPost(evento.notas_post ?? '')
     setEditOpen(true)
@@ -842,7 +865,7 @@ export function CalendarioPanel({
     e.preventDefault()
     if (!editEvento) return
 
-    if (!editFecha || !editHoraInicio || !editHoraFin || !editTipoActividad) {
+    if (!editFecha || !editHoraInicio || !editHoraFin || !editTipoEvento) {
       toast.error('Fecha, hora inicio, hora fin y tipo son obligatorios.')
       return
     }
@@ -852,13 +875,14 @@ export function CalendarioPanel({
         fecha: editFecha,
         hora_inicio: editHoraInicio,
         hora_fin: editHoraFin,
-        tipo_actividad: editTipoActividad,
+        tipo_evento_slug: editTipoEvento,
         titulo: editTitulo || null,
         sede_id: editSedeId || null,
         cancha_id: editCanchaId || null,
         hora_citacion: editHoraCitacion || null,
         descripcion: editDescripcion || null,
-        rival: editRival || null,
+        rival: editTipoEvento === 'partido' ? (editRival || null) : null,
+        condicion: editTipoEvento === 'partido' ? editCondicion : null,
         notas_pre: editNotasPre || null,
         notas_post: editNotasPost || null,
       })
@@ -947,18 +971,18 @@ export function CalendarioPanel({
                   </div>
                 </div>
 
-                {/* Tipo actividad */}
+                {/* Tipo evento */}
                 <div className="space-y-2">
-                  <Label>Tipo de actividad</Label>
+                  <Label>Tipo de evento</Label>
                   <Select
-                    value={tipoActividad}
-                    onValueChange={(v) => setTipoActividad(v ?? '')}
+                    value={tipoEvento}
+                    onValueChange={(v) => setTipoEvento(v ?? '')}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar tipo" />
                     </SelectTrigger>
                     <SelectContent>
-                      {TIPOS_ACTIVIDAD.map((t) => (
+                      {TIPOS_EVENTO.map((t) => (
                         <SelectItem key={t.value} value={t.value}>
                           {t.label}
                         </SelectItem>
@@ -979,18 +1003,38 @@ export function CalendarioPanel({
                   />
                 </div>
 
-                {/* Rival - solo para partidos */}
-                {TIPOS_CON_RIVAL.includes(tipoActividad) && (
-                  <div className="space-y-2">
-                    <Label htmlFor="evento-rival">Rival (opcional)</Label>
-                    <Input
-                      id="evento-rival"
-                      type="text"
-                      value={rival}
-                      onChange={(e) => setRival(e.target.value)}
-                      placeholder="Ej: River Plate"
-                    />
-                  </div>
+                {/* Partido: rival + condicion */}
+                {tipoEvento === 'partido' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="evento-rival">Rival (opcional)</Label>
+                      <Input
+                        id="evento-rival"
+                        type="text"
+                        value={rival}
+                        onChange={(e) => setRival(e.target.value)}
+                        placeholder="Ej: River Plate"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Condición</Label>
+                      <Select
+                        value={condicion}
+                        onValueChange={(v) => setCondicion(v ?? 'local')}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CONDICIONES.map((c) => (
+                            <SelectItem key={c.value} value={c.value}>
+                              {c.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
                 )}
 
                 {/* Sede */}
@@ -1181,7 +1225,7 @@ export function CalendarioPanel({
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              Asistencias — {asistenciasEvento?.titulo ?? getTipoLabel(asistenciasEvento?.tipo_actividad ?? '')}
+              Asistencias — {asistenciasEvento?.titulo ?? getTipoLabel(asistenciasEvento?.tipo_evento_slug ?? '')}
               {asistenciasEvento?.fecha && (
                 <span className="text-sm font-normal text-muted-foreground ml-2">
                   {formatFechaCorta(asistenciasEvento.fecha)}
@@ -1240,16 +1284,16 @@ export function CalendarioPanel({
             </div>
 
             <div className="space-y-2">
-              <Label>Tipo de actividad</Label>
+              <Label>Tipo de evento</Label>
               <Select
-                value={editTipoActividad}
-                onValueChange={(v) => setEditTipoActividad(v ?? '')}
+                value={editTipoEvento}
+                onValueChange={(v) => setEditTipoEvento(v ?? '')}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {TIPOS_ACTIVIDAD.map((t) => (
+                  {TIPOS_EVENTO.map((t) => (
                     <SelectItem key={t.value} value={t.value}>
                       {t.label}
                     </SelectItem>
@@ -1333,18 +1377,38 @@ export function CalendarioPanel({
               />
             </div>
 
-            {/* Rival - solo para partidos */}
-            {TIPOS_CON_RIVAL.includes(editTipoActividad) && (
-              <div className="space-y-2">
-                <Label htmlFor="edit-rival">Rival (opcional)</Label>
-                <Input
-                  id="edit-rival"
-                  type="text"
-                  value={editRival}
-                  onChange={(e) => setEditRival(e.target.value)}
-                  placeholder="Ej: River Plate"
-                />
-              </div>
+            {/* Partido: rival + condicion */}
+            {editTipoEvento === 'partido' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-rival">Rival (opcional)</Label>
+                  <Input
+                    id="edit-rival"
+                    type="text"
+                    value={editRival}
+                    onChange={(e) => setEditRival(e.target.value)}
+                    placeholder="Ej: River Plate"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Condición</Label>
+                  <Select
+                    value={editCondicion}
+                    onValueChange={(v) => setEditCondicion(v ?? 'local')}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CONDICIONES.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
             )}
 
             {/* Notas pre-evento */}

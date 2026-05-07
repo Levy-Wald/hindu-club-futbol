@@ -158,7 +158,7 @@ export function EquiposTable({ equipos }: EquiposTableProps) {
       </div>
 
       {/* Desktop table */}
-      <div className="hidden sm:block rounded-md border">
+      <div className="hidden sm:block rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

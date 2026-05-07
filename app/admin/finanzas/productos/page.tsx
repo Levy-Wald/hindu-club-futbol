@@ -738,7 +738,7 @@ export default function ProductosPage() {
       ) : (
         <>
           {/* Desktop table */}
-          <Card className="hidden md:block">
+          <Card className="hidden md:block overflow-x-auto">
             <CardContent className="p-0">
               <Table>
                 <TableHeader>

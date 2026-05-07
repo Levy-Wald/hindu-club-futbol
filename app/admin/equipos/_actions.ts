@@ -236,25 +236,26 @@ export async function crearEvento(input: {
   fecha: string  // YYYY-MM-DD
   hora_inicio: string
   hora_fin: string
-  tipo_actividad: string
+  tipo_evento_slug: string
   titulo?: string | null
   sede_id?: string | null
   cancha_id?: string | null
   hora_citacion?: string | null
   descripcion?: string | null
-  rival?: string | null
   notas_pre?: string | null
   notas_post?: string | null
+  // Partido-specific
+  condicion?: string | null
+  rival?: string | null
 }) {
   const supabase = await createClient()
 
-  // Compute dia_semana from fecha for backward compat
   const fechaDate = new Date(input.fecha + 'T00:00:00')
   const jsDay = fechaDate.getDay()
   const diaSemana = jsDay === 0 ? 7 : jsDay
 
-  const { error } = await supabase
-    .from('equipos_horarios')
+  const { data: evento, error } = await supabase
+    .from('eventos')
     .insert({
       tenant_id: TENANT_ID,
       equipo_id: input.equipo_id,
@@ -262,18 +263,31 @@ export async function crearEvento(input: {
       dia_semana: diaSemana,
       hora_inicio: input.hora_inicio,
       hora_fin: input.hora_fin,
-      tipo_actividad: input.tipo_actividad,
+      tipo_evento_slug: input.tipo_evento_slug,
       titulo: input.titulo?.trim() || null,
       sede_id: input.sede_id || null,
       cancha_id: input.cancha_id || null,
       hora_citacion: input.hora_citacion || null,
       descripcion: input.descripcion?.trim() || null,
-      rival: input.rival?.trim() || null,
       notas_pre: input.notas_pre?.trim() || null,
       notas_post: input.notas_post?.trim() || null,
+      modulo_origen: 'equipos',
     })
+    .select('id')
+    .single()
 
   if (error) return formatResult(false, error.message)
+
+  // If it's a partido, create partidos_detalle satellite row
+  if (input.tipo_evento_slug === 'partido' && evento) {
+    await supabase.from('partidos_detalle').insert({
+      evento_id: evento.id,
+      tenant_id: TENANT_ID,
+      equipo_id: input.equipo_id,
+      rival_texto: input.rival?.trim() || null,
+      condicion: input.condicion || 'local',
+    })
+  }
 
   revalidatePath(`/admin/equipos/${input.equipo_id}`)
   revalidatePath('/admin/mi-equipo')
@@ -289,15 +303,17 @@ export async function editarEvento(
     fecha?: string
     hora_inicio?: string
     hora_fin?: string
-    tipo_actividad?: string
+    tipo_evento_slug?: string
     titulo?: string | null
     sede_id?: string | null
     cancha_id?: string | null
     hora_citacion?: string | null
     descripcion?: string | null
-    rival?: string | null
     notas_pre?: string | null
     notas_post?: string | null
+    // Partido-specific
+    condicion?: string | null
+    rival?: string | null
   }
 ) {
   const supabase = await createClient()
@@ -312,23 +328,56 @@ export async function editarEvento(
   }
   if (input.hora_inicio !== undefined) updates.hora_inicio = input.hora_inicio
   if (input.hora_fin !== undefined) updates.hora_fin = input.hora_fin
-  if (input.tipo_actividad !== undefined) updates.tipo_actividad = input.tipo_actividad
+  if (input.tipo_evento_slug !== undefined) updates.tipo_evento_slug = input.tipo_evento_slug
   if (input.titulo !== undefined) updates.titulo = input.titulo?.trim() || null
   if (input.sede_id !== undefined) updates.sede_id = input.sede_id || null
   if (input.cancha_id !== undefined) updates.cancha_id = input.cancha_id || null
   if (input.hora_citacion !== undefined) updates.hora_citacion = input.hora_citacion || null
   if (input.descripcion !== undefined) updates.descripcion = input.descripcion?.trim() || null
-  if (input.rival !== undefined) updates.rival = input.rival?.trim() || null
   if (input.notas_pre !== undefined) updates.notas_pre = input.notas_pre?.trim() || null
   if (input.notas_post !== undefined) updates.notas_post = input.notas_post?.trim() || null
 
   const { error } = await supabase
-    .from('equipos_horarios')
+    .from('eventos')
     .update(updates)
     .eq('id', eventoId)
     .eq('tenant_id', TENANT_ID)
 
   if (error) return formatResult(false, `Error al editar evento: ${error.message}`)
+
+  // Update partidos_detalle if it's a partido
+  const isPartido = input.tipo_evento_slug === 'partido' || (input.tipo_evento_slug === undefined && (input.rival !== undefined || input.condicion !== undefined))
+  if (isPartido) {
+    const pdUpdates: Record<string, unknown> = {}
+    if (input.rival !== undefined) pdUpdates.rival_texto = input.rival?.trim() || null
+    if (input.condicion !== undefined) pdUpdates.condicion = input.condicion
+
+    if (Object.keys(pdUpdates).length > 0) {
+      // Upsert: update if exists, insert if switching to partido type
+      const { data: existing } = await supabase
+        .from('partidos_detalle')
+        .select('evento_id')
+        .eq('evento_id', eventoId)
+        .single()
+
+      if (existing) {
+        await supabase.from('partidos_detalle').update(pdUpdates).eq('evento_id', eventoId)
+      } else {
+        await supabase.from('partidos_detalle').insert({
+          evento_id: eventoId,
+          tenant_id: TENANT_ID,
+          equipo_id: equipoId,
+          rival_texto: input.rival?.trim() || null,
+          condicion: input.condicion || 'local',
+        })
+      }
+    }
+  }
+
+  // If changed away from partido, remove satellite
+  if (input.tipo_evento_slug !== undefined && input.tipo_evento_slug !== 'partido') {
+    await supabase.from('partidos_detalle').delete().eq('evento_id', eventoId)
+  }
 
   revalidatePath(`/admin/equipos/${equipoId}`)
   revalidatePath('/admin/mi-equipo')
@@ -340,8 +389,9 @@ export async function editarEvento(
 export async function eliminarEvento(eventoId: string, equipoId: string) {
   const supabase = await createClient()
 
+  // partidos_detalle CASCADE deletes automatically
   const { error } = await supabase
-    .from('equipos_horarios')
+    .from('eventos')
     .delete()
     .eq('id', eventoId)
     .eq('tenant_id', TENANT_ID)
@@ -353,14 +403,14 @@ export async function eliminarEvento(eventoId: string, equipoId: string) {
   return formatResult(true, 'Evento eliminado')
 }
 
-// --- BACKWARD COMPAT: CREAR HORARIO ---
+// --- CREAR HORARIO (recurrente, sin fecha) ---
 
 export async function crearHorario(input: {
   equipo_id: string
   dia_semana: number
   hora_inicio: string
   hora_fin: string
-  tipo_actividad: string
+  tipo_evento_slug: string
   sede_id?: string | null
   cancha_id?: string | null
   hora_citacion?: string | null
@@ -368,17 +418,18 @@ export async function crearHorario(input: {
   const supabase = await createClient()
 
   const { error } = await supabase
-    .from('equipos_horarios')
+    .from('eventos')
     .insert({
       tenant_id: TENANT_ID,
       equipo_id: input.equipo_id,
       dia_semana: input.dia_semana,
       hora_inicio: input.hora_inicio,
       hora_fin: input.hora_fin,
-      tipo_actividad: input.tipo_actividad,
+      tipo_evento_slug: input.tipo_evento_slug,
       sede_id: input.sede_id || null,
       cancha_id: input.cancha_id || null,
       metadata: input.hora_citacion ? { hora_citacion: input.hora_citacion } : {},
+      modulo_origen: 'equipos',
     })
 
   if (error) return formatResult(false, error.message)
@@ -388,7 +439,7 @@ export async function crearHorario(input: {
   return formatResult(true, 'Horario creado')
 }
 
-// --- BACKWARD COMPAT: ELIMINAR HORARIO ---
+// --- ELIMINAR HORARIO ---
 
 export async function eliminarHorario(horarioId: string, equipoId: string) {
   return eliminarEvento(horarioId, equipoId)
