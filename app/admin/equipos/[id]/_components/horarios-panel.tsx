@@ -126,13 +126,7 @@ const TIPO_BADGE_COLORES: Record<string, string> = {
   otro: 'bg-gray-100 text-gray-800 border-gray-200',
 }
 
-const RECURRENCIA_OPTIONS = [
-  { value: 'no_repite', label: 'No se repite' },
-  { value: 'diario', label: 'Todos los días' },
-  { value: 'semanal', label: 'Todas las semanas' },
-  { value: 'quincenal', label: 'Cada 2 semanas' },
-  { value: 'mensual', label: 'Todos los meses' },
-]
+const DIAS_SEMANA_NOMBRE = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
 
 const DIAS_SEMANA_CORTO = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 const MESES = [
@@ -140,12 +134,42 @@ const MESES = [
   'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
 ]
 
+function getOrdinalSemana(date: Date): string {
+  const dia = date.getDate()
+  const n = Math.ceil(dia / 7)
+  const nombres = ['primer', 'segundo', 'tercer', 'cuarto', 'quinto']
+  return nombres[n - 1] ?? `${n}°`
+}
+
+/** Genera opciones de recurrencia dinámicas como Google Calendar */
+function getRecurrenciaOptions(fechaStr: string) {
+  const options: { value: string; label: string }[] = [
+    { value: 'no_repite', label: 'No se repite' },
+  ]
+
+  if (!fechaStr) return options
+
+  const d = new Date(fechaStr + 'T12:00:00')
+  const diaNombre = DIAS_SEMANA_NOMBRE[d.getDay()]
+  const mesNombre = MESES[d.getMonth()]
+  const ordinal = getOrdinalSemana(d)
+
+  options.push(
+    { value: 'diario', label: 'Todos los días' },
+    { value: 'semanal', label: `Cada semana, el ${diaNombre}` },
+    { value: 'mensual', label: `Todos los meses, el ${ordinal} ${diaNombre}` },
+    { value: 'anual', label: `Anualmente, el ${d.getDate()} de ${mesNombre}` },
+    { value: 'dias_habiles', label: 'Todos los días hábiles (lunes a viernes)' },
+  )
+
+  return options
+}
+
 const HORA_INICIO_CALENDARIO = 7
 const HORA_FIN_CALENDARIO = 22
 const HORAS_TOTAL = HORA_FIN_CALENDARIO - HORA_INICIO_CALENDARIO
 
 type ViewMode = 'lista' | 'calendario'
-type FinRecurrencia = 'cantidad' | 'fecha'
 
 // --- Utilidades ---
 
@@ -203,36 +227,72 @@ function dateToYMD(date: Date): string {
 function calcularFechasRecurrentes(
   fechaInicio: string,
   recurrencia: string,
-  finTipo: FinRecurrencia,
-  cantidad: number,
   fechaFin: string
 ): string[] {
   const fechas: string[] = []
   const inicio = new Date(fechaInicio + 'T12:00:00')
-  const limite = finTipo === 'fecha' ? new Date(fechaFin + 'T23:59:59') : null
-  const maxIteraciones = finTipo === 'cantidad' ? cantidad : 365
+  const limite = new Date(fechaFin + 'T23:59:59')
 
-  for (let i = 0; i < maxIteraciones; i++) {
-    const fecha = new Date(inicio)
-    switch (recurrencia) {
-      case 'diario':
-        fecha.setDate(inicio.getDate() + i)
-        break
-      case 'semanal':
-        fecha.setDate(inicio.getDate() + i * 7)
-        break
-      case 'quincenal':
-        fecha.setDate(inicio.getDate() + i * 14)
-        break
-      case 'mensual':
-        fecha.setMonth(inicio.getMonth() + i)
-        break
-      default:
-        break
+  if (recurrencia === 'dias_habiles') {
+    // Lunes a viernes
+    const cursor = new Date(inicio)
+    for (let i = 0; i < 365; i++) {
+      if (cursor > limite) break
+      const dow = cursor.getDay()
+      if (dow >= 1 && dow <= 5) {
+        fechas.push(dateToYMD(cursor))
+      }
+      cursor.setDate(cursor.getDate() + 1)
     }
+    return fechas
+  }
 
-    if (limite && fecha > limite) break
-    fechas.push(dateToYMD(fecha))
+  if (recurrencia === 'mensual') {
+    // "El N-ésimo [día] de cada mes" (ej: el 1er jueves)
+    const targetDow = inicio.getDay()
+    const targetWeek = Math.ceil(inicio.getDate() / 7)
+    const cursor = new Date(inicio)
+    for (let m = 0; m < 24; m++) {
+      // Buscar el N-ésimo targetDow del mes
+      const year = cursor.getFullYear()
+      const month = cursor.getMonth()
+      const firstDay = new Date(year, month, 1)
+      let count = 0
+      const d = new Date(firstDay)
+      while (d.getMonth() === month) {
+        if (d.getDay() === targetDow) {
+          count++
+          if (count === targetWeek) {
+            if (d > limite) return fechas
+            if (d >= inicio) fechas.push(dateToYMD(d))
+            break
+          }
+        }
+        d.setDate(d.getDate() + 1)
+      }
+      cursor.setMonth(cursor.getMonth() + 1)
+    }
+    return fechas
+  }
+
+  // diario, semanal, anual
+  const incrementDays = recurrencia === 'semanal' ? 7 : recurrencia === 'anual' ? 0 : 1
+
+  if (recurrencia === 'anual') {
+    const cursor = new Date(inicio)
+    for (let y = 0; y < 10; y++) {
+      if (cursor > limite) break
+      fechas.push(dateToYMD(cursor))
+      cursor.setFullYear(cursor.getFullYear() + 1)
+    }
+    return fechas
+  }
+
+  const cursor = new Date(inicio)
+  for (let i = 0; i < 365; i++) {
+    if (cursor > limite) break
+    fechas.push(dateToYMD(cursor))
+    cursor.setDate(cursor.getDate() + incrementDays)
   }
 
   return fechas
@@ -699,9 +759,10 @@ export function CalendarioPanel({
   const [rival, setRival] = useState('')
   const [condicion, setCondicion] = useState('local')
   const [recurrencia, setRecurrencia] = useState('no_repite')
-  const [finRecurrencia, setFinRecurrencia] = useState<FinRecurrencia>('cantidad')
-  const [cantidadRepeticiones, setCantidadRepeticiones] = useState(4)
   const [fechaFinRecurrencia, setFechaFinRecurrencia] = useState('')
+
+  // Opciones de recurrencia dinámicas según fecha
+  const recurrenciaOptions = useMemo(() => getRecurrenciaOptions(fecha), [fecha])
 
   // Canchas filtradas por sede
   const canchasFiltradas = sedeId
@@ -721,8 +782,6 @@ export function CalendarioPanel({
     setRival('')
     setCondicion('local')
     setRecurrencia('no_repite')
-    setFinRecurrencia('cantidad')
-    setCantidadRepeticiones(4)
     setFechaFinRecurrencia('')
   }
 
@@ -769,20 +828,14 @@ export function CalendarioPanel({
         }
       } else {
         // Recurrente: generar fechas
-        if (finRecurrencia === 'cantidad' && cantidadRepeticiones < 1) {
-          toast.error('La cantidad de eventos debe ser al menos 1.')
-          return
-        }
-        if (finRecurrencia === 'fecha' && !fechaFinRecurrencia) {
-          toast.error('Seleccioná una fecha de finalización.')
+        if (!fechaFinRecurrencia) {
+          toast.error('Seleccioná una fecha de finalización para la repetición.')
           return
         }
 
         const fechas = calcularFechasRecurrentes(
           fecha,
           recurrencia,
-          finRecurrencia,
-          cantidadRepeticiones,
           fechaFinRecurrencia
         )
 
@@ -942,7 +995,11 @@ export function CalendarioPanel({
                     id="evento-fecha"
                     type="date"
                     value={fecha}
-                    onChange={(e) => setFecha(e.target.value)}
+                    onChange={(e) => {
+                      setFecha(e.target.value)
+                      setRecurrencia('no_repite')
+                      setFechaFinRecurrencia('')
+                    }}
                     required
                   />
                 </div>
@@ -1105,19 +1162,28 @@ export function CalendarioPanel({
                   />
                 </div>
 
-                {/* Repetir */}
+                {/* Repetir — estilo Google Calendar */}
                 <div className="space-y-3 border-t pt-4">
                   <div className="space-y-2">
                     <Label>Repetir</Label>
                     <Select
                       value={recurrencia}
-                      onValueChange={(v) => setRecurrencia(v ?? 'no_repite')}
+                      onValueChange={(v) => {
+                        const val = v ?? 'no_repite'
+                        setRecurrencia(val)
+                        // Auto-setear "hasta" a 3 meses si se activa recurrencia
+                        if (val !== 'no_repite' && fecha && !fechaFinRecurrencia) {
+                          const d = new Date(fecha + 'T12:00:00')
+                          d.setMonth(d.getMonth() + 3)
+                          setFechaFinRecurrencia(dateToYMD(d))
+                        }
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {RECURRENCIA_OPTIONS.map((r) => (
+                        {recurrenciaOptions.map((r) => (
                           <SelectItem key={r.value} value={r.value}>
                             {r.label}
                           </SelectItem>
@@ -1127,56 +1193,15 @@ export function CalendarioPanel({
                   </div>
 
                   {recurrencia !== 'no_repite' && (
-                    <div className="space-y-3 pl-2 border-l-2 border-muted ml-1">
-                      <p className="text-xs font-medium text-muted-foreground">
-                        Finaliza
-                      </p>
-
-                      {/* Opcion: despues de N eventos */}
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="fin-recurrencia"
-                          checked={finRecurrencia === 'cantidad'}
-                          onChange={() => setFinRecurrencia('cantidad')}
-                          className="accent-primary"
-                        />
-                        <span className="text-sm">Después de</span>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={52}
-                          value={cantidadRepeticiones}
-                          onChange={(e) =>
-                            setCantidadRepeticiones(
-                              Math.min(52, Math.max(1, Number(e.target.value)))
-                            )
-                          }
-                          className="w-16 h-8 text-sm"
-                          disabled={finRecurrencia !== 'cantidad'}
-                        />
-                        <span className="text-sm">eventos</span>
-                      </label>
-
-                      {/* Opcion: en fecha */}
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="fin-recurrencia"
-                          checked={finRecurrencia === 'fecha'}
-                          onChange={() => setFinRecurrencia('fecha')}
-                          className="accent-primary"
-                        />
-                        <span className="text-sm">En fecha</span>
-                        <Input
-                          type="date"
-                          value={fechaFinRecurrencia}
-                          onChange={(e) => setFechaFinRecurrencia(e.target.value)}
-                          className="w-auto h-8 text-sm"
-                          disabled={finRecurrencia !== 'fecha'}
-                          min={fecha}
-                        />
-                      </label>
+                    <div className="space-y-2">
+                      <Label htmlFor="evento-hasta">Hasta</Label>
+                      <Input
+                        id="evento-hasta"
+                        type="date"
+                        value={fechaFinRecurrencia}
+                        onChange={(e) => setFechaFinRecurrencia(e.target.value)}
+                        min={fecha}
+                      />
                     </div>
                   )}
                 </div>
