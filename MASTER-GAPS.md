@@ -5,12 +5,11 @@ Alineado a la propuesta arquitectonica integral (ver `docs/PROPUESTA-ARQUITECTON
 
 ---
 
-## Estado actual: Sprints 11.5 + 11.6 + 11.7 COMPLETADOS
+## Estado actual: Sprint 12 COMPLETADO
 
-Sprint 11.5 = Refactor eventos (tabla central + partidos_detalle).
-Sprint 11.6 = Atributos namespacing ({modulo}.{rol}).
-Sprint 11.7 = VIEWs fin_* para forward-compatible naming.
-Pendiente validacion visual de Yair.
+Sprints 11.5-11.7 + Sprint 12 completados.
+Sprint 12 = Comunicaciones + Notificaciones (com_*, bell, plantillas, cron).
+Pendiente validacion visual de Yair + configurar RESEND_API_KEY y CRON_SECRET en Vercel.
 
 ### Fixes Sprint 9 (sesion 2026-05-06)
 - [x] Fix cajas: `saldo` → `saldo_actual` (columna correcta en DB)
@@ -141,13 +140,20 @@ Pendiente validacion visual de Yair.
 - [x] fin_emisiones_cuota, fin_cuotas_bonificaciones, fin_producto_proveedor
 - [ ] Refactor gradual del codigo para usar fin_* (Sprint 16)
 
-### Sprint 12 — Comunicaciones + Notificaciones
-- [ ] Crear tabla `module_events` (eventos de dominio)
-- [ ] Bell icon en topbar con notificaciones
-- [ ] Mensajeria intra-club (in-app)
-- [ ] Plantillas de comunicacion
-- [ ] Dispatcher centralizado
-- [ ] Conector Resend para emails transaccionales (opcional)
+### Sprint 12 — Comunicaciones + Notificaciones (HECHO)
+- [x] 3 tablas com_* (plantillas, mensajes, envíos) + RLS + triggers + indices
+- [x] VIEW v_vencimientos_proximos (9 fuentes: cuotas, aptos, autorizaciones, DNI, pasaporte, seguro, tarjeta, obra social, convenios)
+- [x] Función puede_operar_comunicaciones() + atributo comunicaciones.admin
+- [x] 18 plantillas seed Hindu (email + inapp)
+- [x] lib/comunicaciones/email.ts (Resend) + notificar.ts (notificarPersona)
+- [x] /admin/comunicaciones dashboard + plantillas ABM + envíos listado
+- [x] Bell dropdown en topbar (polling 60s) + /admin/notificaciones
+- [x] API routes: /api/notificaciones, /api/notificaciones/leer
+- [x] Cron dispatcher vencimientos (/api/cron/dispatch-vencimientos, 9 AM UTC)
+- [x] vercel.json con cron config
+- [x] Sidebar collapsible para Comunicaciones
+- [ ] Configurar RESEND_API_KEY + CRON_SECRET en Vercel env vars (Yair)
+- [ ] module_events (eventos de dominio) — diferido a Sprint 13+
 
 ### Sprint 13 — API + Webhooks + MCP
 - [ ] API REST v1 documentada (OpenAPI 3.1)
@@ -271,6 +277,6 @@ MODULOS VENDIBLES (activables por tenant)
 ---
 
 **Ultima actualizacion:** 2026-05-07
-**Proximo:** Validacion visual de Yair → Sprint 12 (comunicaciones + module_events)
+**Proximo:** Validacion visual de Yair → Sprint 13 (API REST + MCP + Webhooks)
 **Instrucciones:** ver `NEXT-SPRINT.md`
 **Owner:** Yair Levy Wald

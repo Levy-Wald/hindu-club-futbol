@@ -84,9 +84,8 @@ Sistema de notificaciones in-app + eventos de dominio para dispatcher centraliza
 ## Vision global
 
 ```
-Sprints 1-11.7:  ████████████████████████████████████████████████████████ HECHO
-Sprint 12:       ▓▓▓▓▓▓▓▓▓▓▓▓▓▓ <- PROXIMO (comunicaciones + module_events)
-Sprint 13:       ░░░░░░░░░░░░░░ (API + MCP + webhooks)
+Sprints 1-12:    ████████████████████████████████████████████████████████████ HECHO
+Sprint 13:       ▓▓▓▓▓▓▓▓▓▓▓▓▓▓ <- PROXIMO (API + MCP + webhooks)
 Sprint 14:       ░░░░░░░░░░░░░░ (mantenimiento, inventario, reservas, mapa)
 Sprint 15:       ░░░░░░░░░░░░░░ (shop)
 Sprint 16:       ░░░░░░░░░░░░░░ (hardening → HINDU LIVE)
