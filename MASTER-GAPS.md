@@ -5,10 +5,10 @@ Alineado a la propuesta arquitectonica integral (ver `docs/PROPUESTA-ARQUITECTON
 
 ---
 
-## Estado actual: Sprint 14a COMPLETADO
+## Estado actual: Sprint 14a.5 COMPLETADO
 
-Sprints 11.5-11.7 + Sprint 12 + Sprint 13 + Sprint 14a completados.
-Sprint 14a = Sync de padrones (tablas, parsers, procesador, UI wizard + revisión).
+Sprints 11.5-11.7 + Sprint 12 + Sprint 13 + Sprint 14a + Sprint 14a.5 completados.
+Sprint 14a.5 = UI interactiva de revisión de sync (búsqueda, filtros, bulk actions, edición, aplicación parcial).
 Pendiente validacion visual de Yair + configurar env vars en Vercel.
 
 ### Fixes Sprint 9 (sesion 2026-05-06)
@@ -184,6 +184,20 @@ Pendiente validacion visual de Yair + configurar env vars en Vercel.
 - [x] Hash de archivo para idempotencia (no procesa el mismo archivo 2 veces)
 - [ ] Importador por equipo (jugadores/suscriptores sin DNI) — Sprint 14b
 - [ ] VIEW v_jugadores_elegibles — Sprint 16
+
+### Sprint 14a.5 — UI interactiva de revisión de sync (HECHO)
+- [x] Columnas estado_revision, revisado_at, razon_descarte en padron_sync_diffs
+- [x] Búsqueda por nombre, DNI, socio, categoría, actividad
+- [x] Filtro por estado de revisión (pendiente/aprobado/editado/descartado/pospuesto)
+- [x] Ordenamiento por columnas clickeables
+- [x] Paginación (50 por página)
+- [x] Selección individual y múltiple (página + todos filtrados)
+- [x] Acciones bulk: Aprobar, Descartar, Posponer, Reset
+- [x] Edición individual con dialog (todos los campos)
+- [x] Aplicación parcial (solo aprobados/editados)
+- [x] Barra de progreso de revisión
+- [x] Export CSV por tab
+- [x] Server actions: actualizarEstadoRevision, editarDiff
 
 ### Sprint 14b+ — Pendiente
 - [ ] Importador por equipo (/admin/equipos/sincronizar-jugadores)
