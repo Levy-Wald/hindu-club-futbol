@@ -80,15 +80,26 @@ interface PersonasTableProps {
 }
 
 const ATRIBUTO_COLORS: Record<string, string> = {
-  admin_sistema: 'bg-red-500/10 text-red-500',
-  admin_tenant: 'bg-orange-500/10 text-orange-500',
-  admin_padron: 'bg-amber-500/10 text-amber-500',
+  // Namespaced (Sprint 11.6)
+  'sistema.admin': 'bg-red-500/10 text-red-500',
+  'sistema.soporte': 'bg-red-500/10 text-red-400',
+  'tenant.admin': 'bg-orange-500/10 text-orange-500',
+  'tenant.admin_padron': 'bg-amber-500/10 text-amber-500',
+  'tenant.staff': 'bg-indigo-500/10 text-indigo-500',
+  'tenant.editor': 'bg-violet-500/10 text-violet-500',
+  'finanzas.admin': 'bg-emerald-500/10 text-emerald-500',
+  'finanzas.tesorero': 'bg-emerald-500/10 text-emerald-400',
+  'rrhh.admin': 'bg-sky-500/10 text-sky-500',
+  'rrhh.empleado': 'bg-sky-500/10 text-sky-400',
+  'operaciones.coordinador': 'bg-lime-500/10 text-lime-500',
+  'operaciones.scout': 'bg-lime-500/10 text-lime-400',
+  'comunicaciones.editor': 'bg-fuchsia-500/10 text-fuchsia-500',
+  // Tronco (sin namespace)
   jugador: 'bg-blue-500/10 text-blue-500',
   capitan: 'bg-yellow-500/10 text-yellow-500',
   dt: 'bg-green-500/10 text-green-500',
   dirigente: 'bg-purple-500/10 text-purple-500',
   socio: 'bg-teal-500/10 text-teal-500',
-  staff: 'bg-indigo-500/10 text-indigo-500',
   padre_tutor: 'bg-pink-500/10 text-pink-500',
 }
 
