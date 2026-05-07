@@ -122,8 +122,8 @@ export function SemanaOperaciones({
   const [loading, setLoading] = useState(false)
 
   // Filtros
-  const [filtroEquipo, setFiltroEquipo] = useState<string>('')
-  const [filtroTipo, setFiltroTipo] = useState<string>('')
+  const [filtroEquipo, setFiltroEquipo] = useState<string>('__todos__')
+  const [filtroTipo, setFiltroTipo] = useState<string>('__todos__')
 
   // --------------------------------------------------
   // Fetch client-side cuando cambia la semana
@@ -164,10 +164,10 @@ export function SemanaOperaciones({
   // --------------------------------------------------
   const eventosFiltrados = useMemo(() => {
     let filtered = eventos
-    if (filtroEquipo) {
+    if (filtroEquipo && filtroEquipo !== '__todos__') {
       filtered = filtered.filter((e) => e.equipo?.id === filtroEquipo)
     }
-    if (filtroTipo) {
+    if (filtroTipo && filtroTipo !== '__todos__') {
       filtered = filtered.filter((e) => e.tipo_evento_slug === filtroTipo)
     }
     return filtered
@@ -225,13 +225,13 @@ export function SemanaOperaciones({
         <div className="flex items-center gap-2">
           <Select
             value={filtroEquipo}
-            onValueChange={(v) => setFiltroEquipo(v ?? '')}
+            onValueChange={(v) => setFiltroEquipo(v ?? '__todos__')}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Todos los equipos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos los equipos</SelectItem>
+              <SelectItem value="__todos__">Todos los equipos</SelectItem>
               {equipos.map((eq) => (
                 <SelectItem key={eq.id} value={eq.id}>
                   {eq.nombre}
@@ -242,13 +242,13 @@ export function SemanaOperaciones({
 
           <Select
             value={filtroTipo}
-            onValueChange={(v) => setFiltroTipo(v ?? '')}
+            onValueChange={(v) => setFiltroTipo(v ?? '__todos__')}
           >
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Todos los tipos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos los tipos</SelectItem>
+              <SelectItem value="__todos__">Todos los tipos</SelectItem>
               {TIPOS_EVENTO.map((t) => (
                 <SelectItem key={t.value} value={t.value}>
                   {t.label}

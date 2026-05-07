@@ -22,10 +22,17 @@ export default async function OperacionesPage() {
   const lunesISO = getLunesActual()
   const domingoISO = addDaysISO(lunesISO, 6)
 
-  const [eventos, equipos] = await Promise.all([
-    fetchEventosSemana(lunesISO, domingoISO),
-    fetchEquiposActivos(),
-  ])
+  let eventos: Awaited<ReturnType<typeof fetchEventosSemana>> = []
+  let equipos: Awaited<ReturnType<typeof fetchEquiposActivos>> = []
+
+  try {
+    ;[eventos, equipos] = await Promise.all([
+      fetchEventosSemana(lunesISO, domingoISO),
+      fetchEquiposActivos(),
+    ])
+  } catch (err) {
+    console.error('[OperacionesPage] Error cargando datos:', err)
+  }
 
   return (
     <SemanaOperaciones

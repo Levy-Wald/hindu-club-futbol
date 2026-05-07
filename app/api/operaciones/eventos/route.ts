@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
   try {
     const eventos = await fetchEventosSemana(inicio, fin)
     return NextResponse.json(eventos)
-  } catch {
+  } catch (err) {
+    console.error('[API/operaciones/eventos] Error:', err)
     return NextResponse.json(
       { error: 'Error al obtener eventos' },
       { status: 500 }

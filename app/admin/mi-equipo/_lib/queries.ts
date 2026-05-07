@@ -63,7 +63,7 @@ export async function fetchPlantelEquipo(equipoId: string) {
 export async function fetchHorariosEquipo(equipoId: string) {
   const supabase = await createClient()
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('eventos')
     .select(`
       id, dia_semana, hora_inicio, hora_fin, tipo_evento_slug, activo, metadata, fecha, titulo, hora_citacion, descripcion,
@@ -75,6 +75,10 @@ export async function fetchHorariosEquipo(equipoId: string) {
     .eq('activo', true)
     .order('fecha', { ascending: true, nullsFirst: false })
     .order('dia_semana', { ascending: true })
+
+  if (error) {
+    console.error('[fetchHorariosEquipo] Error:', error.message, error.code)
+  }
 
   return data ?? []
 }

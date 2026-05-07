@@ -276,7 +276,10 @@ export async function crearEvento(input: {
     .select('id')
     .single()
 
-  if (error) return formatResult(false, error.message)
+  if (error) {
+    console.error('[crearEvento] Error inserting evento:', error.message, error.code, error.details, error.hint)
+    return formatResult(false, error.message)
+  }
 
   // If it's a partido, create partidos_detalle satellite row
   if (input.tipo_evento_slug === 'partido' && evento) {
