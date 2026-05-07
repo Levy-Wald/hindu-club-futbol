@@ -31,6 +31,8 @@ import {
   Briefcase,
   FileText,
   DollarSign,
+  Send,
+  FileEdit,
 } from 'lucide-react'
 
 interface NavItemDef {
@@ -56,6 +58,12 @@ const rrhhSubItems: NavItemDef[] = [
   { label: 'Liquidaciones', href: '/admin/rrhh/liquidaciones', icon: DollarSign },
 ]
 
+const comunicacionesSubItems: NavItemDef[] = [
+  { label: 'Dashboard', href: '/admin/comunicaciones', icon: BarChart3 },
+  { label: 'Plantillas', href: '/admin/comunicaciones/plantillas', icon: FileEdit },
+  { label: 'Envíos', href: '/admin/comunicaciones/envios', icon: Send },
+]
+
 const finanzasSubItems: NavItemDef[] = [
   { label: 'Dashboard', href: '/admin/finanzas', icon: BarChart3 },
   { label: 'Cajas', href: '/admin/finanzas/cajas', icon: Banknote },
@@ -71,8 +79,7 @@ const adminItems: NavItemDef[] = [
   { label: 'Padrones', href: '/admin/padrones', icon: ClipboardList },
   { label: 'Equipos', href: '/admin/equipos', icon: Shield },
   { label: 'Entidades', href: '/admin/externos', icon: Building2 },
-  // Operaciones and Finanzas are handled as collapsible sections
-  { label: 'Comunicaciones', href: '/admin/comunicaciones', icon: MessageSquare },
+  // Operaciones, Finanzas, RRHH, Comunicaciones are handled as collapsible sections
   { label: 'Pre-inscripciones', href: '/admin/pre-inscripciones', icon: UserPlus },
   { label: 'Configuración', href: '/admin/configuracion', icon: Settings },
 ]
@@ -98,8 +105,11 @@ function NavItem({ item, pathname }: { item: NavItemDef; pathname: string }) {
 }
 
 function SubNavItem({ item, pathname }: { item: NavItemDef; pathname: string }) {
-  const isActive = item.href === '/admin/finanzas'
-    ? pathname === '/admin/finanzas'
+  // Exact match for dashboard sub-items (e.g. /admin/finanzas, /admin/comunicaciones)
+  const segments = item.href.split('/').filter(Boolean)
+  const isParentDashboard = segments.length === 2 // /admin/{module}
+  const isActive = isParentDashboard
+    ? pathname === item.href
     : pathname.startsWith(item.href)
   return (
     <Link
@@ -169,13 +179,15 @@ export function Sidebar() {
   const isOperacionesActive = pathname.startsWith('/admin/operaciones')
   const isFinanzasActive = pathname.startsWith('/admin/finanzas')
   const isRRHHActive = pathname.startsWith('/admin/rrhh')
+  const isComunicacionesActive = pathname.startsWith('/admin/comunicaciones')
   const [operacionesOpen, setOperacionesOpen] = useState(isOperacionesActive)
   const [finanzasOpen, setFinanzasOpen] = useState(isFinanzasActive)
   const [rrhhOpen, setRRHHOpen] = useState(isRRHHActive)
+  const [comunicacionesOpen, setComunicacionesOpen] = useState(isComunicacionesActive)
 
-  // Split adminItems: Dashboard through Entidades (0-4), then Comunicaciones onward (5+)
+  // Split adminItems: Dashboard through Entidades (0-4), then Pre-inscripciones onward (5+)
   const beforeCollapsible = adminItems.slice(0, 5) // Dashboard through Entidades
-  const afterCollapsible = adminItems.slice(5)       // Comunicaciones onward
+  const afterCollapsible = adminItems.slice(5)       // Pre-inscripciones, Configuración
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col border-r bg-sidebar">
@@ -220,6 +232,16 @@ export function Sidebar() {
           isOpen={rrhhOpen}
           onToggle={() => setRRHHOpen(!rrhhOpen)}
           subItems={rrhhSubItems}
+          pathname={pathname}
+        />
+
+        <CollapsibleSection
+          label="Comunicaciones"
+          icon={MessageSquare}
+          isActive={isComunicacionesActive}
+          isOpen={comunicacionesOpen}
+          onToggle={() => setComunicacionesOpen(!comunicacionesOpen)}
+          subItems={comunicacionesSubItems}
           pathname={pathname}
         />
 

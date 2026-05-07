@@ -15,12 +15,14 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { LogOut, User, Shield, Settings } from 'lucide-react'
+import { NotificacionesDropdown } from './notificaciones-dropdown'
 
 interface TopbarProps {
   userEmail?: string
+  personaId?: string
 }
 
-export function Topbar({ userEmail }: TopbarProps) {
+export function Topbar({ userEmail, personaId }: TopbarProps) {
   const router = useRouter()
 
   async function handleLogout() {
@@ -45,6 +47,7 @@ export function Topbar({ userEmail }: TopbarProps) {
       </div>
       <div className="flex items-center gap-2">
         <ThemeToggle />
+        {personaId && <NotificacionesDropdown personaId={personaId} />}
         <DropdownMenu>
           <DropdownMenuTrigger>
             <Avatar className="h-8 w-8 cursor-pointer">

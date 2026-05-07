@@ -20,11 +20,19 @@ export default async function AdminLayout({
 
   const user = session.user
 
+  // Obtener persona_id del usuario logueado para notificaciones
+  const { data: persona } = await supabase
+    .from('personas')
+    .select('id')
+    .eq('user_id', user.id)
+    .is('deleted_at', null)
+    .maybeSingle()
+
   return (
     <div className="flex h-dvh overflow-hidden">
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Topbar userEmail={user.email} />
+        <Topbar userEmail={user.email} personaId={persona?.id} />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 md:pb-6">
           {children}
         </main>

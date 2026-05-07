@@ -2,6 +2,12 @@
 
 import { createClient } from '@/lib/supabase/server'
 
+const TENANT_ID = '11111111-1111-1111-1111-111111111111'
+
+// =============================================================================
+// Solicitudes (existente)
+// =============================================================================
+
 export async function fetchSolicitudesPendientes() {
   const supabase = await createClient()
   const { data } = await supabase
@@ -14,4 +20,192 @@ export async function fetchSolicitudesPendientes() {
     .order('created_at', { ascending: false })
 
   return data ?? []
+}
+
+// =============================================================================
+// Plantillas
+// =============================================================================
+
+export async function fetchPlantillas(filters?: { tipo?: string }) {
+  const supabase = await createClient()
+
+  let query = supabase
+    .from('com_plantillas')
+    .select('*')
+    .eq('tenant_id', TENANT_ID)
+    .is('deleted_at', null)
+    .order('nombre')
+
+  if (filters?.tipo) {
+    query = query.eq('tipo', filters.tipo)
+  }
+
+  const { data, error } = await query
+  if (error) return []
+  return data ?? []
+}
+
+export async function fetchPlantilla(id: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('com_plantillas')
+    .select('*')
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (error) return null
+  return data
+}
+
+// =============================================================================
+// Envios
+// =============================================================================
+
+export async function fetchEnvios(filters?: {
+  canal?: string
+  estado?: string
+  persona_id?: string
+  plantilla_slug?: string
+  fecha_desde?: string
+  fecha_hasta?: string
+}) {
+  const supabase = await createClient()
+
+  let query = supabase
+    .from('com_envios')
+    .select(`
+      *,
+      persona:personas(id, nombre, apellido)
+    `)
+    .eq('tenant_id', TENANT_ID)
+    .order('created_at', { ascending: false })
+
+  if (filters?.canal) {
+    query = query.eq('canal', filters.canal)
+  }
+  if (filters?.estado) {
+    query = query.eq('estado', filters.estado)
+  }
+  if (filters?.persona_id) {
+    query = query.eq('persona_id', filters.persona_id)
+  }
+  if (filters?.plantilla_slug) {
+    query = query.eq('plantilla_slug', filters.plantilla_slug)
+  }
+  if (filters?.fecha_desde) {
+    query = query.gte('created_at', filters.fecha_desde)
+  }
+  if (filters?.fecha_hasta) {
+    query = query.lte('created_at', filters.fecha_hasta)
+  }
+
+  const { data, error } = await query
+  if (error) return []
+  return data ?? []
+}
+
+// =============================================================================
+// Mensajes (bandeja in-app)
+// =============================================================================
+
+export async function fetchMensajesNoLeidos(personaId: string, limit: number = 10) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('com_mensajes')
+    .select('*')
+    .eq('tenant_id', TENANT_ID)
+    .eq('destinatario_persona_id', personaId)
+    .is('leido_at', null)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  if (error) return []
+  return data ?? []
+}
+
+export async function fetchMensajes(personaId: string, filters?: { leido?: boolean }) {
+  const supabase = await createClient()
+
+  let query = supabase
+    .from('com_mensajes')
+    .select('*')
+    .eq('tenant_id', TENANT_ID)
+    .eq('destinatario_persona_id', personaId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+
+  if (filters?.leido === true) {
+    query = query.not('leido_at', 'is', null)
+  } else if (filters?.leido === false) {
+    query = query.is('leido_at', null)
+  }
+
+  const { data, error } = await query
+  if (error) return []
+  return data ?? []
+}
+
+export async function fetchContadorNoLeidos(personaId: string) {
+  const supabase = await createClient()
+
+  const { count, error } = await supabase
+    .from('com_mensajes')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', TENANT_ID)
+    .eq('destinatario_persona_id', personaId)
+    .is('leido_at', null)
+    .is('deleted_at', null)
+
+  if (error) return 0
+  return count ?? 0
+}
+
+// =============================================================================
+// Dashboard
+// =============================================================================
+
+export async function fetchDashboardStats() {
+  const supabase = await createClient()
+
+  const hoy = new Date().toISOString().split('T')[0]
+
+  // Enviados hoy
+  const { count: enviadosHoy } = await supabase
+    .from('com_envios')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', TENANT_ID)
+    .gte('created_at', `${hoy}T00:00:00`)
+    .lte('created_at', `${hoy}T23:59:59`)
+
+  // Pendientes
+  const { count: pendientes } = await supabase
+    .from('com_envios')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', TENANT_ID)
+    .eq('estado', 'pendiente')
+
+  // Fallados
+  const { count: fallados } = await supabase
+    .from('com_envios')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', TENANT_ID)
+    .eq('estado', 'fallado')
+
+  // Entregados
+  const { count: entregados } = await supabase
+    .from('com_envios')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', TENANT_ID)
+    .eq('estado', 'enviado')
+
+  return {
+    enviadosHoy: enviadosHoy ?? 0,
+    pendientes: pendientes ?? 0,
+    fallados: fallados ?? 0,
+    entregados: entregados ?? 0,
+  }
 }

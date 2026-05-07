@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/dispatch-vencimientos",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}
