@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -25,10 +25,12 @@ import {
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
+import { Textarea } from '@/components/ui/textarea'
 import {
   obtenerDiffIdsParaAplicar, aplicarSyncBatch, finalizarSync,
   obtenerProgresoSync,
   rollbackSync, actualizarEstadoRevision, editarDiff,
+  reintentarDiffError, descartarDiffError, buscarPersonaDuplicadaPorDni,
 } from '../../_actions'
 
 // ============================================================
@@ -69,14 +71,19 @@ interface DiffRecord {
   razon_descarte: string | null
 }
 
-type TabKey = 'altas' | 'bajas' | 'cambios' | 'rechazados' | 'sin_cambios'
+type TabKey = 'altas' | 'bajas' | 'cambios' | 'rechazados' | 'errores' | 'sin_cambios'
 
 const TAB_CONFIG: Record<TabKey, { tipo: string; label: string; icon: React.ReactNode; color: string }> = {
   altas: { tipo: 'alta', label: 'Altas', icon: <UserPlus className="h-4 w-4" />, color: 'text-green-600' },
   bajas: { tipo: 'baja', label: 'Bajas', icon: <UserMinus className="h-4 w-4" />, color: 'text-red-600' },
   cambios: { tipo: 'modificacion', label: 'Cambios', icon: <RefreshCw className="h-4 w-4" />, color: 'text-yellow-600' },
   rechazados: { tipo: 'rechazado', label: 'Rechazados', icon: <XCircle className="h-4 w-4" />, color: 'text-orange-600' },
+  errores: { tipo: '_error', label: 'Errores', icon: <AlertTriangle className="h-4 w-4" />, color: 'text-red-700' },
   sin_cambios: { tipo: 'sin_cambios', label: 'Sin cambios', icon: <CheckCircle2 className="h-4 w-4" />, color: 'text-muted-foreground' },
+}
+
+function isErrorDiff(d: DiffRecord): boolean {
+  return !d.aplicado && d.notas != null && ['alta', 'baja', 'modificacion'].includes(d.tipo_cambio)
 }
 
 const PAGE_SIZE = 50
@@ -97,6 +104,7 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
   const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(false)
   const [editingDiff, setEditingDiff] = useState<DiffRecord | null>(null)
+  const [descartandoDiff, setDescartandoDiff] = useState<DiffRecord | null>(null)
   const [sortField, setSortField] = useState<string>('nombre_archivo')
   const [sortAsc, setSortAsc] = useState(true)
   const [filterRevision, setFilterRevision] = useState<string>('todos')
@@ -110,9 +118,11 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
 
   // Counts per tab
   const counts = useMemo(() => {
-    const c: Record<TabKey, number> = { altas: 0, bajas: 0, cambios: 0, rechazados: 0, sin_cambios: 0 }
+    const c: Record<TabKey, number> = { altas: 0, bajas: 0, cambios: 0, rechazados: 0, errores: 0, sin_cambios: 0 }
     for (const d of diffs) {
-      if (d.tipo_cambio === 'alta') c.altas++
+      if (isErrorDiff(d)) {
+        c.errores++
+      } else if (d.tipo_cambio === 'alta') c.altas++
       else if (d.tipo_cambio === 'baja') c.bajas++
       else if (d.tipo_cambio === 'modificacion') c.cambios++
       else if (d.tipo_cambio === 'rechazado') c.rechazados++
@@ -136,8 +146,13 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
 
   // Filtered + sorted diffs for current tab
   const tabDiffs = useMemo(() => {
-    const tipoFilter = TAB_CONFIG[activeTab].tipo
-    let filtered = diffs.filter((d) => d.tipo_cambio === tipoFilter)
+    let filtered: DiffRecord[]
+    if (activeTab === 'errores') {
+      filtered = diffs.filter(isErrorDiff)
+    } else {
+      const tipoFilter = TAB_CONFIG[activeTab].tipo
+      filtered = diffs.filter((d) => d.tipo_cambio === tipoFilter && !isErrorDiff(d))
+    }
 
     // Search
     if (searchQuery) {
@@ -347,6 +362,37 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
     }
   }
 
+  // Reintentar un diff con error
+  async function handleReintentar(diffId: string) {
+    setLoading(true)
+    const result = await reintentarDiffError(diffId)
+    setLoading(false)
+    if (result.success) {
+      setDiffs((prev) => prev.map((d) =>
+        d.id === diffId ? { ...d, aplicado: true, notas: null } : d
+      ))
+      toast.success('Reintento exitoso — persona creada')
+    } else {
+      toast.error(result.error ?? 'Error al reintentar')
+    }
+  }
+
+  // Descartar un diff con error (moverlo a rechazados)
+  async function handleDescartar(diffId: string, razon: string) {
+    setLoading(true)
+    const result = await descartarDiffError(diffId, razon)
+    setLoading(false)
+    if (result.success) {
+      setDiffs((prev) => prev.map((d) =>
+        d.id === diffId ? { ...d, tipo_cambio: 'rechazado', motivo_rechazo: `Descartado manualmente: ${razon}`, notas: null } : d
+      ))
+      setDescartandoDiff(null)
+      toast.success('Registro descartado')
+    } else {
+      toast.error(result.error ?? 'Error al descartar')
+    }
+  }
+
   // Export CSV
   function exportCSV() {
     const headers = ['Nombre', 'DNI', 'Nro Socio', 'Categoria', 'Actividad', 'Estado Revision', 'Motivo Rechazo']
@@ -437,7 +483,7 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
       )}
 
       {/* Stat cards — clickeable */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {(Object.entries(TAB_CONFIG) as [TabKey, typeof TAB_CONFIG[TabKey]][]).map(([key, cfg]) => (
           <button
             key={key}
@@ -569,6 +615,7 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
                   <SortableHead field="actividad_archivo" label="Actividad" current={sortField} asc={sortAsc} onSort={handleSort} />
                   {activeTab === 'cambios' && <TableHead>Cambios</TableHead>}
                   {activeTab === 'rechazados' && <TableHead>Motivo</TableHead>}
+                  {activeTab === 'errores' && <TableHead>Error</TableHead>}
                   <TableHead>Revisión</TableHead>
                   <TableHead className="w-10" />
                 </TableRow>
@@ -620,40 +667,64 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
                       {activeTab === 'rechazados' && (
                         <TableCell className="text-xs text-destructive max-w-[200px]">{d.motivo_rechazo}</TableCell>
                       )}
+                      {activeTab === 'errores' && (
+                        <TableCell className="max-w-[300px]">
+                          <ErrorMotivo diff={d} />
+                        </TableCell>
+                      )}
                       <TableCell><RevisionBadge estado={d.estado_revision} /></TableCell>
                       <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger>
-                            <button className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setEditingDiff(d)}>
-                              <Pencil className="h-3 w-3 mr-2" /> Editar
-                            </DropdownMenuItem>
-                            {d.estado_revision !== 'aprobado' && (
-                              <DropdownMenuItem onClick={() => handleRowRevision(d.id, 'aprobado')}>
-                                <Check className="h-3 w-3 mr-2" /> Aprobar
+                        {activeTab === 'errores' ? (
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost" size="sm" className="h-7 text-xs"
+                              disabled={loading}
+                              onClick={() => handleReintentar(d.id)}
+                            >
+                              <RefreshCw className="h-3 w-3 mr-1" /> Reintentar
+                            </Button>
+                            <Button
+                              variant="ghost" size="sm" className="h-7 text-xs text-destructive"
+                              disabled={loading}
+                              onClick={() => setDescartandoDiff(d)}
+                            >
+                              <X className="h-3 w-3 mr-1" /> Descartar
+                            </Button>
+                          </div>
+                        ) : (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger>
+                              <button className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setEditingDiff(d)}>
+                                <Pencil className="h-3 w-3 mr-2" /> Editar
                               </DropdownMenuItem>
-                            )}
-                            {d.estado_revision !== 'descartado' && (
-                              <DropdownMenuItem onClick={() => handleRowRevision(d.id, 'descartado')}>
-                                <X className="h-3 w-3 mr-2" /> Descartar
-                              </DropdownMenuItem>
-                            )}
-                            {activeTab === 'bajas' && d.estado_revision !== 'pospuesto' && (
-                              <DropdownMenuItem onClick={() => handleRowRevision(d.id, 'pospuesto')}>
-                                <Clock className="h-3 w-3 mr-2" /> Posponer
-                              </DropdownMenuItem>
-                            )}
-                            {d.estado_revision !== 'pendiente' && (
-                              <DropdownMenuItem onClick={() => handleRowRevision(d.id, 'pendiente')}>
-                                <RotateCcw className="h-3 w-3 mr-2" /> Reset
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              {d.estado_revision !== 'aprobado' && (
+                                <DropdownMenuItem onClick={() => handleRowRevision(d.id, 'aprobado')}>
+                                  <Check className="h-3 w-3 mr-2" /> Aprobar
+                                </DropdownMenuItem>
+                              )}
+                              {d.estado_revision !== 'descartado' && (
+                                <DropdownMenuItem onClick={() => handleRowRevision(d.id, 'descartado')}>
+                                  <X className="h-3 w-3 mr-2" /> Descartar
+                                </DropdownMenuItem>
+                              )}
+                              {activeTab === 'bajas' && d.estado_revision !== 'pospuesto' && (
+                                <DropdownMenuItem onClick={() => handleRowRevision(d.id, 'pospuesto')}>
+                                  <Clock className="h-3 w-3 mr-2" /> Posponer
+                                </DropdownMenuItem>
+                              )}
+                              {d.estado_revision !== 'pendiente' && (
+                                <DropdownMenuItem onClick={() => handleRowRevision(d.id, 'pendiente')}>
+                                  <RotateCcw className="h-3 w-3 mr-2" /> Reset
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))
@@ -696,6 +767,16 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
           activeTab={activeTab}
           onSave={handleSaveEdit}
           onClose={() => setEditingDiff(null)}
+          loading={loading}
+        />
+      )}
+
+      {/* Discard error dialog */}
+      {descartandoDiff && (
+        <DescartarErrorDialog
+          diff={descartandoDiff}
+          onDescartar={handleDescartar}
+          onClose={() => setDescartandoDiff(null)}
           loading={loading}
         />
       )}
@@ -911,4 +992,96 @@ function EditDiffDialog({ diff, activeTab, onSave, onClose, loading }: {
       </DialogContent>
     </Dialog>
   )
+}
+
+// ============================================================
+// Descartar Error Dialog
+// ============================================================
+function DescartarErrorDialog({ diff, onDescartar, onClose, loading }: {
+  diff: DiffRecord
+  onDescartar: (id: string, razon: string) => Promise<void>
+  onClose: () => void
+  loading: boolean
+}) {
+  const [razon, setRazon] = useState('')
+
+  return (
+    <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Descartar registro con error</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            <strong>{diff.nombre_archivo}</strong> (DNI: {diff.dni_archivo ?? '—'})
+          </p>
+          <div className="space-y-1">
+            <Label className="text-xs">Razón del descarte</Label>
+            <Textarea
+              value={razon}
+              onChange={(e) => setRazon(e.target.value)}
+              placeholder="Ej: Registro duplicado, ya existe como socio activo"
+              rows={3}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button
+            variant="destructive"
+            onClick={() => onDescartar(diff.id, razon)}
+            disabled={loading || !razon.trim()}
+          >
+            {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
+            Descartar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ============================================================
+// Error Motivo — parse raw error into readable text
+// ============================================================
+function ErrorMotivo({ diff }: { diff: DiffRecord }) {
+  const [persona, setPersona] = useState<{ id: string; nombre: string; apellido: string } | null>(null)
+  const notas = diff.notas ?? ''
+
+  const isDuplicateKey = notas.includes('duplicate key') && notas.includes('numero_documento')
+
+  // Lookup existing persona by DNI for duplicate key errors
+  useEffect(() => {
+    if (isDuplicateKey && diff.dni_archivo) {
+      buscarPersonaDuplicadaPorDni(diff.dni_archivo).then((p) => {
+        if (p) setPersona(p)
+      })
+    }
+  }, [isDuplicateKey, diff.dni_archivo])
+
+  if (isDuplicateKey) {
+    return (
+      <div className="space-y-0.5">
+        <span className="text-xs font-medium text-red-700">DNI duplicado: {diff.dni_archivo}</span>
+        {persona ? (
+          <div className="text-[11px] text-muted-foreground">
+            Ya existe como{' '}
+            <Link href={`/admin/personas/${persona.id}`} className="text-primary underline">
+              {persona.apellido}, {persona.nombre}
+            </Link>
+          </div>
+        ) : (
+          <div className="text-[11px] text-muted-foreground">Ya existe en el sistema</div>
+        )}
+      </div>
+    )
+  }
+
+  // Generic error — show cleaned up message
+  const cleanMsg = notas
+    .replace(/^Error:\s*/i, '')
+    .replace(/duplicate key value violates unique constraint "[^"]+"/g, 'Clave duplicada')
+    .slice(0, 150)
+
+  return <span className="text-xs text-red-700">{cleanMsg || 'Error desconocido'}</span>
 }

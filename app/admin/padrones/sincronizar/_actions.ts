@@ -545,7 +545,7 @@ export async function finalizarSync(syncId: string, totalAplicados: number, tota
     .update({
       estado,
       error_mensaje: totalErrores > 0
-        ? `${totalErrores} error${totalErrores !== 1 ? 'es' : ''} de ${total} (${Math.round(tasaExito * 100)}% exitoso)`
+        ? `${totalAplicados} aplicados, ${totalErrores} fallaron de ${total} (${(tasaExito * 100).toFixed(1)}%)`
         : null,
     })
     .eq('id', syncId)
@@ -657,6 +657,81 @@ export async function rollbackSync(syncId: string) {
   revalidatePath('/admin/personas')
 
   return { success: true, revertidos }
+}
+
+// ============================================================
+// Paso 6: Acciones para diffs con errores de aplicación
+// ============================================================
+
+export async function reintentarDiffError(diffId: string) {
+  const supabase = await createClient()
+
+  const { data: diff } = await supabase
+    .from('padron_sync_diffs')
+    .select('*, padron_syncs!inner(padron_id)')
+    .eq('id', diffId)
+    .single()
+
+  if (!diff) return { error: 'Diff no encontrado' }
+  if (diff.aplicado) return { error: 'Este diff ya fue aplicado' }
+
+  const padronId = (diff.padron_syncs as unknown as { padron_id: string }).padron_id
+  const now = new Date().toISOString()
+
+  try {
+    if (diff.tipo_cambio === 'alta') {
+      await aplicarAlta(supabase, padronId, diff, diff.sync_id)
+    } else if (diff.tipo_cambio === 'modificacion') {
+      await aplicarModificacion(supabase, padronId, diff, diff.sync_id)
+    } else if (diff.tipo_cambio === 'baja') {
+      await aplicarBaja(supabase, padronId, diff)
+    }
+
+    await supabase
+      .from('padron_sync_diffs')
+      .update({ aplicado: true, aplicado_at: now, notas: null })
+      .eq('id', diffId)
+
+    revalidatePath('/admin/padrones/sincronizar')
+    return { success: true }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Error desconocido'
+    await supabase
+      .from('padron_sync_diffs')
+      .update({ notas: `Error: ${msg}` })
+      .eq('id', diffId)
+    return { error: msg }
+  }
+}
+
+export async function descartarDiffError(diffId: string, razon: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('padron_sync_diffs')
+    .update({
+      tipo_cambio: 'rechazado',
+      motivo_rechazo: `Descartado manualmente: ${razon}`,
+      notas: null,
+    })
+    .eq('id', diffId)
+
+  if (error) return { error: error.message }
+  revalidatePath('/admin/padrones/sincronizar')
+  return { success: true }
+}
+
+export async function buscarPersonaDuplicadaPorDni(dni: string) {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('personas')
+    .select('id, nombre, apellido')
+    .eq('tenant_id', TENANT_ID)
+    .eq('numero_documento', dni)
+    .is('deleted_at', null)
+    .limit(1)
+    .maybeSingle()
+  return data
 }
 
 // ============================================================
