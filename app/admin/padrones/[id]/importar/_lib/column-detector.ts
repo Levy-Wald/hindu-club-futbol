@@ -217,10 +217,10 @@ export function autoDetectMapping(
       confidence = 0.95
     }
 
-    // Try partial match
-    if (!targetField) {
+    // Try partial match (skip if header is empty or too short)
+    if (!targetField && normalized.length >= 3) {
       for (const [key, field] of Object.entries(HEADER_MAP)) {
-        if (normalized.includes(key) || key.includes(normalized)) {
+        if (normalized.includes(key) || (key.length >= 3 && key.includes(normalized))) {
           if (!usedFields.has(field)) {
             targetField = field
             confidence = 0.7
@@ -230,13 +230,16 @@ export function autoDetectMapping(
       }
     }
 
-    // Try value-based detection
+    // Try value-based detection (only if column has actual data)
     if (!targetField && sampleRows.length > 0) {
       const columnValues = sampleRows.slice(0, 10).map((row) => row[i] ?? '')
-      const detected = detectByValues(columnValues)
-      if (detected && !usedFields.has(detected)) {
-        targetField = detected
-        confidence = 0.5
+      const nonEmptyCount = columnValues.filter((v) => v.trim() !== '').length
+      if (nonEmptyCount >= 3) {
+        const detected = detectByValues(columnValues)
+        if (detected && !usedFields.has(detected)) {
+          targetField = detected
+          confidence = 0.5
+        }
       }
     }
 
