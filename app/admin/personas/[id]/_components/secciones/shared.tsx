@@ -3,7 +3,7 @@ import type { EditarPersonaInput } from '../../../_lib/schemas'
 
 export interface SeccionProps {
   form: EditarPersonaInput
-  update: (field: keyof EditarPersonaInput, value: string | number | boolean | null) => void
+  update: (field: keyof EditarPersonaInput, value: string | number | boolean | string[] | null) => void
   s: (field: keyof EditarPersonaInput) => string
 }
 

@@ -46,6 +46,7 @@ const SECCIONES = [
     titulo: 'Deporte',
     campos: [
       ['deporte_principal_slug', 'Deporte principal'],
+      ['deportes_secundarios', 'Deportes secundarios'],
       ['años_practica_deporte_principal', 'Años práctica'],
       ['categoria_historica_max', 'Categoría máx.'],
       ['nivel_actividad_actual', 'Nivel actividad'],
@@ -95,6 +96,7 @@ export function SeccionFichaTotal({ form, persona }: FichaTotalProps) {
     const v = form[key as keyof EditarPersonaInput] ?? persona[key]
     if (v === null || v === undefined || v === '') return '—'
     if (typeof v === 'boolean') return v ? 'Sí' : 'No'
+    if (Array.isArray(v)) return v.length ? v.join(', ') : '—'
     return String(v)
   }
 

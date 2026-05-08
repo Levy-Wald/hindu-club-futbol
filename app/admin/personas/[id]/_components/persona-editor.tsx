@@ -91,6 +91,7 @@ function init(p: Record<string, unknown>): EditarPersonaInput {
     fecha_primera_relacion_club: s('fecha_primera_relacion_club'),
     es_socio_fundador: b('es_socio_fundador'), es_socio_vitalicio: b('es_socio_vitalicio'),
     es_socio_honorario: b('es_socio_honorario'), bautizo_club_realizado: b('bautizo_club_realizado'),
+    deportes_secundarios: (p.deportes_secundarios as string[]) ?? [],
     notas_internas: s('notas_internas'),
   }
 }
@@ -106,7 +107,7 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
   const tieneDatosIdentidad = !!(persona.numero_documento || persona.cuil_cuit)
   const camposBloqueados = esMiPerfil && tieneDatosIdentidad
 
-  function update(field: keyof EditarPersonaInput, value: string | number | boolean | null) {
+  function update(field: keyof EditarPersonaInput, value: string | number | boolean | string[] | null) {
     // En mi-perfil, no permitir editar campos bloqueados
     if (camposBloqueados && CAMPOS_IDENTIDAD_BLOQUEADOS.includes(field)) return
     setForm((prev) => ({ ...prev, [field]: value ?? '' }))

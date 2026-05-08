@@ -606,6 +606,49 @@ export async function rollbackSync(syncId: string) {
 // Helpers internos para aplicar cambios
 // ============================================================
 
+// Mapeo actividad_club → slug deporte
+const ACTIVIDAD_DEPORTE_MAP: Record<string, string> = {
+  RUGBY: 'rugby', HOCKEY: 'hockey', FUTBOL: 'futbol', FÚTBOL: 'futbol',
+  GOLF: 'golf', TENIS: 'tenis', PILETA: 'natacion', NATACION: 'natacion',
+  NATACIÓN: 'natacion', PADEL: 'padel', PÁDEL: 'padel', VOLEY: 'voley',
+  VÓLEY: 'voley', BASKET: 'basket', BÁSQUET: 'basket', BASQUET: 'basket',
+  SQUASH: 'squash', ATLETISMO: 'atletismo', POLO: 'polo', CRICKET: 'cricket',
+  SOFTBOL: 'softbol',
+}
+
+function parsearDeportesDesdeActividad(actividad: string | null | undefined): {
+  principal: string | null
+  secundarios: string[]
+} {
+  if (!actividad?.trim()) return { principal: null, secundarios: [] }
+  const tokens = actividad
+    .toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quitar acentos para buscar
+    .split(/[\/\s,;]+/)
+    .filter(Boolean)
+
+  const slugs: string[] = []
+  for (const token of tokens) {
+    // Buscar con acento original y sin
+    const slug = ACTIVIDAD_DEPORTE_MAP[token]
+      ?? ACTIVIDAD_DEPORTE_MAP[actividad.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')]
+    if (slug && !slugs.includes(slug)) slugs.push(slug)
+  }
+
+  // Fallback: buscar en el string completo
+  if (slugs.length === 0) {
+    const upper = actividad.toUpperCase()
+    for (const [key, slug] of Object.entries(ACTIVIDAD_DEPORTE_MAP)) {
+      if (upper.includes(key) && !slugs.includes(slug)) slugs.push(slug)
+    }
+  }
+
+  return {
+    principal: slugs[0] ?? null,
+    secundarios: slugs.slice(1),
+  }
+}
+
 async function aplicarAlta(
   supabase: Awaited<ReturnType<typeof createClient>>,
   padronId: string,
@@ -614,6 +657,9 @@ async function aplicarAlta(
 ) {
   const datos = diff.datos_despues as Record<string, string> | null
   if (!datos) return
+
+  // Parsear deportes desde actividad_club
+  const deportes = parsearDeportesDesdeActividad(datos.actividad_club)
 
   // Crear persona
   const { data: persona, error } = await supabase
@@ -624,6 +670,8 @@ async function aplicarAlta(
       apellido: datos.apellido || 'Sin apellido',
       numero_documento: datos.numero_documento || null,
       fecha_nacimiento: datos.fecha_nacimiento || null,
+      deporte_principal_slug: deportes.principal,
+      deportes_secundarios: deportes.secundarios.length > 0 ? deportes.secundarios : null,
       fuente_origen: 'sync_padron_externo',
     })
     .select('id')
@@ -646,6 +694,15 @@ async function aplicarAlta(
     fecha_alta: new Date().toISOString().split('T')[0],
     origen_alta: 'sync_padron_externo',
     ultimo_sync_id: syncId,
+  })
+
+  // Asignar atributo 'socio_padron' automáticamente
+  await supabase.from('personas_atributos').insert({
+    tenant_id: TENANT_ID,
+    persona_id: persona.id,
+    atributo_slug: 'socio_padron',
+    activo: true,
+    fecha_inicio: new Date().toISOString().split('T')[0],
   })
 
   // Update diff with persona_id

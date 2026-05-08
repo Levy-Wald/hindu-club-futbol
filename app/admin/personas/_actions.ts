@@ -128,6 +128,7 @@ export async function editarPersona(id: string, input: EditarPersonaInput) {
     usa_audifono: bool(v.usa_audifono),
     años_practica_deporte_principal: num(v.años_practica_deporte_principal),
     deporte_principal_slug: str(v.deporte_principal_slug),
+    deportes_secundarios: v.deportes_secundarios?.length ? v.deportes_secundarios : null,
     categoria_historica_max: str(v.categoria_historica_max),
     nivel_actividad_actual: str(v.nivel_actividad_actual),
     frecuencia_entrenamiento_semanal: num(v.frecuencia_entrenamiento_semanal),

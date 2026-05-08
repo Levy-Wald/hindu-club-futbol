@@ -36,7 +36,7 @@ export async function fetchPersonas(params: PersonasQueryParams) {
        direccion_calle, direccion_numero, direccion_piso, direccion_depto, direccion_barrio,
        direccion_ciudad, direccion_provincia, direccion_codigo_postal,
        altura_cm, peso_kg, lateralidad, pie_dominante,
-       deporte_principal_slug, categoria_historica_max, nivel_actividad_actual,
+       deporte_principal_slug, deportes_secundarios, categoria_historica_max, nivel_actividad_actual,
        fecha_primera_relacion_club,
        estado, deleted_at, created_at,
        personas_atributos!personas_atributos_persona_id_fkey(atributo_slug, activo)`,

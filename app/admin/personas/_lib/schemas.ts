@@ -67,6 +67,7 @@ export const editarPersonaSchema = z.object({
   usa_audifono: z.boolean().optional(),
   años_practica_deporte_principal: z.coerce.number().optional(),
   deporte_principal_slug: z.string().optional(),
+  deportes_secundarios: z.array(z.string()).optional(),
   categoria_historica_max: z.string().optional(),
   nivel_actividad_actual: z.string().optional(),
   frecuencia_entrenamiento_semanal: z.coerce.number().optional(),
