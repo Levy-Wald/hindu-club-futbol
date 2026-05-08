@@ -293,20 +293,32 @@ export async function obtenerDiffIdsParaAplicar(syncId: string, soloAprobados = 
     return { error: `No se puede aplicar un sync en estado "${sync.estado}"` }
   }
 
-  let query = supabase
-    .from('padron_sync_diffs')
-    .select('id')
-    .eq('sync_id', syncId)
-    .eq('aplicado', false)
-    .in('tipo_cambio', ['alta', 'baja', 'modificacion'])
-    .neq('estado_revision', 'descartado')
+  // Paginar para superar límite de 1000 de Supabase
+  const allIds: string[] = []
+  let from = 0
 
-  if (soloAprobados) {
-    query = query.in('estado_revision', ['aprobado', 'editado'])
+  while (true) {
+    let query = supabase
+      .from('padron_sync_diffs')
+      .select('id')
+      .eq('sync_id', syncId)
+      .eq('aplicado', false)
+      .in('tipo_cambio', ['alta', 'baja', 'modificacion'])
+      .neq('estado_revision', 'descartado')
+      .range(from, from + 999)
+
+    if (soloAprobados) {
+      query = query.in('estado_revision', ['aprobado', 'editado'])
+    }
+
+    const { data: diffs } = await query
+    if (!diffs || diffs.length === 0) break
+    allIds.push(...diffs.map((d) => d.id))
+    if (diffs.length < 1000) break
+    from += 1000
   }
 
-  const { data: diffs } = await query
-  return { ids: (diffs ?? []).map((d) => d.id), padronId: sync.padron_id }
+  return { ids: allIds, padronId: sync.padron_id }
 }
 
 // ============================================================
