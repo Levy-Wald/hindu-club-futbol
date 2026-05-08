@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -69,34 +69,46 @@ export function FusionModal({ idA, idB, onClose, onComplete }: FusionModalProps)
   const [masterId, setMasterId] = useState<string>('')
   const [confirmText, setConfirmText] = useState('')
 
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+
   useEffect(() => {
-    obtenerDatosParaFusion(idA, idB).then((result) => {
-      if ('error' in result) {
-        toast.error(result.error)
-        onClose()
-        return
-      }
-      setPersonaA(result.personaA as Record<string, unknown>)
-      setPersonaB(result.personaB as Record<string, unknown>)
+    let cancelled = false
+    obtenerDatosParaFusion(idA, idB)
+      .then((result) => {
+        if (cancelled) return
+        if ('error' in result) {
+          toast.error(result.error)
+          onCloseRef.current()
+          return
+        }
+        setPersonaA(result.personaA as Record<string, unknown>)
+        setPersonaB(result.personaB as Record<string, unknown>)
 
-      // Preselect master: whoever has more non-null fields
-      const countA = MERGE_FIELDS.filter((f) => hasValue(result.personaA?.[f.key])).length
-      const countB = MERGE_FIELDS.filter((f) => hasValue(result.personaB?.[f.key])).length
-      setMasterId(countB >= countA ? idB : idA)
+        // Preselect master: whoever has more non-null fields
+        const countA = MERGE_FIELDS.filter((f) => hasValue(result.personaA?.[f.key])).length
+        const countB = MERGE_FIELDS.filter((f) => hasValue(result.personaB?.[f.key])).length
+        setMasterId(countB >= countA ? idB : idA)
 
-      // Default choices: prefer non-null value, default to master's value
-      const defaultChoices: Record<string, 'A' | 'B'> = {}
-      for (const f of MERGE_FIELDS) {
-        const aHas = hasValue(result.personaA?.[f.key])
-        const bHas = hasValue(result.personaB?.[f.key])
-        if (aHas && !bHas) defaultChoices[f.key] = 'A'
-        else if (!aHas && bHas) defaultChoices[f.key] = 'B'
-        else defaultChoices[f.key] = countB >= countA ? 'B' : 'A'
-      }
-      setChoices(defaultChoices)
-      setLoading(false)
-    })
-  }, [idA, idB, onClose])
+        // Default choices: prefer non-null value, default to master's value
+        const defaultChoices: Record<string, 'A' | 'B'> = {}
+        for (const f of MERGE_FIELDS) {
+          const aHas = hasValue(result.personaA?.[f.key])
+          const bHas = hasValue(result.personaB?.[f.key])
+          if (aHas && !bHas) defaultChoices[f.key] = 'A'
+          else if (!aHas && bHas) defaultChoices[f.key] = 'B'
+          else defaultChoices[f.key] = countB >= countA ? 'B' : 'A'
+        }
+        setChoices(defaultChoices)
+        setLoading(false)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        toast.error(`Error de conexión: ${err?.message ?? 'desconocido'}`)
+        onCloseRef.current()
+      })
+    return () => { cancelled = true }
+  }, [idA, idB])
 
   const atributosA = useMemo(() => {
     if (!personaA) return []

@@ -553,7 +553,9 @@ export async function obtenerDatosParaFusion(idA: string, idB: string) {
     .eq('tenant_id', TENANT_ID)
     .single()
 
-  if (!personaA || !personaB) return { error: 'Una o ambas personas no existen' }
+  if (!personaA || !personaB) {
+    return { error: `Fusion error: A=${!!personaA} (${errA?.message ?? 'ok'}), B=${!!personaB} (${errB?.message ?? 'ok'}), url=${!!process.env.NEXT_PUBLIC_SUPABASE_URL}, key=${!!process.env.SUPABASE_SERVICE_ROLE_KEY}` }
+  }
 
   return { personaA, personaB }
 }
