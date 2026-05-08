@@ -11,9 +11,10 @@ interface SelectionBarProps {
   onSelectAll: () => void
   onClear: () => void
   getData: () => ExportData | null
+  children?: React.ReactNode
 }
 
-export function SelectionBar({ count, total, onSelectAll, onClear, getData }: SelectionBarProps) {
+export function SelectionBar({ count, total, onSelectAll, onClear, getData, children }: SelectionBarProps) {
   if (count === 0) return null
 
   return (
@@ -25,6 +26,7 @@ export function SelectionBar({ count, total, onSelectAll, onClear, getData }: Se
         <CheckSquare className="h-3.5 w-3.5 mr-1" />
         Todo
       </Button>
+      {children}
       <ExportFormatSelector getData={getData} />
       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClear}>
         <X className="h-4 w-4" />

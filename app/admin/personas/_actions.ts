@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import {
   crearPersonaSchema,
   editarPersonaSchema,
@@ -524,4 +525,189 @@ export async function importarPersonas(rows: { nombre: string; apellido: string;
 
   revalidatePath('/admin/personas')
   return { imported, skipped, errors }
+}
+
+// --- FUSIÓN DE PERSONAS ---
+
+interface FusionFieldChoices {
+  [field: string]: 'A' | 'B'  // A = master original, B = merged original
+}
+
+export async function obtenerDatosParaFusion(idA: string, idB: string) {
+  const supabase = await createClient()
+
+  const { data: personaA } = await supabase.from('personas').select('*, personas_atributos(*)').eq('id', idA).single()
+  const { data: personaB } = await supabase.from('personas').select('*, personas_atributos(*)').eq('id', idB).single()
+
+  if (!personaA || !personaB) return { error: 'Una o ambas personas no existen' }
+
+  return { personaA, personaB }
+}
+
+export async function fusionarPersonas(
+  masterId: string,
+  mergedId: string,
+  fieldChoices: FusionFieldChoices
+) {
+  if (masterId === mergedId) return formatResult(false, 'No se puede fusionar una persona consigo misma')
+
+  const supabase = await createClient()
+
+  // Verificar que ambas personas existen
+  const { data: master } = await supabase.from('personas').select('*, personas_atributos(*)').eq('id', masterId).eq('tenant_id', TENANT_ID).single()
+  const { data: merged } = await supabase.from('personas').select('*, personas_atributos(*)').eq('id', mergedId).eq('tenant_id', TENANT_ID).single()
+
+  if (!master || !merged) return formatResult(false, 'Una o ambas personas no existen o ya fueron eliminadas')
+  if (master.deleted_at || merged.deleted_at) return formatResult(false, 'No se puede fusionar personas eliminadas')
+
+  // --- Auth transfer: si merged tiene user_id y master no, transferir ---
+  if (merged.user_id && !master.user_id) {
+    await supabase.from('personas').update({ user_id: merged.user_id }).eq('id', masterId)
+  } else if (merged.user_id && master.user_id && merged.user_id !== master.user_id) {
+    return formatResult(false, 'Ambas personas tienen login (auth.user) distinto. Eliminá manualmente uno de los usuarios de auth antes de fusionar.')
+  }
+
+  // --- Apply field choices to master ---
+  // fieldChoices maps field_name → 'A' (keep master) or 'B' (take from merged)
+  const updateFields: Record<string, unknown> = {}
+  for (const [field, choice] of Object.entries(fieldChoices)) {
+    if (choice === 'B') {
+      updateFields[field] = (merged as Record<string, unknown>)[field]
+    }
+  }
+
+  if (Object.keys(updateFields).length > 0) {
+    const { error: updateErr } = await supabase.from('personas').update(updateFields).eq('id', masterId)
+    if (updateErr) return formatResult(false, `Error actualizando master: ${updateErr.message}`)
+  }
+
+  // --- Service role client for FK reassignment (bypasses RLS) ---
+  const serviceClient = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  // --- Discover all FK references to personas dynamically ---
+  const { data: fkRefs, error: fkError } = await serviceClient.rpc('get_persona_fk_references')
+
+  if (fkError || !fkRefs) {
+    // Fallback: use hardcoded list if function doesn't exist yet
+    return formatResult(false, `Error descubriendo FKs: ${fkError?.message}. Ejecutá la migración de la función get_persona_fk_references.`)
+  }
+
+  // --- Reassign FKs ---
+  const errors: string[] = []
+  for (const ref of fkRefs as { table_name: string; column_name: string }[]) {
+    const { table_name, column_name } = ref
+
+    // Skip audit_log — preserve history
+    if (table_name === 'audit_log') continue
+    // Skip personas itself — handled separately
+    if (table_name === 'personas') continue
+
+    // Handle tables with UNIQUE constraints that include persona_id
+    // First check for conflicts: rows where masterId already exists
+    const { data: masterRows } = await serviceClient
+      .from(table_name)
+      .select('id')
+      .eq(column_name, masterId)
+
+    const { data: mergedRows } = await serviceClient
+      .from(table_name)
+      .select('id')
+      .eq(column_name, mergedId)
+
+    if (!mergedRows || mergedRows.length === 0) continue
+
+    // For personas_vinculos: after reassignment, check for self-references
+    if (table_name === 'personas_vinculos') {
+      for (const row of mergedRows) {
+        // Try to reassign, if unique conflict → delete the duplicate
+        const { error: updateErr } = await serviceClient
+          .from(table_name)
+          .update({ [column_name]: masterId })
+          .eq('id', row.id)
+
+        if (updateErr) {
+          // Unique conflict or self-reference — delete the merged row
+          await serviceClient.from(table_name).delete().eq('id', row.id)
+        }
+      }
+
+      // Clean up self-references (persona_origen_id == persona_destino_id)
+      await serviceClient
+        .from('personas_vinculos')
+        .delete()
+        .eq('persona_origen_id', masterId)
+        .eq('persona_destino_id', masterId)
+
+      continue
+    }
+
+    // For tables with potential UNIQUE conflicts (personas_atributos, personas_padrones, etc.)
+    // Strategy: try UPDATE, on conflict DELETE the merged row
+    if (masterRows && masterRows.length > 0) {
+      // Table has master rows — potential UNIQUE conflicts
+      for (const row of mergedRows) {
+        const { error: updateErr } = await serviceClient
+          .from(table_name)
+          .update({ [column_name]: masterId })
+          .eq('id', row.id)
+
+        if (updateErr) {
+          // Unique constraint conflict — master already has this, delete merged's
+          await serviceClient.from(table_name).delete().eq('id', row.id)
+        }
+      }
+    } else {
+      // No master rows — safe to bulk update
+      const { error: bulkErr } = await serviceClient
+        .from(table_name)
+        .update({ [column_name]: masterId })
+        .eq(column_name, mergedId)
+
+      if (bulkErr) {
+        errors.push(`${table_name}.${column_name}: ${bulkErr.message}`)
+      }
+    }
+  }
+
+  // --- Delete merged persona ---
+  // First remove user_id to avoid auth conflicts
+  await serviceClient.from('personas').update({ user_id: null }).eq('id', mergedId)
+  const { error: deleteErr } = await serviceClient.from('personas').delete().eq('id', mergedId)
+  if (deleteErr) {
+    // If hard delete fails (e.g. remaining FKs), soft delete instead
+    await serviceClient.from('personas').update({
+      deleted_at: new Date().toISOString(),
+      estado: 'baja',
+      notas_internas: `Fusionada con ${masterId}`,
+    }).eq('id', mergedId)
+  }
+
+  // --- Audit log ---
+  await serviceClient.from('audit_log').insert({
+    tenant_id: TENANT_ID,
+    tabla: 'personas',
+    registro_id: masterId,
+    accion: 'persona_fused',
+    actor_persona_id: null, // Will be set by trigger if available
+    origen: 'web',
+    descripcion: `Fusión: ${masterId} absorbe ${mergedId}`,
+    cambios: {
+      master_id: masterId,
+      merged_id: mergedId,
+      field_choices: fieldChoices,
+      errors: errors.length > 0 ? errors : undefined,
+    },
+  })
+
+  revalidatePath('/admin/personas')
+  revalidatePath(`/admin/personas/${masterId}`)
+
+  if (errors.length > 0) {
+    return formatResult(true, `Fusión completada con ${errors.length} advertencia(s): ${errors.join('; ')}`)
+  }
+
+  return formatResult(true, 'Personas fusionadas correctamente')
 }

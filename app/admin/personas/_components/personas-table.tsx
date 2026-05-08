@@ -24,8 +24,9 @@ import { PersonaAvatar } from './persona-avatar'
 import { useVistasColumns } from '@/components/ui/vistas-panel'
 import { PERSONAS_DEFAULT_COLUMNS, PERSONAS_MODULES } from '@/lib/vistas/column-defs'
 import { SelectionBar } from '@/components/ui/selection-bar'
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, RotateCcw, CirclePause, CirclePlay } from 'lucide-react'
+import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, RotateCcw, CirclePause, CirclePlay, Merge } from 'lucide-react'
 import { softDeletePersona, restaurarPersona, cambiarEstadoPersona } from '../_actions'
+import { FusionModal } from './fusion-modal'
 import { toast } from 'sonner'
 import type { ExportData } from '@/lib/export/formats'
 
@@ -226,6 +227,7 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
   const { visibleColumns, isVisible } = useVistasColumns('personas-columns', PERSONAS_DEFAULT_COLUMNS)
   const totalPages = Math.ceil(total / pageSize)
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [fusionOpen, setFusionOpen] = useState(false)
 
   // Columnas visibles en orden (excluyendo nombre/apellido que van fijos)
   const dynamicColumns = ALL_COLUMNS.filter(
@@ -443,7 +445,30 @@ export function PersonasTable({ personas, total, page, pageSize }: PersonasTable
         onSelectAll={selectAll}
         onClear={clearSelection}
         getData={getExportData}
-      />
+      >
+        {selected.size === 2 && (
+          <Button variant="ghost" size="sm" onClick={() => setFusionOpen(true)}>
+            <Merge className="h-3.5 w-3.5 mr-1" />
+            Fusionar
+          </Button>
+        )}
+      </SelectionBar>
+
+      {fusionOpen && selected.size === 2 && (() => {
+        const [idA, idB] = Array.from(selected)
+        return (
+          <FusionModal
+            idA={idA}
+            idB={idB}
+            onClose={() => setFusionOpen(false)}
+            onComplete={() => {
+              setFusionOpen(false)
+              clearSelection()
+              router.refresh()
+            }}
+          />
+        )
+      })()}
 
       {/* Paginación */}
       <div className="flex items-center justify-between">
