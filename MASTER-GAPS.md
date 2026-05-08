@@ -5,11 +5,20 @@ Alineado a la propuesta arquitectonica integral (ver `docs/PROPUESTA-ARQUITECTON
 
 ---
 
-## Estado actual: Sprint 14a.5 COMPLETADO
+## Estado actual: Sprint 14a.6 COMPLETADO
 
-Sprints 11.5-11.7 + Sprint 12 + Sprint 13 + Sprint 14a + Sprint 14a.5 completados.
-Sprint 14a.5 = UI interactiva de revisión de sync (búsqueda, filtros, bulk actions, edición, aplicación parcial).
-Pendiente validacion visual de Yair + configurar env vars en Vercel.
+Sprints 11.5-11.7 + Sprint 12 + Sprint 13 + Sprint 14a + Sprint 14a.5 + Sprint 14a.6 completados.
+Sprint 14a.6 = Unificación import/sync, 7 fixes de importación Hindu, deprecación wizard viejo.
+Pendiente: Yair borra 2348 personas sucias y re-importa via flujo sync unificado.
+
+### Sprint 14a.6 — Unificación import + sync (HECHO)
+- [x] `parseDateValue()` en parsers.ts: maneja texto MM/DD/YY, DD/MM/YY, detección inteligente
+- [x] `validarFecha()`: fechas futuras → -100 años, edad > 120 → rechazada
+- [x] `nombre_confianza` en DiffItem + processor + DB column + review UI badge + filtro
+- [x] Detección inteligente de header en Excel (reemplaza `i = 4` hardcodeado)
+- [x] Batching en aplicarSync: 50 diffs por request, progress bar, evita timeout Vercel 60s
+- [x] Deprecación wizard viejo (`/admin/padrones/[id]/importar/` → redirect a sincronizar)
+- [x] Verificación: columnas estructuradas en personas_padrones escritas correctamente
 
 ### Fixes Sprint 9 (sesion 2026-05-06)
 - [x] Fix cajas: `saldo` → `saldo_actual` (columna correcta en DB)

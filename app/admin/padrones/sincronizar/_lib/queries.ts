@@ -37,43 +37,77 @@ export async function getSyncById(syncId: string) {
 export async function getSyncDiffs(syncId: string, tipoCambio?: string) {
   const supabase = await createClient()
 
-  let query = supabase
-    .from('padron_sync_diffs')
-    .select('*')
-    .eq('sync_id', syncId)
-    .order('tipo_cambio')
-    .order('nombre_archivo')
+  // Supabase default limit = 1000. Padrones grandes pueden tener 3000+ diffs.
+  // Fetch en bloques de 1000 para traer todos.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const allDiffs: any[] = []
+  let from = 0
+  const PAGE = 1000
 
-  if (tipoCambio) {
-    query = query.eq('tipo_cambio', tipoCambio)
+  while (true) {
+    let query = supabase
+      .from('padron_sync_diffs')
+      .select('*')
+      .eq('sync_id', syncId)
+      .order('tipo_cambio')
+      .order('nombre_archivo')
+      .range(from, from + PAGE - 1)
+
+    if (tipoCambio) {
+      query = query.eq('tipo_cambio', tipoCambio)
+    }
+
+    const { data } = await query
+    if (!data || data.length === 0) break
+    allDiffs.push(...data)
+    if (data.length < PAGE) break
+    from += PAGE
   }
 
-  const { data } = await query
-  return data ?? []
+  return allDiffs
 }
 
 export async function getPersonasParaSync(padronId: string): Promise<PersonaExistente[]> {
   const supabase = await createClient()
 
   // Todas las personas del tenant con sus datos de este padrón
-  const { data: personas } = await supabase
-    .from('personas')
-    .select('id, nombre, apellido, numero_documento, fecha_nacimiento')
-    .eq('tenant_id', TENANT_ID)
-    .is('deleted_at', null)
+  // Fetch paginado para superar el límite de 1000 de Supabase
+  const personas: { id: string; nombre: string; apellido: string; numero_documento: string | null; fecha_nacimiento: string | null }[] = []
+  let pFrom = 0
+  while (true) {
+    const { data } = await supabase
+      .from('personas')
+      .select('id, nombre, apellido, numero_documento, fecha_nacimiento')
+      .eq('tenant_id', TENANT_ID)
+      .is('deleted_at', null)
+      .range(pFrom, pFrom + 999)
+    if (!data || data.length === 0) break
+    personas.push(...data)
+    if (data.length < 1000) break
+    pFrom += 1000
+  }
 
-  const { data: membresiasPadron } = await supabase
-    .from('personas_padrones')
-    .select('id, persona_id, numero_socio, categoria_club, actividad_club, fecha_ingreso_club, estado_club, notas_club, activo')
-    .eq('padron_id', padronId)
-    .eq('tenant_id', TENANT_ID)
+  const membresiasPadron: { id: string; persona_id: string; numero_socio: string | null; categoria_club: string | null; actividad_club: string | null; fecha_ingreso_club: string | null; estado_club: string | null; notas_club: string | null; activo: boolean }[] = []
+  let mFrom = 0
+  while (true) {
+    const { data } = await supabase
+      .from('personas_padrones')
+      .select('id, persona_id, numero_socio, categoria_club, actividad_club, fecha_ingreso_club, estado_club, notas_club, activo')
+      .eq('padron_id', padronId)
+      .eq('tenant_id', TENANT_ID)
+      .range(mFrom, mFrom + 999)
+    if (!data || data.length === 0) break
+    membresiasPadron.push(...data)
+    if (data.length < 1000) break
+    mFrom += 1000
+  }
 
-  const ppMap = new Map<string, typeof membresiasPadron extends (infer T)[] | null ? T : never>()
-  for (const pp of membresiasPadron ?? []) {
+  const ppMap = new Map<string, typeof membresiasPadron[number]>()
+  for (const pp of membresiasPadron) {
     ppMap.set(pp.persona_id, pp)
   }
 
-  return (personas ?? []).map((p) => {
+  return personas.map((p) => {
     const pp = ppMap.get(p.id)
     return {
       id: p.id,

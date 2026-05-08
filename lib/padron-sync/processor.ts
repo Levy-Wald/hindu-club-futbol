@@ -28,6 +28,7 @@ export interface DiffItem {
   persona_id: string | null
   dni_archivo: string
   nombre_archivo: string
+  nombre_confianza: 'alta' | 'media' | 'baja' | null
   numero_socio_archivo: string
   categoria_archivo: string
   actividad_archivo: string
@@ -64,6 +65,7 @@ export function generarDiffs(
         persona_id: null,
         dni_archivo: fila.dni,
         nombre_archivo: fila.nombre_original,
+        nombre_confianza: fila.nombre_confianza,
         numero_socio_archivo: fila.numero_socio,
         categoria_archivo: fila.categoria_original,
         actividad_archivo: fila.actividad,
@@ -85,6 +87,7 @@ export function generarDiffs(
         persona_id: null,
         dni_archivo: fila.dni,
         nombre_archivo: fila.nombre_original,
+        nombre_confianza: fila.nombre_confianza,
         numero_socio_archivo: fila.numero_socio,
         categoria_archivo: fila.categoria_original,
         actividad_archivo: fila.actividad,
@@ -113,6 +116,7 @@ export function generarDiffs(
           persona_id: personaExistente.id,
           dni_archivo: fila.dni,
           nombre_archivo: fila.nombre_original,
+          nombre_confianza: fila.nombre_confianza,
           numero_socio_archivo: fila.numero_socio,
           categoria_archivo: fila.categoria_original,
           actividad_archivo: fila.actividad,
@@ -127,6 +131,7 @@ export function generarDiffs(
           persona_id: personaExistente.id,
           dni_archivo: fila.dni,
           nombre_archivo: fila.nombre_original,
+          nombre_confianza: fila.nombre_confianza,
           numero_socio_archivo: fila.numero_socio,
           categoria_archivo: fila.categoria_original,
           actividad_archivo: fila.actividad,
@@ -151,6 +156,7 @@ export function generarDiffs(
       persona_id: persona.id,
       dni_archivo: dni,
       nombre_archivo: `${persona.apellido} ${persona.nombre}`,
+      nombre_confianza: null,
       numero_socio_archivo: persona.pp_numero_socio ?? '',
       categoria_archivo: persona.pp_categoria_club ?? '',
       actividad_archivo: persona.pp_actividad_club ?? '',

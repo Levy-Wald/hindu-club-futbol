@@ -8,6 +8,74 @@ import { getPersonasParaSync } from './_lib/queries'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
+// Keywords que identifican filas de encabezado de datos
+const HEADER_KEYWORDS = [
+  'nombre', 'apellido', 'dni', 'documento', 'socio', 'fecha', 'categoria',
+  'categoría', 'actividad', 'email', 'telefono', 'fechanac', 'fechaingreso',
+  'nro', 'n°', 'sexo', 'genero', 'cuil', 'cuit', 'domicilio', 'localidad',
+]
+
+// Keywords que identifican filas decorativas (título, subtítulo)
+const TITLE_KEYWORDS = [
+  'padron', 'padrón', 'socios', 'listado', 'club', 'planilla',
+  'registro', 'nomina', 'nómina', 'resumen', 'reporte',
+]
+
+/**
+ * Detecta inteligentemente la fila de encabezado en un Excel.
+ * Busca la fila con más keywords de header entre las primeras 15 filas.
+ * Si no encuentra encabezado claro, devuelve la última fila junk antes de datos.
+ */
+function detectarFilaHeader(filas: unknown[][]): number {
+  let bestIndex = -1
+  let bestScore = 0
+
+  const limit = Math.min(filas.length, 15)
+  for (let i = 0; i < limit; i++) {
+    const row = filas[i]
+    if (!row) continue
+
+    const nonEmpty = row.filter((c) => c != null && String(c).trim() !== '')
+    if (nonEmpty.length < 3) continue
+
+    const joined = nonEmpty.map((c) => String(c)).join(' ').toLowerCase()
+    let score = 0
+
+    for (const kw of HEADER_KEYWORDS) {
+      if (joined.includes(kw)) score += 2
+    }
+
+    if (score > bestScore) {
+      bestScore = score
+      bestIndex = i
+    }
+  }
+
+  // Si encontramos un header con score >= 4, usarlo
+  if (bestIndex >= 0 && bestScore >= 4) return bestIndex
+
+  // Fallback: buscar la primera fila con datos reales (DNI numérico, nombre con letras)
+  for (let i = 0; i < limit; i++) {
+    const row = filas[i]
+    if (!row || row.length < 3) continue
+
+    const nonEmpty = row.filter((c) => c != null && String(c).trim() !== '')
+    if (nonEmpty.length < 3) continue
+
+    // Si la fila tiene keywords de título, es decorativa
+    const joined = nonEmpty.map((c) => String(c)).join(' ').toLowerCase()
+    const isTitleRow = TITLE_KEYWORDS.some((kw) => joined.includes(kw))
+    if (isTitleRow && nonEmpty.length <= 3) continue
+
+    // Si algún valor parece un DNI (7-8 dígitos), es data → la fila anterior es el header
+    const hasDNI = nonEmpty.some((c) => /^\d{7,8}$/.test(String(c).replace(/[\.\-\s]/g, '')))
+    if (hasDNI) return Math.max(0, i - 1)
+  }
+
+  // Último fallback: asumir fila 3 (viejo default - 1)
+  return Math.min(3, filas.length - 1)
+}
+
 // ============================================================
 // Paso 1+2: Upload + Procesamiento
 // ============================================================
@@ -46,9 +114,12 @@ export async function procesarArchivoSync(
     ejecutadoPor = persona?.id ?? null
   }
 
-  // Parsear filas (saltar headers decorativos: rows 0-3)
+  // Detectar fila de encabezado y saltar rows decorativos
+  const headerRowIndex = detectarFilaHeader(filas)
+  const dataStartIndex = headerRowIndex + 1
+
   const filasParseadas: FilaPadronParseada[] = []
-  for (let i = 4; i < filas.length; i++) {
+  for (let i = dataStartIndex; i < filas.length; i++) {
     const row = filas[i]
     if (!row || row.length < 3) continue
     const parsed = parsearFilaPadron(row, i)
@@ -95,6 +166,7 @@ export async function procesarArchivoSync(
     tipo_cambio: d.tipo_cambio,
     dni_archivo: d.dni_archivo,
     nombre_archivo: d.nombre_archivo,
+    nombre_confianza: d.nombre_confianza,
     numero_socio_archivo: d.numero_socio_archivo,
     categoria_archivo: d.categoria_archivo,
     actividad_archivo: d.actividad_archivo,
@@ -204,12 +276,11 @@ export async function editarDiff(
 }
 
 // ============================================================
-// Paso 4: Aplicar sync (solo aprobados o todos)
+// Paso 4a: Obtener IDs de diffs a aplicar (para batching del client)
 // ============================================================
-export async function aplicarSync(syncId: string, soloAprobados = false) {
+export async function obtenerDiffIdsParaAplicar(syncId: string, soloAprobados = false) {
   const supabase = await createClient()
 
-  // Verificar estado
   const { data: sync } = await supabase
     .from('padron_syncs')
     .select('id, padron_id, estado')
@@ -221,6 +292,37 @@ export async function aplicarSync(syncId: string, soloAprobados = false) {
   if (sync.estado !== 'preview' && sync.estado !== 'revisado') {
     return { error: `No se puede aplicar un sync en estado "${sync.estado}"` }
   }
+
+  let query = supabase
+    .from('padron_sync_diffs')
+    .select('id')
+    .eq('sync_id', syncId)
+    .eq('aplicado', false)
+    .in('tipo_cambio', ['alta', 'baja', 'modificacion'])
+    .neq('estado_revision', 'descartado')
+
+  if (soloAprobados) {
+    query = query.in('estado_revision', ['aprobado', 'editado'])
+  }
+
+  const { data: diffs } = await query
+  return { ids: (diffs ?? []).map((d) => d.id), padronId: sync.padron_id }
+}
+
+// ============================================================
+// Paso 4b: Aplicar un batch de diffs (llamado repetidamente desde el client)
+// ============================================================
+export async function aplicarSyncBatch(syncId: string, diffIds: string[]) {
+  const supabase = await createClient()
+
+  const { data: sync } = await supabase
+    .from('padron_syncs')
+    .select('id, padron_id, estado')
+    .eq('id', syncId)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (!sync) return { error: 'Sync no encontrado' }
 
   // Get persona_id for revisado_por
   const { data: { session } } = await supabase.auth.getSession()
@@ -234,20 +336,11 @@ export async function aplicarSync(syncId: string, soloAprobados = false) {
     revisadoPor = persona?.id ?? null
   }
 
-  // Get diffs that need to be applied
-  let query = supabase
+  const { data: diffs } = await supabase
     .from('padron_sync_diffs')
     .select('*')
-    .eq('sync_id', syncId)
+    .in('id', diffIds)
     .eq('aplicado', false)
-    .in('tipo_cambio', ['alta', 'baja', 'modificacion'])
-    .neq('estado_revision', 'descartado')
-
-  if (soloAprobados) {
-    query = query.in('estado_revision', ['aprobado', 'editado'])
-  }
-
-  const { data: diffs } = await query
 
   let aplicados = 0
   let errores = 0
@@ -262,7 +355,6 @@ export async function aplicarSync(syncId: string, soloAprobados = false) {
         await aplicarBaja(supabase, sync.padron_id, diff)
       }
 
-      // Marcar diff como aplicado
       await supabase
         .from('padron_sync_diffs')
         .update({
@@ -282,12 +374,20 @@ export async function aplicarSync(syncId: string, soloAprobados = false) {
     }
   }
 
-  // Update sync status
+  return { success: true, aplicados, errores }
+}
+
+// ============================================================
+// Paso 4c: Finalizar sync (marcar estado tras todos los batches)
+// ============================================================
+export async function finalizarSync(syncId: string, totalErrores: number) {
+  const supabase = await createClient()
+
   await supabase
     .from('padron_syncs')
     .update({
-      estado: errores > 0 ? 'fallado' : 'aplicado',
-      error_mensaje: errores > 0 ? `${errores} errores al aplicar` : null,
+      estado: totalErrores > 0 ? 'fallado' : 'aplicado',
+      error_mensaje: totalErrores > 0 ? `${totalErrores} errores al aplicar` : null,
     })
     .eq('id', syncId)
 
@@ -295,7 +395,7 @@ export async function aplicarSync(syncId: string, soloAprobados = false) {
   revalidatePath('/admin/padrones')
   revalidatePath('/admin/personas')
 
-  return { success: true, aplicados, errores }
+  return { success: true }
 }
 
 // ============================================================

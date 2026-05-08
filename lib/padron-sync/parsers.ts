@@ -133,6 +133,84 @@ export function esSerialExcel(value: unknown): boolean {
 }
 
 // ============================================================
+// Parsear fecha en texto (MM/DD/YY, DD/MM/YY, etc.)
+// ============================================================
+export function parseDateValue(value: string): string | null {
+  if (!value) return null
+
+  // Ya ISO (YYYY-MM-DD)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return validarFecha(value)
+
+  // Patrones DD/MM/YY, MM/DD/YY, DD/MM/YYYY, MM/DD/YYYY
+  const parts = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/)
+  if (parts) {
+    const p1 = parseInt(parts[1])
+    const p2 = parseInt(parts[2])
+    const yearStr = parts[3]
+
+    // Resolver año de 2 dígitos: 50-99 → 1900s, 00-49 → 2000s
+    let year: number
+    if (yearStr.length === 2) {
+      const y = parseInt(yearStr)
+      year = y >= 50 ? 1900 + y : 2000 + y
+    } else {
+      year = parseInt(yearStr)
+    }
+
+    let month: number, day: number
+
+    if (p1 > 12 && p2 <= 12) {
+      // Primer número > 12 → debe ser día → DD/MM
+      day = p1
+      month = p2
+    } else if (p2 > 12 && p1 <= 12) {
+      // Segundo número > 12 → debe ser día → MM/DD
+      month = p1
+      day = p2
+    } else {
+      // Ambiguo (ambos ≤ 12) → asumir MM/DD (formato Excel US)
+      month = p1
+      day = p2
+    }
+
+    if (month < 1 || month > 12 || day < 1 || day > 31) return null
+
+    const iso = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    return validarFecha(iso)
+  }
+
+  return null
+}
+
+// ============================================================
+// Validar fecha: rechazar > 120 años, corregir futuras (-100)
+// ============================================================
+export function validarFecha(iso: string | null): string | null {
+  if (!iso) return null
+  const date = new Date(iso + 'T00:00:00Z')
+  if (isNaN(date.getTime())) return null
+
+  const hoy = new Date()
+  const edad = hoy.getFullYear() - date.getFullYear()
+
+  // Fecha en el futuro → restar 100 años
+  if (date > hoy) {
+    const corregido = new Date(date)
+    corregido.setFullYear(corregido.getFullYear() - 100)
+    const corregidoISO = corregido.toISOString().split('T')[0]
+    // Verificar que la fecha corregida sea plausible (< 120 años)
+    const edadCorregida = hoy.getFullYear() - corregido.getFullYear()
+    if (edadCorregida > 120) return null
+    return corregidoISO
+  }
+
+  // Más de 120 años → rechazar
+  if (edad > 120) return null
+
+  return iso
+}
+
+// ============================================================
 // Parsear fila completa del padrón Hindu
 // ============================================================
 export interface FilaPadronParseada {
@@ -175,19 +253,19 @@ export function parsearFilaPadron(
   const dni = normalizarDNI(dniRaw)
   const { franja, tipo_socio } = parsearCategoria(categoriaRaw)
 
-  // Fechas
+  // Fechas — serial Excel o texto (MM/DD/YY, DD/MM/YY, etc.)
   let fechaNacimiento: string | null = null
   if (esSerialExcel(fechaNacRaw)) {
-    fechaNacimiento = excelSerialToISO(fechaNacRaw as number)
-  } else if (typeof fechaNacRaw === 'string') {
-    fechaNacimiento = fechaNacRaw
+    fechaNacimiento = validarFecha(excelSerialToISO(fechaNacRaw as number))
+  } else if (typeof fechaNacRaw === 'string' && fechaNacRaw.trim()) {
+    fechaNacimiento = parseDateValue(fechaNacRaw.trim())
   }
 
   let fechaIngreso: string | null = null
   if (esSerialExcel(fechaIngrRaw)) {
-    fechaIngreso = excelSerialToISO(fechaIngrRaw as number)
-  } else if (typeof fechaIngrRaw === 'string') {
-    fechaIngreso = fechaIngrRaw
+    fechaIngreso = validarFecha(excelSerialToISO(fechaIngrRaw as number))
+  } else if (typeof fechaIngrRaw === 'string' && fechaIngrRaw.trim()) {
+    fechaIngreso = parseDateValue(fechaIngrRaw.trim())
   }
 
   // Validación

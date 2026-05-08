@@ -24,8 +24,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { Progress } from '@/components/ui/progress'
 import {
-  aplicarSync, rollbackSync, actualizarEstadoRevision, editarDiff,
+  obtenerDiffIdsParaAplicar, aplicarSyncBatch, finalizarSync,
+  rollbackSync, actualizarEstadoRevision, editarDiff,
 } from '../../_actions'
 
 // ============================================================
@@ -53,6 +55,7 @@ interface DiffRecord {
   tipo_cambio: string
   dni_archivo: string | null
   nombre_archivo: string | null
+  nombre_confianza: string | null
   numero_socio_archivo: string | null
   categoria_archivo: string | null
   actividad_archivo: string | null
@@ -96,6 +99,8 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
   const [sortField, setSortField] = useState<string>('nombre_archivo')
   const [sortAsc, setSortAsc] = useState(true)
   const [filterRevision, setFilterRevision] = useState<string>('todos')
+  const [filterConfianza, setFilterConfianza] = useState<string>('todos')
+  const [importProgress, setImportProgress] = useState<{ processed: number; total: number } | null>(null)
 
   const puedeAplicar = sync.estado === 'preview' || sync.estado === 'revisado'
   const puedeRollback = sync.estado === 'aplicado'
@@ -147,6 +152,11 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
       filtered = filtered.filter((d) => d.estado_revision === filterRevision)
     }
 
+    // Filter by nombre_confianza
+    if (filterConfianza !== 'todos') {
+      filtered = filtered.filter((d) => d.nombre_confianza === filterConfianza)
+    }
+
     // Sort
     filtered.sort((a, b) => {
       const aVal = String((a as unknown as Record<string, unknown>)[sortField] ?? '')
@@ -155,7 +165,7 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
     })
 
     return filtered
-  }, [diffs, activeTab, searchQuery, filterRevision, sortField, sortAsc])
+  }, [diffs, activeTab, searchQuery, filterRevision, filterConfianza, sortField, sortAsc])
 
   // Pagination
   const totalPages = Math.ceil(tabDiffs.length / PAGE_SIZE)
@@ -168,6 +178,7 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
     setSelected(new Set())
     setSearchQuery('')
     setFilterRevision('todos')
+    setFilterConfianza('todos')
   }, [])
 
   // Selection
@@ -252,21 +263,49 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
     }
   }
 
-  // Apply
+  // Apply (batched to avoid Vercel 60s timeout)
+  const APPLY_BATCH_SIZE = 50
+
   async function handleAplicar(soloAprobados: boolean) {
     const label = soloAprobados ? 'aprobados' : 'todos los pendientes'
     const count = soloAprobados ? reviewStats.aprobados : reviewStats.aprobados + reviewStats.pendientes
     if (!confirm(`Aplicar ${count} cambios (${label})? Se van a crear personas, dar bajas y actualizar datos.`)) return
 
     setLoading(true)
-    const result = await aplicarSync(sync.id, soloAprobados)
-    setLoading(false)
+    try {
+      const idsResult = await obtenerDiffIdsParaAplicar(sync.id, soloAprobados)
+      if (idsResult.error || !idsResult.ids) {
+        toast.error(idsResult.error ?? 'Error obteniendo diffs')
+        setLoading(false)
+        return
+      }
 
-    if (result.error) {
-      toast.error(result.error)
-    } else {
-      toast.success(`Sync aplicada: ${result.aplicados} cambios, ${result.errores} errores`)
+      const allIds = idsResult.ids
+      setImportProgress({ processed: 0, total: allIds.length })
+
+      let totalAplicados = 0
+      let totalErrores = 0
+
+      for (let i = 0; i < allIds.length; i += APPLY_BATCH_SIZE) {
+        const batch = allIds.slice(i, i + APPLY_BATCH_SIZE)
+        const result = await aplicarSyncBatch(sync.id, batch)
+        if (result.error) {
+          toast.error(result.error)
+          break
+        }
+        totalAplicados += result.aplicados ?? 0
+        totalErrores += result.errores ?? 0
+        setImportProgress({ processed: Math.min(i + batch.length, allIds.length), total: allIds.length })
+      }
+
+      await finalizarSync(sync.id, totalErrores)
+      toast.success(`Sync aplicada: ${totalAplicados} cambios, ${totalErrores} errores`)
       router.refresh()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error aplicando sync')
+    } finally {
+      setLoading(false)
+      setImportProgress(null)
     }
   }
 
@@ -401,6 +440,16 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
           <option value="descartado">Descartados</option>
           <option value="pospuesto">Pospuestos</option>
         </select>
+        <select
+          className="h-9 rounded-md border bg-background px-3 text-sm"
+          value={filterConfianza}
+          onChange={(e) => { setFilterConfianza(e.target.value); setPage(0) }}
+        >
+          <option value="todos">Confianza nombre</option>
+          <option value="alta">Alta</option>
+          <option value="media">Media</option>
+          <option value="baja">Baja - Revisar</option>
+        </select>
         <Button variant="ghost" size="sm" onClick={exportCSV}>
           <Download className="h-4 w-4 mr-1" /> CSV
         </Button>
@@ -440,6 +489,22 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
           <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
             Cancelar
           </Button>
+        </div>
+      )}
+
+      {/* Progress bar */}
+      {importProgress && importProgress.total > 0 && (
+        <div className="rounded-md border p-4 space-y-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium">Aplicando cambios...</span>
+            <span className="text-muted-foreground">
+              {importProgress.processed} / {importProgress.total}
+            </span>
+          </div>
+          <Progress value={(importProgress.processed / importProgress.total) * 100} className="h-2" />
+          <p className="text-xs text-muted-foreground">
+            No cierres ni recargues esta página hasta que termine.
+          </p>
         </div>
       )}
 
@@ -488,11 +553,21 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
                         />
                       </TableCell>
                       <TableCell className="font-medium text-sm">
-                        {d.persona_id ? (
-                          <Link href={`/admin/personas/${d.persona_id}`} className="hover:underline">
-                            {d.nombre_archivo}
-                          </Link>
-                        ) : d.nombre_archivo}
+                        <span className="flex items-center gap-1.5">
+                          {d.persona_id ? (
+                            <Link href={`/admin/personas/${d.persona_id}`} className="hover:underline">
+                              {d.nombre_archivo}
+                            </Link>
+                          ) : d.nombre_archivo}
+                          {d.nombre_confianza && d.nombre_confianza !== 'alta' && (
+                            <Badge
+                              variant={d.nombre_confianza === 'baja' ? 'destructive' : 'secondary'}
+                              className="text-[9px] px-1 py-0 shrink-0"
+                            >
+                              {d.nombre_confianza === 'baja' ? 'Revisar nombre' : 'Nombre?'}
+                            </Badge>
+                          )}
+                        </span>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{d.dni_archivo ?? '-'}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{d.numero_socio_archivo ?? '-'}</TableCell>
