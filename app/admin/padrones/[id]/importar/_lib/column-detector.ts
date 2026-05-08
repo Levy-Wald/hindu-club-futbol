@@ -67,6 +67,10 @@ const HEADER_MAP: Record<string, FieldKey> = {
   birthdate: 'fecha_nacimiento',
   'fecha nac': 'fecha_nacimiento',
   fnac: 'fecha_nacimiento',
+  fechanac: 'fecha_nacimiento',
+  'f nac': 'fecha_nacimiento',
+  'f. nac': 'fecha_nacimiento',
+  'f. nac.': 'fecha_nacimiento',
   // Género
   genero: 'genero',
   género: 'genero',
@@ -144,39 +148,48 @@ function normalizeHeader(header: string): string {
 
 /**
  * Try to detect field by looking at sample data values.
+ * Returns a list of possible fields with confidence scores, sorted by confidence.
  */
 function detectByValues(values: string[]): FieldKey | null {
   const nonEmpty = values.filter((v) => v.trim())
   if (nonEmpty.length === 0) return null
 
-  // Email pattern
+  const threshold = 0.5
+
+  // Email pattern — very distinctive
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (nonEmpty.filter((v) => emailRegex.test(v)).length > nonEmpty.length * 0.5) {
+  if (nonEmpty.filter((v) => emailRegex.test(v)).length > nonEmpty.length * threshold) {
     return 'email_principal'
   }
 
-  // DNI pattern (7-8 digits, possibly with dots)
-  const dniRegex = /^\d{7,8}$|^\d{1,2}\.\d{3}\.\d{3}$/
-  if (nonEmpty.filter((v) => dniRegex.test(v.replace(/\s/g, ''))).length > nonEmpty.length * 0.5) {
-    return 'numero_documento'
-  }
-
-  // CUIL/CUIT pattern (XX-XXXXXXXX-X)
+  // CUIL/CUIT pattern (XX-XXXXXXXX-X) — check before DNI since it contains a DNI
   const cuilRegex = /^\d{2}-?\d{7,8}-?\d$/
-  if (nonEmpty.filter((v) => cuilRegex.test(v.replace(/\s/g, ''))).length > nonEmpty.length * 0.5) {
+  if (nonEmpty.filter((v) => cuilRegex.test(v.replace(/\s/g, ''))).length > nonEmpty.length * threshold) {
     return 'cuil_cuit'
   }
 
-  // Phone pattern
-  const phoneRegex = /^[\d\s\-+()]{8,}$/
-  if (nonEmpty.filter((v) => phoneRegex.test(v)).length > nonEmpty.length * 0.5) {
-    return 'telefono_principal'
+  // DNI pattern (7-8 digits, possibly with dots) — no dashes
+  const dniRegex = /^\d{7,8}$|^\d{1,2}\.\d{3}\.\d{3}$/
+  if (nonEmpty.filter((v) => dniRegex.test(v.replace(/\s/g, ''))).length > nonEmpty.length * threshold) {
+    return 'numero_documento'
   }
 
-  // Date pattern
+  // Numero socio pattern: XXXXX-XX or similar codes with dashes
+  const socioRegex = /^\d{3,6}-\d{1,3}$/
+  if (nonEmpty.filter((v) => socioRegex.test(v.trim())).length > nonEmpty.length * threshold) {
+    return 'numero_socio'
+  }
+
+  // Date pattern — must check BEFORE phone to avoid dates matching phone regex
   const dateRegex = /^\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}$|^\d{4}[\/-]\d{1,2}[\/-]\d{1,2}$/
-  if (nonEmpty.filter((v) => dateRegex.test(v)).length > nonEmpty.length * 0.5) {
+  if (nonEmpty.filter((v) => dateRegex.test(v)).length > nonEmpty.length * threshold) {
     return 'fecha_nacimiento'
+  }
+
+  // Phone pattern — longer digit sequences, often with + or ()
+  const phoneRegex = /^[\d\s\-+()]{10,}$/
+  if (nonEmpty.filter((v) => phoneRegex.test(v)).length > nonEmpty.length * threshold) {
+    return 'telefono_principal'
   }
 
   return null

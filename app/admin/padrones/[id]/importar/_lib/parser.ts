@@ -120,6 +120,12 @@ const HEADER_KEYWORDS = [
   'provincia', 'codigo postal', 'cp', 'nacionalidad',
 ]
 
+/** Words that appear in title rows but are not column headers */
+const TITLE_KEYWORDS = [
+  'padron', 'padrón', 'socios', 'listado', 'club', 'planilla',
+  'registro', 'nomina', 'nómina', 'resumen', 'reporte',
+]
+
 /**
  * Checks if a row looks like a header, title, or metadata row (not real data).
  * Handles multi-row headers common in Excel exports (e.g., "HINDU CLUB", "Apr-26", "APELLIDO Y NOMBRE").
@@ -130,18 +136,26 @@ function isJunkOrHeaderRow(row: string[]): boolean {
   // Row with 0-1 non-empty cells is likely a title/spacer row
   if (nonEmpty.length <= 1) return true
 
+  // Row with only 2 non-empty cells and most cells empty — likely a title row
+  const totalCols = row.length
+  if (nonEmpty.length <= 2 && totalCols >= 5) return true
+
   // Check if any cell contains a header keyword
   const joined = nonEmpty.join(' ').toLowerCase()
   const headerHits = HEADER_KEYWORDS.filter((kw) => joined.includes(kw))
   if (headerHits.length >= 2) return true
 
-  // Check for exact header-like patterns: "APELLIDO Y NOMBRE", "FECHANAC", etc.
+  // Check for title keywords (PADRON SOCIOS, LISTADO DE SOCIOS, etc.)
+  const titleHits = TITLE_KEYWORDS.filter((kw) => joined.includes(kw))
+  if (titleHits.length >= 1 && nonEmpty.length <= 3) return true
+
+  // Check for exact header-like patterns
   const exactHeaders = ['apellido y nombre', 'fechanac', 'fecha nac', 'fecha nacimiento', 'fechaingreso', 'fecha ingreso', 'n° socio', 'nro socio', 'n socio']
   if (nonEmpty.some((v) => exactHeaders.includes(v.toLowerCase().trim()))) return true
 
   // Month-year patterns like "Apr-26", "Ene-26", "2026" — metadata rows
-  const monthPattern = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Ene|Abr|Ago|Dic)[-\s]\d{2,4}$/i
-  if (nonEmpty.length <= 2 && nonEmpty.some((v) => monthPattern.test(v.trim()))) return true
+  const monthPattern = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Ene|Feb|Abr|Ago|Dic)[-\s]\d{2,4}$/i
+  if (nonEmpty.some((v) => monthPattern.test(v.trim()))) return true
 
   return false
 }
@@ -214,10 +228,80 @@ export async function parseExcelFile(buffer: ArrayBuffer): Promise<ParsedData> {
   // Dynamic import of xlsx to keep bundle size down
   try {
     const XLSX = await import('xlsx')
-    const workbook = XLSX.read(buffer, { type: 'array' })
+    const workbook = XLSX.read(buffer, { type: 'array', cellDates: false })
     const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
-    const csv = XLSX.utils.sheet_to_csv(firstSheet)
-    return parseInput(csv)
+
+    // Get raw rows as arrays (header: 1 = no header interpretation)
+    const rawRows: unknown[][] = XLSX.utils.sheet_to_json(firstSheet, {
+      header: 1,
+      defval: '',
+      raw: false, // format dates as strings
+    })
+
+    if (rawRows.length === 0) {
+      return { headers: [], rows: [], delimiter: ',', totalRows: 0 }
+    }
+
+    // Convert all values to strings
+    const allRows = rawRows.map((row) =>
+      row.map((cell) => (cell == null ? '' : String(cell).trim()))
+    )
+
+    // Find the real header row: the row with the most non-empty cells among the first 10 rows
+    // that contains header-like words
+    let headerRowIndex = -1
+    let bestHeaderScore = 0
+
+    for (let i = 0; i < Math.min(allRows.length, 10); i++) {
+      const row = allRows[i]
+      const nonEmpty = row.filter((v) => v !== '')
+      if (nonEmpty.length < 3) continue
+
+      const joined = nonEmpty.join(' ').toLowerCase()
+      let score = 0
+
+      // Check for header keywords
+      const headerWords = ['nombre', 'apellido', 'dni', 'documento', 'socio', 'fecha', 'categoria', 'categoría', 'actividad', 'email', 'telefono']
+      for (const word of headerWords) {
+        if (joined.includes(word)) score += 2
+      }
+
+      // Also check for abbreviated headers
+      const abbrHeaders = ['fechanac', 'fechaingreso', 'nro', 'n°']
+      for (const abbr of abbrHeaders) {
+        if (joined.includes(abbr)) score += 2
+      }
+
+      if (score > bestHeaderScore) {
+        bestHeaderScore = score
+        headerRowIndex = i
+      }
+    }
+
+    if (headerRowIndex >= 0 && bestHeaderScore >= 4) {
+      // Use detected header row
+      const headers = allRows[headerRowIndex]
+      const dataRows = allRows.slice(headerRowIndex + 1)
+      const filtered = filterJunkRows(dataRows)
+      return {
+        headers,
+        rows: filtered,
+        delimiter: ',',
+        totalRows: filtered.length,
+      }
+    }
+
+    // No clear header row found — filter junk rows and use generic headers
+    const dataRows = filterJunkRows(allRows)
+    const colCount = Math.max(...dataRows.map((r) => r.length), 1)
+    const headers = Array.from({ length: colCount }, (_, i) => `Columna ${i + 1}`)
+
+    return {
+      headers,
+      rows: dataRows,
+      delimiter: ',',
+      totalRows: dataRows.length,
+    }
   } catch {
     throw new Error('No se pudo leer el archivo Excel. Intentá exportarlo como CSV.')
   }
