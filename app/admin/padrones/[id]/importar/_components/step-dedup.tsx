@@ -21,6 +21,30 @@ export function StepDedup({ parsedData, mappings, padronId, onComplete, onBack }
   const [importRows, setImportRows] = useState<ImportRow[]>([])
   const [progress, setProgress] = useState(0)
 
+  // Detect if we have a combined "APELLIDO Y NOMBRE" column
+  const hasCombinedNameCol = useMemo(() => {
+    // Check if apellido is mapped but nombre is NOT mapped to any data column
+    const apellidoMapped = mappings.some((m) => m.targetField === 'apellido')
+    const nombreMapped = mappings.some((m) => m.targetField === 'nombre' && parsedData.rows[0]?.[m.sourceIndex]?.trim())
+    if (!apellidoMapped || nombreMapped) return -1
+
+    // Find the apellido column and check if its header suggests combined name
+    const apellidoMapping = mappings.find((m) => m.targetField === 'apellido')
+    if (!apellidoMapping) return -1
+
+    const header = (parsedData.headers[apellidoMapping.sourceIndex] ?? '').toLowerCase()
+    const isCombined = header.includes('nombre') || header.includes('name')
+
+    // Also check data: if values have spaces (like "ABAD GABRIELA"), it's combined
+    if (!isCombined) {
+      const sampleValues = parsedData.rows.slice(0, 10).map((r) => r[apellidoMapping.sourceIndex] ?? '')
+      const hasSpaces = sampleValues.filter((v) => v.trim().includes(' ')).length > sampleValues.length * 0.5
+      if (hasSpaces) return apellidoMapping.sourceIndex
+    }
+
+    return isCombined ? apellidoMapping.sourceIndex : -1
+  }, [mappings, parsedData])
+
   // Build import rows from parsed data + mappings
   const rawRows = useMemo(() => {
     return parsedData.rows.map((row, rowIndex) => {
@@ -40,9 +64,20 @@ export function StepDedup({ parsedData, mappings, padronId, onComplete, onBack }
         }
       }
 
+      // Split combined "APELLIDO NOMBRE" into separate fields
+      if (hasCombinedNameCol >= 0 && data.apellido && !data.nombre) {
+        const fullName = data.apellido
+        const words = fullName.trim().split(/\s+/)
+        if (words.length >= 2) {
+          // First word = apellido, rest = nombre
+          data.apellido = words[0]
+          data.nombre = words.slice(1).join(' ')
+        }
+      }
+
       return { rowIndex, data, unmappedData } as Omit<ImportRow, 'dedupResult'> & { dedupResult: null }
     })
-  }, [parsedData, mappings])
+  }, [parsedData, mappings, hasCombinedNameCol])
 
   // Run dedup
   useEffect(() => {
