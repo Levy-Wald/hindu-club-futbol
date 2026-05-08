@@ -5,11 +5,27 @@ Alineado a la propuesta arquitectonica integral (ver `docs/PROPUESTA-ARQUITECTON
 
 ---
 
-## Estado actual: Sprint 14a.6 COMPLETADO
+## Estado actual: Sprint 14a.7 EN PROGRESO
 
 Sprints 11.5-11.7 + Sprint 12 + Sprint 13 + Sprint 14a + Sprint 14a.5 + Sprint 14a.6 completados.
-Sprint 14a.6 = Unificación import/sync, 7 fixes de importación Hindu, deprecación wizard viejo.
-Pendiente: Yair borra 2348 personas sucias y re-importa via flujo sync unificado.
+Sprint 14a.7 Bloque 1 (velocidad) HECHO. Bloque 4 (parser nombres) HECHO. Bloques 2 y 3 pendientes.
+Pendiente: Yair re-importa Hindu via flujo sync unificado con fixes de velocidad.
+
+### Sprint 14a.7 — Velocidad + UX errores + DNI opcional (EN PROGRESO)
+- [x] Bloque 1: Bulk insert en aplicarSyncBatch (200/batch, ~10x más rápido)
+- [x] Bloque 1: Umbral 95% éxito → "aplicado", < 95% → "fallado"
+- [x] Bloque 1: Fix paginación obtenerDiffIdsParaAplicar (límite 1000 Supabase)
+- [x] Bloque 4: Parser robusto para nombres en 1 celda (juridica, formatoConocido)
+- [ ] Bloque 2: UX errores visible (error_aplicacion column + badges + resumen)
+- [ ] Bloque 3: Personas sin DNI (nullable + datos_incompletos + posible_duplicado)
+
+### Sprint 14c — Importadores extendidos + Personas jurídicas (PENDIENTE)
+Precondición: Sprint 14a.7 completo y Hindu reimportado.
+- [ ] Migration: tipo_persona ('fisica'|'juridica'), razon_social, constraints condicionales
+- [ ] UI personas: filtro física/jurídica, vista detalle condicional
+- [ ] Selector tipo de padrón en upload: Global Socios, Equipos+Jugadores, Suscriptores Fondo, RRHH, Proveedores
+- [ ] Parser por tipo: columnas esperadas, validaciones, tabla destino
+- [ ] Manejo de posible_juridica detectadas en Sprint 14a.7 → migrar a tipo_persona='juridica'
 
 ### Sprint 14a.6 — Unificación import + sync (HECHO)
 - [x] `parseDateValue()` en parsers.ts: maneja texto MM/DD/YY, DD/MM/YY, detección inteligente

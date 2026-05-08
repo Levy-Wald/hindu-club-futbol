@@ -564,7 +564,9 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
                               variant={d.nombre_confianza === 'baja' ? 'destructive' : 'secondary'}
                               className="text-[9px] px-1 py-0 shrink-0"
                             >
-                              {d.nombre_confianza === 'baja' ? 'Revisar nombre' : 'Nombre?'}
+                              {(d.datos_despues as Record<string, unknown>)?.posible_juridica
+                                ? 'Razón social?'
+                                : d.nombre_confianza === 'baja' ? 'Revisar nombre' : 'Nombre?'}
                             </Badge>
                           )}
                         </span>

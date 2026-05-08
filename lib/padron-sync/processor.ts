@@ -102,6 +102,7 @@ export function generarDiffs(
           actividad_club: fila.actividad,
           fecha_ingreso_club: fila.fecha_ingreso,
           notas_club: fila.notas,
+          ...(fila.posible_juridica ? { posible_juridica: true } : {}),
         },
         motivo_rechazo: null,
         fila_original: fila.fila_original,

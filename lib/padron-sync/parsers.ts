@@ -30,24 +30,56 @@ export interface NombreParseado {
   apellido: string
   nombre: string
   confianza: 'alta' | 'media' | 'baja'
+  posible_juridica: boolean
   original: string
 }
 
-export function splitApellidoNombre(raw: string): NombreParseado {
-  const original = raw.trim()
-  if (!original) return { apellido: '', nombre: '', confianza: 'baja', original }
+// Patrones que indican razón social / persona jurídica
+const JURIDICA_PATTERNS = /(?:\bS\.?A\.?\b|\bS\.?R\.?L\.?\b|\bLTD\.?\b|\bINC\.?\b|\bS\.?C\.?\b|\bFUNDACION\b|\bASOCIACION\b|&|\d{2,})/i
+
+/**
+ * Split "APELLIDO NOMBRE" en campos separados.
+ * @param raw - Texto crudo del nombre completo
+ * @param formatoConocido - true si el formato es "APELLIDO NOMBRE" (ej: Hindu).
+ *   false para padrones genéricos donde el orden podría estar invertido.
+ */
+export function splitApellidoNombre(raw: string, formatoConocido = true): NombreParseado {
+  const original = raw.trim().replace(/\s+/g, ' ')
+  const base = { original, posible_juridica: false }
+
+  if (!original) return { apellido: '', nombre: '', confianza: 'baja', ...base }
+
+  // Detectar posible persona jurídica
+  if (JURIDICA_PATTERNS.test(original)) {
+    return {
+      apellido: original,
+      nombre: '',
+      confianza: 'baja',
+      posible_juridica: true,
+      original,
+    }
+  }
 
   const words = original.split(/\s+/)
 
+  // 1 palabra → apellido único
   if (words.length === 1) {
-    return { apellido: words[0], nombre: '', confianza: 'baja', original }
+    return { apellido: words[0], nombre: '', confianza: 'baja', ...base }
   }
 
+  // 2 palabras → split directo
   if (words.length === 2) {
-    return { apellido: words[0], nombre: words[1], confianza: 'alta', original }
+    // Formato conocido (APELLIDO NOMBRE) → alta
+    // Formato desconocido → media (podría estar invertido)
+    return {
+      apellido: words[0],
+      nombre: words[1],
+      confianza: formatoConocido ? 'alta' : 'media',
+      ...base,
+    }
   }
 
-  // Buscar partículas de apellido compuesto
+  // 3+ palabras: buscar partículas de apellido compuesto
   let apellidoWords = 1
 
   // Probar partículas de 3 palabras, luego 2, luego 1
@@ -61,14 +93,24 @@ export function splitApellidoNombre(raw: string): NombreParseado {
     }
   }
 
-  // Si no se encontró partícula y hay 3+ palabras, asumir primera = apellido
-  // pero marcar confianza media/baja
   const apellido = words.slice(0, apellidoWords).join(' ')
   const nombre = words.slice(apellidoWords).join(' ')
-  const confianza = apellidoWords === 1 && words.length > 3 ? 'baja' :
-                    apellidoWords === 1 && words.length === 3 ? 'media' : 'alta'
 
-  return { apellido, nombre, confianza, original }
+  // Confianza: con partícula encontrada → alta, sin partícula → media/baja
+  let confianza: 'alta' | 'media' | 'baja'
+  if (apellidoWords > 1) {
+    // Partícula encontrada → confiable
+    confianza = 'alta'
+  } else if (words.length === 3) {
+    // 3 palabras sin partícula: podría ser "APELLIDO NOMBRE SEGUNDO_NOMBRE"
+    // o "APELLIDO1 APELLIDO2 NOMBRE"
+    confianza = 'media'
+  } else {
+    // 4+ palabras sin partícula: muy ambiguo
+    confianza = 'baja'
+  }
+
+  return { apellido, nombre, confianza, ...base }
 }
 
 // ============================================================
@@ -219,6 +261,7 @@ export interface FilaPadronParseada {
   apellido: string
   nombre: string
   nombre_confianza: 'alta' | 'media' | 'baja'
+  posible_juridica: boolean
   nombre_original: string
   dni: string
   fecha_nacimiento: string | null
@@ -249,7 +292,8 @@ export function parsearFilaPadron(
   // Validar que la fila tiene datos mínimos
   if (!nombreCompleto && !dniRaw) return null
 
-  const { apellido, nombre, confianza, original } = splitApellidoNombre(nombreCompleto)
+  // formatoConocido=true: Hindu usa "APELLIDO NOMBRE" (orden conocido)
+  const { apellido, nombre, confianza, posible_juridica, original } = splitApellidoNombre(nombreCompleto, true)
   const dni = normalizarDNI(dniRaw)
   const { franja, tipo_socio } = parsearCategoria(categoriaRaw)
 
@@ -285,12 +329,19 @@ export function parsearFilaPadron(
     motivo_rechazo = (motivo_rechazo ? motivo_rechazo + '; ' : '') + 'Nombre vacío'
   }
 
+  // Marcar posibles jurídicas con nota
+  if (posible_juridica) {
+    motivo_rechazo = (motivo_rechazo ? motivo_rechazo + '; ' : '') +
+      'Posible razón social — requiere revisión'
+  }
+
   return {
     fila_original: filaIndex,
     numero_socio: socio,
     apellido,
     nombre,
     nombre_confianza: confianza,
+    posible_juridica,
     nombre_original: original,
     dni,
     fecha_nacimiento: fechaNacimiento,
