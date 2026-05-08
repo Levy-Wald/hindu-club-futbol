@@ -542,20 +542,18 @@ export async function obtenerDatosParaFusion(idA: string, idB: string) {
 
   const { data: personaA, error: errA } = await serviceClient
     .from('personas')
-    .select('*, personas_atributos(*)')
+    .select('*, personas_atributos!persona_id(*)')
     .eq('id', idA)
     .eq('tenant_id', TENANT_ID)
     .single()
   const { data: personaB, error: errB } = await serviceClient
     .from('personas')
-    .select('*, personas_atributos(*)')
+    .select('*, personas_atributos!persona_id(*)')
     .eq('id', idB)
     .eq('tenant_id', TENANT_ID)
     .single()
 
-  if (!personaA || !personaB) {
-    return { error: `Fusion error: A=${!!personaA} (${errA?.message ?? 'ok'}), B=${!!personaB} (${errB?.message ?? 'ok'}), url=${!!process.env.NEXT_PUBLIC_SUPABASE_URL}, key=${!!process.env.SUPABASE_SERVICE_ROLE_KEY}` }
-  }
+  if (!personaA || !personaB) return { error: 'Una o ambas personas no existen' }
 
   return { personaA, personaB }
 }
@@ -575,8 +573,8 @@ export async function fusionarPersonas(
   )
 
   // Verificar que ambas personas existen
-  const { data: master } = await serviceClient.from('personas').select('*, personas_atributos(*)').eq('id', masterId).eq('tenant_id', TENANT_ID).single()
-  const { data: merged } = await serviceClient.from('personas').select('*, personas_atributos(*)').eq('id', mergedId).eq('tenant_id', TENANT_ID).single()
+  const { data: master } = await serviceClient.from('personas').select('*, personas_atributos!persona_id(*)').eq('id', masterId).eq('tenant_id', TENANT_ID).single()
+  const { data: merged } = await serviceClient.from('personas').select('*, personas_atributos!persona_id(*)').eq('id', mergedId).eq('tenant_id', TENANT_ID).single()
 
   if (!master || !merged) return formatResult(false, 'Una o ambas personas no existen o ya fueron eliminadas')
   if (master.deleted_at || merged.deleted_at) return formatResult(false, 'No se puede fusionar personas eliminadas')
