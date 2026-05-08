@@ -105,7 +105,7 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
   const [dryRun, setDryRun] = useState(false)
   const DRY_RUN_LIMIT = 50
 
-  const puedeAplicar = sync.estado === 'preview' || sync.estado === 'revisado' || sync.estado === 'preview_parcial'
+  const puedeAplicar = sync.estado === 'preview' || sync.estado === 'revisado'
   const puedeRollback = sync.estado === 'aplicado'
 
   // Counts per tab
@@ -129,6 +129,7 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
       pendientes: actionable.filter((d) => d.estado_revision === 'pendiente').length,
       descartados: actionable.filter((d) => d.estado_revision === 'descartado').length,
       pospuestos: actionable.filter((d) => d.estado_revision === 'pospuesto').length,
+      yaAplicados: actionable.filter((d) => d.aplicado).length,
       total: actionable.length,
     }
   }, [diffs])
@@ -382,7 +383,7 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <EstadoBadge estado={sync.estado} />
+          <EstadoBadge estado={sync.estado} yaAplicados={reviewStats.yaAplicados} />
           {puedeAplicar && (
             <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none">
               <input
@@ -429,6 +430,9 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
           <span className="text-muted-foreground">{reviewStats.pendientes} pendientes</span>
           <span className="text-red-500">{reviewStats.descartados} descartados</span>
           {reviewStats.pospuestos > 0 && <span className="text-yellow-600">{reviewStats.pospuestos} pospuestos</span>}
+          {reviewStats.yaAplicados > 0 && (
+            <span className="text-blue-600 font-medium">{reviewStats.yaAplicados} ya aplicados — quedan {reviewStats.total - reviewStats.yaAplicados} por aplicar</span>
+          )}
         </div>
       )}
 
@@ -715,10 +719,11 @@ function SortableHead({ field, label, current, asc, onSort }: {
   )
 }
 
-function EstadoBadge({ estado }: { estado: string }) {
+function EstadoBadge({ estado, yaAplicados = 0 }: { estado: string; yaAplicados?: number }) {
   switch (estado) {
-    case 'preview': return <Badge variant="secondary">Preview</Badge>
-    case 'preview_parcial': return <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">Preview parcial</Badge>
+    case 'preview': return <Badge variant="secondary" className={yaAplicados > 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' : undefined}>
+      {yaAplicados > 0 ? `Preview (${yaAplicados} aplicados)` : 'Preview'}
+    </Badge>
     case 'aplicado': return <Badge variant="default">Aplicado</Badge>
     case 'rollback': return <Badge variant="destructive">Rollback</Badge>
     case 'fallado': return <Badge variant="destructive">Fallado</Badge>

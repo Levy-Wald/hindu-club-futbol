@@ -289,7 +289,7 @@ export async function obtenerDiffIdsParaAplicar(syncId: string, soloAprobados = 
     .single()
 
   if (!sync) return { error: 'Sync no encontrado' }
-  if (!['preview', 'revisado', 'preview_parcial'].includes(sync.estado)) {
+  if (!['preview', 'revisado'].includes(sync.estado)) {
     return { error: `No se puede aplicar un sync en estado "${sync.estado}"` }
   }
 
@@ -411,6 +411,20 @@ export async function aplicarSyncBatch(syncId: string, diffIds: string[]) {
 
       await supabase.from('personas_padrones').insert(ppToInsert)
 
+      // UPDATE deportes por separado (defensa contra schema cache stale que descarta campos en INSERT)
+      await Promise.all(altas.map((diff, idx) => {
+        const datos = diff.datos_despues as Record<string, string> | null
+        const deportes = parsearDeportesDesdeActividad(datos?.actividad_club)
+        if (!deportes.principal) return Promise.resolve()
+        return supabase
+          .from('personas')
+          .update({
+            deporte_principal_slug: deportes.principal,
+            deportes_secundarios: deportes.secundarios.length > 0 ? deportes.secundarios : null,
+          })
+          .eq('id', personasCreadas[idx].id)
+      }))
+
       // Bulk insert atributo socio_padron para todas las personas creadas
       const atributosToInsert = personasCreadas.map((p) => ({
         tenant_id: TENANT_ID,
@@ -419,7 +433,13 @@ export async function aplicarSyncBatch(syncId: string, diffIds: string[]) {
         activo: true,
         fecha_inicio: hoy,
       }))
-      await supabase.from('personas_atributos').insert(atributosToInsert)
+      const { error: attrError } = await supabase.from('personas_atributos').insert(atributosToInsert)
+      if (attrError) {
+        // Fallback: insertar uno a uno si el bulk falla
+        for (const attr of atributosToInsert) {
+          await supabase.from('personas_atributos').insert(attr)
+        }
+      }
 
       // Marcar todos los diffs del batch como aplicados en una sola query
       const altaIds = altas.map((d) => d.id)
@@ -506,9 +526,16 @@ export async function finalizarSync(syncId: string, totalAplicados: number, tota
   const total = totalAplicados + totalErrores
   const tasaExito = total > 0 ? totalAplicados / total : 1
 
+  // Detección server-side de run parcial (defensa contra dryRun perdido en serialización)
+  const { count: totalDiffs } = await supabase
+    .from('padron_sync_diffs')
+    .select('id', { count: 'exact', head: true })
+    .eq('sync_id', syncId)
+  const esParcial = dryRun || (totalDiffs != null && totalAplicados < totalDiffs)
+
   let estado: string
-  if (dryRun) {
-    estado = 'preview_parcial'
+  if (esParcial) {
+    estado = 'preview'
   } else {
     estado = tasaExito >= 0.95 ? 'aplicado' : 'fallado'
   }
