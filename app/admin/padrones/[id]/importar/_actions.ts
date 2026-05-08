@@ -226,16 +226,47 @@ export async function ejecutarImport(
 function parseDateValue(value: string): string | null {
   if (!value) return null
 
-  // Try DD/MM/YYYY or DD-MM-YYYY
-  const dmy = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/)
-  if (dmy) {
-    const year = dmy[3].length === 2 ? `20${dmy[3]}` : dmy[3]
-    return `${year}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`
-  }
-
   // Try YYYY-MM-DD (already ISO)
   const iso = value.match(/^\d{4}-\d{2}-\d{2}$/)
   if (iso) return value
+
+  // Try patterns like DD/MM/YY, MM/DD/YY, DD/MM/YYYY, MM/DD/YYYY
+  const parts = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/)
+  if (parts) {
+    const p1 = parseInt(parts[1])
+    const p2 = parseInt(parts[2])
+    const yearStr = parts[3]
+
+    // Resolve 2-digit year: 00-49 → 2000s, 50-99 → 1900s
+    let year: number
+    if (yearStr.length === 2) {
+      const y = parseInt(yearStr)
+      year = y >= 50 ? 1900 + y : 2000 + y
+    } else {
+      year = parseInt(yearStr)
+    }
+
+    let month: number, day: number
+
+    if (p1 > 12 && p2 <= 12) {
+      // First part > 12 → must be day → DD/MM format
+      day = p1
+      month = p2
+    } else if (p2 > 12 && p1 <= 12) {
+      // Second part > 12 → must be day → MM/DD format
+      month = p1
+      day = p2
+    } else {
+      // Both ≤ 12 → ambiguous, assume MM/DD (Excel US format default)
+      month = p1
+      day = p2
+    }
+
+    // Validate
+    if (month < 1 || month > 12 || day < 1 || day > 31) return null
+
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  }
 
   return null
 }
