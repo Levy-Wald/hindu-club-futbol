@@ -289,7 +289,7 @@ export async function obtenerDiffIdsParaAplicar(syncId: string, soloAprobados = 
     .single()
 
   if (!sync) return { error: 'Sync no encontrado' }
-  if (sync.estado !== 'preview' && sync.estado !== 'revisado') {
+  if (!['preview', 'revisado', 'preview_parcial'].includes(sync.estado)) {
     return { error: `No se puede aplicar un sync en estado "${sync.estado}"` }
   }
 
@@ -485,16 +485,33 @@ export async function aplicarSyncBatch(syncId: string, diffIds: string[]) {
 }
 
 // ============================================================
+// Paso 4b.1: Progreso real desde DB (polling del client)
+// ============================================================
+export async function obtenerProgresoSync(syncId: string) {
+  const supabase = await createClient()
+  const { count } = await supabase
+    .from('padron_sync_diffs')
+    .select('id', { count: 'exact', head: true })
+    .eq('sync_id', syncId)
+    .eq('aplicado', true)
+  return { aplicados: count ?? 0 }
+}
+
+// ============================================================
 // Paso 4c: Finalizar sync (marcar estado tras todos los batches)
 // ============================================================
-export async function finalizarSync(syncId: string, totalAplicados: number, totalErrores: number) {
+export async function finalizarSync(syncId: string, totalAplicados: number, totalErrores: number, dryRun = false) {
   const supabase = await createClient()
 
   const total = totalAplicados + totalErrores
-  // Si aplicó >= 95% → "aplicado" (errores parciales aceptables)
-  // Si aplicó < 95% → "fallado"
   const tasaExito = total > 0 ? totalAplicados / total : 1
-  const estado = tasaExito >= 0.95 ? 'aplicado' : 'fallado'
+
+  let estado: string
+  if (dryRun) {
+    estado = 'preview_parcial'
+  } else {
+    estado = tasaExito >= 0.95 ? 'aplicado' : 'fallado'
+  }
 
   await supabase
     .from('padron_syncs')

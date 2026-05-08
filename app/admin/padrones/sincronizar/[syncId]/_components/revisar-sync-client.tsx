@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
 import {
   obtenerDiffIdsParaAplicar, aplicarSyncBatch, finalizarSync,
+  obtenerProgresoSync,
   rollbackSync, actualizarEstadoRevision, editarDiff,
 } from '../../_actions'
 
@@ -101,8 +102,10 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
   const [filterRevision, setFilterRevision] = useState<string>('todos')
   const [filterConfianza, setFilterConfianza] = useState<string>('todos')
   const [importProgress, setImportProgress] = useState<{ processed: number; total: number } | null>(null)
+  const [dryRun, setDryRun] = useState(false)
+  const DRY_RUN_LIMIT = 50
 
-  const puedeAplicar = sync.estado === 'preview' || sync.estado === 'revisado'
+  const puedeAplicar = sync.estado === 'preview' || sync.estado === 'revisado' || sync.estado === 'preview_parcial'
   const puedeRollback = sync.estado === 'aplicado'
 
   // Counts per tab
@@ -269,7 +272,9 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
   async function handleAplicar(soloAprobados: boolean) {
     const label = soloAprobados ? 'aprobados' : 'todos los pendientes'
     const count = soloAprobados ? reviewStats.aprobados : reviewStats.aprobados + reviewStats.pendientes
-    if (!confirm(`Aplicar ${count} cambios (${label})? Se van a crear personas, dar bajas y actualizar datos.`)) return
+    const efectivo = dryRun ? Math.min(count, DRY_RUN_LIMIT) : count
+    const dryLabel = dryRun ? ` (prueba: primeros ${DRY_RUN_LIMIT})` : ''
+    if (!confirm(`Aplicar ${efectivo} cambios (${label})${dryLabel}? Se van a crear personas, dar bajas y actualizar datos.`)) return
 
     setLoading(true)
     try {
@@ -280,26 +285,45 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
         return
       }
 
-      const allIds = idsResult.ids
-      setImportProgress({ processed: 0, total: allIds.length })
+      const allIds = dryRun ? idsResult.ids.slice(0, DRY_RUN_LIMIT) : idsResult.ids
+      const totalReal = allIds.length
+      setImportProgress({ processed: 0, total: totalReal })
+
+      // Polling: cada 3s leer progreso real de la DB
+      const pollInterval = setInterval(async () => {
+        try {
+          const { aplicados } = await obtenerProgresoSync(sync.id)
+          setImportProgress((prev) => prev ? { ...prev, processed: aplicados } : null)
+        } catch { /* ignore polling errors */ }
+      }, 3000)
 
       let totalAplicados = 0
       let totalErrores = 0
 
-      for (let i = 0; i < allIds.length; i += APPLY_BATCH_SIZE) {
-        const batch = allIds.slice(i, i + APPLY_BATCH_SIZE)
-        const result = await aplicarSyncBatch(sync.id, batch)
-        if (result.error) {
-          toast.error(result.error)
-          break
+      try {
+        for (let i = 0; i < allIds.length; i += APPLY_BATCH_SIZE) {
+          const batch = allIds.slice(i, i + APPLY_BATCH_SIZE)
+          const result = await aplicarSyncBatch(sync.id, batch)
+          if (result.error) {
+            toast.error(result.error)
+            break
+          }
+          totalAplicados += result.aplicados ?? 0
+          totalErrores += result.errores ?? 0
         }
-        totalAplicados += result.aplicados ?? 0
-        totalErrores += result.errores ?? 0
-        setImportProgress({ processed: Math.min(i + batch.length, allIds.length), total: allIds.length })
+      } finally {
+        clearInterval(pollInterval)
       }
 
-      await finalizarSync(sync.id, totalAplicados, totalErrores)
-      toast.success(`Sync aplicada: ${totalAplicados} cambios, ${totalErrores} errores`)
+      // Update final con número real
+      setImportProgress({ processed: totalReal, total: totalReal })
+
+      await finalizarSync(sync.id, totalAplicados, totalErrores, dryRun)
+      if (dryRun) {
+        toast.success(`Prueba completada: ${totalAplicados} de ${DRY_RUN_LIMIT} aplicados. Validá en DB y luego aplicá el resto.`)
+      } else {
+        toast.success(`Sync aplicada: ${totalAplicados} cambios, ${totalErrores} errores`)
+      }
       router.refresh()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error aplicando sync')
@@ -359,6 +383,17 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <EstadoBadge estado={sync.estado} />
+          {puedeAplicar && (
+            <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={dryRun}
+                onChange={(e) => setDryRun(e.target.checked)}
+                className="rounded"
+              />
+              Probar con {DRY_RUN_LIMIT}
+            </label>
+          )}
           {puedeAplicar && reviewStats.aprobados > 0 && (
             <Button size="sm" variant="outline" onClick={() => handleAplicar(true)} disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
@@ -368,7 +403,7 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
           {puedeAplicar && (
             <Button size="sm" onClick={() => handleAplicar(false)} disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
-              Aplicar todo
+              {dryRun ? `Probar ${DRY_RUN_LIMIT}` : 'Aplicar todo'}
             </Button>
           )}
           {puedeRollback && (
@@ -683,6 +718,7 @@ function SortableHead({ field, label, current, asc, onSort }: {
 function EstadoBadge({ estado }: { estado: string }) {
   switch (estado) {
     case 'preview': return <Badge variant="secondary">Preview</Badge>
+    case 'preview_parcial': return <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">Preview parcial</Badge>
     case 'aplicado': return <Badge variant="default">Aplicado</Badge>
     case 'rollback': return <Badge variant="destructive">Rollback</Badge>
     case 'fallado': return <Badge variant="destructive">Fallado</Badge>
