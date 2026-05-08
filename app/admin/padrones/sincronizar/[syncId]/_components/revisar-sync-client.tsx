@@ -264,7 +264,7 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
   }
 
   // Apply (batched to avoid Vercel 60s timeout)
-  const APPLY_BATCH_SIZE = 50
+  const APPLY_BATCH_SIZE = 200
 
   async function handleAplicar(soloAprobados: boolean) {
     const label = soloAprobados ? 'aprobados' : 'todos los pendientes'
@@ -298,7 +298,7 @@ export function RevisarSyncClient({ sync, diffs: initialDiffs }: { sync: SyncRec
         setImportProgress({ processed: Math.min(i + batch.length, allIds.length), total: allIds.length })
       }
 
-      await finalizarSync(sync.id, totalErrores)
+      await finalizarSync(sync.id, totalAplicados, totalErrores)
       toast.success(`Sync aplicada: ${totalAplicados} cambios, ${totalErrores} errores`)
       router.refresh()
     } catch (err) {

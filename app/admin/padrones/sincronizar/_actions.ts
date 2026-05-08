@@ -323,6 +323,7 @@ export async function obtenerDiffIdsParaAplicar(syncId: string, soloAprobados = 
 
 // ============================================================
 // Paso 4b: Aplicar un batch de diffs (llamado repetidamente desde el client)
+// Usa bulk insert para altas (rápido), fallback individual si falla.
 // ============================================================
 export async function aplicarSyncBatch(syncId: string, diffIds: string[]) {
   const supabase = await createClient()
@@ -336,7 +337,6 @@ export async function aplicarSyncBatch(syncId: string, diffIds: string[]) {
 
   if (!sync) return { error: 'Sync no encontrado' }
 
-  // Get persona_id for revisado_por
   const { data: { session } } = await supabase.auth.getSession()
   let revisadoPor: string | null = null
   if (session) {
@@ -354,28 +354,110 @@ export async function aplicarSyncBatch(syncId: string, diffIds: string[]) {
     .in('id', diffIds)
     .eq('aplicado', false)
 
+  if (!diffs || diffs.length === 0) return { success: true, aplicados: 0, errores: 0 }
+
+  // Separar por tipo
+  const altas = diffs.filter((d) => d.tipo_cambio === 'alta')
+  const modificaciones = diffs.filter((d) => d.tipo_cambio === 'modificacion')
+  const bajas = diffs.filter((d) => d.tipo_cambio === 'baja')
+
   let aplicados = 0
   let errores = 0
+  const now = new Date().toISOString()
+  const hoy = now.split('T')[0]
 
-  for (const diff of diffs ?? []) {
-    try {
-      if (diff.tipo_cambio === 'alta') {
-        await aplicarAlta(supabase, sync.padron_id, diff, syncId)
-      } else if (diff.tipo_cambio === 'modificacion') {
-        await aplicarModificacion(supabase, sync.padron_id, diff, syncId)
-      } else if (diff.tipo_cambio === 'baja') {
-        await aplicarBaja(supabase, sync.padron_id, diff)
+  // --- ALTAS: bulk insert personas → bulk insert personas_padrones ---
+  if (altas.length > 0) {
+    const personasToInsert = altas.map((diff) => {
+      const datos = diff.datos_despues as Record<string, string> | null
+      return {
+        tenant_id: TENANT_ID,
+        nombre: datos?.nombre || 'Sin nombre',
+        apellido: datos?.apellido || 'Sin apellido',
+        numero_documento: datos?.numero_documento || null,
+        fecha_nacimiento: datos?.fecha_nacimiento || null,
+        fuente_origen: 'sync_padron_externo',
       }
+    })
 
+    const { data: personasCreadas, error: bulkError } = await supabase
+      .from('personas')
+      .insert(personasToInsert)
+      .select('id')
+
+    if (!bulkError && personasCreadas && personasCreadas.length === altas.length) {
+      // Bulk insert exitoso — crear vínculos al padrón
+      const ppToInsert = altas.map((diff, idx) => {
+        const datos = diff.datos_despues as Record<string, string> | null
+        return {
+          tenant_id: TENANT_ID,
+          padron_id: sync.padron_id,
+          persona_id: personasCreadas[idx].id,
+          numero_socio: datos?.numero_socio || null,
+          categoria_club: datos?.categoria_club || null,
+          actividad_club: datos?.actividad_club || null,
+          fecha_ingreso_club: datos?.fecha_ingreso_club || null,
+          notas_club: datos?.notas_club || null,
+          estado_club: 'activo',
+          activo: true,
+          fecha_alta: hoy,
+          origen_alta: 'sync_padron_externo',
+          ultimo_sync_id: syncId,
+        }
+      })
+
+      await supabase.from('personas_padrones').insert(ppToInsert)
+
+      // Marcar todos los diffs del batch como aplicados en una sola query
+      const altaIds = altas.map((d) => d.id)
       await supabase
         .from('padron_sync_diffs')
-        .update({
-          aplicado: true,
-          aplicado_at: new Date().toISOString(),
-          revisado_por_persona_id: revisadoPor,
-        })
-        .eq('id', diff.id)
+        .update({ aplicado: true, aplicado_at: now, revisado_por_persona_id: revisadoPor })
+        .in('id', altaIds)
 
+      // Asignar persona_id a cada diff (necesita ser individual por el mapeo 1:1)
+      // Usamos Promise.all para paralelizar
+      await Promise.all(altas.map((diff, i) =>
+        supabase
+          .from('padron_sync_diffs')
+          .update({ persona_id: personasCreadas[i].id })
+          .eq('id', diff.id)
+      ))
+
+      aplicados += altas.length
+    } else {
+      // Bulk falló (ej: DNI duplicado) → fallback individual
+      for (const diff of altas) {
+        try {
+          await aplicarAlta(supabase, sync.padron_id, diff, syncId)
+          await supabase
+            .from('padron_sync_diffs')
+            .update({ aplicado: true, aplicado_at: now, revisado_por_persona_id: revisadoPor })
+            .eq('id', diff.id)
+          aplicados++
+        } catch (err) {
+          errores++
+          await supabase
+            .from('padron_sync_diffs')
+            .update({ notas: `Error: ${err instanceof Error ? err.message : 'desconocido'}` })
+            .eq('id', diff.id)
+        }
+      }
+    }
+  }
+
+  // --- MODIFICACIONES y BAJAS: individual (son pocos normalmente) ---
+  for (const diff of [...modificaciones, ...bajas]) {
+    try {
+      if (diff.tipo_cambio === 'modificacion') {
+        await aplicarModificacion(supabase, sync.padron_id, diff, syncId)
+      } else {
+        await aplicarBaja(supabase, sync.padron_id, diff)
+      }
+      await supabase
+        .from('padron_sync_diffs')
+        .update({ aplicado: true, aplicado_at: now, revisado_por_persona_id: revisadoPor })
+        .eq('id', diff.id)
       aplicados++
     } catch (err) {
       errores++
@@ -392,14 +474,22 @@ export async function aplicarSyncBatch(syncId: string, diffIds: string[]) {
 // ============================================================
 // Paso 4c: Finalizar sync (marcar estado tras todos los batches)
 // ============================================================
-export async function finalizarSync(syncId: string, totalErrores: number) {
+export async function finalizarSync(syncId: string, totalAplicados: number, totalErrores: number) {
   const supabase = await createClient()
+
+  const total = totalAplicados + totalErrores
+  // Si aplicó >= 95% → "aplicado" (errores parciales aceptables)
+  // Si aplicó < 95% → "fallado"
+  const tasaExito = total > 0 ? totalAplicados / total : 1
+  const estado = tasaExito >= 0.95 ? 'aplicado' : 'fallado'
 
   await supabase
     .from('padron_syncs')
     .update({
-      estado: totalErrores > 0 ? 'fallado' : 'aplicado',
-      error_mensaje: totalErrores > 0 ? `${totalErrores} errores al aplicar` : null,
+      estado,
+      error_mensaje: totalErrores > 0
+        ? `${totalErrores} error${totalErrores !== 1 ? 'es' : ''} de ${total} (${Math.round(tasaExito * 100)}% exitoso)`
+        : null,
     })
     .eq('id', syncId)
 
