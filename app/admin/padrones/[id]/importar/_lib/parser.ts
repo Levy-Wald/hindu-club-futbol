@@ -113,6 +113,56 @@ function isLikelyHeader(firstRow: string[], secondRow: string[] | undefined): bo
   return false
 }
 
+const HEADER_KEYWORDS = [
+  'nombre', 'apellido', 'dni', 'documento', 'email', 'telefono', 'tel',
+  'fecha', 'socio', 'nro', 'num', 'dir', 'calle', 'categoria', 'actividad',
+  'estado', 'genero', 'sexo', 'cuil', 'cuit', 'domicilio', 'localidad',
+  'provincia', 'codigo postal', 'cp', 'nacionalidad',
+]
+
+/**
+ * Checks if a row looks like a header, title, or metadata row (not real data).
+ * Handles multi-row headers common in Excel exports (e.g., "HINDU CLUB", "Apr-26", "APELLIDO Y NOMBRE").
+ */
+function isJunkOrHeaderRow(row: string[]): boolean {
+  const nonEmpty = row.filter((v) => v.trim() !== '')
+
+  // Row with 0-1 non-empty cells is likely a title/spacer row
+  if (nonEmpty.length <= 1) return true
+
+  // Check if any cell contains a header keyword
+  const joined = nonEmpty.join(' ').toLowerCase()
+  const headerHits = HEADER_KEYWORDS.filter((kw) => joined.includes(kw))
+  if (headerHits.length >= 2) return true
+
+  // Check for exact header-like patterns: "APELLIDO Y NOMBRE", "FECHANAC", etc.
+  const exactHeaders = ['apellido y nombre', 'fechanac', 'fecha nac', 'fecha nacimiento', 'fechaingreso', 'fecha ingreso', 'n° socio', 'nro socio', 'n socio']
+  if (nonEmpty.some((v) => exactHeaders.includes(v.toLowerCase().trim()))) return true
+
+  // Month-year patterns like "Apr-26", "Ene-26", "2026" — metadata rows
+  const monthPattern = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Ene|Abr|Ago|Dic)[-\s]\d{2,4}$/i
+  if (nonEmpty.length <= 2 && nonEmpty.some((v) => monthPattern.test(v.trim()))) return true
+
+  return false
+}
+
+/**
+ * Filters out all header/title/junk rows from parsed data.
+ * Handles Excel files with multiple header rows (common in club exports).
+ */
+function filterJunkRows(rows: string[][]): string[][] {
+  // Find the first "real data" row — scan from the top
+  let firstDataRow = 0
+  for (let i = 0; i < Math.min(rows.length, 10); i++) {
+    if (!isJunkOrHeaderRow(rows[i])) {
+      firstDataRow = i
+      break
+    }
+    firstDataRow = i + 1
+  }
+  return rows.slice(firstDataRow)
+}
+
 /**
  * Main parse function. Accepts any text input and returns structured data.
  */
@@ -131,23 +181,27 @@ export function parseInput(text: string): ParsedData {
   const hasHeader = isLikelyHeader(allRows[0], allRows[1])
 
   if (hasHeader) {
+    const dataRows = filterJunkRows(allRows.slice(1))
     return {
       headers: allRows[0],
-      rows: allRows.slice(1),
+      rows: dataRows,
       delimiter,
-      totalRows: allRows.length - 1,
+      totalRows: dataRows.length,
     }
   }
 
+  // No detected header — still filter junk rows from the top
+  const dataRows = filterJunkRows(allRows)
+
   // Generate generic headers
-  const colCount = Math.max(...allRows.map((r) => r.length))
+  const colCount = Math.max(...dataRows.map((r) => r.length), 1)
   const headers = Array.from({ length: colCount }, (_, i) => `Columna ${i + 1}`)
 
   return {
     headers,
-    rows: allRows,
+    rows: dataRows,
     delimiter,
-    totalRows: allRows.length,
+    totalRows: dataRows.length,
   }
 }
 

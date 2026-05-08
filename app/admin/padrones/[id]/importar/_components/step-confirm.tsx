@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
 import { Loader2, UserPlus, Link2, Pencil, Ban } from 'lucide-react'
 import { toast } from 'sonner'
 import { ejecutarImport } from '../_actions'
@@ -16,8 +17,11 @@ interface StepConfirmProps {
   onBack: () => void
 }
 
+const BATCH_SIZE = 50
+
 export function StepConfirm({ importRows, padronId, padronNombre, onComplete, onBack }: StepConfirmProps) {
   const [importing, setImporting] = useState(false)
+  const [importProgress, setImportProgress] = useState({ processed: 0, total: 0 })
   const [conflictMode, setConflictMode] = useState<'keep' | 'fill_empty' | 'overwrite_all'>('fill_empty')
 
   // Compute what will happen
@@ -61,19 +65,15 @@ export function StepConfirm({ importRows, padronId, padronNombre, onComplete, on
           if (status === 'nueva') {
             action = 'crear'
           } else if (status === 'match_exacto' || status === 'match_posible') {
-            // Determine what to update based on conflict mode
             if (conflictMode === 'keep') {
-              // Only fill empty fields
               fieldsToUpdate = conflicts
                 .filter((c) => c.currentValue === null && c.newValue)
                 .map((c) => ({ field: c.field, value: c.newValue! }))
             } else if (conflictMode === 'fill_empty') {
-              // Fill empty + keep existing where there's a conflict
               fieldsToUpdate = conflicts
                 .filter((c) => c.currentValue === null && c.newValue)
                 .map((c) => ({ field: c.field, value: c.newValue! }))
             } else if (conflictMode === 'overwrite_all') {
-              // Overwrite everything
               fieldsToUpdate = conflicts
                 .filter((c) => c.newValue)
                 .map((c) => ({ field: c.field, value: c.newValue! }))
@@ -93,8 +93,33 @@ export function StepConfirm({ importRows, padronId, padronNombre, onComplete, on
           }
         })
 
-      const summary = await ejecutarImport(padronId, rowsToSend)
-      onComplete(summary)
+      // Process in batches with progress updates
+      const totalRows = rowsToSend.length
+      setImportProgress({ processed: 0, total: totalRows })
+
+      const accumulatedSummary: ImportSummary = {
+        total: totalRows,
+        nuevas: 0,
+        vinculadas: 0,
+        actualizadas: 0,
+        errores: 0,
+        detalleErrores: [],
+      }
+
+      for (let i = 0; i < totalRows; i += BATCH_SIZE) {
+        const batch = rowsToSend.slice(i, i + BATCH_SIZE)
+        const batchSummary = await ejecutarImport(padronId, batch)
+
+        accumulatedSummary.nuevas += batchSummary.nuevas
+        accumulatedSummary.vinculadas += batchSummary.vinculadas
+        accumulatedSummary.actualizadas += batchSummary.actualizadas
+        accumulatedSummary.errores += batchSummary.errores
+        accumulatedSummary.detalleErrores.push(...batchSummary.detalleErrores)
+
+        setImportProgress({ processed: Math.min(i + batch.length, totalRows), total: totalRows })
+      }
+
+      onComplete(accumulatedSummary)
     } catch (err) {
       toast.error('Error durante la importación.')
       console.error(err)
@@ -198,6 +223,22 @@ export function StepConfirm({ importRows, padronId, padronNombre, onComplete, on
         </div>
       )}
 
+      {/* Progress bar */}
+      {importing && importProgress.total > 0 && (
+        <div className="rounded-md border p-4 space-y-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium">Importando personas...</span>
+            <span className="text-muted-foreground">
+              {importProgress.processed} / {importProgress.total}
+            </span>
+          </div>
+          <Progress value={(importProgress.processed / importProgress.total) * 100} className="h-2" />
+          <p className="text-xs text-muted-foreground">
+            No cierres ni recargues esta página hasta que termine.
+          </p>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex justify-between items-center pt-2">
         <Button variant="ghost" size="sm" onClick={onBack} disabled={importing}>
@@ -207,7 +248,7 @@ export function StepConfirm({ importRows, padronId, padronNombre, onComplete, on
           {importing ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Importando...
+              Importando {importProgress.processed}/{importProgress.total}...
             </>
           ) : (
             `Importar ${importRows.length - plan.omitir} personas`
