@@ -534,10 +534,24 @@ interface FusionFieldChoices {
 }
 
 export async function obtenerDatosParaFusion(idA: string, idB: string) {
-  const supabase = await createClient()
+  // Use service role to bypass RLS — this is an admin-only operation
+  const serviceClient = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 
-  const { data: personaA } = await supabase.from('personas').select('*, personas_atributos(*)').eq('id', idA).single()
-  const { data: personaB } = await supabase.from('personas').select('*, personas_atributos(*)').eq('id', idB).single()
+  const { data: personaA, error: errA } = await serviceClient
+    .from('personas')
+    .select('*, personas_atributos(*)')
+    .eq('id', idA)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+  const { data: personaB, error: errB } = await serviceClient
+    .from('personas')
+    .select('*, personas_atributos(*)')
+    .eq('id', idB)
+    .eq('tenant_id', TENANT_ID)
+    .single()
 
   if (!personaA || !personaB) return { error: 'Una o ambas personas no existen' }
 
@@ -551,18 +565,23 @@ export async function fusionarPersonas(
 ) {
   if (masterId === mergedId) return formatResult(false, 'No se puede fusionar una persona consigo misma')
 
-  const supabase = await createClient()
+  // Use service role throughout — fusion is an admin-only operation that needs
+  // to bypass RLS for reading personas, reassigning FKs, and deleting
+  const serviceClient = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 
   // Verificar que ambas personas existen
-  const { data: master } = await supabase.from('personas').select('*, personas_atributos(*)').eq('id', masterId).eq('tenant_id', TENANT_ID).single()
-  const { data: merged } = await supabase.from('personas').select('*, personas_atributos(*)').eq('id', mergedId).eq('tenant_id', TENANT_ID).single()
+  const { data: master } = await serviceClient.from('personas').select('*, personas_atributos(*)').eq('id', masterId).eq('tenant_id', TENANT_ID).single()
+  const { data: merged } = await serviceClient.from('personas').select('*, personas_atributos(*)').eq('id', mergedId).eq('tenant_id', TENANT_ID).single()
 
   if (!master || !merged) return formatResult(false, 'Una o ambas personas no existen o ya fueron eliminadas')
   if (master.deleted_at || merged.deleted_at) return formatResult(false, 'No se puede fusionar personas eliminadas')
 
   // --- Auth transfer: si merged tiene user_id y master no, transferir ---
   if (merged.user_id && !master.user_id) {
-    await supabase.from('personas').update({ user_id: merged.user_id }).eq('id', masterId)
+    await serviceClient.from('personas').update({ user_id: merged.user_id }).eq('id', masterId)
   } else if (merged.user_id && master.user_id && merged.user_id !== master.user_id) {
     return formatResult(false, 'Ambas personas tienen login (auth.user) distinto. Eliminá manualmente uno de los usuarios de auth antes de fusionar.')
   }
@@ -577,15 +596,9 @@ export async function fusionarPersonas(
   }
 
   if (Object.keys(updateFields).length > 0) {
-    const { error: updateErr } = await supabase.from('personas').update(updateFields).eq('id', masterId)
+    const { error: updateErr } = await serviceClient.from('personas').update(updateFields).eq('id', masterId)
     if (updateErr) return formatResult(false, `Error actualizando master: ${updateErr.message}`)
   }
-
-  // --- Service role client for FK reassignment (bypasses RLS) ---
-  const serviceClient = createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
 
   // --- Discover all FK references to personas dynamically ---
   const { data: fkRefs, error: fkError } = await serviceClient.rpc('get_persona_fk_references')
