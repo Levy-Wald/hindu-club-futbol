@@ -370,12 +370,15 @@ export async function aplicarSyncBatch(syncId: string, diffIds: string[]) {
   if (altas.length > 0) {
     const personasToInsert = altas.map((diff) => {
       const datos = diff.datos_despues as Record<string, string> | null
+      const deportes = parsearDeportesDesdeActividad(datos?.actividad_club)
       return {
         tenant_id: TENANT_ID,
         nombre: datos?.nombre || 'Sin nombre',
         apellido: datos?.apellido || 'Sin apellido',
         numero_documento: datos?.numero_documento || null,
         fecha_nacimiento: datos?.fecha_nacimiento || null,
+        deporte_principal_slug: deportes.principal,
+        deportes_secundarios: deportes.secundarios.length > 0 ? deportes.secundarios : null,
         fuente_origen: 'sync_padron_externo',
       }
     })
@@ -407,6 +410,16 @@ export async function aplicarSyncBatch(syncId: string, diffIds: string[]) {
       })
 
       await supabase.from('personas_padrones').insert(ppToInsert)
+
+      // Bulk insert atributo socio_padron para todas las personas creadas
+      const atributosToInsert = personasCreadas.map((p) => ({
+        tenant_id: TENANT_ID,
+        persona_id: p.id,
+        atributo_slug: 'socio_padron',
+        activo: true,
+        fecha_inicio: hoy,
+      }))
+      await supabase.from('personas_atributos').insert(atributosToInsert)
 
       // Marcar todos los diffs del batch como aplicados en una sola query
       const altaIds = altas.map((d) => d.id)
