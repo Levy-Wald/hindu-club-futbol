@@ -114,6 +114,12 @@ async function splitApellidoNombreHeuristic(input: string): Promise<{ apellido: 
     return { apellido: tokens[0] ?? '', nombre: tokens.slice(1).join(' ') }
   }
 
+  // Single-letter first token (D, O, L) → likely abbreviated compound apellido
+  // "D Amico Manuel" → apellido="D Amico", nombre="Manuel"
+  if (tokens[0].length === 1 && tokens.length >= 3) {
+    return { apellido: tokens.slice(0, 2).join(' '), nombre: tokens.slice(2).join(' ') }
+  }
+
   // Check if first 2-3 tokens match a known compound apellido
   const knownApellidos = await getCompoundApellidos()
 
@@ -461,6 +467,45 @@ export async function procesarMatching(runId: string): Promise<ActionResult> {
     message: `Matching completo: ${counts.exactos} exactos, ${counts.auto_fuzzy} auto-fuzzy, ${counts.revisar} a revisar, ${counts.sin_match} sin match`,
     data: counts,
   }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// reprocesarMatching — re-run matching sin re-parsear archivo
+// ═══════════════════════════════════════════════════════════════
+
+export async function reprocesarMatching(
+  runId: string,
+  soloSinMatch: boolean = false
+): Promise<ActionResult> {
+  const sc = getServiceClient()
+
+  const { data: run, error: runErr } = await sc
+    .from('import_runs')
+    .select('id, estado')
+    .eq('id', runId)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (runErr || !run) return { ok: false, message: 'Run no encontrado' }
+  if (!['revisando', 'matching'].includes(run.estado)) {
+    return { ok: false, message: `No se puede reprocesar un run en estado "${run.estado}"` }
+  }
+
+  // Reset match_status to 'pendiente' for target rows
+  let resetQuery = sc.from('import_rows')
+    .update({ match_status: 'pendiente', match_score: null, match_type: null, persona_id: null, candidatos: [] })
+    .eq('run_id', runId)
+    .in('apply_status', ['pendiente', 'pendiente_revision_equipo'])
+
+  if (soloSinMatch) {
+    resetQuery = resetQuery.eq('match_status', 'sin_match')
+  }
+
+  const { error: resetErr } = await resetQuery
+  if (resetErr) return { ok: false, message: `Error reseteando filas: ${resetErr.message}` }
+
+  // Re-run matching
+  return procesarMatching(runId)
 }
 
 // ═══════════════════════════════════════════════════════════════

@@ -11,6 +11,7 @@ import {
   resolverCandidato,
   resolverBulk,
   aplicarRun,
+  reprocesarMatching,
 } from '@/lib/imports/actions'
 import { buscarPersonas } from '@/app/admin/padrones/_actions'
 import { Button } from '@/components/ui/button'
@@ -59,6 +60,7 @@ import {
   MoreHorizontal,
   Search,
   Trash2,
+  RefreshCw,
 } from 'lucide-react'
 
 interface ImportRow {
@@ -208,6 +210,16 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
     })
   }
 
+  function handleReprocesar() {
+    startTransition(async () => {
+      setMessage('Reprocesando matching...')
+      const result = await reprocesarMatching(runId, true)
+      setMessage(result.message)
+      await loadRows()
+      router.refresh()
+    })
+  }
+
   // Search modal
   function openSearchForRow(rowId: string) {
     setSearchingForRowId(rowId)
@@ -314,6 +326,10 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
       {haySinMatch && estado === 'revisando' && (
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm text-muted-foreground">Acciones masivas para &quot;sin match&quot; ({conteos.sin_match ?? 0}):</span>
+          <Button variant="outline" size="sm" onClick={handleReprocesar} disabled={isPending}>
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Reprocesar matching
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setBulkConfirmOpen(true)} disabled={isPending}>
             <UserPlus className="h-4 w-4 mr-1" />
             Crear todos como personas nuevas
