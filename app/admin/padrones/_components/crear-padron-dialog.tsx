@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -23,6 +23,7 @@ import { toast } from 'sonner'
 import { Plus, Loader2 } from 'lucide-react'
 import { crearPadron } from '../_actions'
 import type { CrearPadronInput } from '../_actions'
+import { obtenerPipelines } from '@/lib/imports/actions'
 
 function slugify(text: string): string {
   return text
@@ -37,6 +38,7 @@ const INITIAL: CrearPadronInput = {
   nombre: '',
   slug: '',
   tipo: '',
+  pipeline_slug: '',
 }
 
 export function CrearPadronDialog() {
@@ -44,6 +46,13 @@ export function CrearPadronDialog() {
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState<CrearPadronInput>(INITIAL)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [pipelines, setPipelines] = useState<{ slug: string; nombre: string; descripcion: string | null }[]>([])
+
+  useEffect(() => {
+    if (open && pipelines.length === 0) {
+      obtenerPipelines().then(setPipelines)
+    }
+  }, [open, pipelines.length])
 
   function updateNombre(value: string) {
     setForm((prev) => ({
@@ -136,6 +145,26 @@ export function CrearPadronDialog() {
                 <SelectItem value="otro">Otro</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="padron-pipeline">Tipo de importacion</Label>
+            <Select value={form.pipeline_slug} onValueChange={(v) => setForm((prev) => ({ ...prev, pipeline_slug: v ?? '' }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar tipo de importacion" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none">Sin tipo (legacy)</SelectItem>
+                {pipelines.map((p) => (
+                  <SelectItem key={p.slug} value={p.slug}>
+                    {p.nombre}{p.descripcion ? ` — ${p.descripcion}` : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Define como se importan datos a este padron. &quot;Sin tipo&quot; usa el flujo legacy.
+            </p>
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>

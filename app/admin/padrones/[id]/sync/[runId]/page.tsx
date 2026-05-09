@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { obtenerRun, obtenerConteosRun } from '@/lib/imports/actions'
+import { fetchPadronDetalle } from '../../../_lib/queries'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -17,13 +18,18 @@ const estadoVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'o
 }
 
 interface Props {
-  params: Promise<{ runId: string }>
+  params: Promise<{ id: string; runId: string }>
 }
 
-export default async function RunDetailPage({ params }: Props) {
-  const { runId } = await params
-  const run = await obtenerRun(runId)
-  if (!run) notFound()
+export default async function SyncRunDetailPage({ params }: Props) {
+  const { id: padronId, runId } = await params
+
+  const [padron, run] = await Promise.all([
+    fetchPadronDetalle(padronId).catch(() => null),
+    obtenerRun(runId),
+  ])
+
+  if (!padron || !run) notFound()
 
   const conteos = await obtenerConteosRun(runId)
 
@@ -35,9 +41,20 @@ export default async function RunDetailPage({ params }: Props) {
 
   return (
     <div className="space-y-4">
+      {/* Breadcrumbs */}
+      <div className="text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
+        <Link href="/admin/padrones" className="hover:underline">Padrones</Link>
+        <span>/</span>
+        <Link href={`/admin/padrones/${padronId}`} className="hover:underline">{padron.nombre}</Link>
+        <span>/</span>
+        <Link href={`/admin/padrones/${padronId}/sync`} className="hover:underline">Sincronizaciones</Link>
+        <span>/</span>
+        <span className="text-foreground">{run.archivo_origen ?? 'Run'}</span>
+      </div>
+
       {/* Header */}
       <div className="flex items-center gap-2">
-        <Link href="/admin/imports">
+        <Link href={`/admin/padrones/${padronId}/sync`}>
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -66,6 +83,7 @@ export default async function RunDetailPage({ params }: Props) {
       {/* Client-side interactive sections */}
       <RunReviewClient
         runId={runId}
+        padronId={padronId}
         estado={run.estado as string}
         conteos={conteos}
         pipelineSlug={run.pipeline_slug as string}

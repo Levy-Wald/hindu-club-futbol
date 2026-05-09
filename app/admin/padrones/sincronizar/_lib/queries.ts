@@ -134,6 +134,7 @@ export async function getPadrones() {
     .select('id, nombre, slug, tipo')
     .eq('tenant_id', TENANT_ID)
     .eq('activo', true)
+    .is('pipeline_slug', null)
     .order('nombre')
   return data ?? []
 }

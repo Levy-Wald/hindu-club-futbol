@@ -12,9 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { ArrowLeft, Users, Sparkles } from 'lucide-react'
+import { ArrowLeft, Users, RefreshCw } from 'lucide-react'
 import { AgregarMiembroDialog } from './_components/agregar-miembro-dialog'
-import { ImportarMiembrosDialog } from './_components/importar-miembros-dialog'
 import { ExportPadronButton } from './_components/export-padron-button'
 import { EliminarPadronButton } from './_components/eliminar-padron-button'
 
@@ -83,15 +82,13 @@ export default async function PadronDetallePage({ params }: PageProps) {
             estadosPadron={estadosPadron}
             tiposSocio={tiposSocio}
           />
-          <ImportarMiembrosDialog
-            padronId={padron.id}
-            estadosPadron={estadosPadron}
-            tiposSocio={tiposSocio}
-          />
-          <Link href={`/admin/padrones/${padron.id}/importar`}>
+          <Link href={padron.pipeline_slug
+            ? `/admin/padrones/${padron.id}/sync/nuevo`
+            : `/admin/padrones/sincronizar?padronId=${padron.id}`
+          }>
             <Button variant="outline" size="sm">
-              <Sparkles className="h-4 w-4 mr-1" />
-              Import inteligente
+              <RefreshCw className="h-4 w-4 mr-1" />
+              Sincronizar
             </Button>
           </Link>
           <EliminarPadronButton padronId={padron.id} padronNombre={padron.nombre} />

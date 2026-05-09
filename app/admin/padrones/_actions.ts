@@ -13,6 +13,7 @@ export interface CrearPadronInput {
   nombre: string
   slug: string
   tipo: string
+  pipeline_slug: string
 }
 
 export async function crearPadron(input: CrearPadronInput) {
@@ -32,6 +33,7 @@ export async function crearPadron(input: CrearPadronInput) {
       nombre: input.nombre.trim(),
       slug: input.slug.trim().toLowerCase().replace(/\s+/g, '-'),
       tipo: input.tipo || null,
+      pipeline_slug: (input.pipeline_slug && input.pipeline_slug !== '__none') ? input.pipeline_slug : null,
     })
     .select('id')
     .single()

@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { MoreHorizontal, Eye, Power, Trash2 } from 'lucide-react'
+import { MoreHorizontal, Eye, Power, Trash2, RefreshCw, History } from 'lucide-react'
 import { toggleActivoPadron, eliminarPadron } from '../_actions'
 import { toast } from 'sonner'
 import { useVistasColumns } from '@/components/ui/vistas-panel'
@@ -172,7 +172,7 @@ export function PadronesTable({ padrones }: PadronesTableProps) {
                   </TableCell>
                   {isVisible('tipo') && (
                     <TableCell className="text-muted-foreground">
-                      {p.tipo ? TIPO_LABELS[p.tipo] ?? p.tipo : '—'}
+                      {p.pipeline_nombre ?? (p.tipo ? TIPO_LABELS[p.tipo] ?? p.tipo : '—')}
                     </TableCell>
                   )}
                   {isVisible('miembros') && <TableCell className="text-center">{p.miembros_activos}</TableCell>}
@@ -194,6 +194,20 @@ export function PadronesTable({ padrones }: PadronesTableProps) {
                           <Eye className="mr-2 h-4 w-4" />
                           Ver detalle
                         </DropdownMenuItem>
+                        <DropdownMenuItem render={<Link href={
+                          p.pipeline_slug
+                            ? `/admin/padrones/${p.id}/sync/nuevo`
+                            : `/admin/padrones/sincronizar?padronId=${p.id}`
+                        } />}>
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Sincronizar
+                        </DropdownMenuItem>
+                        {p.pipeline_slug && (
+                          <DropdownMenuItem render={<Link href={`/admin/padrones/${p.id}/sync`} />}>
+                            <History className="mr-2 h-4 w-4" />
+                            Ver sincronizaciones
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={() => handleToggle(p.id)}>
                           <Power className="mr-2 h-4 w-4" />
                           {p.activo ? 'Desactivar' : 'Activar'}

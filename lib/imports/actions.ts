@@ -223,10 +223,29 @@ async function computeFileHash(buffer: ArrayBuffer): Promise<string> {
 
 export async function iniciarImportRun(
   pipelineSlug: string,
-  formData: FormData
+  formData: FormData,
+  padronId: string
 ): Promise<ActionResult> {
   const sc = getServiceClient()
   clearCompoundCache()
+
+  // Validar padrón
+  const { data: padron, error: padronErr } = await sc
+    .from('padrones')
+    .select('id, pipeline_slug, activo')
+    .eq('id', padronId)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (padronErr || !padron) {
+    return { ok: false, message: 'Padrón no encontrado' }
+  }
+  if (!padron.activo) {
+    return { ok: false, message: 'El padrón está inactivo' }
+  }
+  if (padron.pipeline_slug !== pipelineSlug) {
+    return { ok: false, message: 'Pipeline del archivo no coincide con el del padrón' }
+  }
 
   const { data: pipeline, error: pErr } = await sc
     .from('import_pipelines')
@@ -244,20 +263,20 @@ export async function iniciarImportRun(
   const file = formData.get('file') as File | null
   if (!file) return { ok: false, message: 'No se recibió archivo' }
 
-  // Hash para idempotencia
+  // Hash para idempotencia (por padron_id)
   const buffer = await file.arrayBuffer()
   const hash = await computeFileHash(buffer)
 
   const { data: existingRun } = await sc
     .from('import_runs')
     .select('id, estado')
-    .eq('tenant_id', TENANT_ID)
+    .eq('padron_id', padronId)
     .eq('hash_archivo', hash)
     .in('estado', ['aplicado', 'revisando'])
     .maybeSingle()
 
   if (existingRun) {
-    return { ok: false, message: `Este archivo ya fue procesado (run ${existingRun.id}, estado: ${existingRun.estado})` }
+    return { ok: false, message: `Este archivo ya fue procesado en este padrón (run ${existingRun.id}, estado: ${existingRun.estado})` }
   }
 
   // Parse según strategy
@@ -311,6 +330,7 @@ export async function iniciarImportRun(
     .insert({
       tenant_id: TENANT_ID,
       pipeline_slug: pipelineSlug,
+      padron_id: padronId,
       archivo_origen: file.name,
       hash_archivo: hash,
       estado: 'matching',
@@ -495,7 +515,7 @@ export async function resolverCandidato(
     }
   }
 
-  revalidatePath('/admin/imports')
+  revalidatePath('/admin/padrones')
   return { ok: true, message: `Fila resuelta: ${decision}` }
 }
 
@@ -750,6 +770,50 @@ export async function aplicarRun(runId: string): Promise<ActionResult> {
     }
   }
 
+  // Auto-insertar personas en el padrón del run
+  const padronId = run.padron_id as string
+  if (padronId) {
+    const { data: appliedRows } = await sc.from('import_rows')
+      .select('persona_id')
+      .eq('run_id', runId)
+      .eq('apply_status', 'aplicado')
+      .not('persona_id', 'is', null)
+
+    let padronInserted = 0
+    for (const r of appliedRows ?? []) {
+      if (!r.persona_id) continue
+      const { data: existing } = await sc.from('personas_padrones')
+        .select('id, activo')
+        .eq('padron_id', padronId)
+        .eq('persona_id', r.persona_id)
+        .maybeSingle()
+
+      if (existing?.activo) continue
+
+      if (existing && !existing.activo) {
+        await sc.from('personas_padrones').update({
+          activo: true,
+          fecha_alta: new Date().toISOString().split('T')[0],
+          origen_alta: 'import_run',
+        }).eq('id', existing.id)
+        padronInserted++
+      } else {
+        const { error: ppErr } = await sc.from('personas_padrones').insert({
+          tenant_id: TENANT_ID,
+          persona_id: r.persona_id,
+          padron_id: padronId,
+          fecha_alta: new Date().toISOString().split('T')[0],
+          activo: true,
+          origen_alta: 'import_run',
+        })
+        if (!ppErr) padronInserted++
+      }
+    }
+    if (padronInserted > 0) {
+      revalidatePath(`/admin/padrones/${padronId}`)
+    }
+  }
+
   const resumen = { ...(run.resumen as Record<string, number> ?? {}), aplicados, fallados, pendientes_equipo }
   const estado = pendientes_equipo > 0 ? 'revisando' : (fallados > 0 && aplicados === 0 ? 'fallado' : 'aplicado')
 
@@ -757,7 +821,7 @@ export async function aplicarRun(runId: string): Promise<ActionResult> {
     estado, fecha_fin: pendientes_equipo > 0 ? null : new Date().toISOString(), resumen,
   }).eq('id', runId)
 
-  revalidatePath('/admin/imports')
+  revalidatePath('/admin/padrones')
   return {
     ok: true,
     message: `Aplicación: ${aplicados} aplicados, ${fallados} fallados, ${pendientes_equipo} pendientes equipo`,
@@ -803,7 +867,7 @@ export async function aprobarEquipoPendiente(
   const { error } = await sc.from('equipos').update(updates).eq('id', equipoId)
   if (error) return { ok: false, message: `Error aprobando equipo: ${error.message}` }
 
-  revalidatePath('/admin/imports')
+  revalidatePath('/admin/padrones')
   return { ok: true, message: 'Equipo aprobado' }
 }
 
@@ -834,7 +898,7 @@ export async function rechazarEquipoPendiente(
     }
   }
 
-  revalidatePath('/admin/imports')
+  revalidatePath('/admin/padrones')
   return { ok: true, message: 'Equipo rechazado' }
 }
 
@@ -846,7 +910,7 @@ export async function aprobarTodosEquiposPorRun(runId: string): Promise<ActionRe
     .eq('requiere_revision', true)
 
   if (error) return { ok: false, message: error.message }
-  revalidatePath('/admin/imports')
+  revalidatePath('/admin/padrones')
   return { ok: true, message: 'Todos los equipos aprobados' }
 }
 
@@ -862,7 +926,7 @@ export async function obtenerPipelines() {
   return data ?? []
 }
 
-export async function obtenerRuns(filtros?: { estado?: string; pipelineSlug?: string }) {
+export async function obtenerRuns(filtros?: { estado?: string; pipelineSlug?: string; padronId?: string }) {
   const sc = getServiceClient()
   let query = sc.from('import_runs')
     .select('*, import_pipelines(nombre)')
@@ -872,6 +936,7 @@ export async function obtenerRuns(filtros?: { estado?: string; pipelineSlug?: st
 
   if (filtros?.estado) query = query.eq('estado', filtros.estado)
   if (filtros?.pipelineSlug) query = query.eq('pipeline_slug', filtros.pipelineSlug)
+  if (filtros?.padronId) query = query.eq('padron_id', filtros.padronId)
 
   const { data } = await query
   return data ?? []
@@ -965,7 +1030,7 @@ export async function resolverBulk(
     }
   }
 
-  revalidatePath('/admin/imports')
+  revalidatePath('/admin/padrones')
   return { ok: true, message: `${resueltas} filas resueltas` }
 }
 

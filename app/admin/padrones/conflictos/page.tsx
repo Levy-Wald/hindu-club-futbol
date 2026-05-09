@@ -12,8 +12,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
-
 async function getConflicts() {
   const sc = createServiceClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -41,7 +39,7 @@ export default async function ConflictosPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Link href="/admin/imports">
+        <Link href="/admin/padrones">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>

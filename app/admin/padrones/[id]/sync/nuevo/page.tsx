@@ -1,39 +1,74 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
-import { iniciarImportRun, procesarMatching, obtenerPipelines } from '@/lib/imports/actions'
+import { useRouter, useParams } from 'next/navigation'
+import { iniciarImportRun, procesarMatching } from '@/lib/imports/actions'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 import { Upload, Loader2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
-export default function NuevoImportPage() {
+const TENANT_ID = '11111111-1111-1111-1111-111111111111'
+
+interface PadronInfo {
+  id: string
+  nombre: string
+  pipeline_slug: string | null
+  pipeline_nombre: string | null
+}
+
+export default function SyncNuevoPage() {
   const router = useRouter()
-  const [pipelines, setPipelines] = useState<{ slug: string; nombre: string; descripcion: string | null; parser_strategy: string }[]>([])
-  const [selectedSlug, setSelectedSlug] = useState<string>('')
+  const params = useParams<{ id: string }>()
+  const padronId = params.id
+
+  const [padron, setPadron] = useState<PadronInfo | null>(null)
   const [file, setFile] = useState<File | null>(null)
-  const [status, setStatus] = useState<'idle' | 'loading_pipelines' | 'uploading' | 'matching' | 'done' | 'error'>('idle')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'uploading' | 'matching' | 'done' | 'error'>('idle')
   const [message, setMessage] = useState('')
   const [isPending, startTransition] = useTransition()
   const [loaded, setLoaded] = useState(false)
 
-  // Load pipelines on first render
   if (!loaded) {
     setLoaded(true)
-    setStatus('loading_pipelines')
-    obtenerPipelines().then((data) => {
-      setPipelines(data)
-      if (data.length === 1) setSelectedSlug(data[0].slug)
-      setStatus('idle')
-    })
+    setStatus('loading')
+    const supabase = createClient()
+    supabase
+      .from('padrones')
+      .select('id, nombre, pipeline_slug, import_pipelines(nombre)')
+      .eq('id', padronId)
+      .eq('tenant_id', TENANT_ID)
+      .single()
+      .then(({ data }) => {
+        if (!data) {
+          setStatus('error')
+          setMessage('Padrón no encontrado')
+          return
+        }
+        const plRaw = data.import_pipelines
+        const plName = Array.isArray(plRaw) ? (plRaw[0] as { nombre: string } | undefined)?.nombre : (plRaw as { nombre: string } | null)?.nombre
+        setPadron({
+          id: data.id,
+          nombre: data.nombre,
+          pipeline_slug: data.pipeline_slug,
+          pipeline_nombre: plName ?? null,
+        })
+        if (!data.pipeline_slug) {
+          setStatus('error')
+          setMessage('Este padrón no tiene tipo configurado. Editalo para asignarle uno.')
+        } else {
+          setStatus('idle')
+        }
+      })
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!selectedSlug || !file) return
+    if (!padron?.pipeline_slug || !file) return
 
     setStatus('uploading')
     setMessage('')
@@ -42,7 +77,7 @@ export default function NuevoImportPage() {
     formData.append('file', file)
 
     startTransition(async () => {
-      const result = await iniciarImportRun(selectedSlug, formData)
+      const result = await iniciarImportRun(padron.pipeline_slug!, formData, padronId)
       if (!result.ok) {
         setStatus('error')
         setMessage(result.message)
@@ -52,7 +87,7 @@ export default function NuevoImportPage() {
       const runId = (result.data as { runId: string })?.runId
       if (!runId) {
         setStatus('error')
-        setMessage('No se recibio runId')
+        setMessage('No se recibió runId')
         return
       }
 
@@ -62,15 +97,14 @@ export default function NuevoImportPage() {
       const matchResult = await procesarMatching(runId)
       if (!matchResult.ok) {
         setStatus('error')
-        setMessage(`Run creado pero matching fallo: ${matchResult.message}`)
+        setMessage(`Run creado pero matching falló: ${matchResult.message}`)
         return
       }
 
       setStatus('done')
       setMessage(matchResult.message)
 
-      // Redirect to review page
-      setTimeout(() => router.push(`/admin/imports/${runId}`), 1500)
+      setTimeout(() => router.push(`/admin/padrones/${padronId}/sync/${runId}`), 1500)
     })
   }
 
@@ -79,46 +113,33 @@ export default function NuevoImportPage() {
   return (
     <div className="space-y-4 max-w-xl">
       <div className="flex items-center gap-2">
-        <Link href="/admin/imports">
+        <Link href={`/admin/padrones/${padronId}`}>
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <h1 className="text-xl font-bold">Nueva importacion</h1>
+        <h1 className="text-xl font-bold">
+          Sincronizar padrón{padron ? `: ${padron.nombre}` : ''}
+        </h1>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Subir archivo</CardTitle>
           <CardDescription>
-            Selecciona el pipeline y subi el archivo (CSV, XLS, XLSX).
+            Subí el archivo (CSV, XLS, XLSX) para sincronizar este padrón.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="pipeline">Pipeline</Label>
-              {status === 'loading_pipelines' ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Cargando pipelines...
+            {padron?.pipeline_slug && (
+              <div className="space-y-2">
+                <Label>Pipeline asignado</Label>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">{padron.pipeline_nombre ?? padron.pipeline_slug}</Badge>
                 </div>
-              ) : (
-                <select
-                  id="pipeline"
-                  value={selectedSlug}
-                  onChange={(e) => setSelectedSlug(e.target.value)}
-                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-                  disabled={isProcessing}
-                >
-                  <option value="">Seleccionar pipeline...</option>
-                  {pipelines.map((p) => (
-                    <option key={p.slug} value={p.slug}>
-                      {p.nombre}{p.descripcion ? ` — ${p.descripcion}` : ''}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="file">Archivo</Label>
@@ -127,7 +148,7 @@ export default function NuevoImportPage() {
                 type="file"
                 accept=".csv,.xls,.xlsx,.tsv"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                disabled={isProcessing}
+                disabled={isProcessing || !padron?.pipeline_slug}
               />
             </div>
 
@@ -137,7 +158,7 @@ export default function NuevoImportPage() {
               </div>
             )}
 
-            <Button type="submit" disabled={!selectedSlug || !file || isProcessing} className="w-full">
+            <Button type="submit" disabled={!padron?.pipeline_slug || !file || isProcessing} className="w-full">
               {isProcessing ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -146,7 +167,7 @@ export default function NuevoImportPage() {
               ) : (
                 <>
                   <Upload className="h-4 w-4 mr-2" />
-                  Iniciar importacion
+                  Iniciar sincronización
                 </>
               )}
             </Button>

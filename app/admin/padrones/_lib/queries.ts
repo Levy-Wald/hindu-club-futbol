@@ -7,10 +7,12 @@ export interface PadronConConteo {
   nombre: string
   slug: string
   tipo: string | null
+  pipeline_slug: string | null
   disciplina_slug: string | null
   es_externo: boolean
   activo: boolean
   created_at: string
+  pipeline_nombre: string | null
   miembros_activos: number
 }
 
@@ -26,8 +28,9 @@ export async function fetchPadronesConConteo(params: FetchPadronesParams = {}): 
   let query = supabase
     .from('padrones')
     .select(`
-      id, nombre, slug, tipo, disciplina_slug, es_externo, activo, created_at,
-      personas_padrones!personas_padrones_padron_id_fkey(id)
+      id, nombre, slug, tipo, pipeline_slug, disciplina_slug, es_externo, activo, created_at,
+      personas_padrones!personas_padrones_padron_id_fkey(id),
+      import_pipelines(nombre)
     `)
     .eq('tenant_id', TENANT_ID)
     .order('nombre')
@@ -48,17 +51,23 @@ export async function fetchPadronesConConteo(params: FetchPadronesParams = {}): 
 
   if (error) throw error
 
-  return (data ?? []).map((p) => ({
-    id: p.id,
-    nombre: p.nombre,
-    slug: p.slug,
-    tipo: p.tipo,
-    disciplina_slug: p.disciplina_slug,
-    es_externo: p.es_externo,
-    activo: p.activo,
-    created_at: p.created_at,
-    miembros_activos: Array.isArray(p.personas_padrones) ? p.personas_padrones.length : 0,
-  }))
+  return (data ?? []).map((p) => {
+    const plRaw = (p as unknown as { import_pipelines: { nombre: string } | { nombre: string }[] | null }).import_pipelines
+    const plName = Array.isArray(plRaw) ? plRaw[0]?.nombre : plRaw?.nombre
+    return {
+      id: p.id,
+      nombre: p.nombre,
+      slug: p.slug,
+      tipo: p.tipo,
+      pipeline_slug: p.pipeline_slug,
+      pipeline_nombre: plName ?? null,
+      disciplina_slug: p.disciplina_slug,
+      es_externo: p.es_externo,
+      activo: p.activo,
+      created_at: p.created_at,
+      miembros_activos: Array.isArray(p.personas_padrones) ? p.personas_padrones.length : 0,
+    }
+  })
 }
 
 export interface MiembroPadron {
@@ -79,6 +88,7 @@ export interface PadronDetalle {
   nombre: string
   slug: string
   tipo: string | null
+  pipeline_slug: string | null
   es_externo: boolean
   activo: boolean
   fuente_externa: string | null
@@ -92,7 +102,7 @@ export async function fetchPadronDetalle(id: string): Promise<PadronDetalle> {
   const { data, error } = await supabase
     .from('padrones')
     .select(`
-      id, nombre, slug, tipo, es_externo, activo, fuente_externa, created_at,
+      id, nombre, slug, tipo, pipeline_slug, es_externo, activo, fuente_externa, created_at,
       personas_padrones!personas_padrones_padron_id_fkey(
         id, persona_id, numero_socio, fecha_alta, activo,
         persona:personas!personas_padrones_persona_id_fkey(id, nombre, apellido, numero_documento),
@@ -133,6 +143,7 @@ export async function fetchPadronDetalle(id: string): Promise<PadronDetalle> {
     nombre: data.nombre,
     slug: data.slug,
     tipo: data.tipo,
+    pipeline_slug: data.pipeline_slug,
     es_externo: data.es_externo,
     activo: data.activo,
     fuente_externa: data.fuente_externa,

@@ -58,6 +58,7 @@ interface PendingTeam {
 
 interface Props {
   runId: string
+  padronId: string
   estado: string
   conteos: Record<string, number>
   pipelineSlug: string
@@ -75,7 +76,7 @@ const matchStatusLabels: Record<string, { label: string; variant: 'default' | 's
   error: { label: 'Error', variant: 'destructive' },
 }
 
-export function RunReviewClient({ runId, estado, conteos }: Props) {
+export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [rows, setRows] = useState<ImportRow[]>([])
