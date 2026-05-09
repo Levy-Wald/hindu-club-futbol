@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useCallback, useEffect } from 'react'
+import { useState, useTransition, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   obtenerRowsDeRun,
@@ -12,8 +12,10 @@ import {
   resolverBulk,
   aplicarRun,
 } from '@/lib/imports/actions'
+import { buscarPersonas } from '@/app/admin/padrones/_actions'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -22,6 +24,28 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Loader2,
   Check,
@@ -32,6 +56,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   ShieldCheck,
+  MoreHorizontal,
+  Search,
+  Trash2,
 } from 'lucide-react'
 
 interface ImportRow {
@@ -47,6 +74,7 @@ interface ImportRow {
   apply_status: string
   apply_notas: string | null
   apply_error: string | null
+  notas_revisor: string | null
 }
 
 interface PendingTeam {
@@ -76,6 +104,13 @@ const matchStatusLabels: Record<string, { label: string; variant: 'default' | 's
   error: { label: 'Error', variant: 'destructive' },
 }
 
+interface SearchResult {
+  id: string
+  nombre: string
+  apellido: string
+  numero_documento: string | null
+}
+
 export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -87,6 +122,18 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
   const [message, setMessage] = useState('')
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Search modal state
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [searchingForRowId, setSearchingForRowId] = useState<string | null>(null)
+  const [searchLoading, setSearchLoading] = useState(false)
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Bulk confirm state
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false)
+  const sinMatchPendienteCount = rows.filter(r => r.match_status === 'sin_match' && r.apply_status === 'pendiente' && r.notas_revisor !== 'confirmado_crear').length
 
   const loadRows = useCallback(async () => {
     setLoading(true)
@@ -112,9 +159,9 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
     loadTeams()
   }, [loadRows, loadTeams])
 
-  function handleResolve(rowId: string, decision: 'aceptar_top' | 'crear_nueva' | 'descartar') {
+  function handleResolve(rowId: string, decision: 'aceptar_top' | 'crear_nueva' | 'descartar', opciones?: { notas?: string }) {
     startTransition(async () => {
-      const result = await resolverCandidato(rowId, decision)
+      const result = await resolverCandidato(rowId, decision, opciones)
       setMessage(result.message)
       await loadRows()
     })
@@ -161,8 +208,48 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
     })
   }
 
+  // Search modal
+  function openSearchForRow(rowId: string) {
+    setSearchingForRowId(rowId)
+    setSearchQuery('')
+    setSearchResults([])
+    setSearchOpen(true)
+  }
+
+  function handleSearchInput(value: string) {
+    setSearchQuery(value)
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    if (value.trim().length < 2) {
+      setSearchResults([])
+      return
+    }
+    searchTimerRef.current = setTimeout(async () => {
+      setSearchLoading(true)
+      const results = await buscarPersonas(value)
+      setSearchResults(results as SearchResult[])
+      setSearchLoading(false)
+    }, 300)
+  }
+
+  function handleSearchSelect(personaId: string) {
+    if (!searchingForRowId) return
+    startTransition(async () => {
+      await resolverCandidato(searchingForRowId, 'aceptar_personaId', { personaId })
+      setSearchOpen(false)
+      setSearchingForRowId(null)
+      await loadRows()
+    })
+  }
+
+  // Bulk confirm for sin_match
+  function handleBulkCreateConfirm() {
+    setBulkConfirmOpen(false)
+    handleBulkResolve('sin_match', 'crear_nueva')
+  }
+
   const totalPages = Math.ceil(total / 50)
   const hayPorRevisar = (conteos.revisar ?? 0) > 0
+  const haySinMatch = (conteos.sin_match ?? 0) > 0
   const hayPendienteEquipo = (conteos.apply_pendiente_revision_equipo ?? 0) > 0
   const puedeAplicar = estado === 'revisando' && !hayPendienteEquipo
 
@@ -204,7 +291,7 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
         </div>
       )}
 
-      {/* Bulk actions */}
+      {/* Bulk actions for "revisar" */}
       {hayPorRevisar && estado === 'revisando' && (
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm text-muted-foreground">Acciones masivas para &quot;a revisar&quot;:</span>
@@ -219,6 +306,21 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
           <Button variant="outline" size="sm" onClick={() => handleBulkResolve('revisar', 'descartar')} disabled={isPending}>
             <X className="h-4 w-4 mr-1" />
             Descartar
+          </Button>
+        </div>
+      )}
+
+      {/* Bulk actions for "sin_match" */}
+      {haySinMatch && estado === 'revisando' && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm text-muted-foreground">Acciones masivas para &quot;sin match&quot; ({conteos.sin_match ?? 0}):</span>
+          <Button variant="outline" size="sm" onClick={() => setBulkConfirmOpen(true)} disabled={isPending}>
+            <UserPlus className="h-4 w-4 mr-1" />
+            Crear todos como personas nuevas
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => handleBulkResolve('sin_match', 'descartar')} disabled={isPending}>
+            <X className="h-4 w-4 mr-1" />
+            Descartar todos
           </Button>
         </div>
       )}
@@ -258,33 +360,43 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
           No hay filas{filterMatch ? ` con estado "${filterMatch}"` : ''}.
         </div>
       ) : (
-        <div className="border rounded-md">
+        <div className="border rounded-md overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12">#</TableHead>
                 <TableHead>Nombre</TableHead>
+                <TableHead>Equipo</TableHead>
                 <TableHead>Match</TableHead>
                 <TableHead>Score</TableHead>
                 <TableHead>Match con</TableHead>
                 <TableHead>Apply</TableHead>
-                <TableHead className="w-20">Acciones</TableHead>
+                <TableHead className="w-24">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.map((row) => {
                 const pd = row.parsed_data ?? {}
                 const displayName = [pd.apellido, pd.nombre].filter(Boolean).join(', ') || (pd.nombre_completo as string) || '-'
+                const equipoNombre = String(pd.equipo_nombre ?? '')
                 const topCandidate = row.candidatos?.[0]
                 const candidateSnap = topCandidate?.snapshot
                 const isExpanded = expandedRow === row.id
                 const ms = matchStatusLabels[row.match_status] ?? { label: row.match_status, variant: 'secondary' as const }
+
+                const isRevisar = row.match_status === 'revisar' && row.apply_status === 'pendiente'
+                const isSinMatch = row.match_status === 'sin_match' && row.apply_status === 'pendiente'
+                const isConfirmedNew = isSinMatch && row.notas_revisor === 'confirmado_crear'
+                const showActions = (isRevisar || (isSinMatch && !isConfirmedNew)) && estado === 'revisando'
 
                 return (
                   <>
                     <TableRow key={row.id} className={row.apply_status === 'descartado' ? 'opacity-50' : ''}>
                       <TableCell className="tabular-nums text-muted-foreground">{row.numero_fila}</TableCell>
                       <TableCell className="font-medium">{displayName as string}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate" title={equipoNombre}>
+                        {equipoNombre || '-'}
+                      </TableCell>
                       <TableCell>
                         <Badge variant={ms.variant}>{ms.label}</Badge>
                       </TableCell>
@@ -302,31 +414,54 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-1">
-                          {row.match_status === 'revisar' && row.apply_status === 'pendiente' && (
-                            <>
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleResolve(row.id, 'aceptar_top')} disabled={isPending} title="Aceptar top">
-                                <Check className="h-4 w-4 text-green-600" />
+                        {isConfirmedNew ? (
+                          <Badge variant="outline" className="text-green-600 border-green-600">
+                            <UserPlus className="h-3 w-3 mr-1" />
+                            Crear nueva
+                          </Badge>
+                        ) : showActions ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8" />}>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {isRevisar && topCandidate && (
+                                <DropdownMenuItem onClick={() => handleResolve(row.id, 'aceptar_top')}>
+                                  <Check className="mr-2 h-4 w-4 text-green-600" />
+                                  Aceptar match
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem onClick={() => handleResolve(row.id, 'crear_nueva', { notas: 'confirmado_crear' })}>
+                                <UserPlus className="mr-2 h-4 w-4" />
+                                Crear como persona nueva
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openSearchForRow(row.id)}>
+                                <Search className="mr-2 h-4 w-4" />
+                                Buscar manualmente...
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleResolve(row.id, 'descartar')}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Descartar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          <div className="flex gap-1">
+                            {row.candidatos?.length > 0 && (
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setExpandedRow(isExpanded ? null : row.id)} title="Ver candidatos">
+                                <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleResolve(row.id, 'crear_nueva')} disabled={isPending} title="Crear nueva">
-                                <UserPlus className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleResolve(row.id, 'descartar')} disabled={isPending} title="Descartar">
-                                <X className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </>
-                          )}
-                          {row.candidatos?.length > 0 && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setExpandedRow(isExpanded ? null : row.id)} title="Ver candidatos">
-                              <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                            </Button>
-                          )}
-                        </div>
+                            )}
+                          </div>
+                        )}
                       </TableCell>
                     </TableRow>
                     {isExpanded && row.candidatos?.length > 0 && (
                       <TableRow key={`${row.id}-exp`}>
-                        <TableCell colSpan={7} className="bg-muted/50 p-3">
+                        <TableCell colSpan={8} className="bg-muted/50 p-3">
                           <div className="text-xs space-y-1">
                             <div className="font-medium mb-1">Candidatos:</div>
                             {row.candidatos.map((c, i) => (
@@ -334,7 +469,7 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
                                 <span className="tabular-nums text-muted-foreground">{Math.round(c.score * 100)}%</span>
                                 <span>{String(c.snapshot?.apellido ?? '')} {String(c.snapshot?.nombre ?? '')}</span>
                                 <span className="text-muted-foreground">DNI: {String(c.snapshot?.numero_documento ?? '-')}</span>
-                                {row.match_status === 'revisar' && row.apply_status === 'pendiente' && (
+                                {(isRevisar || isSinMatch) && (
                                   <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => {
                                     startTransition(async () => {
                                       await resolverCandidato(row.id, 'aceptar_personaId', { personaId: c.persona_id })
@@ -406,6 +541,67 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
           </Button>
         </div>
       )}
+
+      {/* Search persona modal */}
+      <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Buscar persona</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder="Nombre, apellido o DNI..."
+              value={searchQuery}
+              onChange={(e) => handleSearchInput(e.target.value)}
+              autoFocus
+            />
+            {searchLoading && (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            )}
+            {!searchLoading && searchResults.length > 0 && (
+              <div className="border rounded-md divide-y max-h-60 overflow-y-auto">
+                {searchResults.map((p) => (
+                  <button
+                    key={p.id}
+                    className="w-full text-left px-3 py-2 hover:bg-muted transition-colors text-sm"
+                    onClick={() => handleSearchSelect(p.id)}
+                    disabled={isPending}
+                  >
+                    <div className="font-medium">{p.apellido}, {p.nombre}</div>
+                    <div className="text-xs text-muted-foreground">DNI: {p.numero_documento ?? '-'}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+            {!searchLoading && searchQuery.length >= 2 && searchResults.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No se encontraron personas
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk create confirmation */}
+      <AlertDialog open={bulkConfirmOpen} onOpenChange={setBulkConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Crear personas nuevas</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vas a marcar {conteos.sin_match ?? 0} filas sin match para crear como personas nuevas.
+              Al aplicar la importacion, se crearan las personas con los datos del archivo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkCreateConfirm} disabled={isPending}>
+              {isPending ? 'Procesando...' : 'Confirmar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

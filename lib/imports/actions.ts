@@ -1022,7 +1022,7 @@ export async function resolverBulk(
       }).eq('id', row.id)
       resueltas++
     } else if (decision === 'crear_nueva') {
-      await sc.from('import_rows').update({ persona_id: null, match_status: 'sin_match' }).eq('id', row.id)
+      await sc.from('import_rows').update({ persona_id: null, match_status: 'sin_match', notas_revisor: 'confirmado_crear' }).eq('id', row.id)
       resueltas++
     } else if (decision === 'descartar') {
       await sc.from('import_rows').update({ apply_status: 'descartado' }).eq('id', row.id)
