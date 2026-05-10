@@ -103,8 +103,7 @@ export default function SyncNuevoPage() {
 
       setStatus('done')
       setMessage(matchResult.message)
-
-      setTimeout(() => router.push(`/admin/padrones/${padronId}/sync/${runId}`), 1500)
+      router.push(`/admin/padrones/${padronId}/sync/${runId}`)
     })
   }
 
@@ -162,7 +161,9 @@ export default function SyncNuevoPage() {
               {isProcessing ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {status === 'uploading' ? 'Procesando archivo...' : 'Ejecutando matching...'}
+                  {status === 'uploading' && 'Subiendo y parseando archivo...'}
+                  {status === 'matching' && 'Buscando coincidencias con personas existentes...'}
+                  {status === 'done' && 'Redirigiendo a revisión...'}
                 </>
               ) : (
                 <>

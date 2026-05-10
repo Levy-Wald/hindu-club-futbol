@@ -125,6 +125,9 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Apply result state
+  const [applyResult, setApplyResult] = useState<{ aplicados: number; fallados: number; pendientes_equipo: number } | null>(null)
+
   // Search modal state
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -204,8 +207,13 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
 
   function handleApply() {
     startTransition(async () => {
+      setMessage('Aplicando importación...')
       const result = await aplicarRun(runId)
       setMessage(result.message)
+      if (result.ok && result.data) {
+        setApplyResult(result.data as { aplicados: number; fallados: number; pendientes_equipo: number })
+      }
+      await loadRows()
       router.refresh()
     })
   }
@@ -529,8 +537,32 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
         </div>
       )}
 
+      {/* Apply result summary */}
+      {applyResult && (
+        <div className="border rounded-md p-4 bg-muted/30 space-y-3">
+          <h3 className="font-semibold flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            Resultado de la aplicación
+          </h3>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center p-3 rounded-md bg-background border">
+              <div className="text-2xl font-bold text-green-600">{applyResult.aplicados}</div>
+              <div className="text-xs text-muted-foreground">Aplicados</div>
+            </div>
+            <div className="text-center p-3 rounded-md bg-background border">
+              <div className={`text-2xl font-bold ${applyResult.fallados > 0 ? 'text-destructive' : 'text-muted-foreground'}`}>{applyResult.fallados}</div>
+              <div className="text-xs text-muted-foreground">Fallados</div>
+            </div>
+            <div className="text-center p-3 rounded-md bg-background border">
+              <div className={`text-2xl font-bold ${applyResult.pendientes_equipo > 0 ? 'text-amber-600' : 'text-muted-foreground'}`}>{applyResult.pendientes_equipo}</div>
+              <div className="text-xs text-muted-foreground">Pendientes equipo</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Apply button */}
-      {puedeAplicar && (
+      {puedeAplicar && !applyResult && (
         <div className="border-t pt-4">
           <Button onClick={handleApply} disabled={isPending} className="w-full sm:w-auto">
             {isPending ? (
@@ -542,13 +574,15 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
         </div>
       )}
 
-      {/* Re-apply after team approval */}
-      {hayPendienteEquipo && pendingTeams.length === 0 && estado === 'revisando' && (
+      {/* Re-apply after team approval or after failures */}
+      {((hayPendienteEquipo && pendingTeams.length === 0) || (applyResult && (applyResult.fallados > 0 || applyResult.pendientes_equipo > 0))) && estado === 'revisando' && (
         <div className="border-t pt-4">
           <p className="text-sm text-muted-foreground mb-2">
-            Todos los equipos fueron aprobados. Podés re-aplicar para procesar las filas pendientes.
+            {hayPendienteEquipo && pendingTeams.length === 0
+              ? 'Todos los equipos fueron aprobados. Podés re-aplicar para procesar las filas pendientes.'
+              : 'Hay filas falladas o pendientes. Podés re-aplicar para reintentar.'}
           </p>
-          <Button onClick={handleApply} disabled={isPending}>
+          <Button onClick={() => { setApplyResult(null); handleApply() }} disabled={isPending}>
             {isPending ? (
               <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Re-aplicando...</>
             ) : (

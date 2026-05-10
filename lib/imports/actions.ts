@@ -772,7 +772,7 @@ export async function aplicarRun(runId: string): Promise<ActionResult> {
   const { data: rows, error: rowsErr } = await sc
     .from('import_rows').select('id, match_status, persona_id, parsed_data')
     .eq('run_id', runId)
-    .in('apply_status', ['pendiente', 'pendiente_revision_equipo'])
+    .in('apply_status', ['pendiente', 'pendiente_revision_equipo', 'fallado'])
     .in('match_status', ['exacto', 'auto_fuzzy', 'manual_review', 'sin_match'])
     .order('numero_fila')
 
@@ -810,7 +810,7 @@ export async function aplicarRun(runId: string): Promise<ActionResult> {
       await sc.from('import_rows').update({ apply_status: 'fallado', apply_error: errors.join('; ') }).eq('id', row.id)
       fallados++
     } else {
-      await sc.from('import_rows').update({ apply_status: 'aplicado' }).eq('id', row.id)
+      await sc.from('import_rows').update({ apply_status: 'aplicado', apply_error: null }).eq('id', row.id)
       aplicados++
     }
   }
