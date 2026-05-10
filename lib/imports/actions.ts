@@ -711,7 +711,14 @@ async function executeApplyAction(
 
       const eq = equipoResult[0] as { equipo_id: string; fue_creado: boolean; requiere_revision: boolean }
 
-      if (eq.requiere_revision) {
+      // Direct DB check — don't trust resolver return value for requiere_revision
+      // (can be stale if equipo was just created/approved in same batch)
+      const { data: equipoCheck } = await sc.from('equipos')
+        .select('requiere_revision')
+        .eq('id', eq.equipo_id)
+        .single()
+
+      if (equipoCheck?.requiere_revision === true) {
         // Don't insert yet — mark row as pending team review
         await sc.from('import_rows').update({
           apply_status: 'pendiente_revision_equipo',
