@@ -2,46 +2,63 @@
 
 ## 2.1 Tablas en schema public (agrupadas por dominio)
 
-> Nota: Los row counts exactos se obtienen de la DB del tenant Hindu (`11111111-1111-1111-1111-111111111111`).
-> Las tablas marcadas "no auditado" no pudieron verificarse en esta sesión.
+> Row counts verificados contra la DB real del tenant Hindu (`11111111-1111-1111-1111-111111111111`).
+> **Totales reales: 99 tablas, 311 RLS policies, 100% tablas con RLS habilitado.**
 
 ### Personas y relacionados
 
-| Tabla | Tipo | RLS | Estado | Notas |
-|-------|------|-----|--------|-------|
-| `personas` | Transaccional | Sí | En uso | ~900+ filas (importadas via padrones). 106 columnas. `numero_documento` nullable desde Sprint 14c.1.2 |
-| `personas_atributos` | Transaccional | Sí | En uso | Asignación de roles/atributos a personas |
-| `personas_padrones` | Transaccional | Sí | En uso | Membresía persona↔padrón con estado, tipo socio, etc. |
-| `personas_equipos` | Transaccional | Sí | En uso | Asignación persona↔equipo con rol. UNIQUE(tenant,persona,equipo,rol) |
-| `personas_vinculos` | Transaccional | Sí | En uso | Vínculos bidireccionales (padre↔hijo, cónyuge, etc.) |
-| `personas_datos_medicos` | Transaccional | Sí | En uso | Datos médicos de la persona |
-| `personas_documentos_identidad` | Transaccional | Sí | En uso | DNI, pasaporte, etc. |
-| `personas_documentos_medicos` | Transaccional | Sí | En uso | Aptos médicos, certificados |
-| `personas_lesiones` | Transaccional | Sí | En uso | Historial de lesiones |
-| `personas_rehabilitaciones` | Transaccional | Sí | En uso | Seguimiento rehabilitación |
-| `personas_vehiculos` | Transaccional | Sí | En uso | Vehículos registrados |
-| `personas_obra_social` | Transaccional | Sí | En uso | Obra social/prepaga |
-| `personas_eventos_personales` | Transaccional | Sí | En uso | Eventos personales (cumpleaños, etc.) |
-| `personas_datos_laborales` | Transaccional | Sí | En uso | 1:1 con persona, datos RRHH |
+| Tabla | Tipo | RLS | Rows | Notas |
+|-------|------|-----|------|-------|
+| `personas` | Transaccional | Sí | **2,389** | 106 columnas. `numero_documento` nullable desde Sprint 14c.1.2 |
+| `personas_atributos` | Transaccional | Sí | **2,569** | Asignación de roles/atributos a personas |
+| `personas_padrones` | Transaccional | Sí | **2,561** | Membresía persona↔padrón con estado, tipo socio, etc. |
+| `personas_equipos` | Transaccional | Sí | **211** | Asignación persona↔equipo con rol. UNIQUE(tenant,persona,equipo,rol) |
+| `personas_vinculos` | Transaccional | Sí | — | Vínculos bidireccionales (padre↔hijo, cónyuge, etc.) |
+| `personas_datos_medicos` | Transaccional | Sí | — | Datos médicos de la persona |
+| `personas_datos_laborales` | Transaccional | Sí | — | 1:1 con persona, datos RRHH |
+| `personas_datos_alimentarios` | Transaccional | Sí | — | Datos alimentarios |
+| `personas_datos_economicos` | Transaccional | Sí | — | Datos económicos |
+| `personas_documentos_identidad` | Transaccional | Sí | — | DNI, pasaporte, etc. |
+| `personas_documentos_medicos` | Transaccional | Sí | — | Aptos médicos, certificados |
+| `personas_contactos_emergencia` | Transaccional | Sí | — | Contactos de emergencia |
+| `personas_credenciales_acceso` | Transaccional | Sí | — | Credenciales de acceso |
+| `personas_lesiones` | Transaccional | Sí | — | Historial de lesiones |
+| `personas_rehabilitaciones` | Transaccional | Sí | — | Seguimiento rehabilitación |
+| `personas_vehiculos` | Transaccional | Sí | — | Vehículos registrados |
+| `personas_obra_social` | Transaccional | Sí | — | Obra social/prepaga |
+| `personas_eventos_personales` | Transaccional | Sí | — | Eventos personales |
+| `personas_autorizaciones` | Transaccional | Sí | — | Autorizaciones |
+| `personas_clubes_anteriores` | Transaccional | Sí | — | Clubes anteriores |
+| `personas_historial_categoria_deportiva` | Transaccional | Sí | — | Historial categoría |
+| `personas_historial_padron` | Transaccional | Sí | — | Historial de padrón |
+| `personas_idiomas` | Transaccional | Sí | — | Idiomas |
+| `personas_incidentes_internos` | Transaccional | Sí | — | Incidentes internos |
+| `personas_media` | Transaccional | Sí | — | Media files |
+| `personas_preferencias_comunicacion` | Transaccional | Sí | — | Preferencias comunicación |
+| `personas_premios_logros` | Transaccional | Sí | — | Premios y logros |
+| `personas_selecciones` | Transaccional | Sí | — | Selecciones nacionales |
+| `personas_talles` | Transaccional | Sí | — | Talles de indumentaria |
 
 ### Padrones e imports
 
 | Tabla | Tipo | RLS | Estado | Notas |
 |-------|------|-----|--------|-------|
-| `padrones` | Transaccional | Sí | En uso | Padrones del club. ~3 (Global, Jugadores, Suscriptores) |
-| `padron_syncs` | Transaccional | Sí | **Legacy** | Sistema viejo de sync. Reemplazado por `import_runs` |
-| `padron_sync_diffs` | Transaccional | Sí | **Legacy** | Diffs del sistema viejo. Reemplazado por `import_rows` |
-| `import_pipelines` | Maestro | Sí | En uso | Config de pipelines de importación. 2 pipelines (jugadores, suscriptores) |
-| `import_runs` | Transaccional | Sí | En uso | Runs de importación. ~5+ runs |
-| `import_rows` | Transaccional | Sí | En uso | Filas individuales de cada run. ~1000+ filas |
+| `padrones` | Transaccional | Sí | **4** | Padrones del club |
+| `padron_syncs` | Transaccional | Sí | — | **Legacy.** Reemplazado por `import_runs` |
+| `padron_sync_diffs` | Transaccional | Sí | — | **Legacy.** Reemplazado por `import_rows` |
+| `import_pipelines` | Maestro | Sí | **3** | Pipelines: jugadores, padron_socios, suscriptores |
+| `import_runs` | Transaccional | Sí | **2** | Ambos en estado `aplicado` |
+| `import_rows` | Transaccional | Sí | **268** | **Sin tenant_id** (tabla global) |
+| `import_field_conflicts` | Transaccional | Sí | — | Conflictos de campos en import |
 
 ### Equipos y deportes
 
 | Tabla | Tipo | RLS | Estado | Notas |
 |-------|------|-----|--------|-------|
-| `equipos` | Transaccional | Sí | En uso | Equipos del club. ~50+ (creados via import) |
-| `categorias_equipo` | Maestro | Sí | En uso | Categorías (Sub-12, Primera, etc.) |
-| `eventos` | Transaccional | Sí | En uso | Tabla central de eventos (Sprint 11.5) |
+| `equipos` | Transaccional | Sí | **7** | Equipos del club |
+| `categorias_equipo` | Maestro | Sí | — | Categorías (Sub-12, Primera, etc.) |
+| `equipos_competencias` | Transaccional | Sí | — | Competencias de equipos |
+| `eventos` | Transaccional | Sí | **0** | Tabla central de eventos (Sprint 11.5). Sin datos. |
 | `evento_asistencias` | Transaccional | Sí | En uso | Asistencias a eventos |
 | `equipos_horarios` | VIEW | — | **Legacy** | VIEW backward-compat sobre `eventos` |
 | `partidos_detalle` | Transaccional | Sí | En uso | Satélite 1:1 de eventos tipo partido |
@@ -71,25 +88,32 @@
 | `catalogo_areas_trabajo` | Maestro/tenant | Sí | En uso (10 seeds) |
 | `catalogo_puestos` | Maestro/tenant | Sí | En uso (10 seeds) |
 | `catalogo_roles_laborales` | Maestro/tenant | Sí | En uso (6 seeds) |
-| `catalogo_indumentaria` | Maestro | Sí | En uso |
+| `catalogo_estados_persona` | Maestro/global | Sí | En uso |
+| `catalogo_planes_comerciales` | Maestro/global | Sí | En uso |
+| `catalogo_tipos_autorizacion` | Maestro/global | Sí | En uso |
+| `catalogo_tipos_evento` | Maestro/global | Sí | En uso |
+| `catalogo_tipos_talle` | Maestro/global | Sí | En uso |
 | `catalogo_modulos` | Maestro/global | Sí | En uso (33 módulos declarados) |
+
+**Nota:** `catalogo_atributos` NO tiene columna `tenant_id` — es tabla global.
 
 ### Finanzas
 
 | Tabla | Tipo | RLS | Estado | Notas |
 |-------|------|-----|--------|-------|
-| `cajas` | Transaccional | Sí | En uso | Cajas de dinero |
-| `movimientos_caja` | Transaccional | Sí | En uso | Movimientos financieros |
-| `plan_cuentas` | Maestro | Sí | En uso | Plan de cuentas contable jerárquico |
-| `productos_servicios` | Transaccional | Sí | En uso | Productos ERP (13 tipos, 30+ campos) |
+| `cajas` | Transaccional | Sí | **3** | Cajas de dinero |
+| `movimientos_caja` | Transaccional | Sí | **0** | Movimientos financieros — **vacío** |
+| `plan_cuentas` | Maestro | Sí | **104** | Plan de cuentas contable jerárquico |
+| `productos_servicios` | Transaccional | Sí | **0** | Productos ERP (13 tipos, 30+ campos) — **vacío** |
+| `producto_proveedor` | Transaccional | Sí | **0** | Relación producto↔proveedor |
 | `cuotas_planes` | Maestro | Sí | En uso | Planes de cuotas |
-| `cuotas_emitidas` | Transaccional | Sí | En uso | Cuotas emitidas |
-| `cuotas_generadas` | Transaccional | Sí | En uso | Cuotas por persona |
+| `cuotas_emitidas` | Transaccional | Sí | **0** | Cuotas emitidas — **vacío** |
+| `cuotas_generadas` | Transaccional | Sí | **0** | Cuotas por persona — **vacío** |
 | `cuotas_bonificaciones` | Transaccional | Sí | En uso | Bonificaciones |
 | `emisiones_cuota` | Transaccional | Sí | En uso | Emisiones masivas de cuotas |
 | `cuentas_corrientes` | Transaccional | Sí | En uso | Cuentas corrientes |
 | `centros_costo` | Maestro | Sí | En uso | Centros de costo |
-| `medios_pago` | Maestro | Sí | En uso | Medios de pago |
+| `medios_pago` | Maestro | Sí | **7** | Medios de pago (seedeados) |
 | `tipos_comprobante` | Maestro | Sí | En uso | Tipos de comprobante |
 | `periodos_contables` | Maestro | Sí | En uso | Períodos contables |
 | `config_financiera` | Config | Sí | En uso | Config por tenant |
@@ -147,11 +171,15 @@
 
 ## 2.2 Resumen de estados
 
-- **Total tablas estimadas:** ~90+ (incluyendo VIEWs)
-- **RLS habilitado:** en todas las tablas
+- **Total tablas:** 99 (verificado contra DB)
+- **Total RLS policies:** 311
+- **RLS habilitado:** 99/99 tablas (100%)
+- **Personas Hindu:** 2,389 — con 2,347 con atributo `socio_padron`
 - **Legacy activo:** `padron_syncs`, `padron_sync_diffs` (conviven con `import_runs`/`import_rows`)
 - **Sin UI:** `esquemas_tacticos`, `esquema_posiciones`
+- **Sin datos operativos:** `eventos` (0), `movimientos_caja` (0), `productos_servicios` (0), `cuotas_emitidas` (0)
 - **VIEWs fin_*:** 10 VIEWs backward-compat, código aún usa nombres originales
+- **Tablas globales (sin tenant_id):** `catalogo_atributos`, `import_rows`
 
 ## 2.3 Funciones SQL custom y triggers
 
@@ -161,13 +189,28 @@
 |---------|------|-----------|
 | `get_tenant_actual()` | SECURITY DEFINER | Devuelve tenant_id del usuario logueado |
 | `get_persona_actual()` | SECURITY DEFINER | Devuelve persona logueada con atributos |
+| `get_persona_fk_references()` | Función | FK references de persona (para protección financiera) |
 | `tiene_atributo(slug)` | SECURITY DEFINER | Check si persona tiene atributo |
 | `tiene_atributo_namespace(modulo, roles[])` | SECURITY DEFINER | Check con namespace (Sprint 11.6) |
 | `modulo_activo(slug)` | SECURITY DEFINER | Check si módulo activo en tenant |
 | `dedupe_persona_por_dni(tenant, dni, datos)` | SECURITY DEFINER | Busca/crea persona por DNI |
 | `es_menor_de_edad(uuid)` | SECURITY DEFINER | Check si persona es menor |
-| `fn_calcular_monto_neto(...)` | Función | Cálculo financiero |
+| `es_admin_sistema()` | SECURITY DEFINER | Check si es admin sistema |
+| `es_admin_tenant()` | SECURITY DEFINER | Check si es admin tenant |
 | `puede_operar_comunicaciones()` | SECURITY DEFINER | Check permisos comunicaciones |
+| `puede_operar_finanzas()` | SECURITY DEFINER | Check permisos finanzas |
+| `puede_operar_rrhh()` | SECURITY DEFINER | Check permisos RRHH |
+
+### Funciones financieras (triggers)
+
+| Función | Tipo | Propósito |
+|---------|------|-----------|
+| `fn_calcular_monto_neto()` | Trigger | Calcula monto neto en movimientos |
+| `fn_actualizar_saldo_caja()` | Trigger | Actualiza saldo de caja tras movimiento |
+| `fn_actualizar_cuenta_corriente()` | Trigger | Actualiza cuenta corriente |
+| `fn_numerar_movimiento()` | Trigger | Auto-numera movimientos |
+| `fn_aplicar_mora()` | Función | Aplica mora a cuotas vencidas |
+| `fn_vencer_cuotas()` | Función | Marca cuotas como vencidas |
 
 ### Funciones de importación (Sprint 14c)
 
@@ -184,14 +227,28 @@
 | `fn_validar_api_key(key_hash)` | Valida API key por hash SHA-256 |
 | `fn_chequear_rate_limit(key_id, limit)` | Rate limiting por API key |
 
+### Extensiones cargadas
+
+- `citext` — case-insensitive text (en schema public, debería estar en extensions — Sprint 16)
+- `pg_trgm` — trigram matching (para búsqueda fuzzy)
+- `unaccent` — strip acentos
+
 ### Triggers
+
+~80 trigger registrations. Patrones principales:
 
 | Trigger | Tabla(s) | Propósito |
 |---------|---------|-----------|
-| `trg_set_updated_at` | Todas las core | Auto-actualiza `updated_at` |
-| `trg_audit_log` | Tablas core | Registra cambios en `audit_log` |
+| `*_set_updated_at` | Casi todas (BEFORE UPDATE) | Auto-actualiza `updated_at` |
+| `personas_audit` | `personas` (AFTER INSERT/UPDATE/DELETE) | Audit log |
+| `tenants_audit` | `tenants` | Audit log |
+| `personas_atributos_audit` | `personas_atributos` | Audit log |
+| `trg_actualizar_cuenta_corriente` | `movimientos_caja` (AFTER INSERT/UPDATE) | Actualiza cuenta corriente |
+| `trg_actualizar_saldo_caja` | `movimientos_caja` (AFTER INSERT/UPDATE) | Actualiza saldo caja |
+| `trg_calcular_monto_neto` | `movimientos_caja` (BEFORE INSERT/UPDATE) | Calcula monto neto |
+| `trg_numerar_movimiento` | `movimientos_caja` (BEFORE INSERT) | Auto-numera |
 
-**Total funciones estimado:** ~66 (según advisor report)
+**Total funciones:** 27 funciones custom
 
 ## 2.4 Migrations
 

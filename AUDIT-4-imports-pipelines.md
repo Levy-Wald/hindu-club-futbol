@@ -11,6 +11,7 @@ Tabla `import_pipelines` con config JSONB.
 | Slug | Nombre | Parser | Modo | Estado |
 |------|--------|--------|------|--------|
 | `jugadores_por_equipo` | Jugadores por equipo | `xlsx_grupos` (headers de grupo en filas) | match_fuzzy + apply_rules | En uso |
+| `padron_socios` | Padrón de socios | — | — | Configurado, sin descripción |
 | `suscriptores_por_equipo` | Suscriptores por equipo | `xlsx_grupos` | match_fuzzy + apply_rules | Configurado, pendiente test E2E |
 
 #### Config `jugadores_por_equipo`:

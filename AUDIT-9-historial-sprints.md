@@ -2,10 +2,20 @@
 
 ## 9.1 Cronología de sprints (desde 14a hasta hoy)
 
-> Nota: Sprints 1-13 se ejecutaron entre 2026-05-04 y 2026-05-07, todos en contexto de setup inicial del v2.
+> Nota: Sprints 1-11.1 se ejecutaron entre 2026-05-04 y 2026-05-06, todos en contexto de setup inicial del v2.
+> **Total: 40 commits desde 2026-05-07** (Sprints 11.5 a 14c.2).
 
 | Fecha | Commit | Sprint | Resumen |
 |-------|--------|--------|---------|
+| 2026-05-07 | `998ab6b` | 11.5 | Fix: next/image config, operaciones Select crash, error handling |
+| 2026-05-07 | `d53aff7` | 11.5 | Feat: repetir eventos estilo Google Calendar |
+| 2026-05-07 | `9329295` | 11.5 | Feat: opciones quincenal y mensual en recurrencia |
+| 2026-05-07 | `6252aae` | UX | Feat: vistas dinámicas en Personas — todas las columnas + export respeta vista |
+| 2026-05-07 | `8799b0a` | 11.6+11.7 | Feat: atributos namespacing + fin_* views |
+| 2026-05-07 | `3cb9c49` | docs | Docs: actualizar MASTER-GAPS post 11.5-11.7 |
+| 2026-05-07 | `5d38036` | 12 | Feat: Sprint 12 — Comunicaciones + Notificaciones |
+| 2026-05-07 | `3fd7e69` | docs | Docs: marcar Sprint 12 como HECHO |
+| 2026-05-07 | `74b10ed` | 13 | Sprint 13: API REST v1 + API Keys + rate limiting |
 | 2026-05-07 | `8faee38` | 14a | Sync de padrones: parsers Excel, procesador de diffs, UI revisión |
 | 2026-05-07 | `32cc0ca` | 14a.5 | UI interactiva: búsqueda, filtros, paginación, selección, acciones bulk, edición individual |
 | 2026-05-07 | `7ba1057` | 14a.5 | Docs: actualizar MASTER-GAPS |

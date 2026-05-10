@@ -2,47 +2,51 @@
 
 ## 5.1 Catálogo de atributos
 
-Tabla `catalogo_atributos` con atributos namespaced (Sprint 11.6).
+Tabla `catalogo_atributos` — **61 atributos** en 14 categorías. **NO tiene tenant_id** (tabla global).
 
-### Atributos del tronco (sin namespace)
+### Atributos por categoría (61 total)
 
-| Slug | Nombre | Categoría | En uso |
-|------|--------|-----------|--------|
-| `socio` | Socio | institucional | Sí (asignado via import) |
-| `jugador` | Jugador | deportivo | Sí |
-| `no_socio` | No socio | institucional | Sí |
-| `miembro` | Miembro | institucional | No auditado |
-| `contacto` | Contacto | institucional | No auditado |
-| `tutor` | Tutor | familiar | No auditado |
-| `padre_tutor` | Padre/Tutor | familiar | No auditado |
-| `menor_de_edad` | Menor de edad | familiar | No auditado |
-| `capitan` | Capitán | deportivo | No auditado |
-| `dt` | Director Técnico | deportivo | No auditado |
-| `kine` | Kinesiólogo | deportivo | No auditado |
-| `suscriptor` | Suscriptor | institucional | Nuevo (Sprint 14c.2), sin personas asignadas aún |
+| Categoría | Slugs |
+|-----------|-------|
+| **comunicaciones** (2) | `comunicaciones.admin`, `comunicaciones.editor` |
+| **country** (3) | `inquilino`, `invitado_familiar`, `propietario` |
+| **deportivo** (9) | `asistente_dt`, `capitan`, `dt`, `jugador`, `kine_club`, `medico_club`, `preparador_fisico`, `scout`, `suscriptor` |
+| **educativo** (3) | `alumno`, `directivo_escuela`, `docente` |
+| **empleado** (5) | `admin_finanzas`, `empleado_administrativo`, `empleado_operativo`, `instructor_externo`, `staff` |
+| **externo** (4) | `jugador_rival`, `proveedor`, `representante_federacion`, `sponsor` |
+| **familiar** (3) | `conyuge_socio`, `menor_de_edad`, `padre_tutor` |
+| **finanzas** (3) | `finanzas.admin`, `finanzas.consulta`, `finanzas.tesorero` |
+| **institucional** (6) | `comision_directiva`, `dirigente`, `socio`, `socio_padron`, `tesorero`, `voluntario` |
+| **integraciones** (1) | `api.admin` |
+| **laboral** (3) | `rrhh.admin`, `rrhh.consulta`, `rrhh.empleado` |
+| **operaciones** (2) | `operaciones.coordinador`, `operaciones.scout` |
+| **sistema** (8) | `admin_padron`, `admin_sistema`, `admin_tenant`, `editor_contenidos`, `padron.admin`, `padron.consulta`, `sistema.admin`, `sistema.soporte`, `soporte_tecnico` |
+| **tenant** (4) | `tenant.admin`, `tenant.admin_padron`, `tenant.editor`, `tenant.staff` |
+| **transversal** (4) | `en_mora`, `requiere_revision`, `sancionado`, `vip` |
 
-### Atributos namespaced
+### Atributos con personas asignadas (activos)
 
-| Slug | Nombre | Categoría |
-|------|--------|-----------|
-| `sistema.admin` | Admin Sistema | sistema |
-| `sistema.staff` | Staff | sistema |
-| `sistema.soporte` | Soporte | sistema |
-| `tenant.admin` | Admin Tenant | tenant |
-| `tenant.editor` | Editor | tenant |
-| `tenant.lectura` | Lectura | tenant |
-| `finanzas.admin` | Admin Finanzas | finanzas |
-| `finanzas.tesorero` | Tesorero | finanzas |
-| `finanzas.consulta` | Consulta Finanzas | finanzas |
-| `rrhh.admin` | Admin RRHH | rrhh |
-| `rrhh.empleado` | Empleado | rrhh |
-| `rrhh.consulta` | Consulta RRHH | rrhh |
-| `padron.admin` | Admin Padrón | padron |
-| `padron.consulta` | Consulta Padrón | padron |
-| `comunicaciones.admin` | Admin Comunicaciones | comunicaciones |
-| `api.admin` | Admin API | api |
+| Atributo | Personas asignadas |
+|----------|-------------------|
+| `socio_padron` | **2,347** |
+| `jugador` | **165** |
+| `suscriptor` | **51** |
+| `socio` | 2 |
+| `tenant.staff` | 1 |
+| `tenant.admin_padron` | 1 |
+| `sistema.admin` | 1 |
+| `tenant.admin` | 1 |
 
-> Nota: No se pudo verificar el conteo exacto de personas asignadas a cada atributo en esta sesión. El agente de DB no completó a tiempo.
+**Solo 8 de 61 atributos están en uso real.** Los slugs viejos (`admin_sistema`, `admin_tenant`) no tienen personas asignadas — solo los namespaced (`sistema.admin`, `tenant.admin`) están activos.
+
+### Duplicación old-style vs namespaced
+
+Existe duplicación visible entre:
+- `admin_sistema` ↔ `sistema.admin` (solo `sistema.admin` en uso)
+- `admin_tenant` ↔ `tenant.admin` (solo `tenant.admin` en uso)
+- `admin_padron` ↔ `padron.admin` (ninguno en uso directo, `tenant.admin_padron` sí)
+
+Los viejos deberían eliminarse en Sprint 16 (hardening).
 
 ## 5.2 Catálogos auxiliares seedeados
 
@@ -73,6 +77,19 @@ Tabla `catalogo_atributos` con atributos namespaced (Sprint 11.6).
 ### Tenant actual
 
 Existe **1 solo tenant**: Hindu Club (`11111111-1111-1111-1111-111111111111`).
+
+| Campo | Valor |
+|-------|-------|
+| ID | `11111111-1111-1111-1111-111111111111` |
+| Slug | `hindu_club` |
+| Nombre | Hindu Club |
+| Tipo | `club` |
+| Plan | `enterprise` |
+| Activo | `true` |
+| Timezone | `America/Argentina/Buenos_Aires` |
+| Idioma | `es` |
+| Email admin | `yair@levywald.com` |
+| Configuración | `{}` (vacío) |
 
 ### Cómo se crea un tenant nuevo
 

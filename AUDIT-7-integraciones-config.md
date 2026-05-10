@@ -28,11 +28,11 @@
 
 | Bucket | Público | Max size | MIME types | Estado |
 |--------|---------|----------|------------|--------|
-| `public-assets` | Sí | — | — | En uso (logos, branding) |
-| `private-fotos-personales` | No | — | — | En uso |
-| `private-documentos` | No | — | — | En uso |
-| `private-comprobantes` | No | — | — | Creado |
-| `private-recibos-sueldo` | No | 10MB | pdf, jpg, png, webp | Creado (Sprint 11) |
+| `public-assets` | Sí | 5 MB | jpeg, png, webp, svg+xml | En uso (logos, branding) |
+| `private-fotos-personales` | No | 5 MB | jpeg, png, webp | En uso |
+| `private-documentos` | No | 10 MB | jpeg, png, webp, pdf | En uso |
+| `private-comprobantes` | No | 10 MB | jpeg, png, webp, pdf | Creado |
+| `private-recibos-sueldo` | No | 10 MB | pdf, jpeg, png, webp | Creado (Sprint 11) |
 
 Todos los buckets privados tienen RLS policies.
 Path convention: `{bucket}/{tenant_id}/{module_slug}/{entity_id}/{filename}`
@@ -58,8 +58,8 @@ SUPABASE_SERVICE_ROLE_KEY=
 ## 7.4 RLS policies
 
 ### Resumen
-- **Total policies:** ~277+ (según advisor report)
-- **Todas las tablas** tienen RLS habilitado
+- **Total policies:** 311 (verificado contra DB)
+- **99/99 tablas** tienen RLS habilitado (100%)
 - **0 errores de seguridad** (advisor limpio post-cleanup Sprint 11)
 
 ### Patrón estándar de RLS:
