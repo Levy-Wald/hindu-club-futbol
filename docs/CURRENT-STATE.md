@@ -6,30 +6,19 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint 14j.2 cerrado
-> (Concesiones: 6 tablas, 4 funciones SQL, 2 vistas, 4 pantallas,
-> POS tablet-optimizado, cron canon mensual, 4 tipos notificación,
-> ADR-025, permisos admin_concesiones, sidebar entry).
+> Última actualización: 11 de mayo de 2026 — Cierre FASE 1 completo.
+> Sprints 14d a 14j.2 cerrados. Tag `v0.1.0-fase1-cierre`.
 
 ---
 
 ## 0. Snapshot ejecutivo
 
-**Estado general:** Plataforma con esqueleto técnico avanzado, datos
-operativos limitados al vertical Club Deportivo en tenant Hindu.
+**Estado general:** FASE 1 cerrada. Plataforma con base operativa completa
+para Hindu Club Futbol: suscripciones, cuotas, cobranza, centros de costo,
+salud, utileria, cuerpo tecnico, notificaciones in-app, concesiones.
 
-**Último sprint cerrado:** **14j.2** — Módulo Concesiones.
-6 tablas: `concesionarios`, `concesion_puntos_venta`, `concesion_productos`,
-`concesion_ventas`, `concesion_venta_items`, `concesion_canones`. Funciones:
-`fn_registrar_venta_concesion` (SECURITY DEFINER, NO genera movimientos_caja),
-`fn_calcular_canon_concesion`, `fn_cobrar_canon_concesion` (placeholder FASE 7),
-`fn_obtener_mp_credenciales` (audit log). Vistas: `v_concesionarios_resumen`,
-`v_concesion_ventas_mensuales`. 4 pantallas: listado cards, detalle 6 tabs,
-POS tablet-optimizado, reportes. Cron canon mensual día 6 8am.
-Permisos: `admin_concesiones` atributo + helper `obtenerPermisosConcesiones`.
-4 tipos notificación: venta registrada, canon calculado, canon pendiente,
-stock mínimo. ADR-025. Aislamiento financiero: ventas del concesionario NO
-impactan plan de cuentas del club.
+**Ultimo sprint cerrado:** **14j.2** — Modulo Concesiones (cierre FASE 1).
+FASE 1 abarca sprints 14d a 14j.2 (12 sprints). Proxima: FASE 2 Comunicacion.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -42,14 +31,15 @@ impactan plan de cuentas del club.
 
 | Métrica | Valor |
 |---|---|
-| Tablas en `public` | 111 (+6 concesion_*) |
-| Tablas con RLS habilitada | 110 (100%) |
-| RLS policies | 338 (+18 concesion_*) |
-| Funciones custom (`pg_proc` en public) | 119 (+fn_registrar_venta_concesion, fn_calcular_canon_concesion, fn_cobrar_canon_concesion, fn_obtener_mp_credenciales) |
-| Triggers | 93 (+5 trg_set_updated_at concesion_*) |
-| VIEWs | 20 (+v_concesionarios_resumen, v_concesion_ventas_mensuales) |
+| Tablas en `public` | 115 |
+| Tablas con RLS habilitada | 115 (100%) |
+| RLS policies | 355 |
+| Funciones custom (`pg_proc` en public) | 126 |
+| Triggers | 97 |
+| VIEWs | 27 |
+| Storage buckets | 6 (incl. private-utileria-fotos) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 62 (7 públicas + 55 admin) |
+| Páginas Next.js | 64 (7 públicas + 57 admin) |
 | API routes | 12 (5 endpoints v1 + 3 internos + 4 crons) |
 | Server actions | ~160 en 26 archivos |
 | Componentes custom (no shadcn) | ~115 |
@@ -57,9 +47,10 @@ impactan plan de cuentas del club.
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,389 |
 | Equipos (Hindu) | 7 |
-| Atributos en catálogo | 58 (+admin_concesiones) |
-| Módulos catalogados | 35 (+concesiones) |
-| Módulos activos en Hindu | 18 (+concesiones) |
+| Atributos en catálogo | 64 |
+| Tipos de notificación catalogados | 23 |
+| Módulos catalogados | 36 |
+| Módulos activos en Hindu | 25 |
 
 ---
 
@@ -114,7 +105,7 @@ pre-inscripciones.
 | `cajas` | 3 | Caja General, Caja Chica, Banco CC |
 | `periodos_contables` | 1 | Período actual abierto |
 | `config_financiera` | 1 | Mora 5% / 10 días gracia, moneda ARS |
-| `centros_costo` | 7 | General + Fútbol, Administración, Mantenimiento, Eventos, Sponsors, Cuotas Sociales (Sprint 14h) |
+| `centros_costo` | 7 | General, Fútbol, Administración, Mantenimiento, Eventos, Sponsors, Cuotas Sociales (Sprint 14h) |
 | `catalogo_categorias_movimiento` | 21 | Cargado |
 | `cotizaciones` | 1 | Tipo de cambio cargado |
 
@@ -253,9 +244,9 @@ Rutas: `/admin/rrhh/contratos`, `/admin/rrhh/liquidaciones`.
 | Tabla | Rows | Estado |
 |---|---|---|
 | `tenants` | 1 | Hindu |
-| `tenant_modulos` | 17 | Módulos activados en Hindu |
+| `tenant_modulos` | 25 | Módulos activados en Hindu |
 | `tenant_config_publica` | 1 | Branding Hindu |
-| `catalogo_modulos` | 34 | Catálogo completo |
+| `catalogo_modulos` | 36 | Catálogo completo |
 | `sedes` | 2 | Hindu tiene 2 sedes |
 | `api_keys` | 0 | Sin keys generadas |
 | `api_logs` | 0 | Sin uso de API externa |
@@ -327,7 +318,8 @@ domingo 3AM). `CRON_SECRET` pendiente de configurar en Vercel.
 - 3 cajas configuradas
 - Config financiera completa
 - 1 producto (Fondo Fútbol 2026), 1 plan, 51 suscripciones activas
-- 0 movimientos, 0 cuotas emitidas
+- 51 cuotas vencidas por $510.000 (período 2026-05)
+- 7 centros de costo, 3 entidades (FACCMA, AIF, +1)
 
 **Entidades:** 3 (FACCMA, AIF, una más residual)
 
@@ -434,6 +426,26 @@ Historial referenciado en commits del repo. Listado resumido:
   acción executor `crear_suscripcion`, 51 suscripciones activas,
   tab "Suscripciones" en ficha persona, página global
   `/admin/finanzas/suscripciones` (ADR-019).
+- **14f** — Emisión de cuotas: `fn_emitir_cuotas_masivas`, 51 cuotas
+  emitidas periodo 2026-05, UI emisión masiva + anulación (ADR-020).
+- **14g** — Cobranza manual: `fn_cobrar_cuota`, `fn_anular_pago`,
+  tabla `cuotas_pagos`, UI de cobro + anulación (ADR-021).
+- **14h** — Centros de costo: CRUD completo, 7 centros cargados en Hindu,
+  vista stats, asignación a movimientos.
+- **14i** — Vista Global de Salud: 7 tabs read-only (lesiones, datos
+  médicos, obra social, autorizaciones, emergencia, documentos médicos,
+  alimentación), permisos por atributo, audit log (ADR-022).
+- **14j** — Utilería del club: inventario, kits, solicitudes con flujo
+  aprobación, cargos de reposición prorrateados, plantel snapshot,
+  storage privado (ADR-023).
+- **14k.5** — Cuerpo Técnico: refactor permisos, roles desde
+  `personas_equipos.rol_equipo_slug` como fuente única (ADR-024).
+- **14k** — Notificaciones in-app: tabla `notificaciones`, bell icon
+  con badge, dropdown, pantalla completa, helper `crearNotificacion`,
+  23 tipos, dedup 24h, cron limpieza, hooks en cuotas y suscripciones.
+- **14j.2** — Concesiones genéricas: 6 tablas, 4 funciones SQL, 2 vistas,
+  4 pantallas (listado, detalle 6 tabs, POS tablet, reportes), cron
+  canon mensual, 4 tipos notificación, aislamiento financiero (ADR-025).
 
 ---
 

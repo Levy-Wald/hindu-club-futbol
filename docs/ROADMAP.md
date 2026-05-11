@@ -1,1209 +1,537 @@
-# ClubCore — Roadmap Arquitectónico
+# ClubCore — Roadmap Arquitectonico
 
-> Plan maestro de construcción del producto, ordenado por dependencias
-> técnicas, sin compromiso de fechas. Las fases siguen un orden lógico:
+> Plan maestro de construccion del producto, ordenado por dependencias
+> tecnicas, sin compromiso de fechas. Las fases siguen un orden logico:
 > cada una requiere lo construido en las anteriores. Dentro de una fase,
-> los módulos pueden paralelizarse.
+> los modulos pueden paralelizarse.
 >
-> Mantenido por el arquitecto. Cambios estructurales requieren aprobación.
+> Mantenido por el arquitecto. Cambios estructurales requieren aprobacion.
 >
-> Última actualización: 11 de mayo de 2026.
+> Ultima actualizacion: 11 de mayo de 2026.
 
 ---
 
-## 0. Cómo leer este documento
+## 0. Como leer este documento
 
-### Estados de cada módulo
+### Estados de cada modulo
 
-| Símbolo | Estado |
+| Simbolo | Estado |
 |---|---|
-| ✅ | Operativo con datos en producción |
-| 🟢 | Esqueleto operativo (DB + UI + actions, sin datos reales todavía) |
-| 🟡 | Modelo en DB pero sin UI dedicada (tab en ficha persona o nada) |
-| 🟠 | Catalogado conceptualmente pero sin construir |
-| 🔴 | No existe ni siquiera como concepto formal |
+| Done | Operativo con datos en produccion |
+| Green | Esqueleto operativo (DB + UI + actions, sin datos reales todavia) |
+| Yellow | Modelo en DB pero sin UI dedicada (tab en ficha persona o nada) |
+| Orange | Catalogado conceptualmente pero sin construir |
+| Red | No existe ni siquiera como concepto formal |
 
 ### Capas
 
-Cada módulo declara su capa según `MASTER-PROJECT.md` §2:
-**Troncal CRM** · **Troncal ERP** · **Troncal PIM** · **Vertical Club** · **Módulo Paralelo** · **Plataforma**
+Cada modulo declara su capa segun `MASTER-PROJECT.md` par.2:
+**Troncal CRM** - **Troncal ERP** - **Troncal PIM** - **Vertical Club** - **Modulo Paralelo** - **Plataforma**
 
 ### Dependencias
 
-Cada fase declara qué fases anteriores necesita. La regla es: nunca arrancar
-una fase si sus dependencias no están completas. Dentro de una fase, los
-módulos pueden correr en paralelo (entornos múltiples).
+Cada fase declara que fases anteriores necesita. La regla es: nunca arrancar
+una fase si sus dependencias no estan completas. Dentro de una fase, los
+modulos pueden correr en paralelo (entornos multiples).
+
+### Nota sobre servicios externos
+
+Hindu Club Futbol no aporta credenciales hasta que se haga la demo del
+producto terminado. **Todo se construye en modo mock por default.** Ver
+`ARCHITECTURE.md` seccion "Servicios externos: mock / sandbox / production".
 
 ---
 
-## FASE 0 — Fundación ya construida
+## FASE 0 — Fundacion (CERRADA)
 
-Esta fase está **completa o en curso final**. Es la base sobre la que todo
-lo demás se apoya.
+**Estado:** Completa. Base sobre la que todo lo demas se apoya.
 
-### Plataforma multi-tenant — ✅
+### Plataforma multi-tenant — Done
 
-| Módulo | Estado | Notas |
+| Modulo | Estado | Notas |
 |---|---|---|
-| Tenants, sedes, configuración pública | ✅ | 1 tenant (Hindu) con 2 sedes |
-| Multi-tenant con RLS (101 tablas, 311 policies) | ✅ | 100% cobertura |
-| Catálogo de módulos + activación por tenant | ✅ | 34 módulos catalogados, 17 activados en Hindu |
-| Autenticación (Supabase Auth) | ✅ | Email + magic link |
-| Audit log | ✅ | 46k+ entradas registrando |
-| API REST v1 con scopes | ✅ | 5 endpoints |
-| Crons (vencimientos, cleanup) | ✅ | 2 crons configurados, falta CRON_SECRET |
+| Tenants, sedes, configuracion publica | Done | 1 tenant (Hindu) con 2 sedes |
+| Multi-tenant con RLS (115 tablas, 355 policies) | Done | 100% cobertura |
+| Catalogo de modulos + activacion por tenant | Done | 36 modulos catalogados, 25 activados en Hindu |
+| Autenticacion (Supabase Auth) | Done | Email + magic link |
+| Audit log | Done | 46k+ entradas registrando |
+| API REST v1 con scopes | Done | 5 endpoints |
+| Crons (vencimientos, cleanup, notificaciones, canon) | Done | 4 crons configurados |
 
-### CRM core — ✅
+### CRM core — Done
 
-| Módulo | Estado | Notas |
+| Modulo | Estado | Notas |
 |---|---|---|
-| Personas (CRM) | ✅ | 2,389 personas en Hindu |
-| Atributos transversales con vigencia | ✅ | 61 atributos catalogados, 8 en uso |
-| Vínculos familiares y de tutoría | ✅ | UI completa |
-| Entidades + representantes | ✅ | 3 entidades cargadas |
-| Documentos de identidad | 🟡 | Tab existe, 2 docs cargados |
-| Fusión manual de personas duplicadas | ✅ | UI side-by-side |
-| Ficha de persona con 19 secciones | ✅ | Tabs operativos |
+| Personas (CRM) | Done | 2,389 personas en Hindu |
+| Atributos transversales con vigencia | Done | 64 atributos catalogados |
+| Vinculos familiares y de tutoria | Done | UI completa |
+| Entidades + representantes | Done | 3 entidades cargadas |
+| Fusion manual de personas duplicadas | Done | UI side-by-side |
+| Ficha de persona con 19 secciones | Done | Tabs operativos |
 
-### Vertical Club Deportivo — base operativa — ✅
+### Vertical Club Deportivo — base operativa — Done
 
-| Módulo | Estado | Notas |
+| Modulo | Estado | Notas |
 |---|---|---|
-| Equipos + plantel | ✅ | 7 equipos, 211 jugadores |
-| Padrones | ✅ | 4 padrones, 2,561 asignaciones |
-| Importadores con pipelines declarativos | ✅ | 3 pipelines configurados, match fuzzy |
-| Atributo `jugador`, `suscriptor`, `socio` | ✅ | Sistema de roles transversales |
+| Equipos + plantel | Done | 7 equipos, 211 jugadores |
+| Padrones | Done | 4 padrones, 2,561 asignaciones |
+| Importadores con pipelines declarativos | Done | 3 pipelines configurados, match fuzzy |
+| Cuerpo tecnico | Done | ADR-024, fuente unica personas_equipos |
 
-### ERP esqueleto cargado — 🟢
+### ERP esqueleto — Done
 
-| Módulo | Estado | Notas |
+| Modulo | Estado | Notas |
 |---|---|---|
-| Plan de cuentas | 🟢 | 104 cuentas estructuradas, sin movimientos |
-| Tipos de comprobante | 🟢 | 12 cargados |
-| Medios de pago | 🟢 | 7 cargados |
-| Cajas | 🟢 | 3 cargadas |
-| Períodos contables | 🟢 | 1 abierto |
-| Config financiera (mora, moneda) | 🟢 | Cargada |
-| UI de finanzas (dashboard + 7 pantallas) | 🟢 | Sin operación real todavía |
+| Plan de cuentas | Done | 104 cuentas estructuradas |
+| Cajas, medios de pago, comprobantes | Done | 3 cajas, 7 medios, 12 tipos |
+| Config financiera (mora, moneda) | Done | Cargada |
+| UI de finanzas (dashboard + 8 pantallas) | Done | Operativa |
 
-### Documentación viva y disciplina — ✅
+### Documentacion viva — Done
 
-| Módulo | Estado | Notas |
+| Modulo | Estado | Notas |
 |---|---|---|
-| 10 docs vivos en `/docs/` | ✅ | Completos al cierre Sprint 14d.5 |
-| Design Tokens System | ✅ | Capa gráfica separada del código |
-| Prompt envelope obligatorio | ✅ | R-PE1 a R-PE9 |
-| Sistema de ADRs | ✅ | 18 ADRs documentados |
-| Pre-mortem en sprints de alto riesgo | ✅ | R-PE9 + Caso D activos |
+| 12+ docs vivos en `/docs/` | Done | Completos al cierre FASE 1 |
+| Design Tokens System | Done | ADR-018 |
+| Sistema de ADRs | Done | 25 ADRs documentados (001-025) |
 
 ---
 
-## FASE 1 — Base operativa financiera
+## FASE 1 — Base operativa Hindu (CERRADA 2026-05-11)
 
 **Objetivo.** Hindu Club puede emitir y cobrar cuotas reales del Fondo
-Fútbol. Operación financiera básica funcionando con UI usable.
+Futbol. Operacion financiera basica funcionando con UI usable. Notificaciones,
+salud, utileria, concesiones operativas.
 
 **Depende de.** FASE 0.
 
-**Módulos:**
+**Tag:** `v0.1.0-fase1-cierre`
 
-### 1.1 Modelo de suscripciones — 🔴 (Troncal ERP)
+### Modulos completados
 
-**Por qué viene primero:** sin tabla `suscripciones`, no hay forma de
-emitir cuotas a partir del padrón de suscriptores. Es el eslabón faltante
-entre el padrón (CRM) y las cuotas (ERP).
+| Sprint | Modulo | Estado | ADR |
+|---|---|---|---|
+| 14d | Cleanup + docs base | Done | — |
+| 14d.5 | Design Tokens System | Done | ADR-018 |
+| 14e | Suscripciones + plan Fondo Futbol | Done | ADR-019 |
+| 14f | Emision de cuotas | Done | ADR-020 |
+| 14g | Cobranza manual | Done | ADR-021 |
+| 14h | Centros de costo UI | Done | — |
+| 14i | Vista Global de Salud | Done | ADR-022 |
+| 14j | Utileria del club | Done | ADR-023 |
+| 14k.5 | Cuerpo Tecnico | Done | ADR-024 |
+| 14k | Notificaciones in-app | Done | — |
+| 14j.2 | Concesiones genericas | Done | ADR-025 |
 
-**DB:**
-- **Crear tabla `suscripciones`** (persona ↔ plan ↔ vigencia, monto acordado, estado, metadata)
-- RLS por tenant
-- Índices: `(tenant_id, persona_id)`, `(tenant_id, plan_id, activo)`
+### Metricas operativas Hindu al cierre
 
-**UI:**
-- Tab "Suscripciones" en ficha de persona
-- Listado global de suscripciones activas por plan
-- Crear/editar/dar de baja suscripción
-- Bulk: dar de baja todas las suscripciones de un plan
-
-**Server actions:**
-- `crearSuscripcion`, `editarSuscripcion`, `darDeBajaSuscripcion`
-- `listarSuscripcionesPorPlan`, `listarSuscripcionesPorPersona`
-
-**Integración con importadores:**
-- Modificar pipeline `suscriptores_por_equipo` para crear suscripción
-  además del atributo
-- Re-aplicar run del padrón Suscriptores (57 personas)
-
-### 1.2 Productos y planes financieros — 🟢 → ✅ (Troncal PIM + ERP)
-
-**DB:** `productos_servicios` y `cuotas_planes` existen, falta cargar.
-
-**Carga inicial Hindu:**
-- Producto "Fondo Fútbol 2026" → plan mensual
-- Producto "Cuota Social Hindu" → plan mensual (a futuro)
-- Otros conceptos puntuales (sanciones, alquileres, etc.)
-
-**UI:**
-- Mejorar UI de productos (filtros, tipos, activo/inactivo)
-- UI de planes con asignación a producto
-
-### 1.3 Emisión de cuotas — 🟢 (Troncal ERP)
-
-**Estado:** server action `emitirCuotasMasivas` existe. Falta integrarlo
-con suscripciones (1.1).
-
-**Flujo:**
-- Seleccionar plan + período + filtros (todos / por equipo / por atributo)
-- Vista previa de cuántas cuotas se van a emitir
-- Confirmación con totales
-- Emisión idempotente (no genera duplicados)
-
-**Integración:**
-- Asiento contable automático (deudores de cuotas → ingresos por cobrar)
-
-### 1.4 Cobranza manual — 🟢 (Troncal ERP)
-
-**Estado:** server action `cobrarCuota` existe. Falta UI completa.
-
-**UI:**
-- Listado de cuotas por persona / por estado / por período
-- Marcar cuota como cobrada: medio de pago, fecha, monto, observaciones
-- Genera automático: movimiento de caja + actualización de cuenta corriente
-
-### 1.5 Centros de costo UI — 🟡 (Troncal ERP)
-
-**Estado:** tabla existe (1 centro cargado), sin UI CRUD.
-
-**UI:**
-- `/admin/finanzas/centros-costo` con listado, CRUD
-- Asignación de centro a movimientos (dropdown en form)
-
-**Importancia:** sin centros, no hay imputación gerencial. Necesario para
-reportes financieros (FASE 6).
-
-### 1.6 Vista global de salud y datos sensibles — 🟡 (Módulo Paralelo)
-
-**Estado:** 14 tablas con tab en ficha de persona, sin listado global ni
-operación masiva.
-
-**UI nueva:**
-- `/admin/salud` con tabs:
-  - Lesiones (listado, filtros por estado, persona, fecha)
-  - Datos médicos (acceso restringido por permiso)
-  - Obra social (renovaciones próximas)
-  - Autorizaciones de imagen (vencidas, próximas a vencer)
-  - Contactos de emergencia (verificación de contactabilidad)
-  - Documentos médicos (aptos vencidos)
-- Export con membrete por tenant
-
-### 1.7 Vestuario / Indumentaria — 🔴 (Módulo Paralelo)
-
-**DB nueva:**
-- `indumentaria_items` (qué hay: stock, talles, equipo asignado, color, número)
-- `indumentaria_asignaciones` (persona ↔ item ↔ fecha entrega ↔ fecha devolución)
-- Reusa `personas_talles` (ya existe)
-- Reusa `catalogo_tipos_talle` (20 talles cargados)
-
-**UI:**
-- `/admin/vestuario` con stock + asignaciones
-- Asignación rápida desde ficha de persona
-- Devolución / pérdida con justificación
-
-**Catalogar módulo:** agregar `vestuario` a `catalogo_modulos`.
-
-### 1.8 Notificaciones operativas in-app — 🔴 (Plataforma)
-
-**Por qué aquí:** habilita el resto de fases. Sin notificaciones, las
-operaciones no avisan al usuario.
-
-**DB nueva:**
-- `notificaciones` (tenant_id, destinatario_persona_id, tipo, titulo, mensaje, link_accion, prioridad, leida_at, archivada_at)
-
-**UI:**
-- Bell icon en topbar con badge
-- Dropdown con últimas 10
-- Pantalla `/admin/notificaciones` con filtros y archivo
-
-**Server actions:**
-- `crearNotificacion` (interna, llamada por triggers/server actions)
-- `marcarComoLeida`, `marcarTodoLeido`, `archivar`
+- 2,389 personas, 7 equipos, 211 jugadores
+- 51 suscripciones activas, 51 cuotas vencidas ($510k)
+- 7 centros de costo
+- 23 tipos de notificacion, 4 crons
+- 3 entidades (FACCMA, AIF, +1)
 
 ---
 
-## FASE 2 — Comunicación
+## FASE 2 — Comunicacion (~6 sprints)
 
-**Objetivo.** Plataforma envía emails reales (recordatorios, recibos,
+**Objetivo.** Plataforma envia emails reales (recordatorios, recibos,
 comunicados) con membrete por tenant.
 
-**Depende de.** FASE 1 (necesita notificaciones in-app como base + datos
-financieros para tener qué comunicar).
+**Depende de.** FASE 1.
 
-**Cuello de botella biológico:** DNS de Resend (3-5 días de propagación).
-Arrancar configuración DNS en paralelo al inicio de FASE 1.
+**Cuello de botella biologico:** DNS de Resend (3-5 dias de propagacion).
+Arrancar configuracion DNS al inicio de esta fase.
 
-**Módulos:**
+### Modulos
 
-### 2.1 Resend integrado — 🟠 (Plataforma)
-
-- Configurar `RESEND_API_KEY` en Vercel
-- Dominio de envío configurado (SPF, DKIM, DMARC) — DNS biológico
-- `lib/comunicaciones/email.ts` deja de ser stub
-- Webhook de Resend para tracking (delivered, opened, bounced, complained)
-
-### 2.2 Plantillas operativas — 🟢 (Módulo Paralelo)
-
-**Estado:** tabla `com_plantillas` con 18 plantillas cargadas. UI existe.
-
-**Pendientes:**
-- Plantillas críticas: vencimiento cuota, recibo de pago, comunicado
-  general, bienvenida nueva persona, baja de socio, recuperación de
-  deudor (drip)
-- Editor con variables del tenant (membrete inyectado runtime)
-- Preview con datos reales
-
-### 2.3 Envíos masivos — 🟡 (Módulo Paralelo)
-
-**Estado:** server actions existen, falta UI completa.
-
-**UI:**
-- Wizard envío masivo: seleccionar segmento (atributo / padrón / equipo /
-  query custom) → plantilla → preview → enviar
-- Confirmación con total de destinatarios
-- Tracking en `com_envios` (delivered, opened, bounced)
-
-### 2.4 Cron de vencimientos integrado — 🟡 (Plataforma)
-
-**Estado:** cron `dispatch-vencimientos` existe pero stub.
-
-**Pendiente:**
-- Query a `v_vencimientos_proximos` (vista que detecta cuotas a vencer en
-  X días)
-- Para cada vencimiento: enviar email con plantilla "vencimiento próximo"
-- Crear notificación in-app a la persona
-- Idempotencia: no enviar 2 veces el mismo recordatorio
-
-### 2.5 Preferencias de comunicación por persona — 🟡 (Troncal CRM)
-
-**Estado:** tabla `personas_preferencias_comunicacion` existe sin UI.
-
-**UI:**
-- Sección en ficha persona: canal preferido, opt-out, horarios, idioma
-- Respetar opt-out en todos los envíos
+| # | Modulo | Estado |
+|---|---|---|
+| 2.1 | Resend integrado (mock -> sandbox -> production) | Orange |
+| 2.2 | Plantillas operativas (vencimiento, recibo, comunicado) | Green |
+| 2.3 | Envios masivos con wizard de segmentos | Yellow |
+| 2.4 | Cron de vencimientos con email real | Yellow |
+| 2.5 | Preferencias de comunicacion por persona | Yellow |
+| 2.6 | Drip de recuperacion de deudores | Red |
 
 ---
 
-## FASE 3 — Control de asistencias y acceso
+## FASE 3 — Asistencias + Acceso (~4 sprints)
 
-**Objetivo.** Operación diaria del club: tomar asistencia en entrenamientos
-y partidos, controlar quién entra al club (validación contra socio activo +
-pago al día).
+**Objetivo.** Operacion diaria del club: tomar asistencia en entrenamientos
+y partidos, controlar quien entra al club.
 
-**Depende de.** FASE 2 (alertas por ausencias consecutivas), FASE 1
-(validación de pago al día en acceso).
+**Depende de.** FASE 2 (alertas por ausencias), FASE 1 (validacion pago).
 
-**Módulos:**
+### Modulos
 
-### 3.1 Control de asistencias operativo — 🟡 (Vertical Club)
-
-**Estado:** tabla `evento_asistencias` existe.
-
-**UI nueva:**
-- Toma de asistencia en mobile (entrenador apunta presentes/ausentes)
-- Listado de asistencias por evento, persona, período
-- Reporte de presentismo: % asistencia por jugador, por equipo, top N
-  ausentes, racha
-- Justificativos (médico, autorizado, sin justificar)
-- Alerta automática (vía FASE 2): "Tu hijo faltó 3 entrenamientos
-  seguidos"
-
-**Server actions:**
-- `registrarAsistencia` (bulk: marcar todo el plantel en 1 click)
-- `agregarJustificativo`
-- `generarReportePresentismo`
-
-### 3.2 Control de acceso al club — 🟡 (Módulo Paralelo)
-
-**Estado:** tabla `personas_credenciales_acceso` con 26 columnas
-extremadamente ricas (PIN, biometría facial/huella/iris, sedes y
-horarios permitidos, sanciones activas).
-
-**UI nueva:**
-- Pantalla portería: input DNI o escaneo → valida en tiempo real
-- Vista de credencial de la persona
-- Configuración por persona: sedes permitidas, horarios, áreas
-- Sanciones de acceso (motivo, fecha fin)
-- Logs de entrada/salida (tabla nueva `acceso_logs`)
-- Vinculación con `personas_vehiculos` (vehículo del socio puede entrar)
-
-**Server actions:**
-- `validarAcceso(documento, sede_id)` → permite/deniega con razón
-- `registrarEntrada`, `registrarSalida`
-- `aplicarSancionAcceso`, `levantarSancion`
-
-**Integración futura:** lector QR físico, biometría hardware, barrera
-electromecánica.
-
-### 3.3 Credenciales digitales — 🔴 (Plataforma)
-
-**DB:** reusa `personas_credenciales_acceso`.
-
-**UI:**
-- Generar credencial QR única por persona (rotativa, con expiración)
-- Vista mobile: pantalla "carnet digital" descargable o imprimible
-- En la app interna del socio (FASE 13): credencial accesible siempre
-
-### 3.4 Autorizaciones digitales — 🟡 (Módulo Paralelo)
-
-**Estado:** tabla `personas_autorizaciones` muy rica (firma digital
-con IP + user agent + método).
-
-**UI:**
-- Listado de autorizaciones por persona y por tipo
-- Crear nueva autorización: tipo + alcance + vencimiento
-- Firma digital (cliente firma desde mobile/web)
-- Recordatorio de renovación cuando vence (vía FASE 2)
-- Archivo firmado guardado en storage
-- Catálogo `catalogo_tipos_autorizacion` con 11 tipos cargados
+| # | Modulo | Estado |
+|---|---|---|
+| 3.1 | Control de asistencias operativo (mobile) | Yellow |
+| 3.2 | Control de acceso al club (porteria) | Yellow |
+| 3.3 | Credenciales digitales (QR) | Red |
+| 3.4 | Autorizaciones digitales con firma | Yellow |
 
 ---
 
-## FASE 4 — Planificadores y organizadores
+## FASE 4 — Planificadores (~5 sprints)
 
-**Objetivo.** Toda la operación deportiva planificada y orquestada desde
-la plataforma: entrenamientos, amistosos, torneos, tácticas, reservas.
+**Objetivo.** Toda la operacion deportiva planificada: entrenamientos,
+amistosos, tacticas, reservas de canchas.
 
-**Depende de.** FASE 3 (asistencias para entrenamientos), FASE 2
-(notificaciones de convocatoria), FASE 1 (cobro de reservas).
+**Depende de.** FASE 3 (asistencias), FASE 2 (convocatorias), FASE 1
+(cobro de reservas).
 
-**Módulos:**
+### Modulos
 
-### 4.1 Planificador mensual — 🟡 (Vertical Club)
-
-**Estado:** tabla `eventos` con 34 columnas (recurrencia, sede, cancha,
-instructor, tipo, color, etc.). Sin UI calendario.
-
-**UI nueva:**
-- `/admin/agenda/mes` con calendario mensual
-- Filtros: equipo, tipo, sede, persona, atributo
-- Click en día → ver eventos del día
-- Crear evento desde día (form rápido)
-- Visualización por color según tipo
-
-### 4.2 Planificador semanal — 🟡 (Vertical Club)
-
-**UI nueva:**
-- `/admin/agenda/semana` con grilla 7 días × horas
-- Drag & drop para reagendar (validando conflictos de cancha)
-- Vista por equipo: la semana del equipo X
-- Vista por persona: mis eventos esta semana
-
-### 4.3 Organizador de entrenamientos — 🔴 (Vertical Club)
-
-**DB:** reusa `eventos` + `evento_asistencias`. Sumar:
-- `entrenamientos_plan_carga` (carga del día: ejercicios, intensidad, duración)
-- Reusa `personas_lesiones` para detectar quién no puede entrenar
-
-**UI:**
-- Crear plan de entrenamiento recurrente (lunes/miércoles/viernes 19hs)
-- Plantilla de plan de carga
-- Tomar asistencia al inicio del entrenamiento (mobile, 1 tap por jugador)
-- Registrar carga: ejercicios realizados, intensidad
-- Detectar quién no entrenó X veces seguidas
-
-### 4.4 Organizador de partido amistoso — 🔴 (Vertical Club)
-
-**DB:** reusa `eventos` + `partidos_detalle` + `esquemas_tacticos`. Sumar:
-- `partidos_logistica` (transporte, vianda, indumentaria, citación)
-
-**UI:**
-- Crear amistoso: rival (texto o entidad existente), cancha, hora, condición (local/visitante)
-- Logística: transporte (quién lleva), vianda (qué se come), indumentaria
-  (qué camiseta lleva el equipo)
-- Convocatoria: seleccionar plantel + suplentes (esquema_posiciones)
-- Citación automática vía FASE 2 + FASE 9 (email + WhatsApp)
-- Confirmación de asistencia por cada convocado
-- Cierre de convocatoria (`convocatoria_cerrada` en `partidos_detalle`)
-
-### 4.5 Organizador táctico — 🟡 (Vertical Club)
-
-**Estado:** `esquemas_tacticos` + `esquema_posiciones` existen.
-
-**UI:**
-- Crear esquema (4-4-2, 4-3-3, 3-5-2, etc.)
-- Arrastrar jugadores a posiciones (drag & drop visual sobre cancha)
-- Titulares vs suplentes (`es_titular`)
-- Variantes pre-partido (esquema A / B según rival)
-- Compartir esquema con plantel (vía notificaciones)
-
-### 4.6 Organizador de torneo — 🔴 (Vertical Club)
-
-**Variantes a soportar:**
-- Liga regular (round-robin todos contra todos)
-- Eliminación directa (brackets)
-- Fase de grupos + playoffs (mundialista)
-- Suizo (ajedrez/eSports)
-- Triangular (3 equipos)
-- Cuadrangular (4 equipos)
-
-**DB nueva:**
-- `torneos` (tenant_id, nombre, formato, fecha_inicio, fecha_fin, estado, sede_id, organizador_entidad_id)
-- `torneo_participantes` (torneo_id, equipo_id_interno o equipo_nombre_externo, grupo)
-- `torneo_fixture` (torneo_id, fase, ronda, equipo_local, equipo_visitante, fecha, cancha, marcador)
-- `torneo_resultados` (acumulados por equipo: PJ, PG, PE, PP, GF, GC, DIF, PTS)
-
-**UI:**
-- Crear torneo con wizard según formato
-- Generación automática de fixture
-- Tabla de posiciones en tiempo real
-- Carga de resultados con validación
-
-**Reusa:** `equipos_competencias` para trackear participación de equipos
-de Hindu en torneos externos (FACCMA, AIF).
-
-### 4.7 Reservas de canchas — 🔴 (Vertical Club + Troncal ERP)
-
-**Estado:** tabla `canchas` con `disponible_para_alquiler` y
-`precio_alquiler_hora` ya existen.
-
-**DB:**
-- Reusa `eventos` con tipo `reserva_cancha`
-- O tabla nueva `reservas_canchas` chica (id, cancha_id, persona_o_entidad_id, fecha, hora_inicio, hora_fin, monto, estado, movimiento_id)
-
-**UI:**
-- Calendario de canchas (semana / mes por cancha)
-- Buscar disponibilidad (qué canchas libres tal día tal hora)
-- Crear reserva: tipo (interno club / alquiler externo), monto
-- Cobro asociado: link a finanzas (genera cuota o movimiento directo)
-- Cancelación con política (refund / no refund)
+| # | Modulo | Estado |
+|---|---|---|
+| 4.1 | Planificador mensual (calendario) | Yellow |
+| 4.2 | Planificador semanal (grilla drag & drop) | Yellow |
+| 4.3 | Organizador de entrenamientos | Red |
+| 4.4 | Organizador de partido amistoso | Red |
+| 4.5 | Organizador tactico (esquemas drag & drop) | Yellow |
+| 4.6 | Reservas de canchas | Red |
 
 ---
 
-## FASE 5 — Operación deportiva extendida
+## FASE 5 — Competencias, Torneos, Ligas, Federaciones (~6 sprints) [NUEVA]
 
-**Objetivo.** Profundizar la operación deportiva más allá de planificadores.
-Stats, scouting, historial.
+**Objetivo.** Sistema completo de gestion de competencias: torneos
+internos organizados por el club, participacion en ligas externas
+(FACCMA, AIF), fixture, resultados, tabla de posiciones.
 
-**Depende de.** FASE 4.
+**Depende de.** FASE 4 (planificadores y eventos).
 
-**Módulos:**
+### Modulos
 
-### 5.1 Partidos detalle (carga de resultados) — 🟡 (Vertical Club)
+| # | Modulo | Estado |
+|---|---|---|
+| 5.1 | Torneos internos (creador con formatos: liga, eliminacion, grupos+playoff, suizo, triangular, cuadrangular) | Red |
+| 5.2 | Participacion en torneos externos (FACCMA, AIF) | Yellow |
+| 5.3 | Fixture y resultados | Red |
+| 5.4 | Tabla de posiciones en tiempo real | Red |
+| 5.5 | Carga de resultados pos-partido (goles, tarjetas, cambios) | Yellow |
+| 5.6 | Stats por jugador y equipo | Red |
 
-**Estado:** `partidos_detalle` existe.
-
-**UI:**
-- Pos-partido: cargar resultado, goles (quién + minuto), tarjetas, cambios
-- Ficha del partido con plantel real (titulares y minutos)
-- Histórico de partidos por equipo
-
-### 5.2 Reportes deportivos — 🔴 (Vertical Club)
-
-**Queries sobre tablas existentes:**
-- Stats por jugador: partidos jugados, minutos, goles, tarjetas
-- Stats por equipo: rendimiento por torneo, comparativo
-- Ranking de asistencias
-- Histórico evolutivo
-
-**UI:**
-- `/admin/reportes/deportivo` con dashboards configurables
-- Export con membrete (FASE 1 ya define el sistema)
-
-### 5.3 Lesiones operativas — 🟡 (Vertical Club / Módulo Paralelo Salud)
-
-**Estado:** `personas_lesiones` existe sin UI.
-
-**UI:**
-- Listado global de lesiones activas
-- Crear lesión: diagnóstico, fecha inicio, tiempo estimado de baja, rehabilitación
-- Vinculación con eventos (jugador no convocable mientras esté lesionado)
-- Alta médica con observaciones
-- Estadística de lesiones por equipo / disciplina
-
-### 5.4 Scouting operativo — 🟡 (Vertical Club)
-
-**Estado:** `scouting_fichas` existe sin uso.
-
-**UI:**
-- Crear ficha de scouting (jugador externo evaluado)
-- Comparativo entre fichas
-- Conversión: si se incorpora, crear `persona` desde ficha
-
-### 5.5 Historial categorías + selecciones + premios + clubes anteriores — 🟡 (Vertical Club)
-
-**Estado:** 4 tablas existen sin UI propia (solo tab en ficha persona).
-
-**UI nueva:**
-- Listado global con filtros: quién ganó qué, quién pasó por dónde
-- Útil para honor wall, comunicaciones de logros, scouting interno
-- Export con membrete
+**Nota:** "Torneo Interno" = competencia organizada por el propio club
+(Hindu como entidad organizadora), distinta de torneos organizados por
+federaciones externas. Ver GLOSSARY.md.
 
 ---
 
-## FASE 6 — Finanzas avanzadas
+## FASE 6 — Operacion deportiva extendida (~5 sprints)
 
-**Objetivo.** Cobranza automatizada, reportes profesionales, conciliación.
+**Objetivo.** Profundizar la operacion deportiva: lesiones, scouting,
+historial, reportes deportivos.
 
-**Depende de.** FASE 1 (base financiera operando), FASE 2 (avisos por
-email).
+**Depende de.** FASE 5.
 
-**Módulos:**
+### Modulos
 
-### 6.1 MercadoPago integración — 🟠 (Plataforma + Troncal ERP)
-
-**Cuello de botella biológico:** credenciales de MP Empresa para Hindu.
-Arrancar gestión en paralelo al inicio de FASE 1.
-
-**Flujo:**
-- Generar link de pago por cuota
-- Envío del link por email (FASE 2) + WhatsApp (FASE 9 si ya está)
-- Webhook entrante MP → actualizar cuota a cobrada + generar movimiento de
-  caja + actualizar cuenta corriente
-- Manejo de bouncing (link expirado, pago rechazado, devolución)
-
-### 6.2 Cobranza automática — 🔴 (Troncal ERP)
-
-**Sobre FASE 6.1:**
-- Cron diario: para cuotas que vencen en X días, generar link MP + email
-- Re-envío automático si no pagó al día N (configurable)
-- Marcar cuota como vencida después de fecha de vencimiento
-- Trigger drip de recuperación (FASE 2)
-
-### 6.3 Conciliación bancaria básica — 🔴 (Troncal ERP)
-
-- Importar extracto bancario (CSV)
-- Match automático con movimientos esperados
-- Pendientes de conciliar manual
-- Diferencias destacadas
-
-### 6.4 Reportes financieros — 🔴 (Troncal ERP)
-
-**Reportes mínimos:**
-- Balance del período (ingresos − egresos = resultado)
-- Ingresos por concepto (cuotas, alquileres, otros)
-- Egresos por categoría
-- Cuenta corriente persona (deudor con detalle)
-- Deudores ordenados por antigüedad
-- Recaudación por centro de costo (equipo, torneo, área)
-- Cash flow proyectado (cuotas pendientes próximos 30/60/90 días)
-- Comparativos mes vs mes, año vs año
-
-**UI:**
-- `/admin/finanzas/reportes` con filtros y export con membrete
-
-### 6.5 Convenios de pago — 🟡 (Troncal ERP)
-
-**Estado:** tabla `convenios_pago` existe.
-
-**UI:**
-- Crear convenio: deuda original + cuotas pactadas + monto cuota + interés
-- Seguimiento: qué se pagó, qué falta
-- Trigger drip si se atrasa
-
-### 6.6 Comprobantes — 🟡 (Troncal ERP)
-
-**Estado:** `tipos_comprobante` cargados (12).
-
-**UI:**
-- Generación automática al cobrar (recibo, factura interna)
-- PDF con membrete del tenant
-- Numeración correlativa por tipo
-- Envío al cliente por email
-
-### 6.7 Presupuestos — 🟡 (Troncal ERP)
-
-- Presupuesto anual / mensual por centro de costo
-- Ejecutado vs presupuestado
-- Alertas de sobre-ejecución
-
-### 6.8 Cuotas recurrentes automatizadas — 🔴 (Troncal ERP)
-
-- Cron mensual emite automáticamente las cuotas del nuevo período
-- Aplica bonificaciones vigentes (becas, hermanos, etc.)
-- Notifica a la persona con plantilla
-- Audita la emisión
-
-### 6.9 Bonificaciones avanzadas / Becas — 🟡 (Troncal ERP)
-
-**Estado:** `cuotas_bonificaciones` existe.
-
-**Reglas:**
-- Beca social (descuento por situación)
-- Descuento hermanos (X% al segundo, Y% al tercero)
-- Descuento múltiples disciplinas
-- Descuento pronto pago
-- Descuento vitalicio / honorario
+| # | Modulo | Estado |
+|---|---|---|
+| 6.1 | Lesiones operativas | Yellow |
+| 6.2 | Scouting operativo | Yellow |
+| 6.3 | Historial categorias + selecciones + premios + clubes | Yellow |
+| 6.4 | Reportes deportivos (stats, rankings, comparativos) | Red |
 
 ---
 
-## FASE 7 — RRHH operativo
+## FASE 7 — Finanzas avanzadas (~8 sprints) — mock/sandbox/production
 
-**Objetivo.** Hindu puede gestionar sus empleados desde la plataforma:
-entrenadores, personal administrativo, mantenimiento.
+**Objetivo.** Cobranza automatizada, reportes profesionales, conciliacion.
+Todo en modo mock hasta demo.
 
-**Depende de.** FASE 6 (cuentas contables para imputar sueldos).
+**Depende de.** FASE 1 (base financiera), FASE 2 (avisos por email).
 
-**Módulos:**
+### Modulos
 
-### 7.1 Contratos — 🟢 (Módulo Paralelo)
-
-**Estado:** UI existe (esqueleto), 0 contratos cargados.
-
-**Pendiente:**
-- UI completa con vigencia, modalidad, remuneración
-- Generación automática del PDF del contrato con membrete
-- Renovación / rescisión con motivo
-- Alerta de vencimiento próximo
-
-### 7.2 Datos laborales — 🟡 (Módulo Paralelo)
-
-**Estado:** tabla `personas_datos_laborales` existe.
-
-**UI:**
-- Tab completo en ficha persona empleada
-- CUIT, obra social, sindicato, condición fiscal
-
-### 7.3 Liquidaciones — 🟢 (Módulo Paralelo)
-
-**Estado:** UI esqueleto.
-
-**UI:**
-- Generar liquidación mensual por empleado
-- Conceptos: sueldo básico, adicionales, descuentos
-- Aprobación
-- Pago: genera movimiento de caja egreso + asiento contable
-
-### 7.4 Reportes RRHH — 🔴 (Módulo Paralelo)
-
-- Listado de empleados activos
-- Costo laboral mensual (totalizado y por área)
-- Próximos vencimientos de contratos
+| # | Modulo | Estado |
+|---|---|---|
+| 7.1 | MercadoPago integracion (mock -> sandbox -> production) | Orange |
+| 7.2 | Cobranza automatica (cron + link MP + email) | Red |
+| 7.3 | Conciliacion bancaria basica (CSV import) | Red |
+| 7.4 | Reportes financieros (balance, deudores, cash flow) | Red |
+| 7.5 | Convenios de pago UI | Yellow |
+| 7.6 | Comprobantes (PDF con membrete, numeracion) | Yellow |
+| 7.7 | Presupuestos por centro de costo | Yellow |
+| 7.8 | Cuotas recurrentes automatizadas (cron emisor) | Red |
+| 7.9 | Bonificaciones avanzadas / Becas | Yellow |
 
 ---
 
-## FASE 8 — IA aplicada
+## FASE 8 — RRHH operativo (~3 sprints)
 
-**Objetivo.** ClubCore se diferencia por aprovechar IA de forma profunda,
-no decorativa.
+**Objetivo.** Hindu puede gestionar empleados: entrenadores, personal
+administrativo, mantenimiento.
 
-**Depende de.** FASE 0 (modelo de datos sólido para que RAG tenga sustancia).
+**Depende de.** FASE 7 (cuentas contables para imputar sueldos).
 
-**Módulos:**
+### Modulos
 
-### 8.1 Infraestructura LLM + RAG — 🔴 (Plataforma)
-
-- Selección de provider (Anthropic API, OpenAI, etc.)
-- Vector store (pgvector en Supabase, o externo)
-- Pipeline de embeddings de datos del club (personas, equipos, eventos,
-  movimientos, plantillas)
-- Re-indexado incremental
-- API gateway interno para llamadas LLM
-
-### 8.2 Asistente conversacional admin — 🔴 (Plataforma)
-
-**UI:** widget chat flotante en `/admin/*`.
-
-**Capacidades:**
-- "¿Cuántos socios tenemos al día?"
-- "Mostrame los jugadores que faltaron más de 3 veces este mes"
-- "Generá un email para los deudores del Fondo Fútbol"
-- "¿Qué entrenamientos hay el sábado?"
-- Lectura de datos con respeto a permisos del usuario
-
-### 8.3 Autocompletados inteligentes — 🔴 (Plataforma)
-
-- Al crear evento: sugerir título según tipo y equipo
-- Al crear persona: detectar duplicados antes de guardar
-- Al cargar producto: sugerir cuenta contable según nombre
-- Al cargar movimiento: sugerir categoría y centro de costo
-
-### 8.4 Generación de plantillas — 🔴 (Módulo Paralelo)
-
-- Generar plantilla de email a partir de objetivo en lenguaje natural
-- Generar post de redes sociales para próximo evento
-- Generar reporte ejecutivo a partir de datos del mes
-
-### 8.5 Búsqueda semántica — 🔴 (Plataforma)
-
-- Cmd+K global semántico (no solo por título)
-- "Buscar el padre de Juan que vive en Zona Norte" → recupera persona +
-  contexto de vínculo
-
-### 8.6 Predicciones — 🔴 (Plataforma)
-
-- Riesgo de baja de socio (basado en asistencias + comunicaciones + pagos)
-- Riesgo de lesión (basado en carga de entrenamiento + historial)
-- Probabilidad de cobranza de un deudor en próximos 30 días
-
-### 8.7 Análisis de imágenes — 🔴 (Plataforma)
-
-- Subir foto de DNI → extraer datos automáticamente
-- Subir foto de carnet → mismo
-- Detección de cara para foto de perfil
-
-### 8.8 Voice-to-text para staff — 🔴 (Plataforma)
-
-- Coach toma nota dictando: "Marcos jugó muy bien, pelea por el puesto
-  del 9" → se guarda en scouting o en notas del partido
-- Procesamiento de audio post-evento
+| # | Modulo | Estado |
+|---|---|---|
+| 8.1 | Contratos UI completa | Green |
+| 8.2 | Datos laborales | Yellow |
+| 8.3 | Liquidaciones con movimiento de caja | Green |
+| 8.4 | Reportes RRHH | Red |
 
 ---
 
-## FASE 9 — Bot WhatsApp como producto
+## FASE 9 — IA aplicada (~8 sprints)
+
+**Objetivo.** ClubCore se diferencia por aprovechar IA de forma profunda.
+
+**Depende de.** FASE 0 (modelo de datos solido para RAG).
+
+### Modulos
+
+| # | Modulo | Estado |
+|---|---|---|
+| 9.1 | Infraestructura LLM + RAG (pgvector) | Red |
+| 9.2 | Asistente conversacional admin (widget chat) | Red |
+| 9.3 | Autocompletados inteligentes | Red |
+| 9.4 | Generacion de plantillas | Red |
+| 9.5 | Busqueda semantica (Cmd+K global) | Red |
+| 9.6 | Predicciones (riesgo baja, lesion, cobranza) | Red |
+| 9.7 | Analisis de imagenes (DNI, carnet) | Red |
+| 9.8 | Voice-to-text para staff | Red |
+
+---
+
+## FASE 10 — Bot WhatsApp (~9 sprints)
 
 **Objetivo.** Acceso de socios y staff por WhatsApp sin app, sin login.
-Diferenciador clave para mercado argentino donde la mayoría no instala
-apps.
 
-**Depende de.** FASE 1 (datos para responder), FASE 2 (sistema de
-comunicaciones), FASE 8 (idealmente IA conversacional).
+**Depende de.** FASE 1, FASE 2, FASE 9 (idealmente IA conversacional).
 
-**Módulos:**
+### Modulos
 
-### 9.1 Infraestructura WA Business API — 🟠 (Plataforma)
-
-- Setup con Meta Cloud API o Twilio
-- Verificación de número del club (Hindu tiene número propio)
-- Webhook entrante configurado
-- Plantillas aprobadas por WhatsApp para envíos proactivos
-
-### 9.2 Identificación usuario por teléfono — 🔴 (Plataforma)
-
-- Match del número entrante con `personas.telefono_principal`
-- Sesión contextual (qué persona soy)
-- Fallback: si no se identifica, solicitar DNI o vincular cuenta
-
-### 9.3 Bot framework (intents + sesiones) — 🔴 (Plataforma)
-
-- DB de comandos / intents
-- Estados de sesión (esperando confirmación, esperando datos)
-- Respuestas con botones interactivos
-
-### 9.4 Comandos básicos — 🔴 (Plataforma)
-
-- `/mis-cuotas` → estado de cobranza
-- `/pagar` → link de pago MP directo
-- `/mi-equipo` → próximos eventos del equipo
-- `/asistencia` → confirmar/cancelar próxima convocatoria
-- `/credencial` → credencial digital del club (link)
-- `/contacto` → conectar con admin del club
-
-### 9.5 Notificaciones push reales por WA — 🔴 (Plataforma)
-
-- Vencimiento próximo de cuota
-- Convocatoria al partido
-- Cambio en entrenamiento (cancelado, reagendado)
-- Comunicado masivo segmentado
-
-### 9.6 Comandos avanzados — 🔴 (Plataforma)
-
-- Para padres: `/mis-hijos` → info de cada hijo
-- Para coach: `/mi-plantel`, `/asistencia-hoy`, `/convocar`
-- Para admin: `/cuentas-corrientes`, `/buscar`
-
-### 9.7 Integración con IA conversacional — 🔴 (Plataforma)
-
-- Pregunta en lenguaje natural → respuesta personalizada
-- Fallback de bot estructurado a IA cuando no entiende
-- Respeto a permisos: cada persona solo accede a sus datos
+| # | Modulo | Estado |
+|---|---|---|
+| 10.1 | Infraestructura WA Business API (mock) | Orange |
+| 10.2 | Identificacion usuario por telefono | Red |
+| 10.3 | Bot framework (intents + sesiones) | Red |
+| 10.4 | Comandos basicos (/mis-cuotas, /pagar, /mi-equipo) | Red |
+| 10.5 | Notificaciones push reales por WA | Red |
+| 10.6 | Comandos avanzados (padres, coach, admin) | Red |
+| 10.7 | Integracion con IA conversacional | Red |
 
 ---
 
-## FASE 10 — Plataforma e integraciones
+## FASE 11 — Plataforma + integraciones (~6 sprints)
 
-**Objetivo.** Convertir ClubCore en una plataforma abierta con conectores
-a otros sistemas.
+**Objetivo.** Convertir ClubCore en plataforma abierta con conectores.
 
-**Depende de.** FASE 0 (API REST), demás fases para tener qué integrar.
+**Depende de.** FASE 0 (API REST), demas fases para tener que integrar.
 
-**Módulos:**
+### Modulos
 
-### 10.1 Marketplace de conectores — 🟠 (Plataforma)
-
-**UI nueva:** `/admin/integraciones` mejorada como marketplace:
-- Vista de TODOS los conectores disponibles (cards con logo, descripción)
-- Estado: instalado / no instalado / con error
-- Click → instalar / configurar credenciales
-- Categorías: pagos, email, CRM, contabilidad externa, etc.
-- Búsqueda y filtros
-- A futuro: terceros pueden publicar conectores
-
-### 10.2 MCP Server — 🟠 (Plataforma)
-
-**Objetivo.** Acceso a ClubCore como contexto de modelos de IA externos
-(Claude, ChatGPT, etc).
-
-- Implementación del protocolo MCP
-- Endpoints: leer datos del club con respeto a permisos
-- Catalogado como módulo activable por tenant
-
-### 10.3 Webhooks salientes — 🔴 (Plataforma)
-
-- Tabla `webhook_subscriptions` (tenant, evento, url, secret, activo)
-- Tabla `webhook_deliveries` (intentos, response, retry policy)
-- Eventos disparados desde la app (persona creada, cuota pagada, evento
-  agendado)
-- Retry exponencial, dead letter queue
-
-### 10.4 Conector Zoho CRM — 🟠 (Plataforma)
-
-**Catalogado:** `conector_zoho_crm`.
-
-- Sincronización bidireccional de personas
-- Mapping de campos configurable por tenant
-- Polling + webhooks
-- A futuro: trigger desde Zoho hacia ClubCore y viceversa
-
-### 10.5 Otros conectores futuros — 🟠 (Plataforma)
-
-- Conector Stripe / dLocal (alternativos a MercadoPago)
-- Conector AFIP (facturación electrónica)
-- Conector Tango (contabilidad externa argentina)
-- Conector Bsale, ContaPyme, otros sistemas argentinos
-
-### 10.6 API REST v2 — 🟢 → 🔴 (Plataforma)
-
-- Extender los 5 endpoints actuales
-- Agregar: equipos, padrones, finanzas, eventos, comunicaciones
-- Documentación OpenAPI
-- Versionado (`/api/v1/`, `/api/v2/`)
-
-### 10.7 SDKs cliente — 🔴 (Plataforma)
-
-- SDK JavaScript / TypeScript publicado en npm
-- SDK Python publicado en PyPI
-- Documentación con ejemplos
-- Para que terceros construyan sobre ClubCore
+| # | Modulo | Estado |
+|---|---|---|
+| 11.1 | Marketplace de conectores (UI mejorada) | Orange |
+| 11.2 | MCP Server | Orange |
+| 11.3 | Webhooks salientes | Red |
+| 11.4 | Conector Zoho CRM | Orange |
+| 11.5 | API REST v2 (extender endpoints) | Green |
+| 11.6 | SDKs cliente (JS, Python) | Red |
 
 ---
 
-## FASE 11 — Onboarding tenant + branding
+## FASE 12 — Onboarding tenant + branding (~5 sprints)
 
-**Objetivo.** Crear un tenant nuevo en menos de 1 hora con catálogos
-base, plan de cuentas template y branding configurado. Listo para vender
-a Hacoaj, Nordelta, Boca, etc.
+**Objetivo.** Crear tenant nuevo en < 1 hora con catálogos, plan de cuentas
+template y branding. Listo para vender.
 
-**Depende de.** Idealmente FASE 1-10 con módulos estables (lo que se
-onboardee tiene que funcionar).
+**Depende de.** FASE 1-11 con modulos estables.
 
-**Módulos:**
+### Modulos
 
-### 11.1 Wizard creación tenant — 🔴 (Plataforma)
-
-- 6 pasos: identidad → módulos → catálogos base → plan de cuentas →
-  admin inicial → branding
-- Validaciones en cada paso
-- Preview de cómo va a verse el tenant
-- Cero código manual por tenant nuevo
-
-### 11.2 Templates de plan de cuentas — 🔴 (Plataforma)
-
-- Template 1: Club deportivo argentino estándar
-- Template 2: Club deportivo + escuela (futuro)
-- Template 3: Country deportivo (futuro)
-- Importable desde el wizard
-
-### 11.3 Selección de módulos con preview — 🔴 (Plataforma)
-
-- Listado de módulos del catálogo
-- Click → toggle activar
-- Dependencias resueltas (si activa RRHH, recomienda finanzas)
-- Preview del sidebar que vería el tenant
-
-### 11.4 Branding por tenant runtime — 🟢 (Plataforma)
-
-**Estado:** Design Tokens System listo (Sprint 14d.5). Falta:
-- Editor visual de branding mejorado
-- Subir logo, favicon, colores con preview en vivo
-- Validación de contraste WCAG
-- Dominios custom (subdominios o dominio propio)
-
-### 11.5 Multi-sede operativo — 🟡 (Plataforma)
-
-**Estado:** tabla `sedes` existe (Hindu tiene 2).
-
-**Pendiente:**
-- Asignación de eventos / canchas / equipos a sedes
-- Reportes por sede
-- Permisos de staff limitados a sede
+| # | Modulo | Estado |
+|---|---|---|
+| 12.1 | Wizard creacion tenant (6 pasos) | Red |
+| 12.2 | Templates de plan de cuentas | Red |
+| 12.3 | Seleccion de modulos con preview | Red |
+| 12.4 | Branding por tenant runtime mejorado | Green |
+| 12.5 | Multi-sede operativo | Yellow |
 
 ---
 
-## FASE 12 — Módulos complementarios
+## FASE 13 — Modulos complementarios (~6 sprints)
 
-**Objetivo.** Completar el alcance con módulos que enriquecen la
-operación.
+**Objetivo.** Completar el alcance con modulos que enriquecen la operacion.
 
-**Depende de.** FASE 1-7.
+**Depende de.** FASE 1-8.
 
-**Módulos:**
+### Modulos
 
-### 12.1 Sponsors / contratos comerciales — 🔴 (Módulo Paralelo)
-
-- Tabla `sponsors_contratos` (entidad_id ↔ tenant, fecha_inicio, fin, monto, beneficios)
-- Atributo `sponsor` sobre entidades
-- Visualización en perfil de equipo (sponsor de la temporada)
-- Renovaciones próximas
-
-### 12.2 Inventario físico — 🔴 (Módulo Paralelo)
-
-- Tabla `inventario_fisico_items` (qué tiene el club: balones, redes,
-  arcos, etc.)
-- Asignación a sede / cancha / equipo
-- Stock con bajas (perdido, roto)
-
-### 12.3 Mantenimiento de instalaciones — 🔴 (Módulo Paralelo)
-
-- Tickets de mantenimiento (problema, prioridad, asignado a, estado)
-- Recurrentes (limpieza diaria, mantenimiento mensual)
-- Histórico por instalación
-
-### 12.4 Documentos del tenant — 🔴 (Plataforma)
-
-- Estatutos, reglamentos, actas
-- Versionado, firma digital
-- Visibilidad por rol
-
-### 12.5 Galería multimedia — 🔴 (Vertical Club + Plataforma)
-
-- Álbumes por evento, partido, temporada
-- Subida masiva por staff
-- Reusa `personas_media` (existe) para fotos por persona
-- Acceso público (con permisos) o solo socios
-
-### 12.6 Calendario académico — 🔴 (Vertical Club)
-
-- Para clubes con escuela deportiva
-- Ciclos lectivos, vacaciones
-- Reusa `eventos` con tipo `academico`
+| # | Modulo | Estado |
+|---|---|---|
+| 13.1 | Sponsors / contratos comerciales | Red |
+| 13.2 | Inventario fisico | Red |
+| 13.3 | Mantenimiento de instalaciones | Red |
+| 13.4 | Documentos del tenant | Red |
+| 13.5 | Galeria multimedia | Red |
+| 13.6 | Calendario academico | Red |
 
 ---
 
-## FASE 13 — Frontends públicos
+## FASE 14 — Frontends publicos (~4 sprints)
 
-**Objetivo.** Caras públicas del tenant. Lo que ven socios, aspirantes,
-visitantes.
+**Objetivo.** Caras publicas del tenant: socios, aspirantes, visitantes.
 
-**Depende de.** FASE 1-12.
+**Depende de.** FASE 1-13.
 
-**Módulos:**
+### Modulos
 
-### 13.1 Pre-inscripciones públicas — 🟡 (Vertical Club + Plataforma)
-
-**Estado:** `pre_inscripciones` existe + página `/asociate` existe.
-
-**Pendiente:**
-- Landing personalizable por tenant
-- Pasos del wizard de inscripción
-- Notificación a staff al recibir nueva
-- Aprobación con conversión a persona + asignación a equipo
-
-### 13.2 Páginas públicas del tenant — 🔴 (Plataforma)
-
-- `/[tenant-slug]/equipos` → vista pública de equipos
-- `/[tenant-slug]/eventos` → calendario público
-- `/[tenant-slug]/socios` → directorio (con privacidad respetada)
-- `/[tenant-slug]/contacto` → form de contacto
-- Todo con branding del tenant
-
-### 13.3 Member portal — 🔴 (Plataforma)
-
-- Cada socio tiene su panel `/mi-cuenta`
-- Estado de cuotas, próximos eventos, su credencial digital
-- Comunicaciones recibidas
-- Solicitudes (cambio de datos, baja, etc.)
-
-### 13.4 PWA instalable — 🔴 (Plataforma)
-
-- Manifest + service worker
-- Instalable desde mobile como app
-- Offline mínimo (credencial, próximos eventos cacheados)
-- Notificaciones push web
+| # | Modulo | Estado |
+|---|---|---|
+| 14.1 | Pre-inscripciones publicas (landing personalizable) | Yellow |
+| 14.2 | Paginas publicas del tenant | Red |
+| 14.3 | Member portal (/mi-cuenta) | Red |
+| 14.4 | PWA instalable | Red |
 
 ---
 
-## FASE 14 — Calidad, seguridad, performance
+## FASE 15 — Calidad / Seguridad / Performance (~5 sprints)
 
-**Objetivo.** Endurecer la plataforma para producción a escala.
+**Objetivo.** Endurecer la plataforma para produccion a escala.
+Deuda tecnica detectada a lo largo de las fases anteriores se resuelve aqui.
 
-**Depende de.** Producto razonablemente estable (FASE 1-11 mínimo).
+**Depende de.** Producto razonablemente estable (FASE 1-12 minimo).
 
-**Módulos:**
+### Modulos
 
-### 14.1 Tests automatizados — 🔴 (Plataforma)
-
-- Suite de tests unitarios (vitest)
-- Tests de integración para flows críticos (imports, emisión cuotas,
-  cobranza, control de acceso)
-- Tests de RLS (que tenants no se filtren entre sí)
-- CI/CD con tests obligatorios pre-merge
-
-### 14.2 Auditoría de seguridad — 🔴 (Plataforma)
-
-- Revisión de cada policy RLS
-- Revisión de cada server action (validación, permisos)
-- Revisión de manejo de secrets
-- Revisión de exposición de PII
-- Auditoría manual de headers, CORS, CSP
-
-### 14.3 Performance tuning — 🔴 (Plataforma)
-
-- EXPLAIN ANALYZE de queries críticas
-- Índices adicionales según patrones reales
-- Optimización de bundle JS
-- Auditoría Lighthouse en cada página principal
-- Compresión, caching, edge
-
-### 14.4 Rate limiting + WAF — 🔴 (Plataforma)
-
-- Upstash Redis para rate limiting
-- Reglas por endpoint y por IP
-- Bloqueo automático de IPs maliciosas
-- Cloudflare WAF si volumen lo justifica
-
-### 14.5 Disaster recovery + Backups — 🔴 (Plataforma)
-
-- Validación periódica de backups Supabase
-- PITR habilitado
-- Drill de restore (simulacro)
-- Documentación de procedimientos
-
-### 14.6 Penetration testing externo — 🔴 (Plataforma)
-
-- Cuando ClubCore tenga >$50k USD/mes facturación
-- Empresa especializada
-- Remediación de hallazgos
+| # | Modulo | Estado |
+|---|---|---|
+| 15.1 | Tests automatizados (vitest, integracion, RLS) | Red |
+| 15.2 | Auditoria de seguridad | Red |
+| 15.3 | Performance tuning (EXPLAIN, bundle, Lighthouse) | Red |
+| 15.4 | Rate limiting + WAF | Red |
+| 15.5 | Disaster recovery + Backups | Red |
 
 ---
 
-## FASE 15 — Verticales y troncal universal
+**DEMO A HINDU** — Producto 100% demostrable en modo mock.
+Hindu valida y decide si aporta credenciales reales.
 
-**Objetivo.** Expandir ClubCore más allá del vertical Club Deportivo.
-Cumplir la visión a 2+ años.
+---
+
+## FASE 16 — Conexion servicios externos reales (~5 sprints)
+
+**Objetivo.** Pasar de mock a produccion para cada servicio externo que
+Hindu decida activar.
+
+**Depende de.** Demo aprobada. Credenciales del tenant disponibles.
+
+### Modulos
+
+| # | Modulo | Estado |
+|---|---|---|
+| 16.1 | Resend production (DNS real, SPF/DKIM/DMARC) | Red |
+| 16.2 | MercadoPago production (credenciales empresa) | Red |
+| 16.3 | WhatsApp Business API production | Red |
+| 16.4 | AFIP facturacion electronica | Red |
+| 16.5 | Otros conectores segun demanda | Red |
+
+---
+
+## FASE 17 — Verticales adicionales (2027+)
+
+**Objetivo.** Expandir ClubCore mas alla del vertical Club Deportivo.
 
 **Depende de.** ClubCore estable con 3+ clientes pagos.
 
-**Módulos:**
+### Modulos
 
-### 15.1 Vertical Country deportivo — 🟠 (Vertical)
-
-**Catalogado:** `country_deportivo`.
-
-- Adaptar el motor para countries con múltiples disciplinas + amenities
-- Reservas de canchas centrales
-- Sistema de invitados
-
-### 15.2 Vertical Federación Hub — 🟠 (Vertical)
-
-**Catalogado:** `federacion_hub`.
-
-- Una federación opera múltiples clubes desde un hub
-- Padrón consolidado inter-club
-- Torneos federativos
-
-### 15.3 Vertical Polo educativo — 🟠 (Vertical)
-
-**Catalogado:** `polo_educativo`.
-
-- Adaptar para escuelas con deporte como complemento educativo
-- Ciclo lectivo
-- Reportes académicos + deportivos
-
-### 15.4 Vertical eCommerce — 🟠 (Vertical)
-
-**Catalogado:** `ecommerce_shop` + `inventario_productos`.
-
-- Tienda del tenant (merchandising, equipamiento)
-- Carrito, checkout, envíos
-- Conexión a MercadoPago / Stripe
-
-### 15.5 Separación física troncal (refactor 2027) — 🔴 (Plataforma)
-
-**Según ADR-014.**
-
-- Reorganización de paths físicos
-- Renombrado de tablas verticales con prefijo
-- PIM completo (atributos, variantes, combos, canales)
-- Sistema de empaquetado de verticales
+| # | Modulo | Estado |
+|---|---|---|
+| 17.1 | Vertical Country deportivo | Orange |
+| 17.2 | Vertical Federacion Hub | Orange |
+| 17.3 | Vertical Polo educativo | Orange |
+| 17.4 | Vertical eCommerce | Orange |
+| 17.5 | Separacion fisica troncal (refactor 2027) | Red |
 
 ---
 
 ## Mapa de dependencias
 
 ```
-FASE 0 (Fundación) ────► FASE 1 (Base operativa Hindu)
-│
-├──► FASE 2 (Comunicación)
-│         │
-│         └──► FASE 3 (Asistencias + Acceso)
-│                   │
-│                   └──► FASE 4 (Planificadores)
-│                             │
-│                             └──► FASE 5 (Op. deportiva ext.)
-│
-└──► FASE 6 (Finanzas avanzadas)
-          │
-          └──► FASE 7 (RRHH)
+FASE 0 (Fundacion) -----> FASE 1 (Base operativa Hindu) [CERRADA]
+|
++---> FASE 2 (Comunicacion)
+|         |
+|         +---> FASE 3 (Asistencias + Acceso)
+|                   |
+|                   +---> FASE 4 (Planificadores)
+|                             |
+|                             +---> FASE 5 (Competencias) [NUEVA]
+|                                       |
+|                                       +---> FASE 6 (Op. deportiva ext.)
+|
++---> FASE 7 (Finanzas avanzadas)
+          |
+          +---> FASE 8 (RRHH)
 
-FASE 0 ────► FASE 8 (IA aplicada)
-│
-└──► FASE 9 (Bot WhatsApp como producto)
-     (necesita FASE 2 + FASE 8)
+FASE 0 -----> FASE 9 (IA aplicada)
+|
++---> FASE 10 (Bot WhatsApp)
+     (necesita FASE 2 + FASE 9)
 
-FASE 0 ────► FASE 10 (Plataforma + integraciones)
-│
-└──► FASE 11 (Onboarding tenant)
-     (necesita FASE 1-10 estables)
+FASE 0 -----> FASE 11 (Plataforma + integraciones)
+|
++---> FASE 12 (Onboarding tenant)
+     (necesita FASE 1-11 estables)
 
-FASE 1-7 ──► FASE 12 (Módulos complementarios)
-FASE 1-12 ─► FASE 13 (Frontends públicos)
-FASE 1-13 ─► FASE 14 (Calidad / seguridad / performance)
-FASE 14 ──► FASE 15 (Verticales y troncal universal)
+FASE 1-8  --> FASE 13 (Modulos complementarios)
+FASE 1-13 --> FASE 14 (Frontends publicos)
+FASE 1-14 --> FASE 15 (Calidad / seguridad / performance)
+
+--- DEMO A HINDU ---
+
+FASE 15 ----> FASE 16 (Conexion servicios externos reales)
+FASE 16 ----> FASE 17 (Verticales adicionales, 2027+)
 ```
 
 ---
 
 ## Reglas operativas del roadmap
 
-### Cómo se ejecuta una fase
+### Como se ejecuta una fase
 
-1. Antes de arrancar fase X, validar que las fases dependientes estén
+1. Antes de arrancar fase X, validar que las fases dependientes esten
    completas.
-2. Dentro de una fase, módulos pueden correr en paralelo en entornos
-   distintos.
-3. Cada módulo arranca con su propio sprint según `PROMPT-ENVELOPE.md`.
+2. Dentro de una fase, modulos pueden correr en paralelo.
+3. Cada modulo arranca con su propio sprint segun `PROMPT-ENVELOPE.md`.
 4. Sprints de alto riesgo (R-PE9) requieren pre-mortem.
-5. Cada módulo cerrado actualiza `CURRENT-STATE.md`.
+5. Cada modulo cerrado actualiza `CURRENT-STATE.md`.
 
-### Cómo se sube de fase
+### Como se sube de fase
 
 Una fase se considera **cerrada** cuando:
-- Todos los módulos críticos están en estado ✅ o 🟢.
-- Validación operativa real (Hindu o tenant de prueba usa el módulo).
+- Todos los modulos criticos estan en estado Done o Green.
+- Validacion operativa real (Hindu o tenant de prueba usa el modulo).
 - No hay regresiones detectadas.
 - `CURRENT-STATE.md` refleja el estado real.
 
-Una fase **NO se cierra a medias.** Si un módulo queda en 🟡 dentro de una
-fase, se documenta como deuda explícita y la fase queda "cerrada con
-deuda" — el siguiente sprint apropiado la levanta.
+### Como se agregan modulos nuevos
 
-### Cómo se agregan módulos nuevos
-
-Cuando aparece un módulo nuevo (no está en este roadmap):
-
-1. Identificar en qué fase encaja según dependencias.
+1. Identificar en que fase encaja segun dependencias.
 2. ADR en `DECISIONS.md` justificando.
 3. Agregar entrada al roadmap en la fase correspondiente.
-4. Si rompe la lógica de fases, re-evaluar.
+4. Si rompe la logica de fases, re-evaluar.
 
-### Cuello de botella biológico
+### Cuello de botella biologico
 
-Items que no aceleran con paralelización deben arrancarse con anticipación:
+Items que no aceleran con paralelizacion deben arrancarse con anticipacion:
 
-| Item | Fase | Cuándo arrancar |
+| Item | Fase | Cuando arrancar |
 |---|---|---|
-| DNS Resend (SPF/DKIM/DMARC) | FASE 2 | Al iniciar FASE 1 |
-| Credenciales MercadoPago empresa | FASE 6 | Al iniciar FASE 1 |
-| Aprobación WhatsApp Business API | FASE 9 | Al iniciar FASE 7 |
-| Verificación de dominio de tenant | FASE 11 | Caso por caso |
+| DNS Resend (SPF/DKIM/DMARC) | FASE 2 | Al iniciar FASE 2 |
+| Credenciales MercadoPago empresa | FASE 16 | Despues de demo |
+| Aprobacion WhatsApp Business API | FASE 16 | Despues de demo |
+| Verificacion de dominio de tenant | FASE 12 | Caso por caso |
 
 ---
 
@@ -1211,8 +539,7 @@ Items que no aceleran con paralelización deben arrancarse con anticipación:
 
 - Este documento se actualiza al cerrar cada fase o al introducir cambios
   estructurales.
-- Estados de módulos (✅ 🟢 🟡 🟠 🔴) se actualizan en cada sprint relevante.
+- Estados de modulos se actualizan en cada sprint relevante.
 - Cambios al orden de fases requieren ADR.
-- `SPRINT-PLAN.md` deja de tener fechas: solo refleja sprint actual +
-  próximos 3 en cola.
-- `MASTER-PROJECT.md` §7 (Roadmap macro) apunta a este documento.
+- `SPRINT-PLAN.md` refleja sprint actual + proximos 3 en cola.
+- `MASTER-PROJECT.md` par.7 (Roadmap macro) apunta a este documento.

@@ -9,7 +9,7 @@
 > Mantenido por: arquitecto (decisiones marco) + Code (decisiones técnicas
 > tomadas durante sprints).
 >
-> Última actualización: 10 de mayo de 2026.
+> Última actualización: 11 de mayo de 2026.
 
 ---
 

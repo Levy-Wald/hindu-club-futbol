@@ -5,7 +5,7 @@
 >
 > Mantenido por el arquitecto.
 >
-> Última actualización: 10 de mayo de 2026.
+> Última actualización: 11 de mayo de 2026.
 
 ---
 
@@ -151,6 +151,23 @@ Vive en `cuentas_corrientes`.
 **Cotización.** Tipo de cambio entre dos monedas en una fecha. Vive en
 `cotizaciones`.
 
+**Concesionario.** Tercero que opera un punto de venta dentro del club
+(kiosko, parrilla, cantina). Tiene su propio MercadoPago. El club cobra
+canon mensual. Aislado del plan de cuentas del club (ADR-025). Vive en
+`concesionarios`.
+
+**Canon.** Comisión mensual que paga el concesionario al club, calculada
+como MAX(porcentaje sobre ventas confirmadas, mínimo mensual). Vive en
+`concesion_canones`.
+
+**Punto de venta.** Espacio físico dentro de una sede donde opera un
+concesionario. Vive en `concesion_puntos_venta`.
+
+**Cargo de reposición.** Monto que se suma a la próxima cuota mensual de
+cada miembro del plantel snapshot cuando la utilería no se devuelve en
+plazo de 1 semana. Reversible si el item aparece. Calculado en
+`utl_cargos`.
+
 ---
 
 ## 4. Conceptos de dominio (Vertical Club Deportivo)
@@ -186,6 +203,29 @@ AIF, etc.). Modelada como `entidad` con atributo `federacion`.
 **Plantel.** Conjunto de personas pertenecientes a un equipo con rol
 específico (jugador, capitán, director técnico, preparador físico). Vive en
 `personas_equipos`.
+
+**Plantel snapshot.** Array de `persona_id` capturado al momento de solicitar
+utilería. Si algo no vuelve, el cargo se prorratea sobre ESE plantel, no el
+actual.
+
+**Cuerpo técnico.** Roles staff de `catalogo_roles_equipo` (DT, asistente DT,
+PF, kine, médico equipo, utilero del equipo, manager, scout, delegado,
+referente) + capitán y subcapitán como roles de liderazgo deportivo. Operan
+a nivel equipo vía `personas_equipos`.
+
+**staff_utileria.** Atributo a NIVEL CLUB (no equipo) del vestuarista o
+miembros de comisión. Distinto de `utilero` (rol_equipo_slug a nivel equipo).
+
+**kine_club / medico_club.** Atributos a nivel club (acceso a datos médicos
+de cualquier equipo). Distintos de `kine` / `medico_equipo` (roles de equipo
+específico).
+
+**Torneo Interno.** Competencia organizada por el propio club (Hindu como
+entidad organizadora), distinta de torneos organizados por federaciones
+externas. FASE 5 del roadmap.
+
+**Fuente única de verdad de roles.** `personas_equipos.rol_equipo_slug`
+(ADR-024). Ningún módulo debe duplicar este dato con atributos paralelos.
 
 **Rol en equipo.** Función de la persona dentro de un equipo. Vive en
 `catalogo_roles_equipo`.

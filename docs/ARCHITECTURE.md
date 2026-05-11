@@ -5,7 +5,7 @@
 >
 > Mantenido por el arquitecto. Cambios requieren aprobación.
 >
-> Última actualización: 10 de mayo de 2026.
+> Última actualización: 11 de mayo de 2026.
 
 ---
 
@@ -570,6 +570,27 @@ El contrato de `crearNotificacion` NO cambia con estas extensiones.
 - FASE 7: integración real con MercadoPago API.
 - FASE 7: cobro automático de canon vía cuota + movimiento.
 - FASE 8: reportes consolidados cruzando plan de cuentas.
+
+---
+
+## 13.7 Servicios externos: mock / sandbox / production
+
+Cada integracion externa (Resend, MercadoPago, WhatsApp, AFIP, Twilio,
+Meta Cloud, etc.) se construye con 3 modos:
+
+- **mock**: simula la operacion, registra internamente, no requiere
+  credenciales. Default en desarrollo y demo.
+- **sandbox**: usa entorno test del servicio externo (Resend test
+  domain, MP sandbox, etc.). Gratis o muy barato.
+- **production**: usa credenciales reales del tenant.
+
+El modo es configurable por tenant via tabla `tenant_servicios_externos`
+(a crear en FASE 12 con el wizard de onboarding).
+
+Cambiar de modo NO requiere cambio de codigo. Solo cambio de configuracion.
+
+El producto debe ser 100% demostrable en modo mock antes de pedir
+credenciales al tenant.
 
 ---
 
