@@ -6,9 +6,9 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint FASE 2.2 completado.
+> Última actualización: 11 de mayo de 2026 — Sprint FASE 2.3 completado.
 > Sprints 14d a 15c cerrados. FASE 1 oficialmente cerrada.
-> Sprint FASE 2.2: Editor CRUD de plantillas con preview y permisos.
+> Sprint FASE 2.3: Envíos masivos con segmentación MVP.
 
 ---
 
@@ -18,12 +18,12 @@
 para Hindu Club Futbol: suscripciones, cuotas, cobranza, centros de costo,
 salud, utileria, cuerpo tecnico, notificaciones in-app, concesiones.
 
-**Ultimo sprint cerrado:** **FASE 2.2** — Editor CRUD de Plantillas.
-PlantillaEditorForm con preview en tiempo real, auto-detección de variables
-{{mustache}}. Permisos por atributo (comunicaciones.admin/editor).
-Protección plantillas del sistema (slug/tipo readonly, no eliminable).
-Server actions: crear, actualizar, softDelete, duplicar, toggleActiva.
-7 E2E tests para comunicaciones (22 total passed, 1 skip).
+**Ultimo sprint cerrado:** **FASE 2.3** — Envíos Masivos con Segmentación.
+Wizard de envío masivo: seleccionar plantilla, canal, segmento (todos_activos
+o equipo). Preview con conteo de destinatarios. Bulk insert en batches de 500
+vía MockAdapter.enviarMasivo(). Lotes agrupados por metadata.lote_id.
+Tab "Envíos masivos" con historial. Detalle de lote con envíos individuales.
+11 E2E tests para comunicaciones (26 total passed, 1 skip).
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -48,7 +48,7 @@ Server actions: crear, actualizar, softDelete, duplicar, toggleActiva.
 | API routes | 12 (5 endpoints v1 + 3 internos + 4 crons) |
 | Server actions | ~160 en 26 archivos |
 | Componentes custom (no shadcn) | ~115 |
-| Tests E2E (Playwright) | 23 specs (22 pass, 1 skip) |
+| Tests E2E (Playwright) | 27 specs (26 pass, 1 skip) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,389 |
 | Equipos (Hindu) | 7 |
@@ -500,6 +500,12 @@ Historial referenciado en commits del repo. Listado resumido:
   atributo (comunicaciones.admin/editor), protección plantillas del sistema,
   server actions (crear, actualizar, softDelete, duplicar, toggleActiva),
   parser de variables con sincronización automática, 7 E2E tests.
+- **FASE 2.3** — Envíos Masivos con Segmentación MVP: wizard de envío masivo
+  (plantilla + canal + segmento), segmentos todos_activos y equipo, preview
+  con conteo de destinatarios, bulk insert en batches de 500 vía
+  MockAdapter.enviarMasivo(), lotes agrupados por metadata.lote_id, tab
+  "Envíos masivos" con historial, detalle de lote, API route preview-segmento,
+  11 E2E tests comunicaciones.
 
 ---
 
