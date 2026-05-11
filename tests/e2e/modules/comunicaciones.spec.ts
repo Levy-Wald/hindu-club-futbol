@@ -209,9 +209,23 @@ test.describe('Comunicaciones', () => {
     const supabase = serviceRole()
 
     let fixtureId: string | null = null
+    let atributoId: string | null = null
     const jobLogIds: string[] = []
 
     try {
+      // SETUP: dar permiso admin_sistema temporal al E2E user
+      const { data: attr } = await supabase
+        .from('personas_atributos')
+        .insert({
+          tenant_id: TENANT,
+          persona_id: PERSONA_E2E,
+          atributo_slug: 'admin_sistema',
+          activo: true,
+        })
+        .select('id')
+        .single()
+      atributoId = attr?.id ?? null
+
       // SETUP: insertar autorización apto_fisico que vence en 5 días (dentro de ventana 7d)
       const fechaTarget = new Date()
       fechaTarget.setDate(fechaTarget.getDate() + 5)
@@ -276,6 +290,9 @@ test.describe('Comunicaciones', () => {
       }
       if (fixtureId) {
         await supabase.from('personas_autorizaciones').delete().eq('id', fixtureId)
+      }
+      if (atributoId) {
+        await supabase.from('personas_atributos').delete().eq('id', atributoId)
       }
     }
   })
