@@ -80,7 +80,7 @@ const TIPO_ICONS: Record<string, typeof Mail> = {
 }
 
 export function PlantillasTable({ plantillas: initialPlantillas, permisos }: PlantillasTableProps) {
-  const [plantillas] = useState(initialPlantillas)
+  const [plantillas, setPlantillas] = useState(initialPlantillas)
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
   const [isPending, startTransition] = useTransition()
 
@@ -96,6 +96,7 @@ export function PlantillasTable({ plantillas: initialPlantillas, permisos }: Pla
     startTransition(async () => {
       const result = await softDeletePlantilla(id)
       if (result.ok) {
+        setPlantillas(prev => prev.filter(p => p.id !== id))
         toast.success('Plantilla eliminada')
       } else {
         toast.error(result.message)
