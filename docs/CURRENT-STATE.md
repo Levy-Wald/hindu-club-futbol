@@ -6,8 +6,8 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint 14k.8 completado.
-> Sprints 14d a 14k.8 cerrados. FASE 1 oficialmente cerrada.
+> Última actualización: 11 de mayo de 2026 — Sprint 14k.9 completado.
+> Sprints 14d a 14k.9 cerrados. FASE 1 oficialmente cerrada.
 
 ---
 
@@ -17,10 +17,10 @@
 para Hindu Club Futbol: suscripciones, cuotas, cobranza, centros de costo,
 salud, utileria, cuerpo tecnico, notificaciones in-app, concesiones.
 
-**Ultimo sprint cerrado:** **14k.8** — Estabilización final FASE 1.
-Fix utilería 'use server' export, concesiones silent submit, salud persona
-search, migración getSession→getUser (seguridad), ADRs 028-030, E2E checklist
-template. FASE 1 oficialmente cerrada con producción validada end-to-end.
+**Ultimo sprint cerrado:** **14k.9** — Cierre real FASE 1.
+Fix concesiones (toasts + hydration), fix utilería (base-ui hydration con
+ClientOnly wrapper), fix salud completo (columnas incorrectas en 7 tabs +
+levantarCasoSalud insert), ADR-031 (descripcion en lesiones). Build verde.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).

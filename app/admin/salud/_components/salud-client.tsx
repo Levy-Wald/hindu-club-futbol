@@ -439,8 +439,7 @@ function TabLesiones({ equipos, puedeExportar }: { equipos: Equipo[]; puedeExpor
             <SelectContent>
               <SelectItem value="">Todos</SelectItem>
               <SelectItem value="activa">Activa</SelectItem>
-              <SelectItem value="recuperacion">Recuperacion</SelectItem>
-              <SelectItem value="alta">Alta</SelectItem>
+              <SelectItem value="recuperada">Recuperada</SelectItem>
             </SelectContent>
           </Select>
         </div>

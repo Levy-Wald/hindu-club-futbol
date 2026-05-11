@@ -1741,6 +1741,45 @@ elegida y se referencia desde el Sprint correspondiente.
 
 ---
 
+## ADR-031 — Descripción genérica en personas_lesiones para carga por roles no-médicos
+
+**Fecha:** 2026-05-11
+**Estado:** Vigente
+**Capa:** Vertical Club Deportivo
+**Tomado por:** Code + Arquitecto
+
+### Contexto
+
+La tabla `personas_lesiones` tiene `diagnostico_medico` (campo técnico
+para profesionales de salud) y `notas` (campo operativo). Pero los DTs
+y staff no-médico necesitan registrar lesiones con una descripción
+libre sin llenar campos clínicos.
+
+Sprint 14k.9 descubrió que la columna `descripcion` ya existe en la
+tabla pero no estaba mapeada correctamente en la acción
+`levantarCasoSalud` (columnas con nombres incorrectos impedían el
+INSERT).
+
+### Decisión
+
+- `descripcion` (text, nullable): campo genérico para carga por
+  cualquier rol con permiso `puede_ver_lesiones`
+- `diagnostico_medico` (text, nullable): campo técnico, solo editable
+  por staff médico
+- `notas` (text, nullable): campo operativo libre
+
+La acción `levantarCasoSalud` usa `descripcion` como campo principal.
+Los campos `diagnostico_medico` y `tratamiento` se llenan después por
+personal médico desde la ficha de la persona.
+
+### Consecuencias
+
+- DTs pueden levantar casos desde `/admin/salud` sin conocimiento médico
+- El registro inicial tiene tipo + zona + gravedad + descripción libre
+- El detalle clínico se completa luego por staff médico
+
+---
+
 ## ADR-028 — PIM unificado: productos, servicios y suscripciones bajo un solo catálogo
 
 **Fecha:** 2026-05-11

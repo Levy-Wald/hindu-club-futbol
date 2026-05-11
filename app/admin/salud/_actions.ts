@@ -29,6 +29,19 @@ async function logYQuery(accion: AccionSalud, permisoKey: keyof Awaited<ReturnTy
   return p
 }
 
+// Compute nombre_completo from persona_apellido + persona_nombre (most views)
+// or from apellido + nombre (alertas view)
+function addNombreCompleto<T extends Record<string, unknown>>(rows: T[]): (T & { nombre_completo: string })[] {
+  return rows.map(r => ({
+    ...r,
+    nombre_completo: r.persona_apellido
+      ? `${r.persona_apellido}, ${r.persona_nombre}`
+      : r.apellido
+        ? `${r.apellido}, ${r.nombre}`
+        : r.nombre_completo as string ?? '',
+  }))
+}
+
 // -------------------------------------------------------------------
 // Tab: Lesiones
 // -------------------------------------------------------------------
@@ -45,16 +58,25 @@ export async function fetchLesiones(filtros?: {
     .from('v_salud_lesiones')
     .select('*')
     .eq('tenant_id', TENANT_ID)
-    .order('fecha_lesion', { ascending: false })
+    .order('fecha_inicio', { ascending: false })
     .limit(200)
 
   if (filtros?.equipo) query = query.eq('equipo_id', filtros.equipo)
-  if (filtros?.estado) query = query.eq('estado', filtros.estado)
-  if (filtros?.busqueda) query = query.or(`nombre_completo.ilike.%${filtros.busqueda}%,tipo_lesion.ilike.%${filtros.busqueda}%`)
+  if (filtros?.estado === 'activa') query = query.eq('recuperada', false).eq('activo', true)
+  if (filtros?.estado === 'recuperada') query = query.eq('recuperada', true)
+  if (filtros?.busqueda) query = query.or(`persona_apellido.ilike.%${filtros.busqueda}%,persona_nombre.ilike.%${filtros.busqueda}%,tipo_lesion.ilike.%${filtros.busqueda}%`)
 
   const { data, error } = await query
   if (error) return { ok: false, data: [], error: error.message }
-  return { ok: true, data: data ?? [], nivel: p.nivel }
+
+  const transformed = addNombreCompleto(data ?? []).map(r => ({
+    ...r,
+    zona_cuerpo: r.zona_corporal,
+    fecha_lesion: r.fecha_inicio,
+    estado: r.recuperada ? 'recuperada' : 'activa',
+    equipo_nombre: r.equipos ?? '',
+  }))
+  return { ok: true, data: transformed, nivel: p.nivel }
 }
 
 // -------------------------------------------------------------------
@@ -72,15 +94,15 @@ export async function fetchDatosMedicos(filtros?: {
     .from('v_salud_datos_medicos')
     .select('*')
     .eq('tenant_id', TENANT_ID)
-    .order('nombre_completo')
+    .order('persona_apellido')
     .limit(200)
 
-  if (filtros?.busqueda) query = query.ilike('nombre_completo', `%${filtros.busqueda}%`)
+  if (filtros?.busqueda) query = query.or(`persona_apellido.ilike.%${filtros.busqueda}%,persona_nombre.ilike.%${filtros.busqueda}%`)
   if (filtros?.grupo_sanguineo) query = query.eq('grupo_sanguineo', filtros.grupo_sanguineo)
 
   const { data, error } = await query
   if (error) return { ok: false, data: [], error: error.message }
-  return { ok: true, data: data ?? [], nivel: p.nivel }
+  return { ok: true, data: addNombreCompleto(data ?? []), nivel: p.nivel }
 }
 
 // -------------------------------------------------------------------
@@ -98,15 +120,21 @@ export async function fetchObraSocial(filtros?: {
     .from('v_salud_obra_social')
     .select('*')
     .eq('tenant_id', TENANT_ID)
-    .order('nombre_completo')
+    .order('persona_apellido')
     .limit(200)
 
-  if (filtros?.busqueda) query = query.ilike('nombre_completo', `%${filtros.busqueda}%`)
-  if (filtros?.obra_social) query = query.eq('obra_social_slug', filtros.obra_social)
+  if (filtros?.busqueda) query = query.or(`persona_apellido.ilike.%${filtros.busqueda}%,persona_nombre.ilike.%${filtros.busqueda}%`)
+  if (filtros?.obra_social) query = query.eq('obra_social', filtros.obra_social)
 
   const { data, error } = await query
   if (error) return { ok: false, data: [], error: error.message }
-  return { ok: true, data: data ?? [], nivel: p.nivel }
+
+  const transformed = addNombreCompleto(data ?? []).map(r => ({
+    ...r,
+    obra_social_slug: r.obra_social,
+    plan_obra_social: r.plan,
+  }))
+  return { ok: true, data: transformed, nivel: p.nivel }
 }
 
 // -------------------------------------------------------------------
@@ -149,14 +177,21 @@ export async function fetchContactosEmergencia(filtros?: {
     .from('v_salud_contactos_emergencia')
     .select('*')
     .eq('tenant_id', TENANT_ID)
-    .order('nombre_completo')
+    .order('persona_apellido')
     .limit(200)
 
-  if (filtros?.busqueda) query = query.ilike('nombre_completo', `%${filtros.busqueda}%`)
+  if (filtros?.busqueda) query = query.or(`persona_apellido.ilike.%${filtros.busqueda}%,persona_nombre.ilike.%${filtros.busqueda}%`)
 
   const { data, error } = await query
   if (error) return { ok: false, data: [], error: error.message }
-  return { ok: true, data: data ?? [], nivel: p.nivel }
+
+  const transformed = addNombreCompleto(data ?? []).map(r => ({
+    ...r,
+    parentesco: r.vinculo_slug,
+    contacto_telefono: r.telefono_principal,
+    contacto_email: r.email,
+  }))
+  return { ok: true, data: transformed, nivel: p.nivel }
 }
 
 // -------------------------------------------------------------------
@@ -173,19 +208,26 @@ export async function fetchVehiculos(filtros?: {
     .from('v_salud_vehiculos')
     .select('*')
     .eq('tenant_id', TENANT_ID)
-    .order('nombre_completo')
+    .order('persona_apellido')
     .limit(200)
 
-  if (filtros?.busqueda) query = query.ilike('nombre_completo', `%${filtros.busqueda}%`)
+  if (filtros?.busqueda) query = query.or(`persona_apellido.ilike.%${filtros.busqueda}%,persona_nombre.ilike.%${filtros.busqueda}%`)
 
   const { data, error } = await query
   if (error) return { ok: false, data: [], error: error.message }
-  return { ok: true, data: data ?? [], nivel: p.nivel }
+  return { ok: true, data: addNombreCompleto(data ?? []), nivel: p.nivel }
 }
 
 // -------------------------------------------------------------------
 // Tab: Alertas
 // -------------------------------------------------------------------
+
+const ALERTA_TYPES = [
+  { key: 'falta_datos_medicos', label: 'falta_datos_medicos' },
+  { key: 'falta_obra_social', label: 'falta_obra_social' },
+  { key: 'falta_contacto_emergencia', label: 'falta_contacto_emergencia' },
+  { key: 'falta_autorizacion_imagen', label: 'falta_autorizacion_imagen' },
+] as const
 
 export async function fetchAlertas(filtros?: {
   busqueda?: string
@@ -198,15 +240,30 @@ export async function fetchAlertas(filtros?: {
     .from('v_salud_alertas_faltantes')
     .select('*')
     .eq('tenant_id', TENANT_ID)
-    .order('nombre_completo')
+    .order('apellido')
     .limit(300)
 
-  if (filtros?.busqueda) query = query.ilike('nombre_completo', `%${filtros.busqueda}%`)
-  if (filtros?.tipo_alerta) query = query.eq('tipo_alerta', filtros.tipo_alerta)
+  if (filtros?.busqueda) query = query.or(`apellido.ilike.%${filtros.busqueda}%,nombre.ilike.%${filtros.busqueda}%`)
 
   const { data, error } = await query
   if (error) return { ok: false, data: [], error: error.message }
-  return { ok: true, data: data ?? [], nivel: p.nivel }
+
+  // Flatten boolean flags into one row per alert type
+  const rows: Record<string, unknown>[] = []
+  for (const person of data ?? []) {
+    for (const at of ALERTA_TYPES) {
+      if (person[at.key]) {
+        if (filtros?.tipo_alerta && filtros.tipo_alerta !== at.label) continue
+        rows.push({
+          persona_id: person.persona_id,
+          nombre_completo: `${person.apellido}, ${person.nombre}`,
+          tipo_alerta: at.label,
+          equipo_nombre: person.equipos ?? '',
+        })
+      }
+    }
+  }
+  return { ok: true, data: rows, nivel: p.nivel }
 }
 
 // -------------------------------------------------------------------
@@ -246,11 +303,12 @@ export async function levantarCasoSalud(input: {
       tenant_id: TENANT_ID,
       persona_id: input.persona_id,
       tipo_lesion: input.tipo,
-      zona_cuerpo: 'no_especificada',
+      zona_corporal: 'no_especificada',
       gravedad: input.severidad,
       descripcion: input.descripcion,
-      fecha_lesion: input.fecha,
-      estado: 'activa',
+      fecha_inicio: input.fecha,
+      recuperada: false,
+      activo: true,
     })
 
   if (error) return { ok: false, error: error.message }
