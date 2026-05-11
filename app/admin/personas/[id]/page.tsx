@@ -11,10 +11,12 @@ import { ArrowLeft, History } from 'lucide-react'
 
 interface PageProps {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ tab?: string }>
 }
 
-export default async function PersonaDetallePage({ params }: PageProps) {
+export default async function PersonaDetallePage({ params, searchParams }: PageProps) {
   const { id } = await params
+  const { tab } = await searchParams
 
   // Todas las queries en paralelo — no esperar persona para lanzar catálogos
   const [personaResult, catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio, categoriasEquipo] = await Promise.all([
@@ -74,6 +76,7 @@ export default async function PersonaDetallePage({ params }: PageProps) {
         estadosPadron={estadosPadron}
         tiposSocio={tiposSocio}
         categoriasEquipo={categoriasEquipo}
+        defaultTab={tab}
       />
     </div>
   )

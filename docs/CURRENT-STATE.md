@@ -6,8 +6,8 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint 14k.6 completado.
-> Sprints 14d a 14k.6 cerrados. Tag `v0.1.0-fase1-cierre` en commit `aeebaac`.
+> Última actualización: 11 de mayo de 2026 — Sprint 14k.7 completado.
+> Sprints 14d a 14k.7 cerrados. Tag `v0.1.0-fase1-cierre` en commit `aeebaac`.
 
 ---
 
@@ -17,9 +17,9 @@
 para Hindu Club Futbol: suscripciones, cuotas, cobranza, centros de costo,
 salud, utileria, cuerpo tecnico, notificaciones in-app, concesiones.
 
-**Ultimo sprint cerrado:** **14k.6** — Limpieza arquitectónica pre-FASE 2
-(disciplinas como tabla dedicada, capa en catálogo de atributos).
-Proxima: FASE 2 Comunicacion.
+**Ultimo sprint cerrado:** **14k.7** — Hotfixes FASE 1 + UI completion.
+Bell icon con ErrorBoundary, concesiones crear, cuerpo técnico CRUD global,
+salud links + levantar caso, ADR-027. Ready para FASE 2 Comunicacion.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -454,6 +454,12 @@ Historial referenciado en commits del repo. Listado resumido:
   columnas legacy de `personas`, vista `v_personas_disciplinas_vigentes`,
   nuevo componente `SeccionDisciplinas` en ficha persona, refactor de ~12
   archivos para eliminar referencias a columnas viejas.
+- **14k.7** — Hotfixes FASE 1 + UI completion: ErrorBoundary en bell icon
+  (degradación graceful), concesiones crear con fecha inicio, cuerpo técnico
+  CRUD global (asociar persona a equipo + desvincular), vista salud con
+  links a personas y acción "Levantar caso", ARCHITECTURE.md §10 principio
+  migraciones destructivas, ADR-027 cuerpo técnico ligado a competencia
+  (postergado FASE 5).
 
 ---
 

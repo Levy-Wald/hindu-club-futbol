@@ -151,3 +151,18 @@ export async function fetchRolesStaff() {
   if (error) throw error
   return data ?? []
 }
+
+export async function fetchEquipos() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('equipos')
+    .select('id, nombre, disciplina_slug')
+    .eq('tenant_id', TENANT_ID)
+    .eq('activo', true)
+    .is('deleted_at', null)
+    .order('nombre', { ascending: true })
+
+  if (error) throw error
+  return data ?? []
+}

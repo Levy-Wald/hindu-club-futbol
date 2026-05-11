@@ -41,6 +41,7 @@ interface PersonaEditorProps {
   tiposSocio: { id: string; slug: string; nombre: string }[]
   categoriasEquipo: { id: string; nombre_display: string; edad_min?: number | null; edad_max?: number | null }[]
   modo?: 'admin' | 'mi-perfil'
+  defaultTab?: string
 }
 
 // Campos que se bloquean en mi-perfil una vez que tienen valor
@@ -96,7 +97,7 @@ function init(p: Record<string, unknown>): EditarPersonaInput {
   }
 }
 
-export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, padronesDisponibles, estadosPadron, tiposSocio, categoriasEquipo, modo = 'admin' }: PersonaEditorProps) {
+export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, padronesDisponibles, estadosPadron, tiposSocio, categoriasEquipo, modo = 'admin', defaultTab }: PersonaEditorProps) {
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState<EditarPersonaInput>(() => init(persona))
   const [exportOpen, setExportOpen] = useState(false)
@@ -155,7 +156,7 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
 
   return (
     <>
-      <Tabs defaultValue="personal">
+      <Tabs defaultValue={defaultTab || 'personal'}>
         {/* ACTION BAR — sticky on mobile for easy access */}
         <div className="sticky top-[57px] z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-4 px-4 py-2 border-b sm:relative sm:top-auto sm:z-auto sm:bg-transparent sm:backdrop-blur-none sm:mx-0 sm:px-0 sm:py-0 sm:border-b-0 mb-3 sm:mb-0">
           <div className="flex items-center gap-2 justify-end">

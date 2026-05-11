@@ -6,10 +6,13 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { toast } from 'sonner'
-import { Loader2, Search, ArrowLeft } from 'lucide-react'
-import { fetchCuerpoTecnicoGlobal } from '../../_actions/cuerpo-tecnico'
+import { Loader2, Search, ArrowLeft, UserPlus, UserMinus } from 'lucide-react'
+import { fetchCuerpoTecnicoGlobal, asignarStaff, desvincularStaff, fetchRolesStaff, fetchEquipos } from '../../_actions/cuerpo-tecnico'
+import { buscarPersonas } from '../../_actions'
 
 const ROL_LABELS: Record<string, string> = {
   dt: 'Director Técnico',
@@ -47,18 +50,85 @@ type MiembroGlobal = {
   } | null
 }
 
+type Equipo = { id: string; nombre: string; disciplina_slug: string }
+
 export function CuerpoTecnicoGlobal() {
   const [miembros, setMiembros] = useState<MiembroGlobal[]>([])
   const [loading, setLoading] = useState(true)
   const [busqueda, setBusqueda] = useState('')
   const [rolFiltro, setRolFiltro] = useState('')
 
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [equipos, setEquipos] = useState<Equipo[]>([])
+  const [rolesStaff, setRolesStaff] = useState<{ slug: string; nombre: string }[]>([])
+
+  // Persona search state
+  const [busquedaPersona, setBusquedaPersona] = useState('')
+  const [resultados, setResultados] = useState<{ id: string; nombre: string; apellido: string; numero_documento: string | null }[]>([])
+  const [buscando, setBuscando] = useState(false)
+  const [personaSeleccionada, setPersonaSeleccionada] = useState<{ id: string; nombre: string; apellido: string } | null>(null)
+  const [rolSeleccionado, setRolSeleccionado] = useState('')
+  const [equipoSeleccionado, setEquipoSeleccionado] = useState('')
+
+  const cargar = async () => {
+    setLoading(true)
+    try {
+      const data = await fetchCuerpoTecnicoGlobal()
+      setMiembros(data as unknown as MiembroGlobal[])
+    } catch {
+      toast.error('Error cargando cuerpo técnico')
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => { cargar() }, [])
+  useEffect(() => { fetchRolesStaff().then(setRolesStaff) }, [])
+  useEffect(() => { fetchEquipos().then(data => setEquipos(data as unknown as Equipo[])) }, [])
+
   useEffect(() => {
-    fetchCuerpoTecnicoGlobal()
-      .then(data => setMiembros(data as unknown as MiembroGlobal[]))
-      .catch(() => toast.error('Error cargando cuerpo técnico'))
-      .finally(() => setLoading(false))
-  }, [])
+    if (busquedaPersona.length < 2) { setResultados([]); return }
+    const timer = setTimeout(async () => {
+      setBuscando(true)
+      const res = await buscarPersonas(busquedaPersona)
+      if (res.ok) setResultados(res.data)
+      setBuscando(false)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [busquedaPersona])
+
+  const handleAsignar = async () => {
+    if (!personaSeleccionada || !rolSeleccionado || !equipoSeleccionado) {
+      toast.error('Seleccioná un equipo, una persona y un rol')
+      return
+    }
+    setSaving(true)
+    const res = await asignarStaff({
+      equipo_id: equipoSeleccionado,
+      persona_id: personaSeleccionada.id,
+      rol_equipo_slug: rolSeleccionado,
+    })
+    if (res.ok) {
+      toast.success(res.message)
+      setModalOpen(false)
+      setPersonaSeleccionada(null)
+      setRolSeleccionado('')
+      setEquipoSeleccionado('')
+      setBusquedaPersona('')
+      cargar()
+    } else {
+      toast.error(res.message)
+    }
+    setSaving(false)
+  }
+
+  const handleDesvincular = async (personaEquipoId: string, equipoId: string) => {
+    if (!confirm('¿Desvincular este miembro del cuerpo técnico?')) return
+    const res = await desvincularStaff(personaEquipoId, equipoId)
+    if (res.ok) { toast.success(res.message); cargar() }
+    else toast.error(res.message)
+  }
 
   const filtrados = miembros.filter(m => {
     const p = m.personas as unknown as MiembroGlobal['personas']
@@ -88,16 +158,21 @@ export function CuerpoTecnicoGlobal() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <Link href="/admin/equipos">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold">Cuerpo Técnico</h1>
-          <p className="text-sm text-muted-foreground">Vista global de staff en todos los equipos</p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Link href="/admin/equipos">
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold">Cuerpo Técnico</h1>
+            <p className="text-sm text-muted-foreground">Vista global de staff en todos los equipos</p>
+          </div>
         </div>
+        <Button onClick={() => setModalOpen(true)} size="sm">
+          <UserPlus className="h-4 w-4 mr-1" /> Asociar persona
+        </Button>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -148,6 +223,14 @@ export function CuerpoTecnicoGlobal() {
                           <p className="text-sm font-medium truncate">{p.apellido}, {p.nombre}</p>
                           <p className="text-xs text-muted-foreground">{ROL_LABELS[m.rol_equipo_slug] ?? m.rol_equipo_slug}</p>
                         </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleDesvincular(m.id, equipoId)}
+                          title="Dar de baja"
+                        >
+                          <UserMinus className="h-3.5 w-3.5" />
+                        </Button>
                       </CardContent>
                     </Card>
                   )
@@ -157,6 +240,88 @@ export function CuerpoTecnicoGlobal() {
           ))}
         </div>
       )}
+
+      {/* Modal: asociar persona a equipo */}
+      <Dialog open={modalOpen} onOpenChange={open => {
+        setModalOpen(open)
+        if (!open) {
+          setPersonaSeleccionada(null)
+          setBusquedaPersona('')
+          setResultados([])
+          setRolSeleccionado('')
+          setEquipoSeleccionado('')
+        }
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Asociar persona a equipo</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <div>
+              <Label>Equipo</Label>
+              <Select value={equipoSeleccionado} onValueChange={v => setEquipoSeleccionado(v ?? '')}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar equipo" /></SelectTrigger>
+                <SelectContent>
+                  {equipos.map(e => (
+                    <SelectItem key={e.id} value={e.id}>{e.nombre}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Buscar persona</Label>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Nombre o DNI..."
+                  value={busquedaPersona}
+                  onChange={e => { setBusquedaPersona(e.target.value); setPersonaSeleccionada(null) }}
+                  className="pl-8"
+                />
+              </div>
+              {buscando && <p className="text-xs text-muted-foreground mt-1">Buscando...</p>}
+              {resultados.length > 0 && !personaSeleccionada && (
+                <div className="border rounded-md mt-1 max-h-40 overflow-y-auto">
+                  {resultados.map(r => (
+                    <button
+                      key={r.id}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50"
+                      onClick={() => {
+                        setPersonaSeleccionada({ id: r.id, nombre: r.nombre, apellido: r.apellido })
+                        setBusquedaPersona(`${r.apellido}, ${r.nombre}`)
+                        setResultados([])
+                      }}
+                    >
+                      {r.apellido}, {r.nombre} {r.numero_documento ? `(${r.numero_documento})` : ''}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {personaSeleccionada && (
+                <Badge variant="secondary" className="mt-1">{personaSeleccionada.apellido}, {personaSeleccionada.nombre}</Badge>
+              )}
+            </div>
+            <div>
+              <Label>Rol</Label>
+              <Select value={rolSeleccionado} onValueChange={v => setRolSeleccionado(v ?? '')}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar rol" /></SelectTrigger>
+                <SelectContent>
+                  {rolesStaff.map(r => (
+                    <SelectItem key={r.slug} value={r.slug}>{r.nombre}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setModalOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAsignar} disabled={saving || !personaSeleccionada || !rolSeleccionado || !equipoSeleccionado}>
+              {saving && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+              Asociar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

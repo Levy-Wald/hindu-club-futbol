@@ -36,6 +36,7 @@ export function ConcesionesListClient({ concesionarios }: { concesionarios: Conc
     descripcion: '',
     canon_porcentaje: 0,
     canon_minimo_mensual: 0,
+    fecha_inicio_acuerdo: new Date().toISOString().split('T')[0],
     notas: '',
   })
 
@@ -45,7 +46,7 @@ export function ConcesionesListClient({ concesionarios }: { concesionarios: Conc
       const res = await crearConcesionario(formData)
       if (res.ok) {
         setOpen(false)
-        setFormData({ persona_id: '', nombre_comercial: '', descripcion: '', canon_porcentaje: 0, canon_minimo_mensual: 0, notas: '' })
+        setFormData({ persona_id: '', nombre_comercial: '', descripcion: '', canon_porcentaje: 0, canon_minimo_mensual: 0, fecha_inicio_acuerdo: new Date().toISOString().split('T')[0], notas: '' })
       }
     })
   }
@@ -113,6 +114,14 @@ export function ConcesionesListClient({ concesionarios }: { concesionarios: Conc
                     onChange={(e) => setFormData(f => ({ ...f, canon_minimo_mensual: Number(e.target.value) }))}
                   />
                 </div>
+              </div>
+              <div>
+                <Label>Fecha inicio acuerdo</Label>
+                <Input
+                  type="date"
+                  value={formData.fecha_inicio_acuerdo}
+                  onChange={(e) => setFormData(f => ({ ...f, fecha_inicio_acuerdo: e.target.value }))}
+                />
               </div>
               <div>
                 <Label>Notas</Label>

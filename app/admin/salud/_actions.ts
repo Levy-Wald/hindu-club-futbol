@@ -223,3 +223,36 @@ export async function fetchEquiposSalud() {
     .order('nombre')
   return data ?? []
 }
+
+// -------------------------------------------------------------------
+// Levantar caso de salud
+// -------------------------------------------------------------------
+
+export async function levantarCasoSalud(input: {
+  persona_id: string
+  tipo: string
+  descripcion: string
+  severidad: string
+  fecha: string
+}) {
+  const p = await checkPermiso('puede_ver_lesiones')
+  if (!p) throw new Error('Sin acceso')
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('personas_lesiones')
+    .insert({
+      tenant_id: TENANT_ID,
+      persona_id: input.persona_id,
+      tipo_lesion: input.tipo,
+      zona_cuerpo: 'no_especificada',
+      gravedad: input.severidad,
+      descripcion: input.descripcion,
+      fecha_lesion: input.fecha,
+      estado: 'activa',
+    })
+
+  if (error) return { ok: false, error: error.message }
+  return { ok: true }
+}

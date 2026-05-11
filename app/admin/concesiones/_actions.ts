@@ -66,6 +66,7 @@ export async function crearConcesionario(input: {
   descripcion?: string
   canon_porcentaje: number
   canon_minimo_mensual?: number
+  fecha_inicio_acuerdo?: string
   moneda?: string
   notas?: string
 }) {
@@ -88,6 +89,7 @@ export async function crearConcesionario(input: {
       descripcion: input.descripcion?.trim() || null,
       canon_porcentaje: input.canon_porcentaje,
       canon_minimo_mensual: input.canon_minimo_mensual ?? 0,
+      fecha_inicio_acuerdo: input.fecha_inicio_acuerdo || new Date().toISOString().split('T')[0],
       moneda: input.moneda || 'ARS',
       notas: input.notas?.trim() || null,
     })

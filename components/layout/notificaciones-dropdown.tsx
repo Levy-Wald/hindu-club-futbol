@@ -41,9 +41,11 @@ export function NotificacionesDropdown({ personaId }: NotificacionesDropdownProp
     try {
       const res = await fetch(`/api/notificaciones?persona_id=${personaId}&limit=10`)
       if (!res.ok) return
-      const data = await res.json() as { notifs: Notif[]; count_no_leidos: number; cant_critica: number; cant_alta: number }
-      setNotifs(data.notifs)
-      setCountNoLeidos(data.count_no_leidos)
+      const data = await res.json() as unknown
+      if (typeof data !== 'object' || data === null || !('notifs' in data)) return
+      const payload = data as { notifs: Notif[]; count_no_leidos: number }
+      setNotifs(Array.isArray(payload.notifs) ? payload.notifs : [])
+      setCountNoLeidos(typeof payload.count_no_leidos === 'number' ? payload.count_no_leidos : 0)
     } catch {
       // silenciar errores de polling
     }

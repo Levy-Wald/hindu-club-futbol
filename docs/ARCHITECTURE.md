@@ -796,3 +796,39 @@ app/
    `globals.css` `@theme inline`, usar en componentes.
 5. **Para un theme completo:** crear archivo en `/styles/themes/`,
    importar después de `tokens.css` en `globals.css`.
+
+---
+
+## 10. Migraciones destructivas en DB
+
+### Principio
+
+Cualquier cambio destructivo en DB (`DROP COLUMN`, `DROP TABLE`, `RENAME`,
+constraint cambio que rompe data existente) debe aplicarse DESPUES de
+deployar el codigo que ya no usa la estructura vieja.
+
+### Orden correcto
+
+1. Escribir y testear localmente codigo refactorizado que no usa la
+   estructura vieja
+2. `git commit` + `git push`
+3. Esperar deploy READY en produccion
+4. Verificar que produccion funciona apuntando a estructura vieja
+   (modo compatible: codigo nuevo + DB vieja, ambos tolerantes)
+5. **AHI** aplicar la migracion destructiva en DB
+6. Verificar que produccion sigue funcionando con DB nueva
+
+### Orden incorrecto (regresion Sprint 14k.6, mayo 2026)
+
+Aplicar `DROP COLUMN` en DB antes del deploy del codigo causa
+inconsistencia DB<->codigo y rompe produccion. Error 42703 (undefined
+column) en cualquier SELECT que pida la columna eliminada.
+
+### Aplicabilidad
+
+Sprints con migraciones destructivas declaran explicitamente en su spec
+"Migration destructiva — aplicar SOLO post-deploy verificado".
+
+Para migraciones aditivas (`ALTER TABLE ADD COLUMN`, `CREATE TABLE`,
+nueva funcion, nueva vista) NO aplica este principio: pueden aplicarse
+en cualquier orden.

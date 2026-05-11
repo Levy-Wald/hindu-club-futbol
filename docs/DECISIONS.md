@@ -1680,6 +1680,67 @@ disciplinas por persona, clasificación arquitectónica de atributos.
 
 ---
 
+## ADR-027 — Cuerpo Tecnico ligado a competencia / entidad organizadora
+
+**Fecha:** 2026-05-11
+**Estado:** Aceptado, implementacion pendiente (FASE 5)
+**Capa:** Vertical Club Deportivo
+
+### Contexto
+
+Modelo actual: `personas_equipos` tiene (tenant_id, persona_id,
+equipo_id, rol_equipo_slug, vigencia). Esto asume que una persona
+tiene UN rol en UN equipo durante un periodo.
+
+La realidad operativa de los clubes es mas rica: un mismo "Plantel
+Futbol Senior" puede tener distintos cuerpos tecnicos segun en que
+competencia juega:
+
+- Plantel Senior en Torneo AIF: DT Juan, Asistente Pedro, Kine Luis
+- Plantel Senior en Copa Federal: DT Juan, Asistente Roberto, Kine
+  Mariana
+- Plantel Senior en Torneo Interno Hindu: DT Carlos (suplente),
+  Asistente Pedro
+
+Una persona puede participar en uno o varios equipos y cuerpos
+tecnicos simultaneamente, con roles distintos por contexto.
+
+### Decision
+
+En FASE 5 (Competencias, Torneos, Ligas, Federaciones), refactorizar
+para soportar la dimension de competencia/entidad organizadora.
+
+**Opciones a evaluar en FASE 5:**
+
+A. Agregar `competencia_id` opcional a `personas_equipos`. Si NULL,
+   aplica a "todos los contextos" del equipo (modo simple actual).
+   Si tiene valor, aplica solo a esa competencia.
+
+B. Crear tabla nueva `personas_equipos_competencias` (m:m entre
+   `personas_equipos` y `competencias`). Mas limpio pero mas tablas.
+
+C. Replantear: `equipos` se vuelve plantel + agregar `formaciones`
+   por competencia con su propio cuerpo tecnico. Mas cercano al
+   modelo real pero mayor refactor.
+
+Decision especifica se toma en FASE 5 cuando ya tengamos:
+- `competencias` y `equipos_competencias` con uso real
+- Casos concretos de Hindu en AIF + Copa + Torneo Interno
+- Volumen de data que permita evaluar costo de cada opcion
+
+### No implementar ahora
+
+Sprint 14k.7 NO incluye este refactor. La UI de Cuerpo Tecnico que se
+construye ahora opera bajo el modelo simple (1 rol por equipo
+independiente de competencia) y se extendera en FASE 5.
+
+### Trazabilidad
+
+Cuando se aborde en FASE 5, este ADR se actualiza con la opcion
+elegida y se referencia desde el Sprint correspondiente.
+
+---
+
 ## Convenciones de este documento
 
 - Los ADRs son **inmutables** una vez publicados. Si una decisión cambia,

@@ -1,5 +1,6 @@
 'use client'
 
+import { Component, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -14,8 +15,38 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { LogOut, User, Shield, Settings } from 'lucide-react'
+import { Bell, LogOut, User, Shield, Settings } from 'lucide-react'
 import { NotificacionesDropdown } from './notificaciones-dropdown'
+
+class NotificacionesErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <button
+          disabled
+          className="relative inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium opacity-50 cursor-not-allowed"
+          aria-label="Notificaciones no disponibles"
+        >
+          <Bell className="h-4 w-4" />
+          <span className="sr-only">Notificaciones</span>
+        </button>
+      )
+    }
+    return this.props.children
+  }
+}
 
 interface TopbarProps {
   userEmail?: string
@@ -47,7 +78,11 @@ export function Topbar({ userEmail, personaId }: TopbarProps) {
       </div>
       <div className="flex items-center gap-2">
         <ThemeToggle />
-        {personaId && <NotificacionesDropdown personaId={personaId} />}
+        {personaId && (
+          <NotificacionesErrorBoundary>
+            <NotificacionesDropdown personaId={personaId} />
+          </NotificacionesErrorBoundary>
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger>
             <Avatar className="h-8 w-8 cursor-pointer">

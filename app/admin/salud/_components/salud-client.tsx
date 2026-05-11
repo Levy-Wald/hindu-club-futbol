@@ -1,19 +1,24 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import {
   Loader2, Search, Activity, Stethoscope, HeartPulse, ShieldCheck,
-  Phone, Car, AlertTriangle, Download, Lock,
+  Phone, Car, AlertTriangle, Download, Lock, Plus,
 } from 'lucide-react'
 import type { PermisosSalud } from '@/lib/permisos/salud'
 import { footerConfidencial } from '@/lib/exports/footer-confidencial'
+import { createClient } from '@/lib/supabase/client'
 import {
   fetchLesiones,
   fetchDatosMedicos,
@@ -23,6 +28,7 @@ import {
   fetchVehiculos,
   fetchAlertas,
   fetchEquiposSalud,
+  levantarCasoSalud,
 } from '../_actions'
 
 // -------------------------------------------------------------------
@@ -38,6 +44,7 @@ interface Equipo { id: string; nombre: string }
 export function SaludClient({ permisos }: { permisos: PermisosSalud }) {
   const [tab, setTab] = useState('lesiones')
   const [equipos, setEquipos] = useState<Equipo[]>([])
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   useEffect(() => {
     fetchEquiposSalud().then(setEquipos)
@@ -52,11 +59,20 @@ export function SaludClient({ permisos }: { permisos: PermisosSalud }) {
             Vista global de datos sensibles de salud
           </p>
         </div>
-        <Badge variant={permisos.nivel === 'completo' ? 'default' : 'secondary'}>
-          <Lock className="h-3 w-3 mr-1" />
-          Acceso {permisos.nivel}
-        </Badge>
+        <div className="flex items-center gap-2">
+          {permisos.puede_ver_lesiones && (
+            <Button size="sm" onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Levantar caso
+            </Button>
+          )}
+          <Badge variant={permisos.nivel === 'completo' ? 'default' : 'secondary'}>
+            <Lock className="h-3 w-3 mr-1" />
+            Acceso {permisos.nivel}
+          </Badge>
+        </div>
       </div>
+
+      <LevantarCasoDialog open={dialogOpen} onOpenChange={setDialogOpen} />
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="flex-wrap h-auto gap-1">
@@ -191,6 +207,186 @@ function EmptyState({ message }: { message: string }) {
 }
 
 // -------------------------------------------------------------------
+// Dialog: Levantar caso
+// -------------------------------------------------------------------
+
+interface PersonaResult {
+  id: string
+  nombre_completo: string
+}
+
+function LevantarCasoDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+  const [tipo, setTipo] = useState('lesion')
+  const [severidad, setSeveridad] = useState('media')
+  const [descripcion, setDescripcion] = useState('')
+  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10))
+  const [busquedaPersona, setBusquedaPersona] = useState('')
+  const [personaSeleccionada, setPersonaSeleccionada] = useState<PersonaResult | null>(null)
+  const [resultadosPersona, setResultadosPersona] = useState<PersonaResult[]>([])
+  const [buscandoPersona, setBuscandoPersona] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const buscarPersonas = useCallback(async (q: string) => {
+    if (q.length < 2) { setResultadosPersona([]); return }
+    setBuscandoPersona(true)
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('personas')
+      .select('id, apellido, nombre')
+      .eq('tenant_id', '11111111-1111-1111-1111-111111111111')
+      .or(`apellido.ilike.%${q}%,nombre.ilike.%${q}%`)
+      .eq('activo', true)
+      .order('apellido')
+      .limit(8)
+    const resultados: PersonaResult[] = (data ?? []).map((p: { id: string; apellido: string; nombre: string }) => ({
+      id: p.id,
+      nombre_completo: `${p.apellido}, ${p.nombre}`,
+    }))
+    setResultadosPersona(resultados)
+    setBuscandoPersona(false)
+  }, [])
+
+  const onBusquedaChange = (v: string) => {
+    setBusquedaPersona(v)
+    setPersonaSeleccionada(null)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => buscarPersonas(v), 300)
+  }
+
+  const seleccionarPersona = (p: PersonaResult) => {
+    setPersonaSeleccionada(p)
+    setBusquedaPersona(p.nombre_completo)
+    setResultadosPersona([])
+  }
+
+  const resetForm = () => {
+    setTipo('lesion')
+    setSeveridad('media')
+    setDescripcion('')
+    setFecha(new Date().toISOString().slice(0, 10))
+    setBusquedaPersona('')
+    setPersonaSeleccionada(null)
+    setResultadosPersona([])
+  }
+
+  const handleSubmit = async () => {
+    if (!personaSeleccionada) { toast.error('Seleccioná una persona'); return }
+    if (!descripcion.trim()) { toast.error('Ingresá una descripción'); return }
+    setSubmitting(true)
+    const res = await levantarCasoSalud({
+      persona_id: personaSeleccionada.id,
+      tipo,
+      descripcion: descripcion.trim(),
+      severidad,
+      fecha,
+    })
+    setSubmitting(false)
+    if (!res.ok) {
+      toast.error(res.error ?? 'Error al levantar caso')
+    } else {
+      toast.success('Caso levantado correctamente')
+      resetForm()
+      onOpenChange(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); onOpenChange(v) }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Levantar caso de salud</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <Label>Tipo de caso</Label>
+            <Select value={tipo} onValueChange={(v) => setTipo(v ?? 'lesion')}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="lesion">Lesión</SelectItem>
+                <SelectItem value="consulta_medica">Consulta médica</SelectItem>
+                <SelectItem value="alerta">Alerta</SelectItem>
+                <SelectItem value="autorizacion_pendiente">Autorización pendiente</SelectItem>
+                <SelectItem value="otro">Otro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Persona</Label>
+            <div className="relative">
+              <Input
+                placeholder="Buscar por apellido o nombre..."
+                value={busquedaPersona}
+                onChange={(e) => onBusquedaChange(e.target.value)}
+              />
+              {buscandoPersona && (
+                <Loader2 className="absolute right-2 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+              )}
+              {resultadosPersona.length > 0 && (
+                <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                  {resultadosPersona.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
+                      onClick={() => seleccionarPersona(p)}
+                    >
+                      {p.nombre_completo}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Severidad</Label>
+            <Select value={severidad} onValueChange={(v) => setSeveridad(v ?? 'media')}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="leve">Leve</SelectItem>
+                <SelectItem value="moderada">Media</SelectItem>
+                <SelectItem value="grave">Alta</SelectItem>
+                <SelectItem value="muy_grave">Crítica</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Fecha del evento</Label>
+            <Input
+              type="date"
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Descripción</Label>
+            <Textarea
+              placeholder="Describí el caso..."
+              value={descripcion}
+              onChange={(e) => setDescripcion(e.target.value)}
+              rows={3}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => { resetForm(); onOpenChange(false) }}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSubmit} disabled={submitting}>
+            {submitting && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+            Levantar caso
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// -------------------------------------------------------------------
 // Tab: Lesiones
 // -------------------------------------------------------------------
 
@@ -269,7 +465,11 @@ function TabLesiones({ equipos, puedeExportar }: { equipos: Equipo[]; puedeExpor
               <tbody>
                 {data.map((r, i) => (
                   <tr key={i} className="border-b hover:bg-muted/50">
-                    <td className="py-2 px-2">{r.nombre_completo as string}</td>
+                    <td className="py-2 px-2">
+                      <Link href={`/admin/personas/${r.persona_id}?tab=salud`} className="text-primary hover:underline">
+                        {r.nombre_completo as string}
+                      </Link>
+                    </td>
                     <td className="py-2 px-2">{r.tipo_lesion as string}</td>
                     <td className="py-2 px-2">{r.zona_cuerpo as string}</td>
                     <td className="py-2 px-2">{r.fecha_lesion as string}</td>
@@ -355,7 +555,11 @@ function TabDatosMedicos({ puedeExportar }: { puedeExportar: boolean }) {
               <tbody>
                 {data.map((r, i) => (
                   <tr key={i} className="border-b hover:bg-muted/50">
-                    <td className="py-2 px-2">{r.nombre_completo as string}</td>
+                    <td className="py-2 px-2">
+                      <Link href={`/admin/personas/${r.persona_id}?tab=salud`} className="text-primary hover:underline">
+                        {r.nombre_completo as string}
+                      </Link>
+                    </td>
                     <td className="py-2 px-2">{r.grupo_sanguineo as string || '-'}</td>
                     <td className="py-2 px-2">{r.factor_rh as string || '-'}</td>
                     <td className="py-2 px-2 max-w-[200px] truncate">
@@ -431,7 +635,11 @@ function TabObraSocial({ puedeExportar }: { puedeExportar: boolean }) {
               <tbody>
                 {data.map((r, i) => (
                   <tr key={i} className="border-b hover:bg-muted/50">
-                    <td className="py-2 px-2">{r.nombre_completo as string}</td>
+                    <td className="py-2 px-2">
+                      <Link href={`/admin/personas/${r.persona_id}?tab=salud`} className="text-primary hover:underline">
+                        {r.nombre_completo as string}
+                      </Link>
+                    </td>
                     <td className="py-2 px-2">{r.obra_social_slug as string}</td>
                     <td className="py-2 px-2">{r.numero_afiliado as string || '-'}</td>
                     <td className="py-2 px-2">{r.plan_obra_social as string || '-'}</td>
@@ -516,7 +724,11 @@ function TabAutorizaciones({ puedeExportar }: { puedeExportar: boolean }) {
               <tbody>
                 {data.map((r, i) => (
                   <tr key={i} className="border-b hover:bg-muted/50">
-                    <td className="py-2 px-2">{r.nombre_completo as string}</td>
+                    <td className="py-2 px-2">
+                      <Link href={`/admin/personas/${r.persona_id}?tab=salud`} className="text-primary hover:underline">
+                        {r.nombre_completo as string}
+                      </Link>
+                    </td>
                     <td className="py-2 px-2">{r.tipo_autorizacion as string}</td>
                     <td className="py-2 px-2">
                       <Badge variant={r.estado === 'vigente' ? 'default' : r.estado === 'vencida' ? 'destructive' : 'secondary'}>
@@ -590,7 +802,11 @@ function TabContactos({ puedeExportar }: { puedeExportar: boolean }) {
               <tbody>
                 {data.map((r, i) => (
                   <tr key={i} className="border-b hover:bg-muted/50">
-                    <td className="py-2 px-2">{r.nombre_completo as string}</td>
+                    <td className="py-2 px-2">
+                      <Link href={`/admin/personas/${r.persona_id}?tab=salud`} className="text-primary hover:underline">
+                        {r.nombre_completo as string}
+                      </Link>
+                    </td>
                     <td className="py-2 px-2">{r.contacto_nombre as string}</td>
                     <td className="py-2 px-2">{r.parentesco as string || '-'}</td>
                     <td className="py-2 px-2">{r.contacto_telefono as string || '-'}</td>
@@ -660,7 +876,11 @@ function TabVehiculos({ puedeExportar }: { puedeExportar: boolean }) {
               <tbody>
                 {data.map((r, i) => (
                   <tr key={i} className="border-b hover:bg-muted/50">
-                    <td className="py-2 px-2">{r.nombre_completo as string}</td>
+                    <td className="py-2 px-2">
+                      <Link href={`/admin/personas/${r.persona_id}?tab=salud`} className="text-primary hover:underline">
+                        {r.nombre_completo as string}
+                      </Link>
+                    </td>
                     <td className="py-2 px-2">{r.tipo_vehiculo as string || '-'}</td>
                     <td className="py-2 px-2">{r.marca as string} {r.modelo as string}</td>
                     <td className="py-2 px-2 font-mono">{r.patente as string}</td>
@@ -755,7 +975,11 @@ function TabAlertas({ puedeExportar }: { puedeExportar: boolean }) {
               <tbody>
                 {data.map((r, i) => (
                   <tr key={i} className="border-b hover:bg-muted/50">
-                    <td className="py-2 px-2">{r.nombre_completo as string}</td>
+                    <td className="py-2 px-2">
+                      <Link href={`/admin/personas/${r.persona_id}?tab=salud`} className="text-primary hover:underline">
+                        {r.nombre_completo as string}
+                      </Link>
+                    </td>
                     <td className="py-2 px-2">
                       <Badge variant={severidadColor(r.tipo_alerta as string)}>
                         {(r.tipo_alerta as string).replace(/_/g, ' ')}
