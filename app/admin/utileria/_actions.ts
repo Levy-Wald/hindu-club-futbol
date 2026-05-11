@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { obtenerPermisosUtileria } from '@/lib/permisos/utileria'
+import { crearNotificacion, crearNotificacionMasiva } from '@/lib/notificaciones/crear'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
@@ -290,6 +291,26 @@ export async function crearSolicitud(input: {
 
   if (itemsErr) return formatResult(false, itemsErr.message)
 
+  // Notify staff_utileria
+  const { data: staffUtileria } = await supabase
+    .from('personas_atributos')
+    .select('persona_id')
+    .eq('tenant_id', TENANT_ID)
+    .eq('atributo_slug', 'staff_utileria')
+    .eq('activo', true)
+  const staffIds = (staffUtileria ?? []).map(s => s.persona_id)
+  if (staffIds.length > 0) {
+    crearNotificacionMasiva(staffIds, {
+      tenant_id: TENANT_ID,
+      tipo: 'utileria_solicitud_pendiente',
+      titulo: `Solicitud nueva: ${input.descripcion_evento}`,
+      mensaje: `Nueva solicitud de utilería para ${input.descripcion_evento} (${input.fecha_evento}).`,
+      link_accion: '/admin/utileria/solicitudes',
+      origen_tabla: 'utileria_solicitudes',
+      origen_registro_id: sol.id,
+    }).catch(() => {})
+  }
+
   revalidatePath('/admin/utileria')
   return formatResult(true, 'Solicitud creada', { id: sol.id })
 }
@@ -315,6 +336,25 @@ export async function marcarComoPreparada(solicitudId: string, items: { item_id:
       fecha_preparada: new Date().toISOString(),
     })
     .eq('id', solicitudId)
+
+  // Notify requester
+  const { data: sol } = await supabase
+    .from('utileria_solicitudes')
+    .select('solicitada_por_persona_id, descripcion_evento')
+    .eq('id', solicitudId)
+    .single()
+  if (sol?.solicitada_por_persona_id) {
+    crearNotificacion({
+      tenant_id: TENANT_ID,
+      destinatario_persona_id: sol.solicitada_por_persona_id,
+      tipo: 'utileria_solicitud_preparada',
+      titulo: 'Utilería lista para retirar',
+      mensaje: `Tu solicitud para ${sol.descripcion_evento} está preparada.`,
+      link_accion: '/admin/utileria/solicitudes',
+      origen_tabla: 'utileria_solicitudes',
+      origen_registro_id: solicitudId,
+    }).catch(() => {})
+  }
 
   revalidatePath('/admin/utileria')
   return formatResult(true, 'Solicitud preparada')

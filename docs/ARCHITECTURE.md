@@ -474,6 +474,105 @@ export async function crearPersona(input: unknown): Promise<ActionResult> {
 
 ---
 
+## 13.5 Notificaciones in-app
+
+### Modelo
+
+Una notificación es un mensaje dirigido a una persona, generado por un
+evento del sistema (vencimiento, asignación, alerta). Vive en tabla
+`notificaciones`, se muestra en bell icon de topbar, y desaparece cuando
+el usuario la marca leída o archivada.
+
+### Contrato del helper `crearNotificacion(...)`
+
+Cualquier server action que quiera notificar a una persona llama:
+
+```typescript
+import { crearNotificacion } from '@/lib/notificaciones/crear'
+
+await crearNotificacion({
+  tenant_id,
+  destinatario_persona_id: string,
+  tipo: NotificacionTipo,      // slug del catálogo
+  titulo: string,
+  mensaje: string,
+  link_accion?: string,        // ruta interna, ej: '/admin/finanzas/cuotas/abc'
+  prioridad?: 'baja' | 'media' | 'alta' | 'critica',
+  origen_tabla?: string,       // para dedup y trazabilidad
+  origen_registro_id?: string,
+  metadata?: Record<string, unknown>,
+})
+```
+
+El helper inserta via `fn_crear_notificacion` (SQL, SECURITY DEFINER).
+Dedup: si mismo (origen_tabla, origen_registro_id, tipo, destinatario)
+existe en últimas 24h, no duplica.
+
+Para notificar a N personas: `crearNotificacionMasiva(ids, base)`.
+
+### Tipos de notificación
+
+Catálogo `catalogo_tipos_notificacion` con 19 tipos iniciales agrupados
+en categorías: finanzas, utileria, salud, sistema.
+
+### Auto-archivado
+
+Cron diario `fn_limpieza_notificaciones_old`: archiva leídas > 30 días,
+borra archivadas > 90 días.
+
+### Extensibilidad (no implementado aún)
+
+- FASE 2: email vía Resend según preferencias persona
+- FASE 9: WhatsApp
+- FASE 10: resumen IA
+
+El contrato de `crearNotificacion` NO cambia con estas extensiones.
+
+---
+
+## 13.6 Concesiones (módulo comercial)
+
+**ADR-025** — Concesiones como módulo separado del plan de cuentas.
+
+### Modelo
+
+6 tablas: `concesionarios`, `concesion_puntos_venta`, `concesion_productos`,
+`concesion_ventas`, `concesion_venta_items`, `concesion_canones`.
+
+### Aislamiento financiero (CRÍTICO)
+
+- Las ventas del concesionario **NO generan `movimientos_caja`** del club.
+- Solo el canon mensual impacta las finanzas del club.
+- Función `fn_registrar_venta_concesion` es SECURITY DEFINER y no toca
+  `movimientos_caja` en absoluto.
+
+### Canon mensual
+
+- `fn_calcular_canon_concesion(concesionario_id, periodo)` suma ventas
+  confirmadas del período y aplica MAX(calculado, mínimo).
+- Snapshot del porcentaje en cada venta (`canon_porcentaje_aplicado`).
+- Cron día 6 de cada mes a las 8am (`/api/cron/calcular-canon-mensual`).
+
+### Credenciales MP
+
+- Columna `mp_credenciales_jsonb` en `concesionarios`.
+- Acceso controlado vía `fn_obtener_mp_credenciales()` con audit log.
+- `mp_modo`: 'mock' (default), 'sandbox', 'production'.
+
+### Permisos
+
+- `admin_concesiones`: gestiona todo.
+- Concesionario (persona vinculada): ve sus ventas y registra.
+- Helper: `lib/permisos/concesiones.ts`.
+
+### Extensibilidad
+
+- FASE 7: integración real con MercadoPago API.
+- FASE 7: cobro automático de canon vía cuota + movimiento.
+- FASE 8: reportes consolidados cruzando plan de cuentas.
+
+---
+
 ## 14. Anti-patrones prohibidos
 
 ### A1 — Hardcodear datos de cliente en código

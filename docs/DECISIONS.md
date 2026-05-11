@@ -1469,6 +1469,161 @@ no aportaban contexto de equipo (un DT puede dirigir múltiples equipos).
 
 ---
 
+## ADR-025 — Concesiones como módulo separado del plan de cuentas del tenant
+
+**Fecha:** 2026-05-11
+**Estado:** Decidido
+**Capa:** Módulo Paralelo + Troncal ERP
+**Decisores:** Arquitecto + Yair Levy Wald
+
+### Contexto
+
+Muchos clubes tienen espacios comerciales operados por terceros: kiosko
+del vestuario, parrilla del club house, cantina del salón social,
+tienda de merchandising, gimnasio independiente. Cada uno es un negocio
+del concesionario, no del club.
+
+Hindu tiene como primer caso al vestuarista (El Miga), que opera el
+kiosko del vestuario: compra mercadería, vende a socios, cobra a su
+MercadoPago personal. Hindu acuerda no cobrarle canon mientras el
+arreglo sea informal, pero quiere empezar a cobrar 5% sobre ventas
+eventualmente.
+
+El problema: el club necesita visibilidad operativa del negocio
+(productos, stock, ventas) sin que esas operaciones impacten su plan
+de cuentas. Solo el canon (la comisión mensual) impacta su contabilidad.
+
+### Decisión
+
+Crear módulo `concesiones` con modelo de 6 tablas:
+
+1. `concesionarios` — Persona o entidad que opera N puntos de venta.
+   Vinculado a `personas` o `entidades` del sistema. Tiene credenciales
+   MP propias (encriptadas) y porcentaje de canon acordado.
+
+2. `concesion_puntos_venta` — Espacios físicos donde el concesionario
+   opera. Vinculados a `sedes` del tenant. Un concesionario puede tener
+   varios PDV.
+
+3. `concesion_productos` — Catálogo del concesionario (lo que vende:
+   bebidas, comida, accesorios). Stock controlado, precios configurables.
+   **NO se vincula a `productos_servicios` del club** (modelo separado).
+
+4. `concesion_ventas` — Cada transacción registrada. Genera link de
+   pago MP al concesionario directamente. NO genera `movimientos_caja`
+   en el plan de cuentas del club.
+
+5. `concesion_venta_items` — Items de cada venta (productos vendidos,
+   con cantidad y precio unitario).
+
+6. `concesion_canones` — Cálculo mensual del canon a pagar al club.
+   SÍ genera `movimientos_caja` (ingreso del club) y `cuotas_emitidas`
+   al concesionario.
+
+### Aislamiento financiero
+
+- **Ventas del concesionario**: registradas operativamente, NO afectan
+  plan de cuentas del club. NO se generan `movimientos_caja`.
+- **Stock del concesionario**: controlado en `concesion_productos`,
+  separado de utilería e inventario del club.
+- **Canon mensual**: SÍ genera `movimientos_caja` del club (ingreso
+  por concepto "comisiones concesiones") + cuota emitida al
+  concesionario que debe pagar al club.
+
+### Alternativas descartadas
+
+1. **Modelar concesionario como producto del club**: descartado. Sus
+   ventas no son del club, no deben sumar al plan de cuentas.
+
+2. **No modelar nada y solo registrar el canon manual**: descartado.
+   Sin visibilidad operativa, el club no puede auditar el canon
+   reportado.
+
+3. **Modelar el concesionario como tenant separado**: descartado.
+   Over-engineering. Un concesionario chico no necesita su propio
+   tenant; el club quiere visibilidad consolidada.
+
+4. **Compartir tablas con utilería (`utileria_items` mixto con
+   productos vendibles)**: descartado. Confunde inventario interno con
+   stock de venta. Modelo separado.
+
+### Consecuencias
+
+**Positivas:**
+- Aislamiento financiero claro
+- Visibilidad operativa para el club
+- Escalable a múltiples concesionarios y PDVs
+- Habilita cobro automático de canon (con plata real cuando MP esté
+  conectado en FASE 7)
+- Reutilizable para tenants futuros
+
+**Negativas:**
+- Modelo separado (6 tablas + canon)
+- Credenciales MP del concesionario en DB (encriptadas)
+- En modo mock por default, links de pago simulados
+
+---
+
+## PRE-MORTEM Sprint 14j.2 — Módulo Concesiones
+
+**Fecha:** 2026-05-11
+**Capa:** Módulo Paralelo + Troncal ERP
+**Duración estimada:** sin estimar (R-PE9 aplica)
+**Tomado por:** Arquitecto
+
+### Escenario hipotético
+
+"Hindu intentó usar el módulo de concesiones y algo salió mal. Las
+ventas del Miga se mezclaron con el plan de cuentas del club, o el
+canon se calculó mal, o las credenciales MP del Miga quedaron expuestas
+en logs o queries, o el link de pago se generó pero apuntaba al MP del
+club por error."
+
+### Por qué pudo haber fallado
+
+1. **Ventas del concesionario generaron `movimientos_caja` en plan de
+   cuentas del club.** Probabilidad: ALTA · Impacto: ALTO
+   Mitigación: NO existe ningún hook desde `concesion_ventas` a
+   `movimientos_caja`. Las únicas inserciones relacionadas con
+   concesiones vienen del cálculo de canon.
+
+2. **Credenciales MP del concesionario expuestas en logs o queries
+   públicas.** Probabilidad: MEDIA · Impacto: ALTO
+   Mitigación: función `fn_obtener_mp_credenciales` con SECURITY
+   DEFINER que registra acceso en `audit_log`.
+
+3. **Stock del concesionario se descuenta dos veces en venta
+   concurrente.** Probabilidad: MEDIA · Impacto: MEDIO
+   Mitigación: stock manual por ahora; vista para stock efectivo.
+
+4. **Canon se calcula sobre ventas anuladas.**
+   Probabilidad: MEDIA · Impacto: MEDIO
+   Mitigación: función de cálculo filtra `estado = 'confirmada'`.
+   Período de gracia: canon se calcula día 6 del mes siguiente.
+
+5. **Concesionario sin credenciales MP genera link de pago hacia
+   ningún lado.** Probabilidad: ALTA · Impacto: BAJO
+   Mitigación: si `mp_modo = 'mock'`, retornar link simulado.
+
+6. **Canon falla si concesionario cambió de porcentaje a mitad de
+   mes.** Probabilidad: BAJA · Impacto: MEDIO
+   Mitigación: snapshot `canon_porcentaje_aplicado` en cada venta.
+
+7. **Sin concesionario activo, las pantallas tiran error 500.**
+   Probabilidad: ALTA · Impacto: BAJO
+   Mitigación: empty states amigables en todas las pantallas.
+
+### Top 3 riesgos (por prob × impacto)
+
+1. **Ventas del concesionario impactan plan de cuentas del club** →
+   NO crear hooks desde `concesion_ventas` a `movimientos_caja`.
+2. **Credenciales MP expuestas** → función de acceso con SECURITY
+   DEFINER + audit log.
+3. **Canon calculado sobre ventas anuladas** → filtro
+   `estado = 'confirmada'` + período de gracia de 5 días.
+
+---
+
 ## Convenciones de este documento
 
 - Los ADRs son **inmutables** una vez publicados. Si una decisión cambia,

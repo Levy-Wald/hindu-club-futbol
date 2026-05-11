@@ -13,26 +13,26 @@ export async function GET(request: NextRequest) {
 
   const supabase = await createClient()
 
-  const [mensajesRes, countRes] = await Promise.all([
+  const [notifsRes, countRes] = await Promise.all([
     supabase
-      .from('com_mensajes')
-      .select('id, asunto, cuerpo, tipo_severidad, action_url, leido_at, created_at')
+      .from('notificaciones')
+      .select('id, titulo, mensaje, prioridad, link_accion, leida_at, created_at, tipo_slug')
       .eq('tenant_id', TENANT_ID)
       .eq('destinatario_persona_id', personaId)
-      .is('deleted_at', null)
+      .is('archivada_at', null)
       .order('created_at', { ascending: false })
       .limit(limit),
     supabase
-      .from('com_mensajes')
+      .from('notificaciones')
       .select('id', { count: 'exact', head: true })
       .eq('tenant_id', TENANT_ID)
       .eq('destinatario_persona_id', personaId)
-      .is('leido_at', null)
-      .is('deleted_at', null),
+      .is('leida_at', null)
+      .is('archivada_at', null),
   ])
 
   return NextResponse.json({
-    mensajes: mensajesRes.data ?? [],
+    notifs: notifsRes.data ?? [],
     count_no_leidos: countRes.count ?? 0,
   })
 }

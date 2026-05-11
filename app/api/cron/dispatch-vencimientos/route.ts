@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { notificarPersona } from '@/lib/comunicaciones/notificar'
+import { crearNotificacion } from '@/lib/notificaciones/crear'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
@@ -95,6 +96,30 @@ export async function GET(request: NextRequest) {
           .like('plantilla_slug', plantillaBase + '%')
           .gte('created_at', hoy + 'T00:00:00')
           .is('origen_entidad_id', null)
+      }
+
+      // Also create in new notificaciones table
+      const tipoMap: Record<string, string> = {
+        cuota_vencimiento_30: 'cuota_proxima_vencer',
+        cuota_vencimiento_7: 'cuota_proxima_vencer',
+        cuota_vencimiento_1: 'cuota_proxima_vencer',
+        cuota_vencida: 'cuota_vencida',
+        apto_vencimiento: 'apto_medico_proximo_vencer',
+        autorizacion_vencimiento: 'autorizacion_proxima_vencer',
+      }
+      const tipoNotif = tipoMap[plantillaBase]
+      if (tipoNotif) {
+        crearNotificacion({
+          tenant_id: TENANT_ID,
+          destinatario_persona_id: v.persona_id,
+          tipo: tipoNotif as Parameters<typeof crearNotificacion>[0]['tipo'],
+          titulo: variables.nombre ? `${variables.nombre}: ${v.titulo ?? plantillaBase}` : (v.titulo ?? plantillaBase),
+          mensaje: `${v.detalle ?? ''} — Vence: ${v.vence ?? 'pronto'}`,
+          prioridad: v.dias_para_vencer <= 1 ? 'alta' : 'media',
+          origen_tabla: v.tipo === 'cuota' ? 'cuotas_emitidas' : v.tipo === 'apto_fisico' ? 'personas_datos_medicos' : 'personas_autorizaciones',
+          origen_registro_id: v.origen_id,
+          origen_evento: `cron_vencimientos_${plantillaBase}`,
+        }).catch(() => {})
       }
 
       notificados++

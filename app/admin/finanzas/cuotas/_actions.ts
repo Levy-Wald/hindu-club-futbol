@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { crearNotificacion, crearNotificacionMasiva } from '@/lib/notificaciones/crear'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
@@ -268,6 +269,35 @@ export async function emitirCuotasMasivas(planId: string, periodo: string) {
     return formatResult(false, `Ya existe una emisión activa para este plan y periodo (${result.total_emitidas} cuotas)`)
   }
 
+  // Notificar a cada persona que se le emitió cuota
+  if (result.total_emitidas > 0) {
+    const { data: cuotasEmitidas } = await supabase
+      .from('cuotas_emitidas')
+      .select('id, persona_id, monto_final, periodo')
+      .eq('emision_id', result.emision_id)
+      .eq('tenant_id', TENANT_ID)
+
+    if (cuotasEmitidas && cuotasEmitidas.length > 0) {
+      const { data: plan } = await supabase
+        .from('cuotas_planes')
+        .select('nombre')
+        .eq('id', planId)
+        .single()
+
+      const destinatarios = cuotasEmitidas.map(c => c.persona_id)
+      crearNotificacionMasiva(destinatarios, {
+        tenant_id: TENANT_ID,
+        tipo: 'cuota_emitida',
+        titulo: `Nueva cuota: ${plan?.nombre ?? 'Plan'}`,
+        mensaje: `Se emitió tu cuota del período ${periodo}. Monto: $${cuotasEmitidas[0]?.monto_final ?? result.total_monto}`,
+        prioridad: 'media',
+        origen_tabla: 'emisiones_cuota',
+        origen_registro_id: result.emision_id,
+        origen_evento: 'emision_masiva',
+      }).catch(() => {})
+    }
+  }
+
   revalidatePath('/admin/finanzas/cuotas')
   return formatResult(true, `Se emitieron ${result.total_emitidas} cuotas correctamente`, {
     emision_id: result.emision_id,
@@ -433,6 +463,29 @@ export async function cobrarCuota(
     return formatResult(false, 'Error inesperado: sin resultado de cobranza')
   }
 
+  // Notificar pago recibido
+  const { data: cuotaCobrada } = await supabase
+    .from('cuotas_emitidas')
+    .select('persona_id, periodo, plan_id, cuotas_planes(nombre)')
+    .eq('id', cuotaId)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (cuotaCobrada) {
+    const planNombre = (cuotaCobrada.cuotas_planes as unknown as { nombre: string })?.nombre ?? 'Plan'
+    crearNotificacion({
+      tenant_id: TENANT_ID,
+      destinatario_persona_id: cuotaCobrada.persona_id,
+      tipo: 'pago_recibido',
+      titulo: `Pago registrado: ${planNombre}`,
+      mensaje: `Se registró un pago de $${monto} para tu cuota del período ${cuotaCobrada.periodo}.`,
+      prioridad: 'baja',
+      origen_tabla: 'cuotas_pagos',
+      origen_registro_id: result.pago_id,
+      origen_evento: 'cobrar_cuota',
+    }).catch(() => {})
+  }
+
   revalidatePath('/admin/finanzas/cuotas')
   return formatResult(true, 'Cuota cobrada correctamente', result)
 }
@@ -530,6 +583,31 @@ export async function anularPago(pagoId: string, motivo: string) {
 
   if (!result) {
     return formatResult(false, 'Error inesperado: sin resultado de anulación')
+  }
+
+  // Notificar pago anulado
+  const { data: pagoAnulado } = await supabase
+    .from('cuotas_pagos')
+    .select('cuota_id, monto_pagado, cuotas_emitidas(persona_id, periodo, cuotas_planes(nombre))')
+    .eq('id', pagoId)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (pagoAnulado) {
+    const cuotaInfo = pagoAnulado.cuotas_emitidas as unknown as { persona_id: string; periodo: string; cuotas_planes: { nombre: string } }
+    if (cuotaInfo) {
+      crearNotificacion({
+        tenant_id: TENANT_ID,
+        destinatario_persona_id: cuotaInfo.persona_id,
+        tipo: 'pago_anulado',
+        titulo: `Pago anulado: ${cuotaInfo.cuotas_planes?.nombre ?? 'Plan'}`,
+        mensaje: `Se anuló un pago de $${pagoAnulado.monto_pagado} del período ${cuotaInfo.periodo}. Motivo: ${motivo || 'No especificado'}.`,
+        prioridad: 'alta',
+        origen_tabla: 'cuotas_pagos',
+        origen_registro_id: pagoId,
+        origen_evento: 'anular_pago',
+      }).catch(() => {})
+    }
   }
 
   revalidatePath('/admin/finanzas/cuotas')

@@ -1,184 +1,230 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { Bell, Mail, Info, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react'
-import { marcarComoLeido, marcarTodoLeido } from '../../comunicaciones/_actions'
+import { Bell, Loader2, Archive, CheckCheck, ExternalLink } from 'lucide-react'
+import {
+  listarMisNotificaciones,
+  marcarComoLeida,
+  marcarTodasComoLeidas,
+  archivarNotificacion,
+  archivarTodasLeidas,
+} from '../_actions'
 
-// -------------------------------------------------------------------
-// Tipos
-// -------------------------------------------------------------------
+type Estado = 'no_leidas' | 'todas' | 'archivadas'
 
-interface Mensaje {
+interface Notif {
   id: string
-  asunto: string
-  cuerpo: string
-  tipo: string
-  leido: boolean
-  leido_at: string | null
+  tipo_slug: string
+  titulo: string
+  mensaje: string
+  link_accion: string | null
+  prioridad: string
+  leida_at: string | null
+  archivada_at: string | null
   created_at: string
+  catalogo_tipos_notificacion: {
+    nombre: string
+    icono: string | null
+    color: string | null
+    categoria: string
+  } | null
 }
 
-interface NotificacionesClientProps {
-  mensajes: Mensaje[]
-  personaId: string
-}
-
-// -------------------------------------------------------------------
-// Helpers
-// -------------------------------------------------------------------
-
-function formatFecha(fecha: string) {
-  return new Date(fecha).toLocaleDateString('es-AR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+const PRIORIDAD_BADGE: Record<string, 'default' | 'secondary' | 'destructive'> = {
+  baja: 'secondary',
+  media: 'default',
+  alta: 'destructive',
+  critica: 'destructive',
 }
 
 function tiempoRelativo(fecha: string): string {
-  const now = new Date()
-  const then = new Date(fecha)
-  const diffMs = now.getTime() - then.getTime()
-  const diffMin = Math.floor(diffMs / 60000)
-  const diffHrs = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-
-  if (diffMin < 1) return 'Ahora'
-  if (diffMin < 60) return `Hace ${diffMin} min`
-  if (diffHrs < 24) return `Hace ${diffHrs}h`
-  if (diffDays < 7) return `Hace ${diffDays}d`
-  return formatFecha(fecha)
+  const diff = Date.now() - new Date(fecha).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'ahora'
+  if (mins < 60) return `hace ${mins} min`
+  const horas = Math.floor(mins / 60)
+  if (horas < 24) return `hace ${horas}h`
+  const dias = Math.floor(horas / 24)
+  if (dias < 7) return `hace ${dias}d`
+  return new Date(fecha).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })
 }
 
-const TIPO_ICONS: Record<string, typeof Bell> = {
-  info: Info,
-  alerta: AlertTriangle,
-  exito: CheckCircle2,
-  email: Mail,
-}
-
-const TIPO_COLORS: Record<string, string> = {
-  info: 'text-brand-500',
-  alerta: 'text-gold-500',
-  exito: 'text-success-600',
-  email: 'text-brand-900',
-}
-
-// -------------------------------------------------------------------
-// Componente principal
-// -------------------------------------------------------------------
-
-export function NotificacionesClient({ mensajes: initialMensajes, personaId }: NotificacionesClientProps) {
-  const [mensajes, setMensajes] = useState(initialMensajes)
+export function NotificacionesClient() {
+  const [estado, setEstado] = useState<Estado>('no_leidas')
+  const [prioridadFiltro, setPrioridadFiltro] = useState('')
+  const [notifs, setNotifs] = useState<Notif[]>([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(true)
   const [isPending, startTransition] = useTransition()
 
-  const noLeidos = mensajes.filter((m) => !m.leido).length
+  const cargar = async () => {
+    setLoading(true)
+    try {
+      const res = await listarMisNotificaciones({
+        estado,
+        prioridad: prioridadFiltro || undefined,
+        page,
+        pageSize: 50,
+      })
+      setNotifs(res.rows as unknown as Notif[])
+      setTotal(res.total)
+    } catch {
+      toast.error('Error cargando notificaciones')
+    }
+    setLoading(false)
+  }
 
-  function handleMarcarLeido(mensajeId: string) {
-    // Optimistic update
-    setMensajes((prev) =>
-      prev.map((m) =>
-        m.id === mensajeId ? { ...m, leido: true, leido_at: new Date().toISOString() } : m
-      )
-    )
+  useEffect(() => { cargar() }, [estado, prioridadFiltro, page])
 
+  const handleMarcarLeida = (id: string) => {
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, leida_at: new Date().toISOString() } : n))
     startTransition(async () => {
-      const result = await marcarComoLeido(mensajeId)
-      if (!result.ok) {
-        // Revert
-        setMensajes((prev) =>
-          prev.map((m) =>
-            m.id === mensajeId ? { ...m, leido: false, leido_at: null } : m
-          )
-        )
-        toast.error(result.message)
+      const res = await marcarComoLeida(id)
+      if (!res.ok) toast.error('Error')
+    })
+  }
+
+  const handleArchivar = (id: string) => {
+    setNotifs(prev => prev.filter(n => n.id !== id))
+    startTransition(async () => {
+      const res = await archivarNotificacion(id)
+      if (!res.ok) toast.error('Error')
+    })
+  }
+
+  const handleMarcarTodas = () => {
+    startTransition(async () => {
+      const res = await marcarTodasComoLeidas()
+      if (res.ok) {
+        toast.success(`${res.cant} marcadas como leidas`)
+        cargar()
       }
     })
   }
 
-  function handleMarcarTodoLeido() {
-    // Optimistic update
-    setMensajes((prev) =>
-      prev.map((m) => ({ ...m, leido: true, leido_at: m.leido_at ?? new Date().toISOString() }))
-    )
-
+  const handleArchivarLeidas = () => {
     startTransition(async () => {
-      const result = await marcarTodoLeido(personaId)
-      if (result.ok) {
-        toast.success('Todas las notificaciones marcadas como leidas')
-      } else {
-        // Revert
-        setMensajes(initialMensajes)
-        toast.error(result.message)
+      const res = await archivarTodasLeidas()
+      if (res.ok) {
+        toast.success(`${res.cant} archivadas`)
+        cargar()
       }
     })
   }
+
+  const noLeidas = notifs.filter(n => !n.leida_at).length
+  const totalPages = Math.ceil(total / 50)
 
   return (
-    <>
-      {/* Acciones */}
-      {noLeidos > 0 && (
-        <div className="flex justify-end">
-          <Button variant="outline" size="sm" onClick={handleMarcarTodoLeido} disabled={isPending}>
-            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-            Marcar todo como leido
-          </Button>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold sm:text-2xl">Notificaciones</h1>
+          <p className="text-sm text-muted-foreground">
+            {total} notificaciones {estado === 'no_leidas' ? 'sin leer' : estado === 'archivadas' ? 'archivadas' : 'en total'}
+          </p>
         </div>
-      )}
+        <div className="flex gap-2">
+          {estado !== 'archivadas' && noLeidas > 0 && (
+            <Button variant="outline" size="sm" onClick={handleMarcarTodas} disabled={isPending}>
+              <CheckCheck className="h-4 w-4 mr-1" /> Marcar todas leidas
+            </Button>
+          )}
+          {estado === 'todas' && (
+            <Button variant="outline" size="sm" onClick={handleArchivarLeidas} disabled={isPending}>
+              <Archive className="h-4 w-4 mr-1" /> Archivar leidas
+            </Button>
+          )}
+        </div>
+      </div>
 
-      {/* Lista de notificaciones */}
-      {mensajes.length === 0 ? (
+      <div className="flex flex-wrap items-center gap-2">
+        <Tabs value={estado} onValueChange={v => { setEstado(v as Estado); setPage(1) }}>
+          <TabsList>
+            <TabsTrigger value="no_leidas">No leidas</TabsTrigger>
+            <TabsTrigger value="todas">Todas</TabsTrigger>
+            <TabsTrigger value="archivadas">Archivadas</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <Select value={prioridadFiltro} onValueChange={v => { setPrioridadFiltro(v ?? ''); setPage(1) }}>
+          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Prioridad" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todas</SelectItem>
+            <SelectItem value="critica">Critica</SelectItem>
+            <SelectItem value="alta">Alta</SelectItem>
+            <SelectItem value="media">Media</SelectItem>
+            <SelectItem value="baja">Baja</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin" /></div>
+      ) : notifs.length === 0 ? (
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <CardContent className="flex flex-col items-center py-12">
             <Bell className="h-10 w-10 text-muted-foreground mb-3" />
             <p className="text-sm text-muted-foreground">
-              No tenes notificaciones todavia.
+              {estado === 'no_leidas'
+                ? 'No tenes notificaciones sin leer'
+                : estado === 'archivadas'
+                ? 'No hay notificaciones archivadas'
+                : 'No hay notificaciones'}
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-2">
-          {mensajes.map((m) => {
-            const Icon = TIPO_ICONS[m.tipo] ?? Bell
-            const iconColor = TIPO_COLORS[m.tipo] ?? 'text-muted-foreground'
-
+          {notifs.map(n => {
+            const tipo = n.catalogo_tipos_notificacion as unknown as Notif['catalogo_tipos_notificacion']
             return (
               <Card
-                key={m.id}
-                className={`cursor-pointer transition-colors hover:bg-muted/50 ${
-                  !m.leido ? 'border-l-2 border-l-brand-500 bg-brand-500/5' : ''
-                }`}
-                onClick={() => {
-                  if (!m.leido) handleMarcarLeido(m.id)
-                }}
+                key={n.id}
+                className={`transition-colors hover:bg-muted/50 ${!n.leida_at ? 'border-l-2 border-l-primary bg-primary/5' : ''}`}
               >
                 <CardContent className="flex items-start gap-3 p-4">
-                  <div className="mt-0.5 shrink-0">
-                    <Icon className={`h-5 w-5 ${iconColor}`} />
-                  </div>
-                  <div className="min-w-0 flex-1">
+                  <div className={`mt-1 h-2 w-2 shrink-0 rounded-full ${
+                    n.prioridad === 'critica' ? 'bg-destructive' :
+                    n.prioridad === 'alta' ? 'bg-warning' :
+                    !n.leida_at ? 'bg-primary' : 'bg-transparent'
+                  }`} />
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className={`text-sm font-medium ${!m.leido ? 'font-semibold' : ''}`}>
-                        {m.asunto}
+                      <p className={`text-sm ${!n.leida_at ? 'font-semibold' : 'font-medium'}`}>
+                        {n.titulo}
                       </p>
-                      {!m.leido && (
-                        <Badge variant="default" className="bg-brand-500 text-[10px]">
-                          Nuevo
-                        </Badge>
+                      {n.prioridad === 'critica' && <Badge variant="destructive" className="text-[10px]">Critica</Badge>}
+                      {n.prioridad === 'alta' && <Badge variant="destructive" className="text-[10px]">Alta</Badge>}
+                      {tipo && (
+                        <span className="text-[10px] text-muted-foreground capitalize">{tipo.categoria}</span>
                       )}
                     </div>
-                    <p className="mt-0.5 text-sm text-muted-foreground line-clamp-2">
-                      {m.cuerpo}
-                    </p>
-                    <p className="mt-1 text-[11px] text-muted-foreground">
-                      {tiempoRelativo(m.created_at)}
-                    </p>
+                    <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">{n.mensaje}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">{tiempoRelativo(n.created_at)}</p>
+                  </div>
+                  <div className="flex gap-1 shrink-0">
+                    {n.link_accion && (
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => window.location.href = n.link_accion!}>
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                    {!n.leida_at && (
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleMarcarLeida(n.id)} title="Marcar leida">
+                        <CheckCheck className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                    {!n.archivada_at && (
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleArchivar(n.id)} title="Archivar">
+                        <Archive className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -186,6 +232,14 @@ export function NotificacionesClient({ mensajes: initialMensajes, personaId }: N
           })}
         </div>
       )}
-    </>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-2 pt-4">
+          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Anterior</Button>
+          <span className="text-sm text-muted-foreground py-1">Página {page} de {totalPages}</span>
+          <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Siguiente</Button>
+        </div>
+      )}
+    </div>
   )
 }

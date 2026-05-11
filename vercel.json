@@ -7,6 +7,14 @@
     {
       "path": "/api/cron/cleanup-api-logs",
       "schedule": "0 3 * * 0"
+    },
+    {
+      "path": "/api/cron/limpieza-notificaciones",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/calcular-canon-mensual",
+      "schedule": "0 8 6 * *"
     }
   ]
 }

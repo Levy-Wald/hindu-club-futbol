@@ -6,10 +6,10 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint 14k.5 cerrado
-> (Cuerpo Técnico + Refactor Permisos: UNIQUE index para roles liderazgo,
-> 2 views, 2 funciones SQL, 4 atributos eliminados, tab Cuerpo Técnico en
-> equipo detalle, página global cuerpo técnico, refactor utileria permisos).
+> Última actualización: 11 de mayo de 2026 — Sprint 14j.2 cerrado
+> (Concesiones: 6 tablas, 4 funciones SQL, 2 vistas, 4 pantallas,
+> POS tablet-optimizado, cron canon mensual, 4 tipos notificación,
+> ADR-025, permisos admin_concesiones, sidebar entry).
 
 ---
 
@@ -18,13 +18,18 @@
 **Estado general:** Plataforma con esqueleto técnico avanzado, datos
 operativos limitados al vertical Club Deportivo en tenant Hindu.
 
-**Último sprint cerrado:** **14k.5** — Cuerpo Técnico + Refactor de Permisos.
-UNIQUE INDEX parcial para dt/capitan/manager por equipo. Views
-`v_personas_equipos_vigentes` (211 rows) y `v_cuerpo_tecnico`. Funciones
-`fn_persona_tiene_rol_equipo` y `fn_equipos_donde_puede_solicitar_utileria`.
-4 atributos `deportivo.*` eliminados. Tab "Cuerpo Técnico" en equipo detalle.
-Página global `/admin/equipos/cuerpo-tecnico`. `lib/permisos/utileria.ts`
-refactorizado con RPC. ADR-024.
+**Último sprint cerrado:** **14j.2** — Módulo Concesiones.
+6 tablas: `concesionarios`, `concesion_puntos_venta`, `concesion_productos`,
+`concesion_ventas`, `concesion_venta_items`, `concesion_canones`. Funciones:
+`fn_registrar_venta_concesion` (SECURITY DEFINER, NO genera movimientos_caja),
+`fn_calcular_canon_concesion`, `fn_cobrar_canon_concesion` (placeholder FASE 7),
+`fn_obtener_mp_credenciales` (audit log). Vistas: `v_concesionarios_resumen`,
+`v_concesion_ventas_mensuales`. 4 pantallas: listado cards, detalle 6 tabs,
+POS tablet-optimizado, reportes. Cron canon mensual día 6 8am.
+Permisos: `admin_concesiones` atributo + helper `obtenerPermisosConcesiones`.
+4 tipos notificación: venta registrada, canon calculado, canon pendiente,
+stock mínimo. ADR-025. Aislamiento financiero: ventas del concesionario NO
+impactan plan de cuentas del club.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -37,24 +42,24 @@ refactorizado con RPC. ADR-024.
 
 | Métrica | Valor |
 |---|---|
-| Tablas en `public` | 103 (+cuotas_pagos) |
-| Tablas con RLS habilitada | 102 (100%) |
-| RLS policies | 316 (+5 cuotas_pagos) |
-| Funciones custom (`pg_proc` en public) | 113 (+fn_persona_tiene_rol_equipo, fn_equipos_donde_puede_solicitar_utileria) |
-| Triggers | 87 (+sync_estado_cuota_desde_pagos, set_updated_at, validar_suma_pagos) |
-| VIEWs | 17 (+v_personas_equipos_vigentes, v_cuerpo_tecnico) |
+| Tablas en `public` | 111 (+6 concesion_*) |
+| Tablas con RLS habilitada | 110 (100%) |
+| RLS policies | 338 (+18 concesion_*) |
+| Funciones custom (`pg_proc` en public) | 119 (+fn_registrar_venta_concesion, fn_calcular_canon_concesion, fn_cobrar_canon_concesion, fn_obtener_mp_credenciales) |
+| Triggers | 93 (+5 trg_set_updated_at concesion_*) |
+| VIEWs | 20 (+v_concesionarios_resumen, v_concesion_ventas_mensuales) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 58 (7 públicas + 51 admin) |
-| API routes | 10 (5 endpoints v1 + 3 internos + 2 crons) |
-| Server actions | 131 en 25 archivos |
-| Componentes custom (no shadcn) | ~105 |
+| Páginas Next.js | 62 (7 públicas + 55 admin) |
+| API routes | 12 (5 endpoints v1 + 3 internos + 4 crons) |
+| Server actions | ~160 en 26 archivos |
+| Componentes custom (no shadcn) | ~115 |
 | Tests | 0 |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,389 |
 | Equipos (Hindu) | 7 |
-| Atributos en catálogo | 57 (-4 deportivo.* eliminados) |
-| Módulos catalogados | 34 |
-| Módulos activos en Hindu | 17 |
+| Atributos en catálogo | 58 (+admin_concesiones) |
+| Módulos catalogados | 35 (+concesiones) |
+| Módulos activos en Hindu | 18 (+concesiones) |
 
 ---
 

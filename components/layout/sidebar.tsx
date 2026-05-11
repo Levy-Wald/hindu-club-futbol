@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
+  Bell,
   LayoutDashboard,
   Users,
   ClipboardList,
@@ -37,6 +38,7 @@ import {
   FolderTree,
   HeartPulse,
   Shirt,
+  Store,
 } from 'lucide-react'
 
 interface NavItemDef {
@@ -51,6 +53,7 @@ const personalItems: NavItemDef[] = [
   { label: 'Mi perfil', href: '/admin/mi-perfil', icon: UserCircle },
   { label: 'Mi equipo', href: '/admin/mi-equipo', icon: Trophy },
   { label: 'Mi cuenta', href: '/admin/mi-cuenta', icon: CreditCard },
+  { label: 'Notificaciones', href: '/admin/notificaciones', icon: Bell },
 ]
 
 const dashboardItem: NavItemDef = { label: 'Dashboard', href: '/admin', icon: LayoutDashboard }
@@ -82,6 +85,11 @@ const rrhhSubItems: NavItemDef[] = [
   { label: 'Dashboard', href: '/admin/rrhh', icon: BarChart3 },
   { label: 'Contratos', href: '/admin/rrhh/contratos', icon: FileText },
   { label: 'Liquidaciones', href: '/admin/rrhh/liquidaciones', icon: DollarSign },
+]
+
+const concesionesSubItems: NavItemDef[] = [
+  { label: 'Concesionarios', href: '/admin/concesiones', icon: Store },
+  { label: 'Reportes', href: '/admin/concesiones/reportes', icon: BarChart3 },
 ]
 
 const clubItems: NavItemDef[] = [
@@ -217,11 +225,13 @@ export function Sidebar() {
   const isRRHHActive = pathname.startsWith('/admin/rrhh')
   const isComunicacionesActive = pathname.startsWith('/admin/comunicaciones')
   const isUtileriaActive = pathname.startsWith('/admin/utileria')
+  const isConcesionesActive = pathname.startsWith('/admin/concesiones')
   const [operacionesOpen, setOperacionesOpen] = useState(isOperacionesActive)
   const [finanzasOpen, setFinanzasOpen] = useState(isFinanzasActive)
   const [rrhhOpen, setRRHHOpen] = useState(isRRHHActive)
   const [comunicacionesOpen, setComunicacionesOpen] = useState(isComunicacionesActive)
   const [utileriaOpen, setUtileriaOpen] = useState(isUtileriaActive)
+  const [concesionesOpen, setConcesionesOpen] = useState(isConcesionesActive)
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col border-r bg-sidebar">
@@ -274,6 +284,16 @@ export function Sidebar() {
           isOpen={rrhhOpen}
           onToggle={() => setRRHHOpen(!rrhhOpen)}
           subItems={rrhhSubItems}
+          pathname={pathname}
+        />
+
+        <CollapsibleSection
+          label="Concesiones"
+          icon={Store}
+          isActive={isConcesionesActive}
+          isOpen={concesionesOpen}
+          onToggle={() => setConcesionesOpen(!concesionesOpen)}
+          subItems={concesionesSubItems}
           pathname={pathname}
         />
 

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { crearNotificacion } from '@/lib/notificaciones/crear'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
@@ -93,6 +94,27 @@ export async function asignarStaff(input: {
     }
     return formatResult(false, `Error al asignar staff: ${error.message}`)
   }
+
+  // Notify the person
+  const { data: equipo } = await supabase
+    .from('equipos')
+    .select('nombre')
+    .eq('id', input.equipo_id)
+    .single()
+  const { data: rol } = await supabase
+    .from('catalogo_roles_equipo')
+    .select('nombre')
+    .eq('slug', input.rol_equipo_slug)
+    .single()
+  crearNotificacion({
+    tenant_id: TENANT_ID,
+    destinatario_persona_id: input.persona_id,
+    tipo: 'rol_asignado',
+    titulo: `Rol asignado: ${rol?.nombre ?? input.rol_equipo_slug}`,
+    mensaje: `Te asignaron como ${rol?.nombre ?? input.rol_equipo_slug} de ${equipo?.nombre ?? 'equipo'}.`,
+    link_accion: `/admin/equipos/${input.equipo_id}`,
+    origen_tabla: 'personas_equipos',
+  }).catch(() => {})
 
   revalidatePath(`/admin/equipos/${input.equipo_id}`)
   revalidatePath('/admin/equipos/cuerpo-tecnico')

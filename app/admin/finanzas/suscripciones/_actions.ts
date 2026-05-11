@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { crearNotificacion } from '@/lib/notificaciones/crear'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
@@ -127,6 +128,25 @@ export async function crearSuscripcion(
     return fail(`Error al crear suscripción: ${error.message}`)
   }
 
+  // Notificar suscripción creada
+  const { data: planInfo } = await supabase
+    .from('cuotas_planes')
+    .select('nombre')
+    .eq('id', planId)
+    .single()
+
+  crearNotificacion({
+    tenant_id: TENANT_ID,
+    destinatario_persona_id: personaId,
+    tipo: 'suscripcion_creada',
+    titulo: `Suscripción activa: ${planInfo?.nombre ?? 'Plan'}`,
+    mensaje: `Se activó tu suscripción al plan ${planInfo?.nombre ?? 'Plan'}.`,
+    prioridad: 'media',
+    link_accion: `/admin/personas/${personaId}`,
+    origen_tabla: 'suscripciones',
+    origen_evento: 'crear_suscripcion',
+  }).catch(() => {})
+
   revalidatePath('/admin/finanzas/suscripciones')
   revalidatePath(`/admin/personas/${personaId}`)
   return ok()
@@ -161,6 +181,30 @@ export async function cancelarSuscripcion(
     .eq('tenant_id', TENANT_ID)
 
   if (error) return fail(`Error al cancelar: ${error.message}`)
+
+  // Notificar suscripción cancelada
+  const { data: planCancel } = await supabase
+    .from('suscripciones')
+    .select('plan_id, cuotas_planes(nombre)')
+    .eq('id', suscripcionId)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (planCancel) {
+    const planNombre = (planCancel.cuotas_planes as unknown as { nombre: string })?.nombre ?? 'Plan'
+    crearNotificacion({
+      tenant_id: TENANT_ID,
+      destinatario_persona_id: sub.persona_id,
+      tipo: 'suscripcion_cancelada',
+      titulo: `Suscripción cancelada: ${planNombre}`,
+      mensaje: motivo ? `Se canceló tu suscripción. Motivo: ${motivo}` : 'Se canceló tu suscripción.',
+      prioridad: 'alta',
+      link_accion: `/admin/personas/${sub.persona_id}`,
+      origen_tabla: 'suscripciones',
+      origen_registro_id: suscripcionId,
+      origen_evento: 'cancelar_suscripcion',
+    }).catch(() => {})
+  }
 
   revalidatePath('/admin/finanzas/suscripciones')
   revalidatePath(`/admin/personas/${sub.persona_id}`)
