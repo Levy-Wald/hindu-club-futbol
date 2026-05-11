@@ -1,3 +1,450 @@
-# GLOSSARY.md
+# ClubCore — Glossary
 
-Contenido pendiente del arquitecto.
+> Definiciones canónicas de los términos del proyecto. Cuando hay ambigüedad
+> entre dos términos parecidos, este documento gana.
+>
+> Mantenido por el arquitecto.
+>
+> Última actualización: 10 de mayo de 2026.
+
+---
+
+## 1. Conceptos arquitectónicos
+
+**Capa.** Una de las cuatro categorías lógicas en las que se clasifica toda
+feature del sistema: Troncal, Vertical, Módulo Paralelo, Plataforma.
+
+**Troncal.** Capa del producto que sirve a cualquier organización (no solo
+clubes). Se subdivide en CRM, ERP, PIM.
+
+**Vertical.** Capa específica de una industria. Hoy solo existe el vertical
+"Club Deportivo". Mañana podrían sumarse "eCommerce", "Country", "Federación",
+"Polo educativo".
+
+**Módulo Paralelo.** Capacidad transversal que cualquier organización puede
+activar (RRHH, Salud, Documentos).
+
+**Plataforma.** Infraestructura transversal: multi-tenant, auth, importadores,
+API, audit. No es feature de negocio sino base técnica.
+
+**Doble lente.** Regla operativa: antes de implementar una feature, decidir si
+es genérica (Troncal) o específica de industria (Vertical). Ver
+`ARCHITECTURE.md` §3.
+
+**Anti-patrón.** Patrón conocido que está prohibido en el proyecto. Lista
+completa: `ARCHITECTURE.md` §14.
+
+**ADR (Architecture Decision Record).** Entrada en `DECISIONS.md` que documenta
+una decisión técnica con contexto, alternativas y justificación.
+
+**Recipe.** Procedimiento paso a paso para una operación recurrente (ej:
+agregar un módulo nuevo). Ver `ARCHITECTURE.md` §15.
+
+---
+
+## 2. Conceptos de dominio (CRM)
+
+**Tenant.** Instancia de cliente del sistema. Un tenant es un club (en
+ClubCore actual) y en el futuro podrá ser cualquier organización. Aislado
+por `tenant_id` y RLS.
+
+**Persona.** Individuo que existe en el ecosistema del tenant. Puede tener
+múltiples roles vía atributos: socio, jugador, padre, empleado, cliente,
+proveedor. **No se crean tablas paralelas por rol** — todo es persona +
+atributo.
+
+**Entidad.** Organización (no individual): proveedor, sponsor, federación,
+club asociado. Análoga a persona pero con representantes.
+
+**Representante.** Persona vinculada a una entidad con un rol (director,
+contacto comercial, etc.). Vive en `entidades_representantes`.
+
+**Atributo.** Rol o característica transversal de una persona con vigencia
+temporal. Ej: `jugador`, `socio`, `admin`, `suscriptor`. Vive en
+`personas_atributos` con `activo`, `fecha_alta`, `fecha_baja`.
+
+**Vínculo.** Relación entre dos personas. Ej: padre-hijo, tutor-tutorado,
+cónyuges. Vive en `personas_vinculos` con tipo y dirección.
+
+**Pre-inscripción.** Solicitud externa de incorporación a la organización.
+Pendiente de aprobación del staff. No es persona aún.
+
+**Solicitud.** Pedido formal de una persona ya registrada (cambio de datos,
+ingreso a equipo, baja). Pasa por aprobación.
+
+**Comunicación.** Mensaje 1:1 o segmentado dirigido a personas. Plantilla +
+envío + tracking.
+
+**Plantilla.** Template parametrizable de comunicación. Vive en
+`com_plantillas`.
+
+**Envío.** Una corrida de plantilla a un segmento de personas. Vive en
+`com_envios`.
+
+**Segmento.** Grupo de personas filtrado por criterios (atributo, padrón,
+equipo). No es tabla; se construye en query.
+
+---
+
+## 3. Conceptos de dominio (ERP)
+
+**Plan de cuentas.** Árbol contable jerárquico del tenant con 5 tipos
+(activo, pasivo, patrimonio, ingreso, egreso) hasta nivel 4. Vive en
+`plan_cuentas`.
+
+**Cuenta contable.** Nodo del plan de cuentas. Puede ser imputable
+(`acepta_movimientos=true`) o agrupadora.
+
+**Centro de costo.** Agrupación gerencial para imputar movimientos (ej:
+"Fútbol", "Hockey", "Administración"). Vive en `centros_costo`.
+
+**Período contable.** Año/mes con estado abierto, cerrado o bloqueado.
+Operaciones se imputan al período correspondiente. Vive en
+`periodos_contables`.
+
+**Caja.** Cuenta operativa donde se registran movimientos. Puede ser
+efectivo, banco, tarjeta, digital. Vive en `cajas`.
+
+**Movimiento de caja.** Operación financiera (ingreso, egreso, transferencia)
+con monto, fecha, medio de pago, cuenta contable imputada, opcionalmente
+asociada a persona/entidad/cuota. Vive en `movimientos_caja`.
+
+**Medio de pago.** Forma en que se cobra/paga: efectivo, transferencia,
+tarjeta crédito/débito, MercadoPago, cheque, débito automático. Vive en
+`medios_pago`.
+
+**Tipo de comprobante.** Documento fiscal o interno (factura A/B/C, recibo,
+nota de débito/crédito, remito). Vive en `tipos_comprobante`.
+
+**Producto / Servicio.** Ítem económico que se vende o cobra. Hoy modelo
+plano en `productos_servicios`. En el futuro será PIM completo.
+
+**Plan de cuotas.** Definición recurrente de cobro (ej: "Cuota Hindu Mensual",
+"Fondo Fútbol 2026"). Asocia un producto + periodicidad + monto. Vive en
+`cuotas_planes`.
+
+**Suscripción.** Relación persona ↔ plan con vigencia. Indica que una
+persona está adherida a un plan en un período. Tabla a crear en Sprint 14e:
+`suscripciones`.
+
+**Cuota emitida.** Instancia mensual de un plan para una persona específica.
+Tiene monto, período, vencimiento, estado (pendiente, cobrada, vencida,
+anulada). Vive en `cuotas_emitidas`.
+
+**Emisión.** Operación masiva que genera cuotas para un período. Vive en
+`emisiones_cuota`.
+
+**Cobro.** Acción de marcar una cuota como cobrada, asociada a un
+movimiento de caja.
+
+**Bonificación.** Descuento aplicado a una cuota emitida (porcentaje o
+monto fijo). Vive en `cuotas_bonificaciones`.
+
+**Convenio de pago.** Plan de financiamiento de deuda en cuotas pactadas.
+Vive en `convenios_pago`.
+
+**Cuenta corriente.** Saldo acumulado por persona/entidad: cargos − pagos.
+Vive en `cuentas_corrientes`.
+
+**Conciliación.** Proceso de matchear pagos recibidos con cuotas emitidas.
+
+**Cotización.** Tipo de cambio entre dos monedas en una fecha. Vive en
+`cotizaciones`.
+
+---
+
+## 4. Conceptos de dominio (Vertical Club Deportivo)
+
+**Padrón.** Lista nominal de personas con un propósito específico. Ej:
+"Hindu Global" (todos los socios), "Hindu Futbol Jugadores 2026" (planteles
+del año), "Hindu Futbol Suscriptores 2026" (aportantes al fondo). Vive en
+`padrones`. La pertenencia se modela en `personas_padrones`.
+
+**Padrón global.** Padrón del tenant que incluye a toda la base de socios.
+Sirve como source-of-truth de membresías.
+
+**Padrón específico.** Padrón con propósito acotado (un torneo, un fondo,
+una categoría). Puede solaparse con el global.
+
+**Equipo.** Conjunto de personas que practica una disciplina con un nivel
+y categoría. Vive en `equipos`. Tiene plantel, horarios, indumentaria,
+cancha asignada.
+
+**Disciplina.** Deporte que el club practica (fútbol, hockey, tenis, padel,
+rugby, básquet, golf). Vive en `catalogo_disciplinas`. Por tenant se activa
+vía módulos `disciplina_*`.
+
+**Categoría deportiva.** Subdivisión de un equipo por edad o nivel
+(juveniles, primera, senior, +28, +35, etc.). Vive en `categorias_equipo`.
+
+**Federación.** Entidad organizadora de competencias inter-club (FACCMA,
+AIF, etc.). Modelada como `entidad` con atributo `federacion`.
+
+**Competencia.** Torneo o liga donde un equipo participa. Vive en
+`equipos_competencias`.
+
+**Plantel.** Conjunto de personas pertenecientes a un equipo con rol
+específico (jugador, capitán, director técnico, preparador físico). Vive en
+`personas_equipos`.
+
+**Rol en equipo.** Función de la persona dentro de un equipo. Vive en
+`catalogo_roles_equipo`.
+
+**Cancha.** Espacio físico donde se entrena o juega. Vive en `canchas`.
+
+**Esquema táctico.** Formación deportiva (4-4-2, 4-3-3, etc.) usada por un
+equipo. Vive en `esquemas_tacticos`.
+
+**Partido.** Evento competitivo entre dos equipos. Vive en
+`partidos_detalle`.
+
+**Scouting.** Ficha de evaluación de un jugador (propio o externo). Vive en
+`scouting_fichas`.
+
+**Evento.** Cualquier actividad agendada del club: entrenamiento, partido,
+reunión, evento social. Vive en `eventos`.
+
+**Asistencia.** Registro de presencia de una persona en un evento. Vive en
+`evento_asistencias`.
+
+**Suscriptor.** Persona (jugador o no) que aporta económicamente a un fondo
+específico (ej: Fondo Fútbol). Modelado como atributo `suscriptor` +
+suscripción al plan correspondiente.
+
+**Jugador.** Persona con atributo `jugador` y membresía activa en al menos
+un equipo. Concepto Vertical (no aplica a no-clubes).
+
+**Socio.** Persona con membresía activa al club. Modelado como atributo
+`socio` + pertenencia a padrón global del tenant.
+
+**Tipo de socio.** Categoría de socio según el tenant (cadete, pleno,
+adherente, vitalicio, honorario). Vive en `catalogo_tipos_socio`.
+
+---
+
+## 5. Conceptos de dominio (Módulos paralelos)
+
+**Contrato laboral.** Relación de empleo entre el tenant y una persona.
+Vive en `rrhh_contratos`. Tiene puesto, área, modalidad, fecha alta/baja,
+remuneración.
+
+**Liquidación.** Cálculo mensual del pago a un empleado. Vive en
+`rrhh_liquidaciones`. Genera movimiento de caja al pagarse.
+
+**Datos médicos.** Información de salud relevante para la práctica deportiva:
+grupo sanguíneo, alergias, enfermedades, medicación. Vive en
+`personas_datos_medicos`. Acceso restringido por RLS y permisos.
+
+**Obra social.** Cobertura médica de la persona. Vive en `personas_obra_social`.
+
+**Autorización.** Permiso firmado por persona o tutor (uso de imagen,
+salidas, tratamientos médicos). Vive en `personas_autorizaciones`.
+
+**Contacto de emergencia.** Persona contactable en caso de emergencia. Vive
+en `personas_contactos_emergencia`.
+
+---
+
+## 6. Conceptos técnicos (Plataforma)
+
+**Multi-tenant.** Arquitectura donde un único sistema sirve a múltiples
+clientes aislados entre sí por `tenant_id` y políticas RLS.
+
+**RLS (Row Level Security).** Mecanismo de Postgres que filtra filas por
+política a nivel base de datos. Reglas en `MASTER-PROJECT.md` D1 y
+`ARCHITECTURE.md` R-MT2.
+
+**Módulo (de tenant).** Capacidad activable o desactivable por cliente.
+Catálogo global en `catalogo_modulos`, activación en `tenant_modulos`.
+
+**Importador / Import Pipeline.** Receta declarativa para procesar archivos
+de datos (Excel, CSV) e insertarlos en el sistema con matching contra
+datos existentes. Vive en `import_pipelines`.
+
+**Pipeline slug.** Identificador único del pipeline (ej:
+`jugadores_por_equipo`, `suscriptores_por_equipo`).
+
+**Run de import.** Una corrida de un pipeline sobre un archivo específico.
+Vive en `import_runs`.
+
+**Row de import.** Cada fila procesada del archivo. Vive en `import_rows`
+con su raw_data, parsed_data, match_status, apply_status.
+
+**Parser.** Función que toma un Excel/CSV y devuelve filas parseadas
+estructuradas. Ej: `agrupado_por_grupo.ts`.
+
+**Apply rule.** Acción declarativa que un pipeline ejecuta al aplicar
+(`enriquecer_persona`, `agregar_atributo`, `crear_persona_nueva`, etc.).
+
+**Match fuzzy.** Algoritmo de comparación de strings tolerante a errores.
+Para personas, implementado vía función SQL `match_persona_fuzzy` que
+tokeniza, normaliza y compara con similitud trigram.
+
+**Match status.** Estado de matching de un row: `exacto`, `auto_fuzzy`,
+`manual_review`, `sin_match`, `conflict`, `discarded`.
+
+**Match score.** Puntaje 0-1 que indica grado de similitud entre fila del
+archivo y persona existente.
+
+**Threshold high / low.** Umbrales del match: arriba de `high` se auto-aplica,
+abajo de `low` se descarta, entre los dos requiere revisión humana.
+
+**Apply (aplicar run).** Operación final que ejecuta las apply_rules sobre
+las filas resueltas de un run.
+
+**Idempotencia.** Propiedad de una operación que puede repetirse sin
+generar duplicados ni cambios indeseados.
+
+**Vista (user_vista).** Configuración personalizada de columnas/filtros
+para una tabla, guardada por usuario. Vive en `user_vistas`.
+
+**Audit log.** Bitácora de cambios sensibles del sistema. Vive en
+`audit_log` con tabla, registro_id, acción, usuario, timestamp.
+
+**Server action.** Función TypeScript en Next.js marcada con `'use server'`
+que ejecuta una mutación en backend desde una llamada de cliente.
+
+**RSC (React Server Component).** Componente que renderiza en servidor y
+puede llamar a queries directamente.
+
+**Migration.** Cambio versionado a la estructura o datos de la DB. Aplicado
+vía Supabase MCP.
+
+**Seed.** Datos iniciales que un tenant nuevo necesita para funcionar
+(catálogos base, plan de cuentas template).
+
+---
+
+## 7. Nombres propios
+
+**ClubCore.** Producto SaaS multi-cliente para clubes deportivos. Primer
+vertical del troncal a construir.
+
+**Hindu Club.** Primer cliente y caso piloto de ClubCore. No paga. Sirve
+como caso de marketing.
+
+**Levy Wald CMO SRL.** Empresa de Yair que provee dirección externa de
+marketing a PyMEs. Estructura societaria 80/20 con Kate.
+
+**Kontrol.ar.** Producto futuro de la agencia Levy Wald CMO. Hub de
+marketing/CRM que se integrará con el troncal de ClubCore eventualmente.
+
+**Code (Claude Code).** Implementador del proyecto. Genera código, ejecuta
+sprints según spec del arquitecto.
+
+**Arquitecto.** Rol que ejecuta planning, diseño y aprobación. En este
+proyecto: Claude Opus (chat web).
+
+**FACCMA, AIF.** Federaciones de fútbol amateur de las que participan los
+equipos de Hindu.
+
+---
+
+## 8. Abreviaciones
+
+| Sigla | Significado |
+|---|---|
+| ADR | Architecture Decision Record |
+| AFIP | Administración Federal de Ingresos Públicos (Argentina) |
+| API | Application Programming Interface |
+| CRM | Customer Relationship Management |
+| DDL | Data Definition Language (SQL: CREATE, ALTER, DROP) |
+| DML | Data Manipulation Language (SQL: INSERT, UPDATE, DELETE) |
+| DNI | Documento Nacional de Identidad (Argentina) |
+| ERP | Enterprise Resource Planning |
+| FK | Foreign Key |
+| HOC | Higher-Order Component (React) |
+| JWT | JSON Web Token |
+| MCP | Model Context Protocol |
+| MP | MercadoPago |
+| MVP | Minimum Viable Product |
+| PIM | Product Information Management |
+| PK | Primary Key |
+| PWA | Progressive Web Application |
+| RLS | Row Level Security |
+| ROI | Return On Investment |
+| RRHH | Recursos Humanos |
+| RSC | React Server Component |
+| SaaS | Software as a Service |
+| SQL | Structured Query Language |
+| SSO | Single Sign-On |
+| SSR | Server-Side Rendering |
+| TS | TypeScript |
+| UI | User Interface |
+| UUID | Universally Unique Identifier |
+| UX | User Experience |
+
+---
+
+## 9. Convenciones de terminología
+
+### Persona vs Usuario
+
+- **Persona:** registro en `personas`. Existe sin necesidad de poder
+  loguearse.
+- **Usuario:** registro en `auth.users` (Supabase Auth). Una persona puede
+  o no tener usuario asociado.
+
+Una persona puede ser jugador sin nunca loguearse. Un usuario siempre debe
+estar asociado a una persona.
+
+### Cliente vs Persona con atributo cliente
+
+NO existe tabla "clientes". Existe `personas` (o `entidades`) con atributo
+`cliente`. Misma regla para "proveedores", "empleados", "socios".
+
+### Producto vs Servicio
+
+Conceptualmente distintos en el comercio, pero modelados ambos en
+`productos_servicios` con campo `tipo` que diferencia. Las cuotas, fondos,
+sueldos, ventas — todos pasan por esta tabla.
+
+### Cuota vs Pago
+
+- **Cuota emitida:** obligación de pago (lo que se le debe al club).
+- **Movimiento de caja:** pago efectivo (lo que entró/salió de una caja).
+- **Cobro de cuota:** acción que asocia una cuota emitida con un movimiento
+  de caja, marcando la cuota como cobrada.
+
+### Tenant vs Cliente
+
+- **Tenant:** instancia técnica del sistema.
+- **Cliente:** persona o entidad con atributo `cliente` que compra al
+  tenant.
+
+NUNCA confundirlos. "Crear un cliente" = INSERT en `personas` con atributo.
+"Crear un tenant" = onboarding de un nuevo club al SaaS (acción de
+sistema).
+
+---
+
+## 10. Términos prohibidos
+
+Estos términos NO se usan en código, docs ni UI por ambigüedad o
+inconsistencia con el modelo:
+
+- **"usuario"** referido a persona del club (usar **persona**)
+- **"miembro"** sin contexto (usar **socio**, **jugador**, **suscriptor**
+  según corresponda)
+- **"cliente"** como tabla (usar **persona con atributo cliente**)
+- **"facturación"** indiscriminado (usar **emisión de cuotas**, **cobranza**
+  o **comprobante** según contexto)
+- **"datos personales"** sin especificar (usar el módulo concreto: salud,
+  laboral, documentos, etc.)
+- **"app"** sin clarificar (es web SaaS hoy; app móvil = futuro)
+- **"reportes"** genérico (usar el reporte específico: balance, ingresos,
+  deudores, etc.)
+
+---
+
+## 11. Cómo proponer un término nuevo
+
+Si durante el desarrollo aparece un concepto que requiere nombre, el
+arquitecto:
+
+1. Verifica que no exista término similar en este glosario
+2. Define la palabra y su contraste con conceptos cercanos
+3. Agrega entrada en este documento
+4. Lo difunde en el próximo `PROMPT-ENVELOPE` de Code
+
+Code NO crea términos nuevos. Si necesita uno, para y consulta.
