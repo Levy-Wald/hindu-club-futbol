@@ -1,32 +1,3 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/dispatch-vencimientos",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/cleanup-api-logs",
-      "schedule": "0 3 * * 0"
-    },
-    {
-      "path": "/api/cron/limpieza-notificaciones",
-      "schedule": "0 4 * * *"
-    },
-    {
-      "path": "/api/cron/calcular-canon-mensual",
-      "schedule": "0 8 6 * *"
-    },
-    {
-      "path": "/api/cron/apto-vence-7d",
-      "schedule": "0 12 * * *"
-    },
-    {
-      "path": "/api/cron/cuota-vence-7d",
-      "schedule": "5 12 * * *"
-    },
-    {
-      "path": "/api/cron/cuota-vencida-7d",
-      "schedule": "10 12 * * *"
-    }
-  ]
+  "crons": []
 }
