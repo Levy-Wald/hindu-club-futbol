@@ -6,8 +6,8 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint 14g en curso
-> (Cobranza manual: cuotas_pagos, fn_cobrar_cuota, fn_anular_pago, UI modal mejorado, tab Pagos).
+> Última actualización: 11 de mayo de 2026 — Sprint 14h cerrado
+> (Centros de costo UI completa: CRUD, árbol, detalle, stats, sidebar).
 
 ---
 
@@ -16,13 +16,10 @@
 **Estado general:** Plataforma con esqueleto técnico avanzado, datos
 operativos limitados al vertical Club Deportivo en tenant Hindu.
 
-**Último sprint cerrado:** **14f** — Emisión de cuotas masivas, anulación,
-vistas, UI refactorizada, tab Cuotas en persona.
-
-**Sprint en curso:** **14g** — Cobranza manual. Tabla `cuotas_pagos` (1:N con
-cuotas_emitidas), trigger `sync_estado_cuota_desde_pagos`, SQL functions
-`fn_cobrar_cuota` / `fn_anular_pago`, UI mejorada con monto editable, pagos
-parciales, comprobante, tab Pagos en persona.
+**Último sprint cerrado:** **14h** — Centros de costo UI completa. 7 centros
+cargados (General + 6 nuevos). Vista `v_centros_costo_stats`. CRUD con árbol
+jerárquico, detalle con tabs (movimientos, productos, sub-centros, config).
+Sidebar con entrada Finanzas > Centros de Costo.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -40,9 +37,9 @@ parciales, comprobante, tab Pagos en persona.
 | RLS policies | 316 (+5 cuotas_pagos) |
 | Funciones custom (`pg_proc` en public) | 111 (+fn_cobrar_cuota, fn_anular_pago) |
 | Triggers | 87 (+sync_estado_cuota_desde_pagos, set_updated_at, validar_suma_pagos) |
-| VIEWs | 14 (10 `fin_*` sin uso + 3 cuotas: v_cuotas_completas, v_cuotas_resumen_periodo, v_cuenta_corriente_persona) |
+| VIEWs | 15 (10 `fin_*` sin uso + 3 cuotas + v_centros_costo_stats) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 55 (7 públicas + 48 admin) |
+| Páginas Next.js | 57 (7 públicas + 50 admin) |
 | API routes | 10 (5 endpoints v1 + 3 internos + 2 crons) |
 | Server actions | 131 en 25 archivos |
 | Componentes custom (no shadcn) | ~105 |
@@ -107,7 +104,7 @@ pre-inscripciones.
 | `cajas` | 3 | Caja General, Caja Chica, Banco CC |
 | `periodos_contables` | 1 | Período actual abierto |
 | `config_financiera` | 1 | Mora 5% / 10 días gracia, moneda ARS |
-| `centros_costo` | 1 | Sin uso real |
+| `centros_costo` | 7 | General + Fútbol, Administración, Mantenimiento, Eventos, Sponsors, Cuotas Sociales (Sprint 14h) |
 | `catalogo_categorias_movimiento` | 21 | Cargado |
 | `cotizaciones` | 1 | Tipo de cambio cargado |
 
@@ -128,13 +125,13 @@ pre-inscripciones.
 | `suscripciones` | 51 | 51 activas del padrón Suscriptores (Sprint 14e) |
 
 **Rutas UI operativas:** `/admin/finanzas/*` (dashboard, cajas, movimientos,
-cuotas, productos, suscripciones, plan-cuentas, productos/importar).
+cuotas, productos, suscripciones, centros-costo, plan-cuentas, productos/importar).
 
 **Server actions:** 41 (cajas, movimientos, productos, planes, cuotas,
 suscripciones, convenios, períodos, cotizaciones, config).
 
 **Gaps:**
-- Centros de costo: UI CRUD inexistente (15b)
+- Centros de costo: CRUD completo (Sprint 14h) ✅
 - Reportes financieros: inexistentes (15b)
 - Cobranza vía MercadoPago (15d)
 

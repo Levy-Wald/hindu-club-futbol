@@ -34,6 +34,7 @@ import {
   Send,
   FileEdit,
   Plug,
+  FolderTree,
 } from 'lucide-react'
 
 interface NavItemDef {
@@ -71,6 +72,7 @@ const finanzasSubItems: NavItemDef[] = [
   { label: 'Productos', href: '/admin/finanzas/productos', icon: Package },
   { label: 'Cuotas', href: '/admin/finanzas/cuotas', icon: Receipt },
   { label: 'Suscripciones', href: '/admin/finanzas/suscripciones', icon: CreditCard },
+  { label: 'Centros de Costo', href: '/admin/finanzas/centros-costo', icon: FolderTree },
   { label: 'Plan de Cuentas', href: '/admin/finanzas/plan-cuentas', icon: BookOpen },
 ]
 
