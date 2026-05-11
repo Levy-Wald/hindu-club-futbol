@@ -11,3 +11,4 @@ Toda solicitud debe respetar las reglas de PROMPT-ENVELOPE.md.
 Al terminar cualquier cambio, actualizar CURRENT-STATE.md.
 Cambios estructurales (modelos, capas) deben aprobarse por el arquitecto
 antes de implementar.
+
