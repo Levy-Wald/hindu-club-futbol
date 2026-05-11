@@ -203,19 +203,42 @@ export async function probarPlantilla(id: string): Promise<ActionResult> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return fail('No autenticado')
 
+  const { data: persona } = await supabase
+    .from('personas')
+    .select('id')
+    .eq('user_id', user.id)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  if (!persona) return fail('Persona no encontrada')
+
   const { data: plantilla } = await supabase
     .from('com_plantillas')
-    .select('id, nombre, tipo, asunto, cuerpo')
+    .select('id, nombre, slug, tipo, asunto, cuerpo, variables_disponibles')
     .eq('id', id)
     .eq('tenant_id', TENANT_ID)
     .single()
 
   if (!plantilla) return fail('Plantilla no encontrada')
-  if (plantilla.tipo !== 'email') return fail('Solo se pueden probar plantillas de tipo email')
 
-  // TODO: Implementar envio real de email de prueba cuando el servicio de email este configurado.
-  // Por ahora, solo simulamos el envio exitoso.
-  return success(`Email de prueba enviado a ${user.email}`)
+  // Build sample variables
+  const sampleVars: Record<string, string> = {}
+  for (const v of plantilla.variables_disponibles ?? []) {
+    sampleVars[v] = `[${v}]`
+  }
+
+  const { enviarComunicacion } = await import('./cliente')
+  const result = await enviarComunicacion({
+    personaId: persona.id,
+    plantillaSlug: plantilla.slug,
+    variables: sampleVars,
+    canal: plantilla.tipo as 'email' | 'inapp',
+  })
+
+  if (!result.ok) return fail(result.error || 'Error al enviar prueba')
+
+  revalidatePath('/admin/comunicaciones')
+  return success(`Prueba enviada (${plantilla.tipo})`)
 }
 
 // =============================================================================

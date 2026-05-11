@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
+import { TENANT_ID } from '@/lib/tenant'
 import { PlantillasClient } from '@/modules/comunicaciones/ui/components/plantillas-client'
-
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 export default async function PlantillasPage() {
   const supabase = await createClient()

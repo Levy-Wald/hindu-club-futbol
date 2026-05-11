@@ -1,135 +1,88 @@
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Send, Clock, AlertTriangle, CheckCircle2, FileText, MailPlus } from 'lucide-react'
-import Link from 'next/link'
-import { fetchSolicitudesPendientes } from '@/modules/comunicaciones/lib/queries'
-import { SolicitudesPanel } from '@/modules/comunicaciones/ui/components/solicitudes-panel'
+import { TENANT_ID } from '@/lib/tenant'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { PlantillasTable } from '@/modules/comunicaciones/ui/plantillas-table'
+import { EnviosTable } from '@/modules/comunicaciones/ui/envios-table'
+import { FileText, Send } from 'lucide-react'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
-
-export default async function ComunicacionesDashboardPage() {
+export default async function ComunicacionesPage() {
   const supabase = await createClient()
-  const hoy = new Date().toISOString().split('T')[0]
 
-  // Solicitudes existentes
-  const solicitudes = await fetchSolicitudesPendientes()
-
-  // Stats de envios (com_envios puede no existir aun, manejamos error)
-  const [enviadosHoyRes, pendientesRes, falladosRes, entregadosRes] = await Promise.all([
+  const [plantillasRes, enviosRes] = await Promise.all([
+    supabase
+      .from('com_plantillas')
+      .select('id, nombre, slug, tipo, asunto, cuerpo, variables_disponibles, activa, created_at, updated_at')
+      .eq('tenant_id', TENANT_ID)
+      .is('deleted_at', null)
+      .order('nombre'),
     supabase
       .from('com_envios')
-      .select('id', { count: 'exact', head: true })
+      .select(`
+        id, canal, estado, error_mensaje, plantilla_slug, metadata, created_at,
+        persona:personas(id, nombre, apellido)
+      `)
       .eq('tenant_id', TENANT_ID)
-      .eq('estado', 'enviado')
-      .gte('created_at', hoy + 'T00:00:00'),
-    supabase
-      .from('com_envios')
-      .select('id', { count: 'exact', head: true })
-      .eq('tenant_id', TENANT_ID)
-      .eq('estado', 'pendiente'),
-    supabase
-      .from('com_envios')
-      .select('id', { count: 'exact', head: true })
-      .eq('tenant_id', TENANT_ID)
-      .eq('estado', 'fallado'),
-    supabase
-      .from('com_envios')
-      .select('id', { count: 'exact', head: true })
-      .eq('tenant_id', TENANT_ID)
-      .in('estado', ['enviado', 'entregado']),
+      .order('created_at', { ascending: false })
+      .limit(100),
   ])
 
-  const enviadosHoy = enviadosHoyRes.count ?? 0
-  const pendientes = pendientesRes.count ?? 0
-  const fallados = falladosRes.count ?? 0
-  const entregados = entregadosRes.count ?? 0
+  const plantillas = plantillasRes.data ?? []
+
+  const enviosRaw = (enviosRes.data ?? []) as unknown as Array<{
+    id: string
+    canal: string
+    estado: string
+    error_mensaje: string | null
+    plantilla_slug: string | null
+    metadata: Record<string, unknown> | null
+    created_at: string
+    persona: { id: string; nombre: string; apellido: string } | null
+  }>
+
+  const envios = enviosRaw.map((e) => ({
+    id: e.id,
+    canal: e.canal,
+    estado: e.estado,
+    error_mensaje: e.error_mensaje,
+    created_at: e.created_at,
+    persona_nombre: e.persona ? `${e.persona.nombre} ${e.persona.apellido}` : null,
+    plantilla_slug: e.plantilla_slug,
+    metadata: e.metadata,
+  }))
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-6" data-testid="comunicaciones-page">
       <div>
         <h1 className="text-xl font-bold sm:text-2xl">Comunicaciones</h1>
         <p className="text-sm text-muted-foreground">
-          Plantillas, envios y notificaciones del club
+          Plantillas de comunicacion y registro de envios
         </p>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="rounded-md bg-brand-500/10 p-2">
-              <Send className="h-5 w-5 text-brand-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{enviadosHoy}</p>
-              <p className="text-xs text-muted-foreground">Enviados hoy</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="rounded-md bg-gold-500/10 p-2">
-              <Clock className="h-5 w-5 text-gold-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{pendientes}</p>
-              <p className="text-xs text-muted-foreground">Pendientes</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="rounded-md bg-error-500/10 p-2">
-              <AlertTriangle className="h-5 w-5 text-error-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{fallados}</p>
-              <p className="text-xs text-muted-foreground">Fallados</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="rounded-md bg-success-500/10 p-2">
-              <CheckCircle2 className="h-5 w-5 text-success-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{entregados}</p>
-              <p className="text-xs text-muted-foreground">Entregados</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Solicitudes pendientes */}
-      <SolicitudesPanel solicitudes={solicitudes as never[]} />
-
-      {/* Quick actions + navigation */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Acciones rapidas</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-3">
-          <Button render={<Link href="/admin/comunicaciones/plantillas" />}>
+      <Tabs defaultValue="plantillas">
+        <TabsList>
+          <TabsTrigger value="plantillas" data-testid="tab-plantillas">
             <FileText className="h-4 w-4" />
             Plantillas
-          </Button>
-          <Button variant="secondary" render={<Link href="/admin/comunicaciones/envios" />}>
+          </TabsTrigger>
+          <TabsTrigger value="envios" data-testid="tab-envios">
             <Send className="h-4 w-4" />
-            Historial de envios
-          </Button>
-          <Button variant="outline" render={<Link href="/admin/notificaciones" />}>
-            <MailPlus className="h-4 w-4" />
-            Notificaciones
-          </Button>
-        </CardContent>
-      </Card>
+            Envios
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="plantillas" data-testid="panel-plantillas">
+          <div className="pt-4">
+            <PlantillasTable plantillas={plantillas} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="envios" data-testid="panel-envios">
+          <div className="pt-4">
+            <EnviosTable envios={envios} />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

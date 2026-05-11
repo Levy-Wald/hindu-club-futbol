@@ -1,7 +1,7 @@
 {
   "slug": "comunicaciones",
   "name": "Comunicaciones",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "category": "core",
   "portable": true,
   "owner": "clubcore-team",
@@ -19,10 +19,15 @@
     "comunicaciones.puede_enviar",
     "comunicaciones.puede_gestionar_plantillas"
   ],
-  "events_emits": ["comunicaciones.envio_completado", "comunicaciones.email_bounced"],
+  "events_emits": [
+    "comunicaciones.envio_completado",
+    "comunicaciones.envio_fallado",
+    "comunicaciones.email_bounced"
+  ],
   "events_consumes": [],
+  "exports_api": ["enviarComunicacion"],
   "ui_routes": ["/admin/comunicaciones"],
   "api_endpoints": [],
   "replaceable_by_external": true,
-  "external_adapter_interface": "IComunicacionesProvider"
+  "external_adapter_interface": "ComunicacionAdapter"
 }

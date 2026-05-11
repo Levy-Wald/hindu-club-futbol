@@ -6,9 +6,9 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint 15c completado.
-> Sprints 14d a 15b cerrados. FASE 1 oficialmente cerrada.
-> Sprint 15c: E2E tests verdes — playwright fix + usuario dedicado.
+> Última actualización: 11 de mayo de 2026 — Sprint FASE 2.1 completado.
+> Sprints 14d a 15c cerrados. FASE 1 oficialmente cerrada.
+> Sprint FASE 2.1: Motor de comunicación mock-first con adapter pattern.
 
 ---
 
@@ -18,9 +18,11 @@
 para Hindu Club Futbol: suscripciones, cuotas, cobranza, centros de costo,
 salud, utileria, cuerpo tecnico, notificaciones in-app, concesiones.
 
-**Ultimo sprint cerrado:** **15c** — E2E Tests Verdes.
-Fix playwright.config.ts (sin webServer), usuario E2E dedicado (e2e-test@levywald.com),
-16 tests pasan + 1 skip. test:e2e devuelto a validate:all. docs/E2E-TESTING.md creado.
+**Ultimo sprint cerrado:** **FASE 2.1** — Motor de Comunicación (Mock-First).
+Adapter pattern: ComunicacionAdapter interface + MockAdapter + factory.
+renderTemplate() mustache renderer. enviarComunicacion() public API.
+Page con 2 tabs (Plantillas + Envios). probarPlantilla() wired to adapter.
+Fix envios sub-page (FK columns corregidos). E2E test con tabs.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -408,7 +410,7 @@ inicializados en Hindu.
 | `D3` capa de servicios pura no implementada | Baja | Postergado |
 | `D6` `module_events` no implementado | Baja | Postergado |
 | 0 tests automatizados | Media | Sprint 17c |
-| 1 TODO en código (`comunicaciones/_actions.ts:216`) | Baja | 15a (resolverá al integrar Resend) |
+| 1 TODO en código (`comunicaciones/_actions.ts:216`) | Baja | FASE 2.2 (ResendAdapter) |
 
 ---
 
@@ -480,6 +482,18 @@ Historial referenciado en commits del repo. Listado resumido:
   11 módulos nuevos catalogados, vertical club_deportivo (17 módulos),
   schema audit automatizado, ESLint rule no-cross-module-imports,
   todos los MDs actualizados. Tag `v0.2.0-foundation-declared`.
+- **15b** — Migración física de módulos: 18 módulos movidos a
+  `modules/` con estructura canónica (module.json, lib/, ui/),
+  exports unificados, sub-rutas migradas. Tag `v0.3.0-modules-physical`.
+- **15c** — E2E Tests Verdes: fix playwright.config.ts (sin webServer),
+  usuario E2E dedicado (e2e-test@levywald.com), 16 tests pasan + 1 skip,
+  test:e2e devuelto a validate:all, docs/E2E-TESTING.md.
+  Tag `v0.3.1-e2e-greenlit`.
+- **FASE 2.1** — Motor de Comunicación (Mock-First): adapter pattern
+  (ComunicacionAdapter + MockAdapter + factory), renderTemplate() mustache,
+  enviarComunicacion() public API, page con 2 tabs (Plantillas + Envios),
+  probarPlantilla() wired to adapter, fix envios sub-page FK columns,
+  module.json v2 con exports_api.
 
 ---
 
