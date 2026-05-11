@@ -6,8 +6,9 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint 14i cerrado
-> (Vista Global de Salud: 7 tabs, permisos por atributo, audit log, 7 SQL views).
+> Última actualización: 11 de mayo de 2026 — Sprint 14j cerrado
+> (Utilería del Club: 6 tablas, 2 funciones SQL, 5 pantallas, kits, solicitudes,
+> cargos de reposición prorrateados, trigger de stock, sidebar).
 
 ---
 
@@ -16,11 +17,12 @@
 **Estado general:** Plataforma con esqueleto técnico avanzado, datos
 operativos limitados al vertical Club Deportivo en tenant Hindu.
 
-**Último sprint cerrado:** **14i** — Vista Global de Salud. Módulo `/admin/salud`
-con 7 tabs read-only (Lesiones, Datos Médicos, Obra Social, Autorizaciones,
-Contactos Emergencia, Vehículos, Alertas). 7 SQL views (`v_salud_*`). Permisos
-por atributo (3 niveles). Audit log en cada acceso. Export CSV con footer
-confidencial. ADR-022. Sidebar en Club Deportivo.
+**Último sprint cerrado:** **14j** — Utilería del Club. 6 tablas nuevas
+(`utileria_items`, `utileria_kits`, `utileria_kit_items`, `utileria_solicitudes`,
+`utileria_solicitud_items`, `utileria_cargos_reposicion`). 2 funciones SQL
+(`fn_generar_cargos_reposicion`, `fn_reversar_cargo_reposicion`). Trigger
+`sync_stock_utileria`. 6 atributos operativos. 5 pantallas
+(`/admin/utileria/*`). Bucket `private-utileria-fotos`. ADR-023.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).

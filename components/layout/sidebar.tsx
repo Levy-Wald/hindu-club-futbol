@@ -36,6 +36,7 @@ import {
   Plug,
   FolderTree,
   HeartPulse,
+  Shirt,
 } from 'lucide-react'
 
 interface NavItemDef {
@@ -87,6 +88,14 @@ const clubItems: NavItemDef[] = [
   { label: 'Equipos', href: '/admin/equipos', icon: Shield },
   { label: 'Padrones', href: '/admin/padrones', icon: ClipboardList },
   { label: 'Salud', href: '/admin/salud', icon: HeartPulse },
+]
+
+const utileriaSubItems: NavItemDef[] = [
+  { label: 'Dashboard', href: '/admin/utileria', icon: BarChart3 },
+  { label: 'Inventario', href: '/admin/utileria/inventario', icon: Package },
+  { label: 'Kits', href: '/admin/utileria/kits', icon: ClipboardList },
+  { label: 'Solicitudes', href: '/admin/utileria/solicitudes', icon: Send },
+  { label: 'Cargos', href: '/admin/utileria/cargos', icon: DollarSign },
 ]
 
 const operacionesSubItems: NavItemDef[] = [
@@ -206,10 +215,12 @@ export function Sidebar() {
   const isFinanzasActive = pathname.startsWith('/admin/finanzas')
   const isRRHHActive = pathname.startsWith('/admin/rrhh')
   const isComunicacionesActive = pathname.startsWith('/admin/comunicaciones')
+  const isUtileriaActive = pathname.startsWith('/admin/utileria')
   const [operacionesOpen, setOperacionesOpen] = useState(isOperacionesActive)
   const [finanzasOpen, setFinanzasOpen] = useState(isFinanzasActive)
   const [rrhhOpen, setRRHHOpen] = useState(isRRHHActive)
   const [comunicacionesOpen, setComunicacionesOpen] = useState(isComunicacionesActive)
+  const [utileriaOpen, setUtileriaOpen] = useState(isUtileriaActive)
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col border-r bg-sidebar">
@@ -270,6 +281,15 @@ export function Sidebar() {
         {clubItems.map((item) => (
           <NavItem key={item.href} item={item} pathname={pathname} />
         ))}
+        <CollapsibleSection
+          label="Utileria"
+          icon={Shirt}
+          isActive={isUtileriaActive}
+          isOpen={utileriaOpen}
+          onToggle={() => setUtileriaOpen(!utileriaOpen)}
+          subItems={utileriaSubItems}
+          pathname={pathname}
+        />
         <CollapsibleSection
           label="Operaciones"
           icon={CalendarDays}

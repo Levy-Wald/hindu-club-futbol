@@ -1328,6 +1328,67 @@ subyacentes no tienen datos, o el audit log genera overhead visible."
 
 ---
 
+## ADR-023 — Utilería como inventario propio con flujo operativo de préstamo
+
+**Fecha:** 2026-05-11
+**Estado:** Decidido
+**Capa:** Módulo Paralelo Utilería + Vertical Club + Troncal ERP
+**Decisores:** Arquitecto + Yair Levy Wald
+
+### Contexto
+
+Hindu Club tiene un vestuarista ("El Miga") que centraliza la utilería
+de todas las disciplinas. Los DT, Capitanes y SubCapitanes solicitan
+materiales para partidos, entrenamientos, amistosos y torneos. Si algo
+no vuelve en 1 semana, se prorratea el costo de reposición entre el
+plantel del equipo via cargo adicional a la próxima cuota.
+
+### Decisión
+
+6 tablas principales:
+1. `utileria_items` — Catálogo del inventario (únicos o agregados)
+2. `utileria_kits` — Plantillas de kit por equipo y tipo evento
+3. `utileria_kit_items` — Detalle de items por kit
+4. `utileria_solicitudes` — Solicitudes con flujo de 7 estados y snapshot de plantel
+5. `utileria_solicitud_items` — Items por solicitud con tracking de cantidades
+6. `utileria_cargos_reposicion` — Cargos prorrateados, reversibles
+
+Funciones SQL: `fn_generar_cargos_reposicion` y `fn_reversar_cargo_reposicion`.
+Trigger `sync_stock_utileria` mantiene stock sincronizado.
+
+### Alternativas descartadas
+
+1. Usar `productos_servicios` para items + `movimientos_caja` para préstamos —
+   no es modelo de venta, es de préstamo.
+2. Cargo individual al jugador en lugar de prorrateo — Hindu confirma
+   responsabilidad colectiva del plantel.
+
+### Consecuencias
+
+- 6 tablas + 1 bucket storage + 6 atributos + 2 funciones SQL + 1 trigger
+- 5 pantallas UI (/admin/utileria/*)
+- Cargos reversibles si el item aparece
+- Integración futura con emisión de cuotas
+
+---
+
+## PRE-MORTEM Sprint 14j — Utilería
+
+**Fecha:** 2026-05-11
+**Capa:** Módulo Paralelo + Vertical + ERP
+**Tomado por:** Arquitecto
+
+### Top 3 riesgos
+
+1. **Cargos duplicados al re-marcar no-devuelto** — Mitigación: UNIQUE
+   parcial en `utileria_cargos_reposicion(solicitud_item_id) WHERE estado != 'reversado'`.
+2. **Cargo a personas no-plantel-de-momento** — Mitigación: snapshot del
+   plantel guardado en `utileria_solicitudes.plantel_snapshot`.
+3. **Stock desactualizado** — Mitigación: trigger `sync_stock_utileria`
+   recalcula en cada INSERT/UPDATE/DELETE de solicitud_items.
+
+---
+
 - **D-PENDING-06:** Internacionalización (i18n) — postergada.
 - **D-PENDING-07:** Acceso de jugadores via app móvil o PWA.
 - **D-PENDING-08:** Plan de cuentas estándar argentino como template
