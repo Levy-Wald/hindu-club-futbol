@@ -3,15 +3,17 @@ import { TENANT_ID } from '@/lib/tenant'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { PlantillasTable } from '@/modules/comunicaciones/ui/plantillas-table'
 import { EnviosTable } from '@/modules/comunicaciones/ui/envios-table'
+import { obtenerPermisosComunicaciones } from '@/modules/comunicaciones/lib/plantillas/permisos'
 import { FileText, Send } from 'lucide-react'
 
 export default async function ComunicacionesPage() {
   const supabase = await createClient()
+  const permisos = await obtenerPermisosComunicaciones()
 
   const [plantillasRes, enviosRes] = await Promise.all([
     supabase
       .from('com_plantillas')
-      .select('id, nombre, slug, tipo, asunto, cuerpo, variables_disponibles, activa, created_at, updated_at')
+      .select('id, nombre, slug, tipo, asunto, cuerpo, variables_disponibles, activa, metadata, created_at, updated_at')
       .eq('tenant_id', TENANT_ID)
       .is('deleted_at', null)
       .order('nombre'),
@@ -73,7 +75,7 @@ export default async function ComunicacionesPage() {
 
         <TabsContent value="plantillas" data-testid="panel-plantillas">
           <div className="pt-4">
-            <PlantillasTable plantillas={plantillas} />
+            <PlantillasTable plantillas={plantillas} permisos={permisos} />
           </div>
         </TabsContent>
 

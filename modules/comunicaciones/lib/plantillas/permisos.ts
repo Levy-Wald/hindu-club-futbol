@@ -1,0 +1,55 @@
+import { createClient } from '@/lib/supabase/server'
+
+const TENANT_ID = '11111111-1111-1111-1111-111111111111'
+
+export interface PermisosComunicaciones {
+  puede_crear: boolean
+  puede_editar: boolean
+  puede_eliminar: boolean
+  puede_duplicar: boolean
+  persona_id: string | null
+}
+
+export async function obtenerPermisosComunicaciones(): Promise<PermisosComunicaciones> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const denegado: PermisosComunicaciones = {
+    puede_crear: false,
+    puede_editar: false,
+    puede_eliminar: false,
+    puede_duplicar: false,
+    persona_id: null,
+  }
+
+  if (!user) return denegado
+
+  const { data: persona } = await supabase
+    .from('personas')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('tenant_id', TENANT_ID)
+    .maybeSingle()
+
+  if (!persona) return denegado
+
+  const { data: attrs } = await supabase
+    .from('personas_atributos')
+    .select('atributo_slug')
+    .eq('persona_id', persona.id)
+    .eq('tenant_id', TENANT_ID)
+    .eq('activo', true)
+
+  const atributos = (attrs ?? []).map(a => a.atributo_slug)
+  const esAdmin = atributos.includes('admin_sistema') || atributos.includes('admin_tenant')
+  const esAdminCom = esAdmin || atributos.includes('comunicaciones.admin')
+  const esEditor = esAdminCom || atributos.includes('comunicaciones.editor')
+
+  return {
+    puede_crear: esAdminCom,
+    puede_editar: esEditor,
+    puede_eliminar: esAdminCom,
+    puede_duplicar: esAdminCom,
+    persona_id: persona.id,
+  }
+}

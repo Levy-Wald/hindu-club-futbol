@@ -109,64 +109,115 @@ export async function rechazarSolicitud(solicitudId: string, motivo: string): Pr
 // Plantillas
 // =============================================================================
 
+import { sincronizarVariablesDisponibles } from './plantillas/parser'
+
 interface PlantillaInput {
   nombre: string
   slug: string
   tipo: string
+  descripcion?: string | null
   asunto: string | null
   cuerpo: string
   variables_disponibles: string[]
 }
 
-export async function crearPlantilla(input: PlantillaInput): Promise<ActionResult> {
+type PlantillaActionResult = { ok: boolean; message: string; plantillaId?: string }
+
+export async function crearPlantilla(input: PlantillaInput): Promise<PlantillaActionResult> {
   const supabase = await createClient()
 
   if (!input.nombre || !input.slug || !input.tipo || !input.cuerpo) {
-    return fail('Nombre, slug, tipo y cuerpo son obligatorios')
+    return { ok: false, message: 'Nombre, slug, tipo y cuerpo son obligatorios' }
   }
 
-  const { error } = await supabase
+  const variables = sincronizarVariablesDisponibles(
+    input.asunto,
+    input.cuerpo,
+    input.variables_disponibles
+  )
+
+  const { data, error } = await supabase
     .from('com_plantillas')
     .insert({
       tenant_id: TENANT_ID,
       nombre: input.nombre,
       slug: input.slug,
       tipo: input.tipo,
+      descripcion: input.descripcion || null,
       asunto: input.asunto || null,
       cuerpo: input.cuerpo,
-      variables_disponibles: input.variables_disponibles,
+      variables_disponibles: variables,
       activa: true,
+      metadata: { es_sistema: false },
     })
+    .select('id')
+    .single()
 
   if (error) {
     if (error.message.includes('duplicate') || error.message.includes('unique')) {
-      return fail(`Ya existe una plantilla con el slug "${input.slug}"`)
+      return { ok: false, message: `Ya existe una plantilla con el slug "${input.slug}"` }
     }
-    return fail(`Error al crear plantilla: ${error.message}`)
+    return { ok: false, message: `Error al crear plantilla: ${error.message}` }
   }
 
   revalidatePath('/admin/comunicaciones')
   revalidatePath('/admin/comunicaciones/plantillas')
-  return success('Plantilla creada')
+  return { ok: true, message: 'Plantilla creada', plantillaId: data?.id }
 }
 
-export async function editarPlantilla(id: string, input: PlantillaInput): Promise<ActionResult> {
+export async function actualizarPlantilla(
+  id: string,
+  input: Partial<PlantillaInput> & { activa?: boolean }
+): Promise<ActionResult> {
   const supabase = await createClient()
 
-  if (!input.nombre || !input.slug || !input.tipo || !input.cuerpo) {
-    return fail('Nombre, slug, tipo y cuerpo son obligatorios')
+  // Fetch current to enforce es_sistema rules
+  const { data: current } = await supabase
+    .from('com_plantillas')
+    .select('slug, tipo, metadata')
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (!current) return fail('Plantilla no encontrada')
+
+  const esSistema = (current.metadata as Record<string, unknown>)?.es_sistema === true
+
+  // Build update payload
+  const update: Record<string, unknown> = {}
+
+  if (input.nombre !== undefined) update.nombre = input.nombre
+  if (input.descripcion !== undefined) update.descripcion = input.descripcion || null
+  if (input.asunto !== undefined) update.asunto = input.asunto || null
+  if (input.cuerpo !== undefined) update.cuerpo = input.cuerpo
+  if (input.activa !== undefined) update.activa = input.activa
+
+  // Protect sistema fields
+  if (esSistema) {
+    if (input.slug !== undefined && input.slug !== current.slug) {
+      return fail('No se puede cambiar el slug de una plantilla del sistema')
+    }
+    if (input.tipo !== undefined && input.tipo !== current.tipo) {
+      return fail('No se puede cambiar el tipo de una plantilla del sistema')
+    }
+  } else {
+    if (input.slug !== undefined) update.slug = input.slug
+    if (input.tipo !== undefined) update.tipo = input.tipo
+  }
+
+  // Auto-sync variables
+  if (input.cuerpo !== undefined || input.asunto !== undefined) {
+    const cuerpo = input.cuerpo ?? ''
+    const asunto = input.asunto ?? null
+    const actuales = input.variables_disponibles ?? []
+    update.variables_disponibles = sincronizarVariablesDisponibles(asunto, cuerpo, actuales)
+  } else if (input.variables_disponibles !== undefined) {
+    update.variables_disponibles = input.variables_disponibles
   }
 
   const { error } = await supabase
     .from('com_plantillas')
-    .update({
-      nombre: input.nombre,
-      slug: input.slug,
-      tipo: input.tipo,
-      asunto: input.asunto || null,
-      cuerpo: input.cuerpo,
-      variables_disponibles: input.variables_disponibles,
-    })
+    .update(update)
     .eq('id', id)
     .eq('tenant_id', TENANT_ID)
 
@@ -174,7 +225,7 @@ export async function editarPlantilla(id: string, input: PlantillaInput): Promis
     if (error.message.includes('duplicate') || error.message.includes('unique')) {
       return fail(`Ya existe una plantilla con el slug "${input.slug}"`)
     }
-    return fail(`Error al editar plantilla: ${error.message}`)
+    return fail(`Error al actualizar: ${error.message}`)
   }
 
   revalidatePath('/admin/comunicaciones')
@@ -182,8 +233,20 @@ export async function editarPlantilla(id: string, input: PlantillaInput): Promis
   return success('Plantilla actualizada')
 }
 
-export async function eliminarPlantilla(id: string): Promise<ActionResult> {
+export async function softDeletePlantilla(id: string): Promise<ActionResult> {
   const supabase = await createClient()
+
+  const { data: plantilla } = await supabase
+    .from('com_plantillas')
+    .select('metadata')
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (!plantilla) return fail('Plantilla no encontrada')
+
+  const esSistema = (plantilla.metadata as Record<string, unknown>)?.es_sistema === true
+  if (esSistema) return fail('No se puede eliminar una plantilla del sistema')
 
   const { error } = await supabase
     .from('com_plantillas')
@@ -191,11 +254,89 @@ export async function eliminarPlantilla(id: string): Promise<ActionResult> {
     .eq('id', id)
     .eq('tenant_id', TENANT_ID)
 
-  if (error) return fail(`Error al eliminar plantilla: ${error.message}`)
+  if (error) return fail(`Error al eliminar: ${error.message}`)
 
   revalidatePath('/admin/comunicaciones')
   revalidatePath('/admin/comunicaciones/plantillas')
   return success('Plantilla eliminada')
+}
+
+export async function duplicarPlantilla(
+  id: string,
+  nuevoSlug: string
+): Promise<PlantillaActionResult> {
+  const supabase = await createClient()
+
+  const { data: original } = await supabase
+    .from('com_plantillas')
+    .select('nombre, descripcion, tipo, asunto, cuerpo, variables_disponibles')
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (!original) return { ok: false, message: 'Plantilla no encontrada' }
+
+  const { data, error } = await supabase
+    .from('com_plantillas')
+    .insert({
+      tenant_id: TENANT_ID,
+      slug: nuevoSlug,
+      nombre: `${original.nombre} (copia)`,
+      descripcion: original.descripcion,
+      tipo: original.tipo,
+      asunto: original.asunto,
+      cuerpo: original.cuerpo,
+      variables_disponibles: original.variables_disponibles,
+      activa: true,
+      metadata: { es_sistema: false },
+    })
+    .select('id')
+    .single()
+
+  if (error) {
+    if (error.message.includes('duplicate') || error.message.includes('unique')) {
+      return { ok: false, message: `Ya existe una plantilla con el slug "${nuevoSlug}"` }
+    }
+    return { ok: false, message: `Error al duplicar: ${error.message}` }
+  }
+
+  revalidatePath('/admin/comunicaciones')
+  revalidatePath('/admin/comunicaciones/plantillas')
+  return { ok: true, message: 'Plantilla duplicada', plantillaId: data?.id }
+}
+
+export async function toggleActivaPlantilla(id: string): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  const { data: plantilla } = await supabase
+    .from('com_plantillas')
+    .select('activa')
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (!plantilla) return fail('Plantilla no encontrada')
+
+  const { error } = await supabase
+    .from('com_plantillas')
+    .update({ activa: !plantilla.activa })
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return fail(`Error: ${error.message}`)
+
+  revalidatePath('/admin/comunicaciones')
+  revalidatePath('/admin/comunicaciones/plantillas')
+  return success(plantilla.activa ? 'Plantilla desactivada' : 'Plantilla activada')
+}
+
+// Keep old name as alias for backward compat with plantillas-client.tsx
+export async function editarPlantilla(id: string, input: PlantillaInput): Promise<ActionResult> {
+  return actualizarPlantilla(id, input)
+}
+
+export async function eliminarPlantilla(id: string): Promise<ActionResult> {
+  return softDeletePlantilla(id)
 }
 
 export async function probarPlantilla(id: string): Promise<ActionResult> {

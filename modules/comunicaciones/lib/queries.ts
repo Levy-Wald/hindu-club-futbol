@@ -59,6 +59,21 @@ export async function fetchPlantilla(id: string) {
   return data
 }
 
+export async function obtenerPlantilla(id: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('com_plantillas')
+    .select('*')
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+    .is('deleted_at', null)
+    .single()
+
+  if (error) return null
+  return data
+}
+
 // =============================================================================
 // Envios
 // =============================================================================
