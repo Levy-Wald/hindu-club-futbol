@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
-import { parseFile } from '@/app/admin/padrones/[id]/importar/_lib/parser'
+import { parseFile } from '@/app/admin/(troncal)/padrones/[id]/importar/_lib/parser'
 import { parseAgrupado } from './parsers/agrupado-por-grupo'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'

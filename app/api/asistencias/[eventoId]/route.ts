@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { fetchAsistenciasEvento } from '@/app/admin/operaciones/_lib/queries'
+import { fetchAsistenciasEvento } from '@/app/admin/(troncal)/operaciones/_lib/queries'
 
 export async function GET(
   _req: NextRequest,

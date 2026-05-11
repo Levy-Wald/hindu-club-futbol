@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { notificarPersona } from '@/lib/comunicaciones/notificar'
-import { crearNotificacion } from '@/lib/notificaciones/crear'
+import { notificarPersona } from '@/modules/comunicaciones/lib/notificar'
+import { crearNotificacion } from '@/modules/notificaciones/lib/crear'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 

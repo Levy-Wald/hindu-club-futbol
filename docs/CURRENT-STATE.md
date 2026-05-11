@@ -6,9 +6,9 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint 15a completado.
-> Sprints 14d a 14k.9 cerrados. FASE 1 oficialmente cerrada.
-> Sprint 15a: Foundation declarativa (ADRs 031-033, manifiestos, 3 capas).
+> Última actualización: 11 de mayo de 2026 — Sprint 15b completado.
+> Sprints 14d a 15a cerrados. FASE 1 oficialmente cerrada.
+> Sprint 15b: Migración física a /modules/<slug>/ + route groups + E2E + lockdown.
 
 ---
 
@@ -18,12 +18,11 @@
 para Hindu Club Futbol: suscripciones, cuotas, cobranza, centros de costo,
 salud, utileria, cuerpo tecnico, notificaciones in-app, concesiones.
 
-**Ultimo sprint cerrado:** **15a** — Foundation Declarativa.
-ADRs 031-033 (arquitectura 3 capas, visión plataforma, E2E tests), 18
-manifiestos module.json, catalogo_modulos extendido (incluye_modulos,
-portable, replaceable_by_external), vertical club_deportivo con 17 módulos,
-schema audit automatizado, ESLint rule no-cross-module-imports, todos los
-MDs actualizados a nueva arquitectura. Build verde.
+**Ultimo sprint cerrado:** **15b** — Migración Física + E2E + Lockdown.
+Route groups (troncal) y (modulos) en app/admin/. 8 módulos migrados
+físicamente a modules/<slug>/ con thin-wrapper pattern. 3 ESLint rules custom
+(no-cross-module-imports, no-module-importing-from-app, troncal-cannot-import-modules).
+Playwright configurado con 11 E2E tests. Pipeline validate:all. Build verde.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -48,7 +47,7 @@ MDs actualizados a nueva arquitectura. Build verde.
 | API routes | 12 (5 endpoints v1 + 3 internos + 4 crons) |
 | Server actions | ~160 en 26 archivos |
 | Componentes custom (no shadcn) | ~115 |
-| Tests | 0 |
+| Tests E2E (Playwright) | 11 specs |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,389 |
 | Equipos (Hindu) | 7 |
@@ -198,6 +197,10 @@ nivel que los demás (no una "capa vertical" separada).
 **Rutas UI operativas:** `/admin/equipos/*` (lista, detalle, importar,
 capitanes), `/admin/padrones/*` (lista, detalle, sync nuevo + legacy),
 `/admin/operaciones/scouting/*`.
+
+**Módulo migrado a `modules/equipos/`:** lib/actions.ts, lib/actions/cuerpo-tecnico.ts,
+lib/actions/importar.ts, lib/queries.ts, ui/components/ (15 componentes).
+Pages permanecen en `app/admin/(modulos)/equipos/` como thin wrappers.
 
 **Server actions:** 16 equipos + 9 padrones + 3 padrones/importar + 2
 operaciones + 3 scouting.

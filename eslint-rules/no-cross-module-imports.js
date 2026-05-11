@@ -50,6 +50,12 @@ const TRONCAL_FOLDERS = new Set([
   'dashboard',
   'operaciones',
   'admin',
+  'externos',
+  'cajas',
+  'mi-cuenta',
+  'mi-perfil',
+  'mi-equipo',
+  'integraciones',
 ])
 
 /**
@@ -96,6 +102,12 @@ function loadManifest(slug) {
 function getAdminFolderFromFilePath(filePath) {
   // Normalize separators for cross-platform safety
   const normalized = filePath.split(path.sep).join('/')
+  // Support route groups: /app/admin/(troncal)/folder/ or /app/admin/(modulos)/folder/
+  const matchGroup = normalized.match(/\/app\/admin\/\([^)]+\)\/([^/]+)/)
+  if (matchGroup) return matchGroup[1]
+  // Also support modules/<slug>/ paths
+  const matchModule = normalized.match(/\/modules\/([^/]+)\//)
+  if (matchModule) return matchModule[1].replace(/_/g, '-')  // normalize slug to folder
   const match = normalized.match(/\/app\/admin\/([^/]+)/)
   if (!match) return null
   return match[1]
@@ -120,10 +132,23 @@ function getTargetAdminFolder(importSource, importerDir) {
   let resolvedPath
 
   if (importSource.startsWith('@/app/admin/')) {
-    // Alias-based import: @/app/admin/<folder>/...
+    // Alias-based import: @/app/admin/<folder>/... or @/app/admin/(group)/<folder>/...
     const rest = importSource.slice('@/app/admin/'.length)
     const firstSegment = rest.split('/')[0]
+    // Skip route group prefix
+    if (firstSegment.startsWith('(') && firstSegment.endsWith(')')) {
+      const afterGroup = rest.split('/').slice(1)[0]
+      return afterGroup || null
+    }
     return firstSegment || null
+  }
+
+  if (importSource.startsWith('@/modules/')) {
+    // Module import: @/modules/<slug>/...
+    const rest = importSource.slice('@/modules/'.length)
+    const slug = rest.split('/')[0]
+    // Convert slug (underscores) to folder name (hyphens) for lookup
+    return slug ? slug.replace(/_/g, '-') : null
   }
 
   if (importSource.startsWith('.')) {

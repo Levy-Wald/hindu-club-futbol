@@ -8,7 +8,7 @@
   "license": "proprietary",
   "depends_on_troncal": ["personas", "padrones"],
   "depends_on_modules": ["disciplinas"],
-  "soft_depends_on_modules": ["competencias"],
+  "soft_depends_on_modules": ["competencias", "notificaciones"],
   "owns_tables": [
     "equipos",
     "personas_equipos",

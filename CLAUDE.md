@@ -3,7 +3,7 @@
 ## Estado actual
 
 - **FASE 1 cerrada** (tag `v0.1.0-fase1-cierre`, 2026-05-11)
-- **Foundation declarativa** (Sprint 15a): ADRs 031-033, 18 manifiestos, 3 capas formalizadas
+- **Migración física** (Sprint 15b): route groups, 8 módulos en /modules/<slug>/, Playwright, 3 ESLint rules
 - **DB:** 116 tablas, 355 RLS policies, 126 funciones, 28 vistas, 97 triggers
 - **UI:** 64 paginas, ~160 server actions, ~115 componentes custom
 - **Hindu:** 2,389 personas, 7 equipos, 51 suscripciones, 35+ modulos activos
@@ -43,7 +43,7 @@
 - **Vistas:** prefijo `v_`
 - **Atributos en catalogo:** `snake_case`
 - **Migrations:** `YYYYMMDD_descripcion_snake.sql`
-- **Server actions:** `camelCase` en `_actions.ts`
+- **Server actions:** `camelCase` en `modules/<slug>/lib/actions.ts` o `_actions.ts` (troncal)
 - **Componentes:** `PascalCase` en archivos `kebab-case.tsx`
 
 ## Reglas de operacion

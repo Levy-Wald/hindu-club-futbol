@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { fetchEventosSemana } from '@/app/admin/operaciones/_lib/queries'
+import { fetchEventosSemana } from '@/app/admin/(troncal)/operaciones/_lib/queries'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl

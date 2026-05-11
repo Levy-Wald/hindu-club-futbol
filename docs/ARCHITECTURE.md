@@ -853,3 +853,14 @@ Sprints con migraciones destructivas declaran explicitamente en su spec
 Para migraciones aditivas (`ALTER TABLE ADD COLUMN`, `CREATE TABLE`,
 nueva funcion, nueva vista) NO aplica este principio: pueden aplicarse
 en cualquier orden.
+
+---
+
+## Deuda arquitectónica conocida (post Sprint 15b)
+
+| # | Deuda | Impacto | Dónde resolver |
+|---|---|---|---|
+| DA-1 | `lib/troncal/operaciones.ts` y `lib/imports/parser.ts` son re-exports manuales; la capa de servicios pura (ADR-031 §D3) no está implementada aún | Bajo — funciona, pero acopla módulos a paths internos de troncal | Sprint 16+ (servicios layer) |
+| DA-2 | Script `generate-module-types` (genera `types/index.ts` desde `module.json`) está especificado pero no implementado | Bajo — tipos se mantienen a mano | Sprint 15d o backlog |
+| DA-3 | 10 módulos con manifiesto pero sin UI migrada (`disciplinas`, `competencias`, `scouting`, `talles`, `acceso`, `eventos_calendario`, `partidos`, `solicitudes`, `socios`, `proveedores`) | Nulo hoy — no tienen código aún | Cuando se implementen |
+| DA-4 | Tests E2E (Playwright) escritos pero no validados — Playwright deadlockea con `webServer` cuando dev server ya corre | Medio — no hay cobertura E2E real | Sprint 15c |
