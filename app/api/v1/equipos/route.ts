@@ -11,7 +11,7 @@ export const GET = apiHandler('equipos:read', async ({ request, tenant_id }) => 
 
   let query = supabase
     .from('equipos')
-    .select('id, nombre, disciplina, modalidad, genero, categoria, color_primario, color_secundario, estado, created_at', { count: 'exact' })
+    .select('id, nombre, disciplina_slug, modalidad, genero_slug, categoria_id, color_principal, color_secundario, activo, created_at', { count: 'exact' })
     .eq('tenant_id', tenant_id)
     .is('deleted_at', null)
     .order('nombre')

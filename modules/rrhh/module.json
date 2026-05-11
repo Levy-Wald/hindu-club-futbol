@@ -1,0 +1,37 @@
+{
+  "slug": "rrhh",
+  "name": "Recursos Humanos",
+  "version": "1.0.0",
+  "category": "operativo",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas", "movimientos_caja"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": ["notificaciones"],
+  "owns_tables": [
+    "rrhh_contratos",
+    "rrhh_liquidaciones",
+    "personas_datos_laborales",
+    "personas_incidentes_internos"
+  ],
+  "owns_catalogs": [
+    "catalogo_areas_trabajo",
+    "catalogo_puestos",
+    "catalogo_roles_laborales"
+  ],
+  "permissions_required": [
+    "rrhh.puede_gestionar_contratos",
+    "rrhh.puede_gestionar_liquidaciones"
+  ],
+  "events_emits": ["rrhh.contrato_creado", "rrhh.liquidacion_generada"],
+  "events_consumes": [],
+  "ui_routes": [
+    "/admin/rrhh",
+    "/admin/rrhh/contratos",
+    "/admin/rrhh/liquidaciones"
+  ],
+  "api_endpoints": [],
+  "replaceable_by_external": true,
+  "external_adapter_interface": "IRRHHProvider"
+}

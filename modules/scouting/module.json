@@ -1,0 +1,27 @@
+{
+  "slug": "scouting",
+  "name": "Scouting",
+  "version": "1.0.0",
+  "category": "operativo",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": ["equipos", "disciplinas"],
+  "soft_depends_on_modules": ["competencias"],
+  "owns_tables": [
+    "scouting_fichas",
+    "personas_clubes_anteriores",
+    "personas_selecciones",
+    "personas_premios_logros",
+    "personas_historial_categoria_deportiva"
+  ],
+  "owns_catalogs": [],
+  "permissions_required": ["scouting.puede_ver", "scouting.puede_editar"],
+  "events_emits": ["scouting.ficha_creada", "scouting.ficha_actualizada"],
+  "events_consumes": [],
+  "ui_routes": ["/admin/operaciones/scouting"],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

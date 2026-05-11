@@ -32,7 +32,7 @@ Tag: `v0.1.0-fase1-cierre`
 ## Sprint actual
 
 ### Sprint 15a — Resend + comunicaciones masivas
-**Capa:** Modulo paralelo (Comunicaciones) - **Fase:** FASE 2
+**Capa:** Módulo (Comunicaciones) - **Fase:** FASE 2
 
 **Objetivo.** Emails reales saliendo de la plataforma: avisos de
 vencimiento, recibos, comunicados.
@@ -65,7 +65,7 @@ categoria, deudores, recaudacion por equipo.
 ---
 
 ### Sprint 15c — RRHH operativo
-**Capa:** Modulo Paralelo - **Fase:** FASE 8
+**Capa:** Módulo - **Fase:** FASE 8
 
 **Objetivo.** UI completa de contratos y liquidaciones.
 
@@ -77,7 +77,7 @@ categoria, deudores, recaudacion por equipo.
 ---
 
 ### Sprint 15d — Envios masivos + drip de deudores
-**Capa:** Modulo paralelo (Comunicaciones) - **Fase:** FASE 2
+**Capa:** Módulo (Comunicaciones) - **Fase:** FASE 2
 
 **Objetivo.** Wizard de envio masivo completo con segmentos y tracking.
 

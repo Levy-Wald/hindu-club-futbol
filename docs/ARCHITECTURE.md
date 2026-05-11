@@ -53,35 +53,46 @@ microservicios, ORMs (Prisma/Drizzle), tRPC, GraphQL.
 
 ---
 
-## 3. Capas lógicas (regla de oro)
+## 3. Capas lógicas — Arquitectura de tres capas (ADR-031)
 
 Toda feature pertenece a UNA de estas capas. Declarar la capa antes de
 implementar.
 
     ┌─────────────────────────────────────────────────────────────────┐
-    │  TRONCAL                                                        │
-    │  ├── CRM       (personas, entidades, comunicaciones)            │
-    │  ├── ERP       (plan cuentas, cajas, cuotas, productos)         │
-    │  └── PIM       (catalogo de productos — embrionario en 2026)    │
+    │  CAPA 1 — TRONCAL UNIVERSAL (obligatorio, siempre activo)      │
+    │  ├── CRM       (personas, entidades, padrones, import)         │
+    │  ├── ERP       (productos, cuotas, cajas, plan_cuentas)        │
+    │  ├── PIM       (catálogo de productos — embrionario en 2026)   │
+    │  └── Plataforma (tenants, sedes, audit, API keys, módulos,     │
+    │                   auth + RLS, importadores, API REST v1)       │
     ├─────────────────────────────────────────────────────────────────┤
-    │  VERTICAL                                                       │
-    │  └── Club Deportivo (equipos, padrones, scouting, asistencias)  │
+    │  CAPA 2 — MÓDULOS (componibles, activables por tenant)         │
+    │  ├── equipos          │ utileria       │ partidos              │
+    │  ├── eventos_calendario│ competencias  │ disciplinas           │
+    │  ├── scouting         │ talles         │ salud                 │
+    │  ├── acceso           │ concesiones    │ notificaciones        │
+    │  ├── comunicaciones   │ rrhh           │ pre_inscripciones     │
+    │  ├── solicitudes      │ socios         │ proveedores           │
+    │  └── (futuros: mkt, legales, workflows)                        │
     ├─────────────────────────────────────────────────────────────────┤
-    │  MÓDULOS PARALELOS                                              │
-    │  ├── RRHH                                                       │
-    │  ├── Salud / Datos sensibles                                    │
-    │  └── (futuros: MKT, Legales, Workflows)                         │
-    ├─────────────────────────────────────────────────────────────────┤
-    │  PLATAFORMA (infraestructura transversal)                       │
-    │  ├── Multi-tenant (tenants, módulos, sedes)                     │
-    │  ├── Auth + RLS                                                 │
-    │  ├── Importadores (pipelines genéricos)                         │
-    │  ├── API REST v1                                                │
-    │  └── Audit + logs                                               │
+    │  CAPA 3 — VERTICALES (presets, metadata, no código)            │
+    │  ├── club_deportivo   (17 módulos)                             │
+    │  ├── country_deportivo (7 módulos)                             │
+    │  ├── federacion_hub   (4 módulos)                              │
+    │  ├── polo_educativo   (5 módulos)                              │
+    │  └── (futuros: gym_studio, retail_b2b)                         │
     └─────────────────────────────────────────────────────────────────┘
 
-Detalle de qué tablas pertenecen a cada capa: ver `MASTER-PROJECT.md` §3 y
-`CURRENT-STATE.md`.
+**Principios derivados (no negociables):**
+1. Una sola fuente de verdad por concepto (troncal lo posee)
+2. Módulos portables: copiar carpeta = mover módulo
+3. Comunicación entre módulos solo via eventos o API pública
+4. Verticales son metadata, no código
+5. Reemplazabilidad por adapters externos
+6. Schema enforcement automático (sin esto el sistema degrada a monolito)
+
+Cada módulo declara su contrato en `modules/<slug>/module.json`.
+Detalle de qué tablas pertenecen a cada módulo: ver `CURRENT-STATE.md`.
 
 ---
 
@@ -178,7 +189,15 @@ no está activo para el tenant, ocultar.
 
 ## 6. Estructura de módulo estándar
 
-Todo módulo en `/app/admin/<modulo>` sigue esta estructura:
+Todo módulo tiene dos partes: un manifiesto declarativo y código en el app.
+
+### Manifiesto (`modules/<slug>/module.json`)
+
+Declara el contrato del módulo: tablas, catálogos, dependencias, permisos,
+eventos, rutas. Ver ADR-031 y ADR-032. Sprint 15b moverá el código a
+esta carpeta también.
+
+### Código en App Router (`/app/admin/<modulo>/`)
 
     /app/admin/<modulo>/
     ├── page.tsx                  → Listado principal
@@ -665,19 +684,21 @@ Git tiene historial. Borrar limpio. No dejar bloques comentados.
 
 Estos son los pasos en orden para incorporar una feature/módulo nuevo.
 
-1. **Declarar capa** (Troncal CRM / ERP / PIM, Vertical, Módulo paralelo, Plataforma).
-2. **Modelar tablas** respetando convenciones §5.
-3. **Aplicar migration** con RLS habilitada desde el día 1.
-4. **Crear entrada en `catalogo_modulos`** si es un módulo activable.
-5. **Crear `/app/admin/<modulo>/`** con estructura §6.
-6. **Crear `_lib/queries.ts`** para reads.
-7. **Crear `_actions.ts`** para mutaciones.
-8. **Crear componentes UI** respetando patrones §8.
-9. **Agregar al sidebar** en la capa correspondiente.
-10. **Si requiere importación inicial**, crear pipeline en `import_pipelines`
+1. **Declarar capa** (Troncal CRM / ERP / PIM, Módulo, Plataforma).
+2. **Crear manifiesto** `modules/<slug>/module.json` con contrato declarativo (§6).
+3. **Modelar tablas** respetando convenciones §5.
+4. **Aplicar migration** con RLS habilitada desde el día 1.
+5. **Crear entrada en `catalogo_modulos`** si es un módulo activable.
+6. **Crear `/app/admin/<modulo>/`** con estructura §6.
+7. **Crear `_lib/queries.ts`** para reads.
+8. **Crear `_actions.ts`** para mutaciones.
+9. **Crear componentes UI** respetando patrones §8.
+10. **Agregar al sidebar** en la capa correspondiente.
+11. **Si requiere importación inicial**, crear pipeline en `import_pipelines`
     en vez de wizard custom.
-11. **Actualizar `CURRENT-STATE.md`** con las nuevas tablas y rutas.
-12. **Agregar entrada en `DECISIONS.md`** si tomaste alguna decisión técnica.
+12. **Actualizar `CURRENT-STATE.md`** con las nuevas tablas y rutas.
+13. **Agregar entrada en `DECISIONS.md`** si tomaste alguna decisión técnica.
+14. **Verificar** `npm run audit:schema` pasa sin errores.
 
 ---
 

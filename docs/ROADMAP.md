@@ -26,7 +26,7 @@
 ### Capas
 
 Cada modulo declara su capa segun `MASTER-PROJECT.md` par.2:
-**Troncal CRM** - **Troncal ERP** - **Troncal PIM** - **Vertical Club** - **Modulo Paralelo** - **Plataforma**
+**Troncal CRM** - **Troncal ERP** - **Troncal PIM** - **Módulo** - **Plataforma** - **Sistema entero**
 
 ### Dependencias
 

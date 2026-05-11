@@ -1,0 +1,21 @@
+{
+  "slug": "pre_inscripciones",
+  "name": "Pre-Inscripciones",
+  "version": "1.0.0",
+  "category": "tronco_extension",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": ["notificaciones"],
+  "owns_tables": ["pre_inscripciones"],
+  "owns_catalogs": [],
+  "permissions_required": ["pre_inscripciones.puede_gestionar"],
+  "events_emits": ["pre_inscripciones.pre_inscripcion_recibida"],
+  "events_consumes": [],
+  "ui_routes": ["/admin/pre-inscripciones", "/(public)/pre-inscripcion"],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

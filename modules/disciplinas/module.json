@@ -1,0 +1,21 @@
+{
+  "slug": "disciplinas",
+  "name": "Disciplinas",
+  "version": "1.0.0",
+  "category": "core",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": [],
+  "owns_tables": ["personas_disciplinas"],
+  "owns_catalogs": ["catalogo_disciplinas"],
+  "permissions_required": [],
+  "events_emits": ["disciplinas.disciplina_asignada"],
+  "events_consumes": [],
+  "ui_routes": ["/admin/personas/[id] (tab disciplinas)"],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

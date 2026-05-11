@@ -1,0 +1,21 @@
+{
+  "slug": "talles",
+  "name": "Talles",
+  "version": "1.0.0",
+  "category": "operativo",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": ["equipos"],
+  "owns_tables": ["personas_talles"],
+  "owns_catalogs": ["catalogo_tipos_talle"],
+  "permissions_required": ["talles.puede_gestionar"],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": ["/admin/personas/[id] (tab talles)"],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

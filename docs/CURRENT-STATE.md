@@ -6,8 +6,9 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint 14k.9 completado.
+> Última actualización: 11 de mayo de 2026 — Sprint 15a completado.
 > Sprints 14d a 14k.9 cerrados. FASE 1 oficialmente cerrada.
+> Sprint 15a: Foundation declarativa (ADRs 031-033, manifiestos, 3 capas).
 
 ---
 
@@ -17,10 +18,12 @@
 para Hindu Club Futbol: suscripciones, cuotas, cobranza, centros de costo,
 salud, utileria, cuerpo tecnico, notificaciones in-app, concesiones.
 
-**Ultimo sprint cerrado:** **14k.9** — Cierre real FASE 1.
-Fix concesiones (toasts + hydration), fix utilería (base-ui hydration con
-ClientOnly wrapper), fix salud completo (columnas incorrectas en 7 tabs +
-levantarCasoSalud insert), ADR-031 (descripcion en lesiones). Build verde.
+**Ultimo sprint cerrado:** **15a** — Foundation Declarativa.
+ADRs 031-033 (arquitectura 3 capas, visión plataforma, E2E tests), 18
+manifiestos module.json, catalogo_modulos extendido (incluye_modulos,
+portable, replaceable_by_external), vertical club_deportivo con 17 módulos,
+schema audit automatizado, ESLint rule no-cross-module-imports, todos los
+MDs actualizados a nueva arquitectura. Build verde.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -51,8 +54,10 @@ levantarCasoSalud insert), ADR-031 (descripcion en lesiones). Build verde.
 | Equipos (Hindu) | 7 |
 | Atributos en catálogo | 64 (con columna `capa` clasificatoria) |
 | Tipos de notificación catalogados | 23 |
-| Módulos catalogados | 36 |
-| Módulos activos en Hindu | 25 |
+| Módulos catalogados | 48 (36 + 11 nuevos + 1 vertical) |
+| Módulos activos en Hindu | 35+ |
+| Manifiestos module.json | 18 |
+| Verticales en catálogo | 4 (club_deportivo, country_deportivo, federacion_hub, polo_educativo) |
 
 ---
 
@@ -160,10 +165,11 @@ puntuales). Sin atributos, categorías, variantes ni canales.
 
 ---
 
-### 2.4 Vertical — Club Deportivo
+### 2.4 Módulos deportivos (preset Club Deportivo)
 
 **Estado general:** Núcleo operativo en Hindu. Componente más desarrollado
-del producto.
+del producto. A partir de ADR-031, estos son módulos componibles al mismo
+nivel que los demás (no una "capa vertical" separada).
 
 **Tablas (datos en Hindu):**
 
@@ -209,7 +215,7 @@ operaciones + 3 scouting.
 
 ---
 
-### 2.5 Módulos paralelos
+### 2.5 Módulos transversales
 
 **RRHH:**
 
@@ -461,6 +467,18 @@ Historial referenciado en commits del repo. Listado resumido:
   links a personas y acción "Levantar caso", ARCHITECTURE.md §10 principio
   migraciones destructivas, ADR-027 cuerpo técnico ligado a competencia
   (postergado FASE 5).
+- **14k.8** — Estabilización: fix utileria 'use server' export, concesiones
+  silent submit, salud persona search, migración getSession→getUser (25
+  ocurrencias en 17 archivos), ADRs 028-030, E2E checklist template.
+- **14k.9** — Cierre real FASE 1: fix concesiones hydration, fix utilería
+  hydration (ClientOnly wrapper), fix salud completo (columnas incorrectas
+  en 7 tabs), ADR-034 (descripcion en lesiones).
+- **15a** — Foundation Declarativa: ADRs 031-033 (arquitectura 3 capas,
+  visión plataforma, E2E tests obligatorios), 18 manifiestos module.json,
+  catalogo_modulos extendido con incluye_modulos/portable/replaceable,
+  11 módulos nuevos catalogados, vertical club_deportivo (17 módulos),
+  schema audit automatizado, ESLint rule no-cross-module-imports,
+  todos los MDs actualizados. Tag `v0.2.0-foundation-declared`.
 
 ---
 
@@ -489,8 +507,8 @@ ser corregida o reportada al arquitecto antes de cerrar sprint.
 
 ## 9. Convenciones de este documento
 
-- **Capa:** siempre etiquetada (Troncal CRM/ERP/PIM, Vertical Club Deportivo,
-  Módulo paralelo, Plataforma).
+- **Capa:** siempre etiquetada (Troncal CRM/ERP/PIM, Módulo, Plataforma).
+  ADR-031: 3 capas (Troncal, Módulos, Verticales como presets).
 - **Estado de tabla:** rows reales en DB del tenant Hindu (no estimaciones).
 - **Estado de UI:** "operativa" (funciona y se usa), "funcional sin uso real"
   (existe pero no se ejercita), "esqueleto" (placeholder, sin lógica

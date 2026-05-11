@@ -54,9 +54,9 @@ Sin envelope, Code trabaja a ciegas y la documentación se desincroniza.
       [ ] Troncal CRM
       [ ] Troncal ERP
       [ ] Troncal PIM
-      [ ] Vertical Club Deportivo
-      [ ] Módulo Paralelo (RRHH / Salud / Otro)
+      [ ] Módulo (equipos / salud / rrhh / concesiones / otro)
       [ ] Plataforma (multi-tenant, auth, importadores, API)
+      [ ] Sistema entero (cambio arquitectónico transversal)
       [ ] Mixto (especificar)
 
     CONTEXTO: en 2-3 líneas, qué entendiste que vamos a hacer.

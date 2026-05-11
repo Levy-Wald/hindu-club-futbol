@@ -1,0 +1,40 @@
+{
+  "slug": "utileria",
+  "name": "Utileria",
+  "version": "1.0.0",
+  "category": "operativo",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": ["equipos"],
+  "soft_depends_on_modules": ["notificaciones"],
+  "owns_tables": [
+    "utileria_items",
+    "utileria_kits",
+    "utileria_kit_items",
+    "utileria_solicitudes",
+    "utileria_solicitud_items",
+    "utileria_cargos_reposicion"
+  ],
+  "owns_catalogs": [],
+  "permissions_required": [
+    "utileria.es_staff_utileria"
+  ],
+  "events_emits": [
+    "utileria.solicitud_creada",
+    "utileria.solicitud_aprobada",
+    "utileria.cargo_generado"
+  ],
+  "events_consumes": [],
+  "ui_routes": [
+    "/admin/utileria",
+    "/admin/utileria/inventario",
+    "/admin/utileria/kits",
+    "/admin/utileria/solicitudes",
+    "/admin/utileria/cargos"
+  ],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

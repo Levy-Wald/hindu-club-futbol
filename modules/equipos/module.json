@@ -1,0 +1,33 @@
+{
+  "slug": "equipos",
+  "name": "Equipos",
+  "version": "1.0.0",
+  "category": "core",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas", "padrones"],
+  "depends_on_modules": ["disciplinas"],
+  "soft_depends_on_modules": ["competencias"],
+  "owns_tables": [
+    "equipos",
+    "personas_equipos",
+    "categorias_equipo"
+  ],
+  "owns_catalogs": [
+    "catalogo_roles_equipo"
+  ],
+  "permissions_required": [
+    "equipos.puede_gestionar"
+  ],
+  "events_emits": [
+    "equipos.jugador_agregado",
+    "equipos.jugador_removido",
+    "equipos.equipo_creado"
+  ],
+  "events_consumes": [],
+  "ui_routes": ["/admin/equipos", "/admin/equipos/[id]"],
+  "api_endpoints": ["/api/v1/equipos"],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

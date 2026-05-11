@@ -1,0 +1,21 @@
+{
+  "slug": "proveedores",
+  "name": "Proveedores",
+  "version": "1.0.0",
+  "category": "operativo",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas", "productos_servicios"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": [],
+  "owns_tables": ["producto_proveedor"],
+  "owns_catalogs": [],
+  "permissions_required": ["proveedores.puede_gestionar"],
+  "events_emits": ["proveedores.proveedor_vinculado"],
+  "events_consumes": [],
+  "ui_routes": ["/admin/finanzas/proveedores"],
+  "api_endpoints": [],
+  "replaceable_by_external": true,
+  "external_adapter_interface": "IProveedoresProvider"
+}

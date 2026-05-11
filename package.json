@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "audit:schema": "npx tsx scripts/audit-schema-vs-code.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

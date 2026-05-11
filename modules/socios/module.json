@@ -1,0 +1,21 @@
+{
+  "slug": "socios",
+  "name": "Socios",
+  "version": "1.0.0",
+  "category": "core",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": [],
+  "owns_tables": [],
+  "owns_catalogs": ["catalogo_tipos_socio"],
+  "permissions_required": [],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": ["/admin/configuracion (tab socios)"],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

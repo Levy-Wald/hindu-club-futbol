@@ -53,7 +53,7 @@ export async function aprobarPreInscripcion(inscripcionId: string) {
         fecha_nacimiento: inscripcion.fecha_nacimiento || null,
         email_principal: inscripcion.es_menor ? inscripcion.tutor_email : inscripcion.email,
         telefono_principal: inscripcion.es_menor ? inscripcion.tutor_telefono : inscripcion.telefono,
-        sexo: inscripcion.sexo || null,
+        genero: inscripcion.sexo || null,
         estado: 'activo',
       })
       .select('id')
@@ -83,8 +83,8 @@ export async function aprobarPreInscripcion(inscripcionId: string) {
     .update({
       estado: 'aprobada',
       persona_id: personaId,
-      reviewed_by: reviewerId,
-      reviewed_at: new Date().toISOString(),
+      revisada_por_persona_id: reviewerId,
+      fecha_revision: new Date().toISOString(),
     })
     .eq('id', inscripcionId)
     .eq('tenant_id', TENANT_ID)
@@ -116,8 +116,8 @@ export async function rechazarPreInscripcion(inscripcionId: string, motivo: stri
     .update({
       estado: 'rechazada',
       motivo_rechazo: motivo || 'Sin motivo especificado',
-      reviewed_by: reviewerId,
-      reviewed_at: new Date().toISOString(),
+      revisada_por_persona_id: reviewerId,
+      fecha_revision: new Date().toISOString(),
     })
     .eq('id', inscripcionId)
     .eq('tenant_id', TENANT_ID)

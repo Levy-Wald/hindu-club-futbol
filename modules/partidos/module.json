@@ -1,0 +1,28 @@
+{
+  "slug": "partidos",
+  "name": "Partidos",
+  "version": "1.0.0",
+  "category": "core",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": ["equipos"],
+  "soft_depends_on_modules": ["competencias", "eventos_calendario"],
+  "owns_tables": [
+    "partidos_detalle",
+    "esquemas_tacticos",
+    "esquema_posiciones",
+    "canchas"
+  ],
+  "owns_catalogs": [],
+  "permissions_required": [
+    "partidos.puede_gestionar"
+  ],
+  "events_emits": ["partidos.partido_jugado", "partidos.resultado_cargado"],
+  "events_consumes": [],
+  "ui_routes": ["/admin/operaciones/partidos"],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

@@ -11,25 +11,27 @@
 
 ## 1. Conceptos arquitectónicos
 
-**Capa.** Una de las cuatro categorías lógicas en las que se clasifica toda
-feature del sistema: Troncal, Vertical, Módulo Paralelo, Plataforma.
+**Capa.** Una de las tres categorías lógicas en las que se clasifica toda
+feature del sistema: Troncal, Módulo, Vertical (preset). Ver ADR-031.
 
-**Troncal.** Capa del producto que sirve a cualquier organización (no solo
-clubes). Se subdivide en CRM, ERP, PIM.
+**Troncal.** Capa 1 del producto que sirve a cualquier organización (no solo
+clubes). Se subdivide en CRM, ERP, PIM, Plataforma. Obligatoria, siempre
+activa.
 
-**Vertical.** Capa específica de una industria. Hoy solo existe el vertical
-"Club Deportivo". Mañana podrían sumarse "eCommerce", "Country", "Federación",
-"Polo educativo".
+**Módulo.** Capa 2. Capacidad componible, activable por tenant. Todos al
+mismo nivel jerárquico. Cada módulo declara su contrato en `module.json`.
+Hay 18 módulos built-in. Portables y reemplazables por adapters externos.
 
-**Módulo Paralelo.** Capacidad transversal que cualquier organización puede
-activar (RRHH, Salud, Documentos).
-
-**Plataforma.** Infraestructura transversal: multi-tenant, auth, importadores,
-API, audit. No es feature de negocio sino base técnica.
+**Vertical.** Capa 3. Preset de combinación de módulos. No es código, es
+metadata que define qué módulos se activan por default al onboarding de un
+tenant de ese tipo. Ej: `club_deportivo` activa 17 módulos.
 
 **Doble lente.** Regla operativa: antes de implementar una feature, decidir si
-es genérica (Troncal) o específica de industria (Vertical). Ver
-`ARCHITECTURE.md` §3.
+es genérica (Troncal) o específica de módulo. Ver `ARCHITECTURE.md` §3.
+
+**Manifiesto (module.json).** Archivo declarativo en `modules/<slug>/module.json`
+que describe el contrato de un módulo: tablas, catálogos, dependencias,
+permisos, eventos, rutas. ADR-031 y ADR-032.
 
 **Anti-patrón.** Patrón conocido que está prohibido en el proyecto. Lista
 completa: `ARCHITECTURE.md` §14.
@@ -170,7 +172,7 @@ plazo de 1 semana. Reversible si el item aparece. Calculado en
 
 ---
 
-## 4. Conceptos de dominio (Vertical Club Deportivo)
+## 4. Conceptos de dominio (Módulos deportivos)
 
 **Padrón.** Lista nominal de personas con un propósito específico. Ej:
 "Hindu Global" (todos los socios), "Hindu Futbol Jugadores 2026" (planteles
@@ -262,7 +264,7 @@ adherente, vitalicio, honorario). Vive en `catalogo_tipos_socio`.
 
 ---
 
-## 5. Conceptos de dominio (Módulos paralelos)
+## 5. Conceptos de dominio (Módulos transversales)
 
 **Contrato laboral.** Relación de empleo entre el tenant y una persona.
 Vive en `rrhh_contratos`. Tiene puesto, área, modalidad, fecha alta/baja,

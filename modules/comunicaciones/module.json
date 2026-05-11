@@ -1,0 +1,28 @@
+{
+  "slug": "comunicaciones",
+  "name": "Comunicaciones",
+  "version": "1.0.0",
+  "category": "core",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": ["notificaciones"],
+  "owns_tables": [
+    "com_mensajes",
+    "com_envios",
+    "com_plantillas"
+  ],
+  "owns_catalogs": [],
+  "permissions_required": [
+    "comunicaciones.puede_enviar",
+    "comunicaciones.puede_gestionar_plantillas"
+  ],
+  "events_emits": ["comunicaciones.envio_completado", "comunicaciones.email_bounced"],
+  "events_consumes": [],
+  "ui_routes": ["/admin/comunicaciones"],
+  "api_endpoints": [],
+  "replaceable_by_external": true,
+  "external_adapter_interface": "IComunicacionesProvider"
+}

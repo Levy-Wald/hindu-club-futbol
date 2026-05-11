@@ -3,10 +3,11 @@
 ## Estado actual
 
 - **FASE 1 cerrada** (tag `v0.1.0-fase1-cierre`, 2026-05-11)
-- **Proxima:** FASE 2 — Comunicacion (6 sprints, arranca con Sprint 15a)
-- **DB:** 115 tablas, 355 RLS policies, 126 funciones, 27 vistas, 97 triggers
+- **Foundation declarativa** (Sprint 15a): ADRs 031-033, 18 manifiestos, 3 capas formalizadas
+- **DB:** 116 tablas, 355 RLS policies, 126 funciones, 28 vistas, 97 triggers
 - **UI:** 64 paginas, ~160 server actions, ~115 componentes custom
-- **Hindu:** 2,389 personas, 7 equipos, 51 suscripciones, 25 modulos activos
+- **Hindu:** 2,389 personas, 7 equipos, 51 suscripciones, 35+ modulos activos
+- **Arquitectura:** 3 capas — Troncal universal + 18 Modulos componibles + Verticales como presets (ADR-031)
 
 ## Lectura obligatoria antes de cualquier cambio
 
@@ -53,7 +54,7 @@
 - UI: botones siempre arriba, mobile-first, shadcn v4 con `render` prop
 - PostgREST FK joins devuelven arrays: usar `as unknown as Type`
 - `TENANT_ID = '11111111-1111-1111-1111-111111111111'` (hardcoded dev)
-- Auth: usar `getSession()` no `getUser()` en layouts/pages
+- Auth: usar `getUser()` no `getSession()` en layouts/pages (migrado en Sprint 14k.8)
 - Trigger: `trg_set_updated_at()` (NO `set_updated_at()`)
 - `catalogo_modulos.activo_global` (NO `.activo`)
 

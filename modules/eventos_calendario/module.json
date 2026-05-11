@@ -1,0 +1,21 @@
+{
+  "slug": "eventos_calendario",
+  "name": "Eventos y Calendario",
+  "version": "1.0.0",
+  "category": "core",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": ["equipos", "notificaciones"],
+  "owns_tables": ["eventos", "evento_asistencias"],
+  "owns_catalogs": ["catalogo_tipos_evento"],
+  "permissions_required": ["eventos.puede_gestionar"],
+  "events_emits": ["eventos.evento_creado", "eventos.asistencia_registrada"],
+  "events_consumes": [],
+  "ui_routes": ["/admin/operaciones/eventos"],
+  "api_endpoints": [],
+  "replaceable_by_external": true,
+  "external_adapter_interface": "IEventosCalendarioProvider"
+}

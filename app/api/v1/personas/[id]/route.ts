@@ -9,7 +9,7 @@ export const GET = apiHandler('personas:read', async ({ tenant_id, routeParams }
   const supabase = createServiceClient()
   const { data, error } = await supabase
     .from('personas')
-    .select('id, nombre, apellido, dni, email_principal, telefono, fecha_nacimiento, genero, estado, nacionalidad, direccion, created_at, updated_at')
+    .select('id, nombre, apellido, numero_documento, email_principal, telefono_principal, fecha_nacimiento, genero, nacionalidad, created_at, updated_at')
     .eq('tenant_id', tenant_id)
     .eq('id', id)
     .is('deleted_at', null)

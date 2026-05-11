@@ -1,0 +1,21 @@
+{
+  "slug": "competencias",
+  "name": "Competencias",
+  "version": "1.0.0",
+  "category": "operativo",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": ["equipos"],
+  "soft_depends_on_modules": [],
+  "owns_tables": ["equipos_competencias"],
+  "owns_catalogs": ["catalogo_niveles_competencia"],
+  "permissions_required": ["competencias.puede_gestionar"],
+  "events_emits": ["competencias.equipo_inscripto"],
+  "events_consumes": [],
+  "ui_routes": ["/admin/operaciones/competencias"],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

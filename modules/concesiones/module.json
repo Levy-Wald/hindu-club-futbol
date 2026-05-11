@@ -1,0 +1,30 @@
+{
+  "slug": "concesiones",
+  "name": "Concesiones",
+  "version": "1.0.0",
+  "category": "operativo",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas", "cajas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": ["notificaciones"],
+  "owns_tables": [
+    "concesionarios",
+    "concesion_puntos_venta",
+    "concesion_productos",
+    "concesion_ventas",
+    "concesion_venta_items",
+    "concesion_canones"
+  ],
+  "owns_catalogs": [],
+  "permissions_required": [
+    "concesiones.admin_concesiones"
+  ],
+  "events_emits": ["concesiones.venta_registrada", "concesiones.canon_calculado"],
+  "events_consumes": [],
+  "ui_routes": ["/admin/concesiones", "/admin/concesiones/[id]"],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

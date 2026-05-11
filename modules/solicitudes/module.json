@@ -1,0 +1,21 @@
+{
+  "slug": "solicitudes",
+  "name": "Solicitudes",
+  "version": "1.0.0",
+  "category": "operativo",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": ["notificaciones"],
+  "owns_tables": ["solicitudes"],
+  "owns_catalogs": [],
+  "permissions_required": ["solicitudes.puede_gestionar"],
+  "events_emits": ["solicitudes.solicitud_creada", "solicitudes.solicitud_aprobada"],
+  "events_consumes": [],
+  "ui_routes": ["/admin/solicitudes"],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

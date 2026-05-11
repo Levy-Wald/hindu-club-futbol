@@ -1,0 +1,26 @@
+{
+  "slug": "notificaciones",
+  "name": "Notificaciones",
+  "version": "1.0.0",
+  "category": "core",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": [],
+  "owns_tables": [
+    "notificaciones",
+    "personas_preferencias_comunicacion"
+  ],
+  "owns_catalogs": [
+    "catalogo_tipos_notificacion"
+  ],
+  "permissions_required": [],
+  "events_emits": ["notificaciones.notificacion_creada"],
+  "events_consumes": ["*.cualquier_evento_que_genere_notificacion"],
+  "ui_routes": ["/admin/notificaciones"],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

@@ -19,7 +19,7 @@ Toda entrada sigue esta estructura:
 ADR-NNN — Título corto
 Fecha: YYYY-MM-DD
 Estado: Vigente | Superada por ADR-XXX | Retirada
-Capa: Troncal CRM | Troncal ERP | Troncal PIM | Vertical Club Deportivo | Módulo Paralelo | Plataforma
+Capa: Troncal CRM | Troncal ERP | Troncal PIM | Módulo | Plataforma | Sistema entero
 Tomado por: Arquitecto | Code | Yair | Equipo
 Contexto
 [Situación que requirió la decisión]
@@ -1467,6 +1467,12 @@ no aportaban contexto de equipo (un DT puede dirigir múltiples equipos).
 - **D-PENDING-09:** Conector con Kontrol.ar (cuando exista).
 - **D-PENDING-10:** Auth con JWT real con claims de tenant (Sprint 17b).
 
+> **Actualización 2026-05-11 (ADR-031):** Este ADR se redactó cuando se
+> usaba la distinción "módulo paralelo / vertical club". A partir de
+> ADR-031, todos los módulos están al mismo nivel jerárquico. La referencia
+> a "vertical Club" en este ADR se entiende como "módulo equipos" (o el
+> módulo correspondiente). Funcionalmente no cambia nada.
+
 ---
 
 ## ADR-025 — Concesiones como módulo separado del plan de cuentas del tenant
@@ -1622,6 +1628,12 @@ club por error."
 3. **Canon calculado sobre ventas anuladas** → filtro
    `estado = 'confirmada'` + período de gracia de 5 días.
 
+> **Actualización 2026-05-11 (ADR-031):** Este ADR se redactó cuando se
+> usaba la distinción "módulo paralelo / vertical club". A partir de
+> ADR-031, todos los módulos están al mismo nivel jerárquico. La referencia
+> a "módulo paralelo" en este ADR se entiende como "módulo concesiones".
+> Funcionalmente no cambia nada.
+
 ---
 
 ## ADR-026 — Disciplinas como módulo paralelo, no campos de personas
@@ -1677,6 +1689,12 @@ disciplinas por persona, clasificación arquitectónica de atributos.
 **Indicadores de falla:**
 - `SELECT COUNT(*) FROM personas_disciplinas WHERE es_principal=true` ≠ cantidad original
 - `grep deporte_principal_slug` en código → debe ser 0 antes del DROP
+
+> **Actualización 2026-05-11 (ADR-031):** Este ADR se redactó cuando se
+> usaba la distinción "módulo paralelo / vertical club". A partir de
+> ADR-031, todos los módulos están al mismo nivel jerárquico. La referencia
+> a "Troncal CRM + Vertical Club" en este ADR se entiende como "módulo
+> disciplinas". Funcionalmente no cambia nada.
 
 ---
 
@@ -1741,7 +1759,7 @@ elegida y se referencia desde el Sprint correspondiente.
 
 ---
 
-## ADR-031 — Descripción genérica en personas_lesiones para carga por roles no-médicos
+## ADR-034 — Descripción genérica en personas_lesiones para carga por roles no-médicos
 
 **Fecha:** 2026-05-11
 **Estado:** Vigente
@@ -1913,6 +1931,135 @@ Esto causó bugs reales:
 **Negativas:**
 - Periodo de coexistencia con `activo` en tablas legacy
 - Cada migración de tabla requiere verificar todas las queries
+
+---
+
+## ADR-031 — Arquitectura: Troncal + Módulos componibles + Verticales como presets
+
+**Fecha:** 2026-05-11
+**Estado:** Aceptado
+**Capa:** Sistema entero
+**Tomado por:** Arquitecto
+
+### Contexto
+
+ClubCore se planteó originalmente como SaaS multi-tenant para clubes
+deportivos. La visión real es más amplia: plataforma abierta sobre la cual
+cualquier organización (club, country, federación, polo educativo, gimnasio,
+retail) puede operar, con un núcleo común (troncal) y un set componible de
+módulos.
+
+Los módulos pueden ser:
+- Built-in: construidos por nosotros (salud, equipos, concesiones...)
+- Third-party adapter: conectores a software existente (Zoho CRM, SAP, HubSpot)
+- Custom: que el propio cliente o un dev externo construye
+
+### Decisión
+
+Adoptar arquitectura de tres capas:
+
+**Capa 1 — Troncal universal (obligatorio, siempre activo)**
+
+Sirve a cualquier tenant. Concepto cargado UNA SOLA VEZ.
+Sub-capas: CRM (personas, entidades, padrones, import),
+ERP (productos, cuotas, cajas, plan_cuentas),
+Plataforma (tenants, sedes, audit, API keys, módulos).
+
+**Capa 2 — Módulos (componibles, activables por tenant)**
+
+Todos los módulos al mismo nivel jerárquico. Cada uno es self-contained,
+declara su contrato (module.json), es portable y reemplazable por adapters
+externos. Hay 18 módulos built-in.
+
+**Capa 3 — Verticales (presets de combinación de módulos)**
+
+Un vertical no es código: es metadata que define qué módulos se activan
+por default al onboarding de un tenant de ese tipo.
+
+Verticales canónicos: club_deportivo, country_deportivo, federacion_hub,
+polo_educativo, gym_studio (futuro), retail_b2b (futuro).
+
+### Principios derivados (no negociables)
+
+1. Una sola fuente de verdad por concepto (troncal lo posee)
+2. Módulos portables: copiar carpeta = mover módulo
+3. Comunicación entre módulos solo via eventos o API pública
+4. Verticales son metadata, no código
+5. Reemplazabilidad por adapters externos
+6. Schema enforcement automático (sin esto el sistema degrada a monolito)
+
+### Consecuencias
+
+- Sprint 15a: manifiestos, ADRs, schema audit, datos DB, MDs actualizados
+- Sprint 15b: migración física a /modules/<slug>/, tests E2E
+- FASE 11: API pública + sistema de eventos
+- FASE 13: marketplace + SDK custom modules
+
+---
+
+## ADR-032 — Visión Plataforma Abierta
+
+**Fecha:** 2026-05-11
+**Estado:** Aceptado como destino, construcción gradual
+**Capa:** Sistema entero — largo plazo
+**Tomado por:** Arquitecto
+
+### Decisión
+
+ClubCore evoluciona hacia plataforma abierta con:
+- API REST + GraphQL pública sobre troncal con auth per-tenant (FASE 11)
+- Bus de eventos para comunicación inter-módulos (FASE 11)
+- Webhooks bidireccionales con sistemas externos (FASE 11)
+- Adapter pattern para reemplazar módulos built-in por third-party (FASE 11+)
+- Marketplace UI para descubrir e instalar módulos (FASE 13)
+- SDK para que devs externos construyan módulos custom (FASE 13+)
+
+### Hoy
+
+Adoptamos los principios y la estructura física que hacen viable esa
+construcción gradual. No construimos las capas avanzadas todavía, pero
+toda decisión arquitectónica las contempla como destino.
+
+### Reglas que aseguran la viabilidad
+
+- Cada módulo declara module.json con contrato (qué lee, escribe, emite,
+  consume, requiere)
+- Tablas con prefijo de módulo o listadas explícitamente en owns_tables
+- Módulos no se importan entre sí directamente
+- Troncal no depende de módulos
+- ESLint enforce reglas de acoplamiento
+
+---
+
+## ADR-033 — E2E Tests obligatorios como criterio de cierre de sprint
+
+**Fecha:** 2026-05-11
+**Estado:** Aceptado
+**Capa:** Calidad / proceso
+**Tomado por:** Arquitecto
+
+### Contexto
+
+Sprints 14k.7, 14k.8 y 14k.9 cerraron con "build green" pero introdujeron
+bugs en runtime que se descubrieron solo al testear manualmente en producción.
+"Build green" no es métrica suficiente.
+
+### Decisión
+
+A partir de Sprint 15b, ningún sprint cierra sin:
+1. Build verde
+2. ESLint sin errores
+3. Tests E2E pasando para los flows afectados por el sprint
+4. Smoke test manual de Yair en producción con checklist firmado
+
+Si un sprint construye o modifica una pantalla, debe agregar/actualizar
+el test E2E correspondiente.
+
+### Stack
+
+- Playwright para tests E2E
+- Carpeta /tests/e2e/<modulo>/ con un .spec.ts por flujo crítico
+- CI bloquea merge si tests fallan
 
 ---
 
