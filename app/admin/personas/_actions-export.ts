@@ -46,8 +46,6 @@ const CAMPOS_VALIDOS = new Set([
   'usa_lentes',
   'tipo_lentes',
   'usa_audifono',
-  'deporte_principal_slug',
-  'años_practica_deporte_principal',
   'categoria_historica_max',
   'nivel_actividad_actual',
   'frecuencia_entrenamiento_semanal',

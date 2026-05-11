@@ -63,8 +63,6 @@ interface Persona {
   peso_kg: number | null
   lateralidad: string | null
   pie_dominante: string | null
-  deporte_principal_slug: string | null
-  deportes_secundarios: string[] | null
   categoria_historica_max: string | null
   nivel_actividad_actual: string | null
   fecha_primera_relacion_club: string | null
@@ -147,10 +145,6 @@ function renderCellValue(p: Persona, colId: string): React.ReactNode {
     case 'peso_kg': return p.peso_kg != null ? `${p.peso_kg}` : '—'
     case 'lateralidad': return p.lateralidad ?? '—'
     case 'pie_dominante': return p.pie_dominante ?? '—'
-    case 'deporte_principal_slug': {
-      const sec = p.deportes_secundarios?.length ? ` (+${p.deportes_secundarios.length})` : ''
-      return p.deporte_principal_slug ? `${p.deporte_principal_slug}${sec}` : '—'
-    }
     case 'categoria_historica_max': return p.categoria_historica_max ?? '—'
     case 'nivel_actividad_actual': return p.nivel_actividad_actual ?? '—'
     case 'fecha_primera_relacion_club':
@@ -210,7 +204,6 @@ function getCellValueString(p: Persona, colId: string): string {
     case 'peso_kg': return p.peso_kg != null ? `${p.peso_kg}` : ''
     case 'lateralidad': return p.lateralidad ?? ''
     case 'pie_dominante': return p.pie_dominante ?? ''
-    case 'deporte_principal_slug': return p.deporte_principal_slug ?? ''
     case 'categoria_historica_max': return p.categoria_historica_max ?? ''
     case 'nivel_actividad_actual': return p.nivel_actividad_actual ?? ''
     case 'fecha_primera_relacion_club': return p.fecha_primera_relacion_club ?? ''

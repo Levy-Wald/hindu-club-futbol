@@ -45,9 +45,6 @@ const SECCIONES = [
   {
     titulo: 'Deporte',
     campos: [
-      ['deporte_principal_slug', 'Deporte principal'],
-      ['deportes_secundarios', 'Deportes secundarios'],
-      ['años_practica_deporte_principal', 'Años práctica'],
       ['categoria_historica_max', 'Categoría máx.'],
       ['nivel_actividad_actual', 'Nivel actividad'],
       ['frecuencia_entrenamiento_semanal', 'Entrenamientos/semana'],

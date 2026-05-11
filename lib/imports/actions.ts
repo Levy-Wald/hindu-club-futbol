@@ -574,7 +574,7 @@ const PERSONA_FIELDS = new Set([
   'fecha_nacimiento', 'genero', 'nacionalidad', 'email_principal', 'email_secundario',
   'telefono_principal', 'whatsapp', 'direccion_calle', 'direccion_numero',
   'direccion_ciudad', 'direccion_provincia', 'direccion_codigo_postal',
-  'deporte_principal_slug', 'fecha_primera_relacion_club',
+  'fecha_primera_relacion_club',
 ])
 
 async function executeApplyAction(
@@ -641,14 +641,15 @@ async function executeApplyAction(
       const deporte = action.valor ?? (parsedData.deporte_secundario as string)
       if (!deporte) return { ok: true }
 
-      const { data: persona } = await sc.from('personas')
-        .select('deporte_principal_slug, deportes_secundarios').eq('id', personaId).single()
-      if (!persona) return { ok: false, error: 'Persona no encontrada' }
-
-      if (persona.deporte_principal_slug === deporte) return { ok: true }
-      const current = (persona.deportes_secundarios ?? []) as string[]
-      if (!current.includes(deporte)) {
-        await sc.from('personas').update({ deportes_secundarios: [...current, deporte] }).eq('id', personaId)
+      // Check if disciplina already exists for this persona
+      const { data: existing } = await sc.from('personas_disciplinas')
+        .select('id').eq('persona_id', personaId)
+        .eq('disciplina_slug', deporte).eq('activo', true).maybeSingle()
+      if (!existing) {
+        await sc.from('personas_disciplinas').insert({
+          tenant_id: TENANT_ID, persona_id: personaId,
+          disciplina_slug: deporte, es_principal: false, activo: true,
+        })
       }
       return { ok: true }
     }
@@ -678,6 +679,15 @@ async function executeApplyAction(
             tenant_id: TENANT_ID, persona_id: newPersona.id, atributo_slug: slug, activo: true,
           })
         }
+      }
+
+      // If import data includes a disciplina, insert into personas_disciplinas
+      const deporteSlug = parsedData.deporte_principal_slug as string | undefined
+      if (deporteSlug) {
+        await sc.from('personas_disciplinas').insert({
+          tenant_id: TENANT_ID, persona_id: newPersona.id,
+          disciplina_slug: deporteSlug, es_principal: true, activo: true,
+        })
       }
       return { ok: true }
     }

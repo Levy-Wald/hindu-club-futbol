@@ -87,8 +87,6 @@ const MODULES = [
     key: 'deporte',
     label: 'Deporte',
     fields: [
-      { key: 'deporte_principal_slug', label: 'Deporte principal' },
-      { key: 'años_practica_deporte_principal', label: 'Años práctica' },
       { key: 'categoria_historica_max', label: 'Categoría máx.' },
       { key: 'nivel_actividad_actual', label: 'Nivel actividad' },
       { key: 'frecuencia_entrenamiento_semanal', label: 'Entrenamientos/semana' },

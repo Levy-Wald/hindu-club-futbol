@@ -59,7 +59,6 @@ export const PERSONAS_MODULES: ColumnModule[] = [
     key: 'deporte',
     label: 'Deporte',
     columns: [
-      { id: 'deporte_principal_slug', label: 'Deporte principal' },
       { id: 'categoria_historica_max', label: 'Categoría máx.' },
       { id: 'nivel_actividad_actual', label: 'Nivel actividad' },
     ],

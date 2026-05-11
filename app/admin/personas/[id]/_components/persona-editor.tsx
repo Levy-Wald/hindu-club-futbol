@@ -13,7 +13,7 @@ import { SeccionIdentidad } from './secciones/identidad'
 import { SeccionContacto } from './secciones/contacto'
 import { SeccionDireccion } from './secciones/direccion'
 import { SeccionDeporteFisico } from './secciones/deporte-fisico'
-import { SeccionDeporteActividad } from './secciones/deporte-actividad'
+import { SeccionDisciplinas } from './secciones/deporte-actividad'
 import { SeccionProfesional } from './secciones/profesional'
 import { SeccionEducacion } from './secciones/educacion'
 import { SeccionMembresia } from './secciones/membresia'
@@ -79,8 +79,6 @@ function init(p: Record<string, unknown>): EditarPersonaInput {
     altura_cm: n('altura_cm'), peso_kg: n('peso_kg'),
     fecha_medicion_fisica: s('fecha_medicion_fisica'), contextura: s('contextura'),
     usa_lentes: b('usa_lentes'), tipo_lentes: s('tipo_lentes'), usa_audifono: b('usa_audifono'),
-    años_practica_deporte_principal: n('años_practica_deporte_principal'),
-    deporte_principal_slug: s('deporte_principal_slug'),
     categoria_historica_max: s('categoria_historica_max'), nivel_actividad_actual: s('nivel_actividad_actual'),
     frecuencia_entrenamiento_semanal: n('frecuencia_entrenamiento_semanal'),
     horas_entrenamiento_semanales: n('horas_entrenamiento_semanales'),
@@ -94,7 +92,6 @@ function init(p: Record<string, unknown>): EditarPersonaInput {
     fecha_primera_relacion_club: s('fecha_primera_relacion_club'),
     es_socio_fundador: b('es_socio_fundador'), es_socio_vitalicio: b('es_socio_vitalicio'),
     es_socio_honorario: b('es_socio_honorario'), bautizo_club_realizado: b('bautizo_club_realizado'),
-    deportes_secundarios: (p.deportes_secundarios as string[]) ?? [],
     notas_internas: s('notas_internas'),
   }
 }
@@ -246,7 +243,7 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
             categoriasDisponibles={categoriasEquipo}
           />
           <SeccionDeporteFisico form={form} update={update} s={s} />
-          <SeccionDeporteActividad form={form} update={update} s={s} />
+          <SeccionDisciplinas personaId={persona.id as string} tenantId={persona.tenant_id as string} />
         </TabsContent>
 
         {/* SALUD: datos médicos + obra social + lesiones + rehabilitaciones */}

@@ -29,8 +29,6 @@ const MERGE_FIELDS: { key: string; label: string }[] = [
   { key: 'direccion_numero', label: 'Número' },
   { key: 'direccion_ciudad', label: 'Ciudad' },
   { key: 'direccion_provincia', label: 'Provincia' },
-  { key: 'deporte_principal_slug', label: 'Deporte principal' },
-  { key: 'deportes_secundarios', label: 'Deportes sec.' },
   { key: 'fecha_primera_relacion_club', label: 'Fecha relación club' },
   { key: 'notas_internas', label: 'Notas' },
 ]

@@ -6,8 +6,8 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Cierre FASE 1 completo.
-> Sprints 14d a 14j.2 cerrados. Tag `v0.1.0-fase1-cierre`.
+> Última actualización: 11 de mayo de 2026 — Sprint 14k.6 completado.
+> Sprints 14d a 14k.6 cerrados. Tag `v0.1.0-fase1-cierre` en commit `aeebaac`.
 
 ---
 
@@ -17,8 +17,9 @@
 para Hindu Club Futbol: suscripciones, cuotas, cobranza, centros de costo,
 salud, utileria, cuerpo tecnico, notificaciones in-app, concesiones.
 
-**Ultimo sprint cerrado:** **14j.2** — Modulo Concesiones (cierre FASE 1).
-FASE 1 abarca sprints 14d a 14j.2 (12 sprints). Proxima: FASE 2 Comunicacion.
+**Ultimo sprint cerrado:** **14k.6** — Limpieza arquitectónica pre-FASE 2
+(disciplinas como tabla dedicada, capa en catálogo de atributos).
+Proxima: FASE 2 Comunicacion.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -31,12 +32,12 @@ FASE 1 abarca sprints 14d a 14j.2 (12 sprints). Proxima: FASE 2 Comunicacion.
 
 | Métrica | Valor |
 |---|---|
-| Tablas en `public` | 115 |
-| Tablas con RLS habilitada | 115 (100%) |
+| Tablas en `public` | 116 |
+| Tablas con RLS habilitada | 116 (100%) |
 | RLS policies | 355 |
 | Funciones custom (`pg_proc` en public) | 126 |
 | Triggers | 97 |
-| VIEWs | 27 |
+| VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
 | Páginas Next.js | 64 (7 públicas + 57 admin) |
@@ -47,7 +48,7 @@ FASE 1 abarca sprints 14d a 14j.2 (12 sprints). Proxima: FASE 2 Comunicacion.
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,389 |
 | Equipos (Hindu) | 7 |
-| Atributos en catálogo | 64 |
+| Atributos en catálogo | 64 (con columna `capa` clasificatoria) |
 | Tipos de notificación catalogados | 23 |
 | Módulos catalogados | 36 |
 | Módulos activos en Hindu | 25 |
@@ -65,7 +66,7 @@ significativos.
 
 | Tabla | Rows | Notas |
 |---|---|---|
-| `personas` | 2,389 | 106 columnas (mezcla con conceptos de salud/laboral/deportivo a refactorizar a futuro) |
+| `personas` | 2,389 | 103 columnas (3 columnas de disciplina migradas a `personas_disciplinas` en Sprint 14k.6) |
 | `personas_atributos` | ~2,620 | 9 atributos activos en uso (incl. suscriptor x51) |
 | `personas_padrones` | 2,561 | 4 padrones |
 | `personas_vinculos` | 4 | Familiares/tutores cargados manualmente |
@@ -169,6 +170,7 @@ del producto.
 |---|---|---|
 | `equipos` | 7 | FACCMA-Primera, FACCMA-Open28 Open, FACCMA-Open28 Junior, AIF-Selección, AIF-Juveniles, AIF-Senior, AIF-Super Maxi |
 | `personas_equipos` | 211 | Planteles completos cargados via Sprint 14c.1 |
+| `personas_disciplinas` | 2,111 | 2,081 principales + 30 secundarias (Sprint 14k.6, ADR-026) |
 | `padrones` | 4 | Hindu Global + Jugadores 2026 + Suscriptores 2026 + uno inactivo |
 | `categorias_equipo` | 0 | Esqueleto |
 | `canchas` | 0 | Esqueleto |
@@ -394,7 +396,7 @@ inicializados en Hindu.
 | 4 catálogos sin UI CRUD | Media | Backlog menor |
 | `padron_socios` pipeline no documentado en specs previos | Baja | 14d (consolidar) |
 | 53 atributos en catálogo sin uso real | Baja | Q3 — cleanup |
-| `personas` 106 columnas (mezcla CRM/salud/deportivo) | Media | 2027 (al separar troncal) |
+| `personas` 103 columnas (mezcla CRM/salud/deportivo, 3 migradas en 14k.6) | Media | 2027 (al separar troncal) |
 | `D3` capa de servicios pura no implementada | Baja | Postergado |
 | `D6` `module_events` no implementado | Baja | Postergado |
 | 0 tests automatizados | Media | Sprint 17c |
@@ -446,6 +448,12 @@ Historial referenciado en commits del repo. Listado resumido:
 - **14j.2** — Concesiones genéricas: 6 tablas, 4 funciones SQL, 2 vistas,
   4 pantallas (listado, detalle 6 tabs, POS tablet, reportes), cron
   canon mensual, 4 tipos notificación, aislamiento financiero (ADR-025).
+- **14k.6** — Limpieza arquitectónica pre-FASE 2: ADR-026 disciplinas como
+  tabla dedicada `personas_disciplinas` (2,111 filas migradas), columna `capa`
+  en `catalogo_atributos` (7 capas, 64 atributos clasificados), DROP de 3
+  columnas legacy de `personas`, vista `v_personas_disciplinas_vigentes`,
+  nuevo componente `SeccionDisciplinas` en ficha persona, refactor de ~12
+  archivos para eliminar referencias a columnas viejas.
 
 ---
 

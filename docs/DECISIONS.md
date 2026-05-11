@@ -1624,6 +1624,62 @@ club por error."
 
 ---
 
+## ADR-026 — Disciplinas como módulo paralelo, no campos de personas
+**Fecha:** 2026-05-11
+**Estado:** Vigente
+**Capa:** Troncal CRM + Vertical Club
+**Tomado por:** Arquitecto + Yair
+
+### Contexto
+`personas` (tabla troncal CRM) contiene 3 columnas con datos del vertical
+Club Deportivo:
+- `deporte_principal_slug` TEXT
+- `deportes_secundarios` TEXT[]
+- `años_practica_deporte_principal` INTEGER
+
+Esta contaminación viola el principio de capas: troncal universal CRM
+debe servir a cualquier vertical. A futuro, una persona puede practicar
+múltiples disciplinas con vigencia distinta. Aplica el mismo patrón que
+ADR-024 (fuente única de verdad en tabla relación con vigencia).
+
+### Decisión
+Crear tabla `personas_disciplinas` (capa vertical Club):
+- 1:N entre persona y disciplinas que practica
+- 1 disciplina marcada `es_principal = true` por persona vigente
+- Vigencia con `fecha_inicio` + `fecha_fin`
+- `años_practica` por disciplina específica
+- `nivel_competencia_slug` opcional
+
+Migrar los registros existentes a la tabla nueva, luego eliminar las 3
+columnas viejas de `personas`.
+
+Decisión paralela: agregar `catalogo_atributos.capa` con clasificación
+arquitectónica estandarizada (`troncal_crm`, `troncal_erp`,
+`troncal_plataforma`, `modulo_paralelo`, `vertical_club`, etc.).
+
+### Alternativas descartadas
+- **Postergar a FASE 17:** costo crece exponencialmente con cada sprint.
+- **Mantener columnas + tabla paralela:** dualidad de fuentes de verdad.
+
+### Consecuencias
+**Positivas:** troncal CRM limpio, disciplinas con vigencia, múltiples
+disciplinas por persona, clasificación arquitectónica de atributos.
+**Negativas:** refactor de pipeline de importación, refactor de UI ficha,
+2 migrations (agregar + dropear).
+
+### Pre-mortem
+
+**Top 3 riesgos:**
+1. Pipeline rompe al setear columna dropeada → Update pipeline ANTES de drop.
+2. Migración pierde data → Transacción + COUNT validation.
+3. UI rompe por columnas faltantes → Refactor componentes ANTES de drop.
+
+**Indicadores de falla:**
+- `SELECT COUNT(*) FROM personas_disciplinas WHERE es_principal=true` ≠ cantidad original
+- `grep deporte_principal_slug` en código → debe ser 0 antes del DROP
+
+---
+
 ## Convenciones de este documento
 
 - Los ADRs son **inmutables** una vez publicados. Si una decisión cambia,

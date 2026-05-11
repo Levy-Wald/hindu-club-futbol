@@ -128,8 +128,6 @@ export function TabDatos({ persona }: TabDatosProps) {
     usa_lentes: (p.usa_lentes as boolean) ?? false,
     tipo_lentes: (p.tipo_lentes as string) ?? '',
     usa_audifono: (p.usa_audifono as boolean) ?? false,
-    años_practica_deporte_principal: (p.años_practica_deporte_principal as number) ?? undefined,
-    deporte_principal_slug: (p.deporte_principal_slug as string) ?? '',
     categoria_historica_max: (p.categoria_historica_max as string) ?? '',
     nivel_actividad_actual: (p.nivel_actividad_actual as string) ?? '',
     frecuencia_entrenamiento_semanal: (p.frecuencia_entrenamiento_semanal as number) ?? undefined,
@@ -456,15 +454,6 @@ export function TabDatos({ persona }: TabDatosProps) {
         <CardHeader><CardTitle className="text-base">Perfil deportivo — Actividad</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Field label="Deporte principal">
-              <Select value={s('deporte_principal_slug')} onValueChange={(v) => update('deporte_principal_slug', v)}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                <SelectContent>{DEPORTES.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
-              </Select>
-            </Field>
-            <Field label="Años de práctica">
-              <Input type="number" min={0} max={60} value={form.años_practica_deporte_principal ?? ''} onChange={(e) => update('años_practica_deporte_principal', e.target.valueAsNumber || 0)} />
-            </Field>
             <Field label="Categoría histórica máx.">
               <Select value={s('categoria_historica_max')} onValueChange={(v) => update('categoria_historica_max', v)}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
