@@ -89,8 +89,8 @@ export async function enviarComunicacion(opts: EnviarOpts): Promise<EnviarResult
       estado: result.success ? 'enviado' : 'fallado',
       error_mensaje: result.error || null,
       enviado_at: result.success ? new Date().toISOString() : null,
-      origen_modulo_slug: opts.origenModuloSlug || 'comunicaciones',
-      origen_entidad_id: opts.origenEntidadId || null,
+      origen_modulo_slug: opts.origenModuloSlug ?? null,
+      origen_entidad_id: opts.origenEntidadId ?? null,
       metadata: {
         adapter: adapter.name,
         provider_id: result.provider_id || null,
@@ -105,8 +105,8 @@ export async function enviarComunicacion(opts: EnviarOpts): Promise<EnviarResult
     await supabase.from('com_mensajes').insert({
       tenant_id: TENANT_ID,
       destinatario_persona_id: opts.personaId,
-      origen_modulo_slug: opts.origenModuloSlug || 'comunicaciones',
-      origen_entidad_id: opts.origenEntidadId || null,
+      origen_modulo_slug: opts.origenModuloSlug ?? null,
+      origen_entidad_id: opts.origenEntidadId ?? null,
       asunto: asuntoRenderizado,
       cuerpo: cuerpoRenderizado,
       tipo_severidad: 'info',
@@ -173,8 +173,8 @@ export async function enviarComunicacionMasiva(
   if (!plantilla) throw new Error(`Plantilla no encontrada: ${request.plantillaSlug}`)
 
   const lote_id = randomUUID()
-  const origenModulo = request.origenModuloSlug || 'comunicaciones'
-  const origenEntidad = request.origenEntidadId || null
+  const origenModulo = request.origenModuloSlug ?? null
+  const origenEntidad = request.origenEntidadId ?? null
 
   const envios: EnvioMasivoRow[] = segmento.personas.map(persona => {
     const variables: Record<string, string> = {

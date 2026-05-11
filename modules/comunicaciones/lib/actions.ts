@@ -484,6 +484,89 @@ export async function ejecutarEnvioMasivo(input: {
 }
 
 // =============================================================================
+// Automatizaciones (triggers manuales)
+// =============================================================================
+
+import { createServiceRoleClient } from '@/lib/supabase/service-role'
+
+const VALID_TRIGGERS = ['apto_vence_7d', 'cuota_vence_7d', 'cuota_vencida_7d'] as const
+
+export async function ejecutarTriggerManual(jobSlug: string): Promise<ActionResult> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return fail('No autenticado')
+
+  const { data: persona } = await supabase
+    .from('personas')
+    .select('id')
+    .eq('user_id', user.id)
+    .is('deleted_at', null)
+    .maybeSingle()
+  if (!persona) return fail('Persona no encontrada')
+
+  const { data: attrs } = await supabase
+    .from('personas_atributos')
+    .select('atributo_slug')
+    .eq('persona_id', persona.id)
+    .eq('tenant_id', TENANT_ID)
+    .eq('activo', true)
+
+  const atributos = (attrs ?? []).map(a => a.atributo_slug)
+  const tienePermiso = atributos.includes('admin_sistema') || atributos.includes('admin_tenant')
+  if (!tienePermiso) return fail('Sin permisos para ejecutar automatizaciones')
+
+  if (!VALID_TRIGGERS.includes(jobSlug as typeof VALID_TRIGGERS[number])) {
+    return fail(`Trigger desconocido: ${jobSlug}`)
+  }
+
+  const serviceRole = createServiceRoleClient()
+  const jobId = crypto.randomUUID()
+
+  await serviceRole.from('com_jobs_log').insert({
+    id: jobId,
+    tenant_id: TENANT_ID,
+    job_slug: jobSlug,
+    status: 'running',
+  })
+
+  try {
+    let result
+    if (jobSlug === 'apto_vence_7d') {
+      const { ejecutarAptoVence7d } = await import('./triggers/apto-vence-7d')
+      result = await ejecutarAptoVence7d(serviceRole, TENANT_ID, jobId)
+    } else if (jobSlug === 'cuota_vence_7d') {
+      const { ejecutarCuotaVence7d } = await import('./triggers/cuota-vence-7d')
+      result = await ejecutarCuotaVence7d(serviceRole, TENANT_ID, jobId)
+    } else {
+      const { ejecutarCuotaVencida7d } = await import('./triggers/cuota-vencida-7d')
+      result = await ejecutarCuotaVencida7d(serviceRole, TENANT_ID, jobId)
+    }
+
+    await serviceRole.from('com_jobs_log').update({
+      status: 'completed',
+      finished_at: new Date().toISOString(),
+      personas_encontradas: result.personas_encontradas,
+      personas_notificadas: result.personas_notificadas,
+      personas_dedup: result.personas_dedup,
+      errores: result.errores,
+      metadata: { lote_id: result.lote_id, detalles: result.detalles },
+    }).eq('id', jobId)
+
+    revalidatePath('/admin/comunicaciones')
+    return success(`Trigger ${jobSlug} ejecutado: ${result.personas_notificadas} notificadas`)
+  } catch (e) {
+    const errorMsg = e instanceof Error ? e.message : 'Error desconocido'
+    await serviceRole.from('com_jobs_log').update({
+      status: 'failed',
+      finished_at: new Date().toISOString(),
+      metadata: { error: errorMsg },
+    }).eq('id', jobId)
+
+    return fail(`Error ejecutando trigger: ${errorMsg}`)
+  }
+}
+
+// =============================================================================
 // Envios
 // =============================================================================
 

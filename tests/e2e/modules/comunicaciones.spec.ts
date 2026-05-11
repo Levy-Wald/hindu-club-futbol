@@ -1,4 +1,13 @@
 import { test, expect } from '@playwright/test'
+import { createClient } from '@supabase/supabase-js'
+
+function serviceRole() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } }
+  )
+}
 
 test.describe('Comunicaciones', () => {
   test('page loads with tabs', async ({ page }) => {
@@ -191,5 +200,83 @@ test.describe('Comunicaciones', () => {
   test('cron cuota-vence-7d responde 401 sin auth', async ({ request }) => {
     const response = await request.get('/api/cron/cuota-vence-7d')
     expect(response.status()).toBe(401)
+  })
+
+  test('trigger apto_vence_7d end-to-end: fixture → ejecutar → job_log + envío correcto', async ({ page }) => {
+    test.setTimeout(60000)
+    const TENANT = '11111111-1111-1111-1111-111111111111'
+    const PERSONA_E2E = '99999999-9999-9999-9999-999999999999'
+    const supabase = serviceRole()
+
+    let fixtureId: string | null = null
+    const jobLogIds: string[] = []
+
+    try {
+      // SETUP: insertar autorización apto_fisico que vence en 5 días (dentro de ventana 7d)
+      const fechaTarget = new Date()
+      fechaTarget.setDate(fechaTarget.getDate() + 5)
+      const fechaStr = fechaTarget.toISOString().slice(0, 10)
+
+      const { data: fix, error: fixErr } = await supabase
+        .from('personas_autorizaciones')
+        .insert({
+          tenant_id: TENANT,
+          persona_id: PERSONA_E2E,
+          tipo_autorizacion_slug: 'apto_fisico',
+          estado: 'firmada',
+          activo: true,
+          fecha_vencimiento: fechaStr,
+        })
+        .select('id')
+        .single()
+
+      expect(fixErr).toBeNull()
+      fixtureId = fix!.id
+
+      // ACTION: navegar a automatizaciones y ejecutar trigger
+      await page.goto('/admin/comunicaciones')
+      await page.getByTestId('tab-automatizaciones').click()
+      await expect(page.getByTestId('jobs-log-section')).toBeVisible({ timeout: 10000 })
+      await page.getByTestId('ejecutar-apto_vence_7d').click()
+
+      // Esperar toast de resultado
+      await expect(page.getByTestId('job-log-toast')).toBeVisible({ timeout: 20000 })
+
+      // ASSERT 1: com_jobs_log tiene 1 row del trigger
+      const { data: jobs } = await supabase
+        .from('com_jobs_log')
+        .select('*')
+        .eq('tenant_id', TENANT)
+        .eq('job_slug', 'apto_vence_7d')
+        .order('started_at', { ascending: false })
+        .limit(1)
+
+      expect(jobs).toHaveLength(1)
+      expect(jobs![0].status).toBe('completed')
+      expect(jobs![0].personas_encontradas).toBeGreaterThanOrEqual(1)
+      expect(jobs![0].personas_notificadas).toBeGreaterThanOrEqual(1)
+      jobLogIds.push(jobs![0].id)
+
+      // ASSERT 2: com_envios tiene al menos 1 row con origen_modulo_slug correcto
+      const { data: envios } = await supabase
+        .from('com_envios')
+        .select('canal, origen_modulo_slug, origen_entidad_id, persona_id')
+        .eq('tenant_id', TENANT)
+        .eq('origen_entidad_id', jobs![0].id)
+
+      expect(envios!.length).toBeGreaterThanOrEqual(1)
+      expect(envios!.every(e => e.origen_modulo_slug === 'apto_vence_7d')).toBe(true)
+      expect(envios!.some(e => e.persona_id === PERSONA_E2E)).toBe(true)
+
+    } finally {
+      // CLEANUP: siempre, aunque falle
+      for (const jid of jobLogIds) {
+        await supabase.from('com_envios').delete().eq('origen_entidad_id', jid)
+        await supabase.from('com_jobs_log').delete().eq('id', jid)
+      }
+      if (fixtureId) {
+        await supabase.from('personas_autorizaciones').delete().eq('id', fixtureId)
+      }
+    }
   })
 })

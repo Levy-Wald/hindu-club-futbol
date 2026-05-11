@@ -27,7 +27,7 @@ export interface EnvioMasivoRow {
   estado: string
   error_mensaje: string | null
   enviado_at: string | null
-  origen_modulo_slug: string
+  origen_modulo_slug: string | null
   origen_entidad_id: string | null
   metadata: Record<string, unknown>
 }

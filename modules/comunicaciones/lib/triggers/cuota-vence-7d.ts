@@ -6,7 +6,7 @@ import type { TriggerResult } from './tipos'
 const JOB_SLUG = 'cuota_vence_7d'
 const PLANTILLA_SLUG = 'cuota_vencimiento_7_inapp'
 const CANAL = 'inapp' as const
-const ORIGEN_MODULO = 'cuotas'
+const ORIGEN_MODULO = 'cuota_vence_7d'
 
 /**
  * Busca personas con cuotas emitidas que vencen en los próximos 7 días
@@ -14,7 +14,8 @@ const ORIGEN_MODULO = 'cuotas'
  */
 export async function ejecutarCuotaVence7d(
   supabase: SupabaseClient,
-  tenantId: string
+  tenantId: string,
+  jobLogId: string
 ): Promise<TriggerResult> {
   const detalles: string[] = []
 
@@ -55,6 +56,7 @@ export async function ejecutarCuotaVence7d(
     canal: CANAL,
     segmento: { tipo: 'personas_ids_directos', persona_ids: permitidos },
     origenModuloSlug: ORIGEN_MODULO,
+    origenEntidadId: jobLogId,
     supabaseClient: supabase,
   })
 

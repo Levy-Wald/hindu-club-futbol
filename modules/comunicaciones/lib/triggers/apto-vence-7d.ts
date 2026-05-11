@@ -6,7 +6,7 @@ import type { TriggerResult } from './tipos'
 const JOB_SLUG = 'apto_vence_7d'
 const PLANTILLA_SLUG = 'apto_vencimiento_inapp'
 const CANAL = 'inapp' as const
-const ORIGEN_MODULO = 'apto_fisico'
+const ORIGEN_MODULO = 'apto_vence_7d'
 
 /**
  * Busca personas con apto físico que vence en los próximos 7 días
@@ -14,11 +14,11 @@ const ORIGEN_MODULO = 'apto_fisico'
  */
 export async function ejecutarAptoVence7d(
   supabase: SupabaseClient,
-  tenantId: string
+  tenantId: string,
+  jobLogId: string
 ): Promise<TriggerResult> {
   const detalles: string[] = []
 
-  // 1. Buscar autorizaciones de apto_fisico que vencen en los próximos 7 días
   const hoy = new Date()
   const en7dias = new Date()
   en7dias.setDate(en7dias.getDate() + 7)
@@ -44,7 +44,6 @@ export async function ejecutarAptoVence7d(
     return { job_slug: JOB_SLUG, personas_encontradas: 0, personas_notificadas: 0, personas_dedup: 0, errores: 0, lote_id: null, detalles }
   }
 
-  // 2. Dedup: filtrar personas ya notificadas en los últimos 7 días
   const { permitidos, descartados } = await filtrarDuplicados(supabase, tenantId, personaIds, ORIGEN_MODULO, CANAL)
   detalles.push(`Dedup: ${descartados} descartados, ${permitidos.length} a notificar`)
 
@@ -52,13 +51,13 @@ export async function ejecutarAptoVence7d(
     return { job_slug: JOB_SLUG, personas_encontradas: personaIds.length, personas_notificadas: 0, personas_dedup: descartados, errores: 0, lote_id: null, detalles }
   }
 
-  // 3. Enviar comunicación masiva
   const resultado = await enviarComunicacionMasiva({
     tenantId,
     plantillaSlug: PLANTILLA_SLUG,
     canal: CANAL,
     segmento: { tipo: 'personas_ids_directos', persona_ids: permitidos },
     origenModuloSlug: ORIGEN_MODULO,
+    origenEntidadId: jobLogId,
     supabaseClient: supabase,
   })
 

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useTransition } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -12,13 +13,17 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import Link from 'next/link'
-import { Clock, ExternalLink } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Clock, ExternalLink, Play } from 'lucide-react'
+import { ejecutarTriggerManual } from '@/modules/comunicaciones/lib/actions'
 
-const JOB_LABELS: Record<string, string> = {
-  apto_vence_7d: 'Apto fisico por vencer (7d)',
-  cuota_vence_7d: 'Cuota por vencer (7d)',
-  cuota_vencida_7d: 'Cuota vencida (7d)',
-}
+const TRIGGERS = [
+  { slug: 'apto_vence_7d', label: 'Apto fisico por vencer (7d)' },
+  { slug: 'cuota_vence_7d', label: 'Cuota por vencer (7d)' },
+  { slug: 'cuota_vencida_7d', label: 'Cuota vencida (7d)' },
+]
+
+const JOB_LABELS: Record<string, string> = Object.fromEntries(TRIGGERS.map(t => [t.slug, t.label]))
 
 const STATUS_VARIANTS: Record<string, { label: string; variant: 'outline' | 'destructive' | 'default' }> = {
   completed: { label: 'Completado', variant: 'outline' },
@@ -53,8 +58,43 @@ interface JobsLogTableProps {
 }
 
 export function JobsLogTable({ jobs }: JobsLogTableProps) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+
+  async function handleEjecutar(slug: string) {
+    startTransition(async () => {
+      const result = await ejecutarTriggerManual(slug)
+      setToastMsg(result.message)
+      router.refresh()
+      setTimeout(() => setToastMsg(null), 5000)
+    })
+  }
+
   return (
     <div className="space-y-4" data-testid="jobs-log-section">
+      {toastMsg && (
+        <div data-testid="job-log-toast" className="rounded-md bg-primary-50 border border-primary-200 p-3 text-sm">
+          {toastMsg}
+        </div>
+      )}
+
+      <div className="flex flex-wrap gap-2">
+        {TRIGGERS.map(t => (
+          <Button
+            key={t.slug}
+            variant="outline"
+            size="sm"
+            disabled={isPending}
+            data-testid={`ejecutar-${t.slug}`}
+            onClick={() => handleEjecutar(t.slug)}
+          >
+            <Play className="h-3 w-3" />
+            {t.label}
+          </Button>
+        ))}
+      </div>
+
       <Card>
         <CardContent className="p-0">
           {jobs.length === 0 ? (

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   })
 
   try {
-    const result = await ejecutarCuotaVencida7d(supabase, TENANT_ID)
+    const result = await ejecutarCuotaVencida7d(supabase, TENANT_ID, jobId)
 
     await supabase.from('com_jobs_log').update({
       status: 'completed',
