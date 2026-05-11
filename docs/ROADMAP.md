@@ -133,26 +133,25 @@ salud, utileria, concesiones operativas.
 
 ---
 
-## FASE 2 — Comunicacion (~6 sprints)
+## FASE 2 — Comunicacion (5 sprints, mock-first universal por ADR-035)
 
-**Objetivo.** Plataforma envia emails reales (recordatorios, recibos,
-comunicados) con membrete por tenant.
+**Objetivo.** Motor de comunicacion completo: plantillas, envios masivos,
+recordatorios automaticos, preferencias por persona. Todo en modo mock
+hasta FASE 16 (ADR-035).
 
 **Depende de.** FASE 1.
 
-**Cuello de botella biologico:** DNS de Resend (3-5 dias de propagacion).
-Arrancar configuracion DNS al inicio de esta fase.
+**Tag:** `v0.4.0-fase2-sprint1-motor` (Sprint 2.1 completado)
 
 ### Modulos
 
 | # | Modulo | Estado |
 |---|---|---|
-| 2.1 | Resend integrado (mock -> sandbox -> production) | Orange |
-| 2.2 | Plantillas operativas (vencimiento, recibo, comunicado) | Green |
-| 2.3 | Envios masivos con wizard de segmentos | Yellow |
-| 2.4 | Cron de vencimientos con email real | Yellow |
-| 2.5 | Preferencias de comunicacion por persona | Yellow |
-| 2.6 | Drip de recuperacion de deudores | Red |
+| 2.1 | Motor de comunicacion core (mock-first) | Done |
+| 2.2 | Editor de plantillas + variables | Orange |
+| 2.3 | Envios masivos con segmentacion | Orange |
+| 2.4 | Cron de vencimientos + recordatorios automaticos | Orange |
+| 2.5 | Preferencias de canales por persona | Orange |
 
 ---
 
@@ -418,10 +417,10 @@ Hindu valida y decide si aporta credenciales reales.
 
 ---
 
-## FASE 16 — Conexion servicios externos reales (~5 sprints)
+## FASE 16 — Conexion servicios externos reales (~5 sprints + Resend ex-FASE 2.2)
 
 **Objetivo.** Pasar de mock a produccion para cada servicio externo que
-Hindu decida activar.
+Hindu decida activar. Incluye ResendAdapter (ex FASE 2.2, movido por ADR-035).
 
 **Depende de.** Demo aprobada. Credenciales del tenant disponibles.
 
@@ -429,7 +428,7 @@ Hindu decida activar.
 
 | # | Modulo | Estado |
 |---|---|---|
-| 16.1 | Resend production (DNS real, SPF/DKIM/DMARC) | Red |
+| 16.1 | ResendAdapter (sandbox + production switch) | Red |
 | 16.2 | MercadoPago production (credenciales empresa) | Red |
 | 16.3 | WhatsApp Business API production | Red |
 | 16.4 | AFIP facturacion electronica | Red |
@@ -528,7 +527,7 @@ Items que no aceleran con paralelizacion deben arrancarse con anticipacion:
 
 | Item | Fase | Cuando arrancar |
 |---|---|---|
-| DNS Resend (SPF/DKIM/DMARC) | FASE 2 | Al iniciar FASE 2 |
+| DNS Resend (SPF/DKIM/DMARC) | FASE 16 | Despues de demo (ADR-035) |
 | Credenciales MercadoPago empresa | FASE 16 | Despues de demo |
 | Aprobacion WhatsApp Business API | FASE 16 | Despues de demo |
 | Verificacion de dominio de tenant | FASE 12 | Caso por caso |
