@@ -51,8 +51,8 @@ producto terminado. **Todo se construye en modo mock por default.** Ver
 | Modulo | Estado | Notas |
 |---|---|---|
 | Tenants, sedes, configuracion publica | Done | 1 tenant (Hindu) con 2 sedes |
-| Multi-tenant con RLS (115 tablas, 355 policies) | Done | 100% cobertura |
-| Catalogo de modulos + activacion por tenant | Done | 36 modulos catalogados, 25 activados en Hindu |
+| Multi-tenant con RLS (116 tablas, 358 policies) | Done | 100% cobertura |
+| Catalogo de modulos + activacion por tenant | Done | 48 modulos catalogados, 35+ activados en Hindu |
 | Autenticacion (Supabase Auth) | Done | Email + magic link |
 | Audit log | Done | 46k+ entradas registrando |
 | API REST v1 con scopes | Done | 5 endpoints |
@@ -62,7 +62,7 @@ producto terminado. **Todo se construye en modo mock por default.** Ver
 
 | Modulo | Estado | Notas |
 |---|---|---|
-| Personas (CRM) | Done | 2,389 personas en Hindu |
+| Personas (CRM) | Done | 2,390 personas en Hindu |
 | Atributos transversales con vigencia | Done | 64 atributos catalogados |
 | Vinculos familiares y de tutoria | Done | UI completa |
 | Entidades + representantes | Done | 3 entidades cargadas |
@@ -93,7 +93,7 @@ producto terminado. **Todo se construye en modo mock por default.** Ver
 |---|---|---|
 | 12+ docs vivos en `/docs/` | Done | Completos al cierre FASE 1 |
 | Design Tokens System | Done | ADR-018 |
-| Sistema de ADRs | Done | 25 ADRs documentados (001-025) |
+| Sistema de ADRs | Done | 35 ADRs documentados (001-035) |
 
 ---
 
@@ -125,7 +125,7 @@ salud, utileria, concesiones operativas.
 
 ### Metricas operativas Hindu al cierre
 
-- 2,389 personas, 7 equipos, 211 jugadores
+- 2,390 personas, 7 equipos, 211 jugadores
 - 51 suscripciones activas, 51 cuotas vencidas ($510k)
 - 7 centros de costo
 - 23 tipos de notificacion, 4 crons
@@ -141,17 +141,17 @@ hasta FASE 16 (ADR-035).
 
 **Depende de.** FASE 1.
 
-**Tag:** `v0.4.0-fase2-sprint1-motor` (Sprint 2.1 completado)
+**Tag:** `v0.6.0-fase2-sprint3-envios-masivos` (Sprints 2.1-2.3 completados)
 
 ### Modulos
 
-| # | Modulo | Estado |
-|---|---|---|
-| 2.1 | Motor de comunicacion core (mock-first) | Done |
-| 2.2 | Editor de plantillas + variables | Orange |
-| 2.3 | Envios masivos con segmentacion | Orange |
-| 2.4 | Cron de vencimientos + recordatorios automaticos | Orange |
-| 2.5 | Preferencias de canales por persona | Orange |
+| # | Modulo | Estado | Tag |
+|---|---|---|---|
+| 2.1 | Motor de comunicacion core (mock-first) | Done | v0.4.0 |
+| 2.2 | Editor de plantillas + variables | Done | v0.5.0 |
+| 2.3 | Envios masivos con segmentacion | Done | v0.6.0 |
+| 2.4 | Cron de vencimientos + recordatorios automaticos | Orange | — |
+| 2.5 | Preferencias de canales por persona | Orange | — |
 
 ---
 
@@ -527,7 +527,7 @@ Items que no aceleran con paralelizacion deben arrancarse con anticipacion:
 
 | Item | Fase | Cuando arrancar |
 |---|---|---|
-| DNS Resend (SPF/DKIM/DMARC) | FASE 16 | Despues de demo (ADR-035) |
+| DNS Resend (SPF/DKIM/DMARC) | FASE 16 | Despues de demo aprobada (ADR-035) |
 | Credenciales MercadoPago empresa | FASE 16 | Despues de demo |
 | Aprobacion WhatsApp Business API | FASE 16 | Despues de demo |
 | Verificacion de dominio de tenant | FASE 12 | Caso por caso |

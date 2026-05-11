@@ -2063,6 +2063,41 @@ el test E2E correspondiente.
 
 ---
 
+## ADR-035 — Mock-first universal para integradores externos
+
+**Fecha:** 2026-05-11
+**Estado:** Aceptado
+**Capa:** Sistema entero
+**Tomado por:** Arquitecto
+
+### Contexto
+
+El sistema requiere integrarse con varios servicios externos (Resend, MercadoPago,
+WhatsApp Cloud API, AFIP). Estos requieren credenciales, dominios y aprobaciones
+operativas que no siempre están disponibles cuando un sprint los necesita.
+
+### Decisión
+
+Todos los integradores externos se desarrollan en modo **mock-first universal**.
+El switch a producción real es una operación centralizada en FASE 16.
+
+Reglas:
+1. Cada integrador se modela como `Adapter` pattern: interface tipada + `MockAdapter`.
+2. El default operativo (sin env var explícita) es siempre mock.
+3. Los módulos consumidores importan la API tipada, no conocen el adapter activo.
+4. FASE 16 es donde se crean adapters reales y se configura el switch vía env var.
+5. La demo a Hindu puede ejecutarse 100% en modo mock.
+
+### Consecuencias
+
+- Sprint FASE 2.2 original (Adapter Resend) se movió a FASE 16. FASE 2 queda con 5 sprints.
+- El sistema puede operarse y demostrarse con cero dependencias externas activas.
+- Sprint 2.1 implementó el patrón de referencia: `ComunicacionAdapter` + `MockAdapter` + `resolveAdapter()`.
+
+Detalle completo en `docs/adrs/ADR-035-mock-first-universal.md`.
+
+---
+
 ## Convenciones de este documento
 
 - Los ADRs son **inmutables** una vez publicados. Si una decisión cambia,

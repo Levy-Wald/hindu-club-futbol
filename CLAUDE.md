@@ -2,12 +2,28 @@
 
 ## Estado actual
 
-- **FASE 1 cerrada** (tag `v0.1.0-fase1-cierre`, 2026-05-11)
-- **Migración física** (Sprint 15b): route groups, 8 módulos en /modules/<slug>/, Playwright, 3 ESLint rules
-- **DB:** 116 tablas, 355 RLS policies, 126 funciones, 28 vistas, 97 triggers
+- **Tag actual:** `v0.6.0-fase2-sprint3-envios-masivos` (2026-05-11)
+- **FASE 1 cerrada**, Foundation (15a-c) cerrada, FASE 2 sprints 2.1-2.3 cerrados
+- **Proximo sprint:** FASE 2.4 (Cron de vencimientos + recordatorios automaticos)
+- **DB:** 116 tablas, 358 RLS policies, 128 funciones, 28 vistas, 97 triggers
 - **UI:** 64 paginas, ~160 server actions, ~115 componentes custom
-- **Hindu:** 2,389 personas, 7 equipos, 51 suscripciones, 35+ modulos activos
+- **Tests E2E:** 27 specs (26 pass, 1 skip, 0 fail)
+- **Hindu:** 2,390 personas, 7 equipos, 61 com_envios, 18 plantillas sistema, 35+ modulos activos
 - **Arquitectura:** 3 capas — Troncal universal + 18 Modulos componibles + Verticales como presets (ADR-031)
+- **35 ADRs** documentados (001-035)
+
+## Bloqueos operativos vigentes
+
+Estos items NO estan disponibles y NO deben asumirse como funcionales:
+
+- **Resend:** sin API key, sin dominio verificado. Emails en modo mock (ADR-035)
+- **MercadoPago:** sin credenciales empresa. Cobros en modo mock
+- **CUIT / datos fiscales Hindu:** no disponibles. AFIP postergado
+- **Dominios Hindu:** sin acceso DNS. SPF/DKIM/DMARC pendientes post-demo
+- **Mails institucionales Hindu:** no disponibles. Se usan mails personales
+
+Todo servicio externo opera en modo mock-first universal (ADR-035).
+El switch a produccion real se centraliza en FASE 16 (post-demo).
 
 ## Lectura obligatoria antes de cualquier cambio
 
@@ -19,16 +35,29 @@
 6. `/docs/ROADMAP.md` — 17 fases ordenadas por dependencias
 7. `/docs/GLOSSARY.md` — Definiciones canonicas
 
+Drive del proyecto: https://drive.google.com/drive/folders/10cjNwByn0wzcs1ibn4p6ZvZC2Xxau4Gv
+
+## Comandos principales
+
+```bash
+npm run validate:all    # tsc + build + e2e (gate de cierre de sprint)
+npm run build           # Next.js build
+npx tsc --noEmit        # Type check
+npm run test:e2e        # Playwright E2E tests contra produccion
+npm run lint            # ESLint (79 errores heredados, no incluido en validate:all)
+```
+
 ## Principios arquitectonicos
 
 1. **Multi-tenancy estricto:** RLS en todas las tablas operativas + filtro en codigo
-2. **Mock/sandbox/production:** todo servicio externo en mock hasta demo aprobada
+2. **Mock-first universal (ADR-035):** todo servicio externo en mock hasta demo aprobada
 3. **Fuente unica de verdad:** ADR-024, roles en `personas_equipos.rol_equipo_slug`
 4. **Audit log obligatorio** en datos sensibles (salud, credenciales)
 5. **Idempotencia** en operaciones criticas (emisiones, imports, apply)
 6. **Snapshot al momento** (no recalculo): canon guardado por venta, plantel guardado por solicitud
 7. **Pre-mortem (R-PE9)** para sprints de alto riesgo
 8. **Aislamiento financiero (ADR-025):** ventas de concesionarios NO tocan movimientos_caja
+9. **Server actions para mutaciones, API routes solo query-only**
 
 ## Roles operativos
 
@@ -63,4 +92,6 @@
 Ver `/docs/GLOSSARY.md` para definiciones completas. Terminos clave:
 persona (no usuario), atributo (no rol), tenant (no cliente), emision
 (no facturacion), concesionario (aislado del plan de cuentas), canon
-(comision mensual), plantel snapshot (captura al momento).
+(comision mensual), plantel snapshot (captura al momento), mock-first
+(ADR-035, todo en mock hasta demo), lote (grupo de envios masivos),
+segmento (filtro de personas para envio masivo).

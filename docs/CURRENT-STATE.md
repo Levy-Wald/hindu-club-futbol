@@ -38,8 +38,8 @@ Tab "Envíos masivos" con historial. Detalle de lote con envíos individuales.
 |---|---|
 | Tablas en `public` | 116 |
 | Tablas con RLS habilitada | 116 (100%) |
-| RLS policies | 355 |
-| Funciones custom (`pg_proc` en public) | 126 |
+| RLS policies | 358 |
+| Funciones custom (`pg_proc` en public) | 128 |
 | Triggers | 97 |
 | VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
@@ -50,7 +50,7 @@ Tab "Envíos masivos" con historial. Detalle de lote con envíos individuales.
 | Componentes custom (no shadcn) | ~115 |
 | Tests E2E (Playwright) | 27 specs (26 pass, 1 skip) |
 | Tenants registrados | 1 (Hindu Club) |
-| Personas (Hindu) | 2,389 |
+| Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |
 | Atributos en catálogo | 64 (con columna `capa` clasificatoria) |
 | Tipos de notificación catalogados | 23 |
@@ -72,7 +72,7 @@ significativos.
 
 | Tabla | Rows | Notas |
 |---|---|---|
-| `personas` | 2,389 | 103 columnas (3 columnas de disciplina migradas a `personas_disciplinas` en Sprint 14k.6) |
+| `personas` | 2,390 | 103 columnas (3 columnas de disciplina migradas a `personas_disciplinas` en Sprint 14k.6) |
 | `personas_atributos` | ~2,620 | 9 atributos activos en uso (incl. suscriptor x51) |
 | `personas_padrones` | 2,561 | 4 padrones |
 | `personas_vinculos` | 4 | Familiares/tutores cargados manualmente |
@@ -82,8 +82,8 @@ significativos.
 | `entidades_representantes` | 0 | Esqueleto |
 | `pre_inscripciones` | 0 | UI funcional, sin uso real |
 | `solicitudes` | 0 | UI funcional, sin uso real |
-| `com_plantillas` | 18 | Plantillas base cargadas |
-| `com_envios` | 0 | Sin envíos reales (Resend pendiente) |
+| `com_plantillas` | 18 | 18 plantillas sistema (seed protegidas) |
+| `com_envios` | 61 | Envíos mock (Sprint FASE 2.3, lotes masivos) |
 | `com_mensajes` | 0 | Sin envíos reales |
 
 **Rutas UI operativas:** `/admin/personas/*` (listado, ficha, importar,
@@ -93,8 +93,8 @@ historial), `/admin/externos/*`, `/admin/comunicaciones/*`,
 **Server actions:** 13 personas + 6 entidades + 14 comunicaciones + 3
 pre-inscripciones.
 
-**Gaps:** envíos reales (Sprint 15a — Resend), pre-inscripciones públicas
-(postergado).
+**Gaps:** envíos reales con Resend (postergado a FASE 16 por ADR-035),
+pre-inscripciones públicas (postergado).
 
 ---
 
@@ -257,9 +257,9 @@ Rutas: `/admin/rrhh/contratos`, `/admin/rrhh/liquidaciones`.
 | Tabla | Rows | Estado |
 |---|---|---|
 | `tenants` | 1 | Hindu |
-| `tenant_modulos` | 25 | Módulos activados en Hindu |
+| `tenant_modulos` | 35+ | Módulos activados en Hindu |
 | `tenant_config_publica` | 1 | Branding Hindu |
-| `catalogo_modulos` | 36 | Catálogo completo |
+| `catalogo_modulos` | 48 | Catálogo completo (incl. 11 nuevos + 1 vertical) |
 | `sedes` | 2 | Hindu tiene 2 sedes |
 | `api_keys` | 0 | Sin keys generadas |
 | `api_logs` | 0 | Sin uso de API externa |
@@ -285,8 +285,9 @@ Rutas: `/admin/rrhh/contratos`, `/admin/rrhh/liquidaciones`.
 **API REST v1:** 5 endpoints (`/api/v1/personas` GET+POST, `/api/v1/personas/[id]`
 GET+PATCH, `/api/v1/equipos` GET). Sin uso externo real.
 
-**Crons:** 2 (`dispatch-vencimientos` diario 9AM, `cleanup-api-logs`
-domingo 3AM). `CRON_SECRET` pendiente de configurar en Vercel.
+**Crons:** 4 (`dispatch-vencimientos` diario 9AM, `cleanup-api-logs`
+domingo 3AM, `cleanup-notificaciones` diario, `calcular-canon-mensual`
+dia 6 de cada mes 8AM). `CRON_SECRET` pendiente de configurar en Vercel.
 
 **Legacy a deprecar (Sprint 14d):**
 - `padron_syncs` (1 row)
@@ -303,10 +304,10 @@ domingo 3AM). `CRON_SECRET` pendiente de configurar en Vercel.
 
 **Estructura:**
 - 2 sedes
-- 17 módulos activados
+- 35+ módulos activados
 - Branding básico configurado
 
-**Personas:** 2,389
+**Personas:** 2,390
 - Atributos activos en uso: jugador (211), socio (alta cantidad), suscriptor (51),
   tenant.staff, tenant.admin_padron, sistema.admin
 
@@ -344,7 +345,7 @@ domingo 3AM). `CRON_SECRET` pendiente de configurar en Vercel.
 
 | Catálogo | Items | Editable desde UI |
 |---|---|---|
-| `catalogo_modulos` | 34 | No (solo admin sistema) |
+| `catalogo_modulos` | 48 | No (solo admin sistema) |
 | `catalogo_atributos` | 61 | Sí |
 | `catalogo_disciplinas` | 17 | Sí |
 | `catalogo_tipos_documento` | 8 | Sí |
@@ -384,8 +385,8 @@ inicializados en Hindu.
 | Integración | Estado | Próximo sprint |
 |---|---|---|
 | API REST v1 | Operativa, sin uso externo real | — |
-| Resend (email) | No configurada (`RESEND_API_KEY` falta) | 15a |
-| MercadoPago | No integrada | 15d |
+| Resend (email) | Mock-first (ADR-035). `RESEND_API_KEY` no configurada | FASE 16 |
+| MercadoPago | Mock-first (ADR-035). Sin credenciales empresa | FASE 16 |
 | Zoho CRM | Catalogada (`conector_zoho_crm`), no construida | Q3+ |
 | MCP Server | Catalogado (`mcp_server`), no construido | Q3+ |
 | Webhooks salientes | No construidos | Q3+ |
@@ -401,8 +402,8 @@ inicializados en Hindu.
 | ~~Legacy `padron_syncs` activo~~ | ~~Alta~~ | ✅ Sprint 14d |
 | ~~10 VIEWs `fin_*` sin uso~~ | ~~Media~~ | ✅ Sprint 14d |
 | ~~3 atributos duplicados~~ | ~~Media~~ | ✅ Sprint 14d |
-| `RESEND_API_KEY` no configurada en Vercel | Alta | 15a |
-| `CRON_SECRET` no configurada en Vercel (crons expuestos) | Alta | 15a o antes |
+| `RESEND_API_KEY` no configurada en Vercel | Alta | FASE 16 (ADR-035, mock-first) |
+| `CRON_SECRET` no configurada en Vercel (crons expuestos) | Alta | FASE 15 Hardening |
 | `lib/imports/actions.ts` 530+ líneas monolíticas | Media | 17a |
 | 4 catálogos sin UI CRUD | Media | Backlog menor |
 | `padron_socios` pipeline no documentado en specs previos | Baja | 14d (consolidar) |
@@ -410,7 +411,7 @@ inicializados en Hindu.
 | `personas` 103 columnas (mezcla CRM/salud/deportivo, 3 migradas en 14k.6) | Media | 2027 (al separar troncal) |
 | `D3` capa de servicios pura no implementada | Baja | Postergado |
 | `D6` `module_events` no implementado | Baja | Postergado |
-| 0 tests automatizados | Media | Sprint 17c |
+| ~~0 tests automatizados~~ | ~~Media~~ | ✅ Sprint 15c: 27 E2E specs (26 pass, 1 skip) |
 | 1 TODO en código (`comunicaciones/_actions.ts:216`) | Baja | FASE 2.2 (ResendAdapter) |
 
 ---

@@ -33,22 +33,28 @@ microservicios, ORMs (Prisma/Drizzle), tRPC, GraphQL.
     ├── /app                   → Next.js App Router (rutas + server actions)
     │   ├── /(public)          → Rutas públicas (sin auth)
     │   ├── /admin             → Rutas privadas (con auth + RLS)
+    │   │   └── /(modulos)/    → Route group para módulos (thin wrappers)
     │   ├── /api               → API REST v1 + crons
     │   └── /_components       → Componentes globales del app
+    ├── /modules               → Módulos componibles (Sprint 15b)
+    │   └── /<slug>/           → Un módulo (18 migrados)
+    │       ├── module.json    → Manifiesto declarativo
+    │       ├── /lib/          → Actions, queries, lógica
+    │       └── /ui/           → Componentes del módulo
     ├── /components            → Componentes UI reutilizables
     │   ├── /ui                → shadcn + componentes propios atómicos
     │   ├── /layout            → Sidebar, topbar, nav
     │   └── /auth              → Forms de login
-    ├── /lib                   → Lógica reutilizable
+    ├── /lib                   → Lógica reutilizable (troncal)
     │   ├── /supabase          → Clientes (server, browser, middleware)
     │   ├── /imports           → Plataforma de imports (pipelines, parsers)
     │   ├── /export            → Exportadores (CSV, XLSX)
-    │   ├── /comunicaciones    → Email + notificaciones
     │   ├── /api               → Helpers de API REST
     │   ├── /vistas            → Vistas dinámicas de tablas
     │   └── /search            → Búsqueda global
     ├── /docs                  → Documentación viva (los 7 archivos canónicos)
     ├── /supabase              → Migrations + types generados
+    ├── /tests/e2e             → Tests E2E Playwright (por módulo)
     └── /public                → Assets estáticos
 
 ---
@@ -613,6 +619,59 @@ credenciales al tenant.
 
 ---
 
+## 13.8 Modo mock-first universal (ADR-035)
+
+Todo integrador externo (Resend, MercadoPago, WhatsApp, AFIP) se construye
+con el patrón adapter mock-first:
+
+1. **Interface tipada:** define el contrato (`ComunicacionAdapter`, futuro
+   `PagosAdapter`, etc.)
+2. **MockAdapter:** implementación que simula la operación, registra en DB,
+   pero no envía/cobra nada real. Es el default sin env var.
+3. **Factory:** `resolveAdapter()` lee env var (`<INTEGRADOR>_MODE`) y
+   devuelve el adapter correspondiente (mock, sandbox, production).
+4. **API pública:** función tipada (`enviarComunicacion()`,
+   `enviarComunicacionMasiva()`) que los módulos consumen sin conocer el
+   adapter activo.
+
+El switch a producción real se centraliza en FASE 16 (post-demo).
+
+### Referencia de implementación
+
+Sprint FASE 2.1 implementó el patrón completo para comunicaciones:
+- `modules/comunicaciones/lib/adapter.ts` — interface + tipos
+- `modules/comunicaciones/lib/adapters/mock-adapter.ts` — MockAdapter
+- `modules/comunicaciones/lib/factory.ts` — resolveAdapter()
+- `modules/comunicaciones/lib/cliente.ts` — API pública
+
+---
+
+## 13.9 Server actions vs API routes — regla refinada
+
+### Mutaciones → Server actions (siempre)
+
+Toda operación que modifica datos usa server actions (`'use server'`).
+Beneficios: validación server-side, auth automática, revalidación.
+
+### Reads → Depende del consumidor
+
+- **RSC (page.tsx):** query directa en el componente o función en
+  `_lib/queries.ts`. Sin API route.
+- **Client component que necesita datos dinámicos:** API route GET
+  (query-only). Ejemplo: `/api/comunicaciones/preview-segmento`.
+
+### Regla: API routes solo query-only
+
+Las API routes (`/app/api/`) son exclusivamente para:
+- Reads consumidos por client components (fetch dinámico)
+- Endpoints públicos (`/api/v1/*`)
+- Cron endpoints (`/api/cron/*`)
+
+**NUNCA usar API routes para mutaciones.** Las mutaciones van por server
+actions.
+
+---
+
 ## 14. Anti-patrones prohibidos
 
 ### A1 — Hardcodear datos de cliente en código
@@ -863,7 +922,7 @@ en cualquier orden.
 | DA-1 | `lib/troncal/operaciones.ts` y `lib/imports/parser.ts` son re-exports manuales; la capa de servicios pura (ADR-031 §D3) no está implementada aún | Bajo — funciona, pero acopla módulos a paths internos de troncal | Sprint 16+ (servicios layer) |
 | DA-2 | Script `generate-module-types` (genera `types/index.ts` desde `module.json`) está especificado pero no implementado | Bajo — tipos se mantienen a mano | Sprint 15d o backlog |
 | DA-3 | 10 módulos con manifiesto pero sin UI migrada (`disciplinas`, `competencias`, `scouting`, `talles`, `acceso`, `eventos_calendario`, `partidos`, `solicitudes`, `socios`, `proveedores`) | Nulo hoy — no tienen código aún | Cuando se implementen |
-| DA-4 | ~~Tests E2E no validados~~ — **RESUELTO Sprint 15c**: 16 pass, 1 skip | — | — |
+| DA-4 | ~~Tests E2E no validados~~ — **RESUELTO Sprint 15c**: 27 specs, 26 pass, 1 skip | — | — |
 | DA-5 | 79 errores de ESLint heredados — `validate:all` NO incluye lint | Medio — sin gate de lint en pipeline default | FASE 15 Hardening |
 
 ### DA-5: 79 errores de ESLint heredados

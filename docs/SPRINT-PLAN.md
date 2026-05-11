@@ -1,6 +1,6 @@
 # ClubCore — Sprint Plan
 
-> Sprint actual + proximos 3 en cola. Sin fechas comprometidas.
+> Historial de sprints completados + sprint actual + proximos en cola.
 > Para el roadmap completo por fases, ver `ROADMAP.md`.
 >
 > Mantenido por el arquitecto.
@@ -24,67 +24,61 @@
 | 14k.5 | Cuerpo tecnico + refactor permisos | df28d28 | OK | Cerrado |
 | 14k | Notificaciones in-app | 10af608 | OK | Cerrado |
 | 14j.2 | Concesiones genericas | 10af608 | OK | Cerrado |
+| 14k.6 | Limpieza arquitectonica pre-FASE 2 | — | OK | Cerrado |
+| 14k.7 | Hotfixes FASE 1 + UI completion | — | OK | Cerrado |
+| 14k.8 | Estabilizacion | — | OK | Cerrado |
+| 14k.9 | Cierre real FASE 1 | — | OK | Cerrado |
 
 Tag: `v0.1.0-fase1-cierre`
 
 ---
 
+## Foundation (2026-05-11)
+
+| Sprint | Tema | Tag | Tests E2E | Estado |
+|---|---|---|---|---|
+| 15a | Foundation Declarativa: ADRs 031-033, 18 manifiestos, catalogo modulos extendido, ESLint rules, schema audit | `v0.2.0-foundation-declared` | — | Cerrado |
+| 15b | Migracion fisica de modulos: 18 modulos a `modules/` con estructura canonica | `v0.3.0-modules-physical` | — | Cerrado |
+| 15c | E2E Tests Verdes: Playwright config, usuario E2E, 16 pass + 1 skip | `v0.3.1-e2e-greenlit` | 16 pass, 1 skip | Cerrado |
+
+---
+
+## FASE 2 — Comunicacion (2026-05-11)
+
+| Sprint | Tema | Tag | Tests E2E | Estado |
+|---|---|---|---|---|
+| 2.1 | Motor de comunicacion core (mock-first): adapter pattern, MockAdapter, renderTemplate, enviarComunicacion, page con 2 tabs | `v0.4.0-fase2-sprint1-motor` | 16 pass, 1 skip | Cerrado |
+| 2.2 | Editor CRUD de plantillas: editor con preview, auto-deteccion variables, permisos por atributo, proteccion sistema, 7 E2E tests | `v0.5.0-fase2-sprint2-editor` | 23 pass, 1 skip | Cerrado |
+| 2.3 | Envios masivos con segmentacion MVP: wizard, segmentos (todos_activos, equipo), preview, bulk insert batches 500, lotes, historial, detalle lote, 11 E2E comunicaciones | `v0.6.0-fase2-sprint3-envios-masivos` | 26 pass, 1 skip | Cerrado |
+
+---
+
 ## Sprint actual
 
-### Sprint 15a — Resend + comunicaciones masivas
-**Capa:** Módulo (Comunicaciones) - **Fase:** FASE 2
+### Sprint FASE 2.4 — Cron de vencimientos + recordatorios automaticos
+**Capa:** Modulo (Comunicaciones) - **Fase:** FASE 2
 
-**Objetivo.** Emails reales saliendo de la plataforma: avisos de
-vencimiento, recibos, comunicados.
+**Objetivo.** Envios automaticos por vencimiento de cuotas y recordatorios
+configurables. Cron que dispara plantillas a segmentos relevantes.
 
-**Alcance.**
-- Configurar Resend (mock mode primero)
-- Plantillas operativas (vencimiento, recibo, comunicado)
-- UI de envio masivo
-- Cron de vencimientos envia emails reales
-- Preferencias de comunicacion por persona
-
-**Cuello de botella:** DNS Resend (arrancar configuracion en paralelo).
-
-**Dependencias previas.** FASE 1 cerrada. Tag `v0.1.0-fase1-cierre`.
+**Dependencias previas.** Sprint FASE 2.3 cerrado. Tag `v0.6.0-fase2-sprint3-envios-masivos`.
 
 ---
 
-## Proximos 3 en cola
+## Proximos en cola
 
-### Sprint 15b — Reportes financieros basicos
-**Capa:** Troncal ERP - **Fase:** FASE 7
+### Sprint FASE 2.5 — Preferencias de canales por persona
+**Capa:** Modulo (Comunicaciones) - **Fase:** FASE 2
 
-**Objetivo.** Hindu puede ver balance mensual, ingresos/egresos por
-categoria, deudores, recaudacion por equipo.
-
-**Alcance resumido.**
-- 5 reportes con filtros y export
-- Asignacion de centro de costo a movimientos
+**Objetivo.** Cada persona elige por que canal quiere recibir comunicaciones
+(email, in-app, futuro whatsapp). El sistema respeta la preferencia al enviar.
 
 ---
 
-### Sprint 15c — RRHH operativo
-**Capa:** Módulo - **Fase:** FASE 8
+### Sprint FASE 3.1 — Control de asistencias operativo (mobile)
+**Capa:** Modulo (Asistencias) - **Fase:** FASE 3
 
-**Objetivo.** UI completa de contratos y liquidaciones.
-
-**Alcance resumido.**
-- Contratos UI completa con vigencia y PDF
-- Liquidaciones con movimiento de caja
-- Datos laborales tab completo
-
----
-
-### Sprint 15d — Envios masivos + drip de deudores
-**Capa:** Módulo (Comunicaciones) - **Fase:** FASE 2
-
-**Objetivo.** Wizard de envio masivo completo con segmentos y tracking.
-
-**Alcance resumido.**
-- Wizard: segmento -> plantilla -> preview -> enviar
-- Tracking (delivered, opened, bounced)
-- Drip de recuperacion de deudores
+**Objetivo.** Tomar asistencia en entrenamientos y partidos desde mobile.
 
 ---
 

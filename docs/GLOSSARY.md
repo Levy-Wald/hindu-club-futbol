@@ -39,6 +39,19 @@ completa: `ARCHITECTURE.md` §14.
 **ADR (Architecture Decision Record).** Entrada en `DECISIONS.md` que documenta
 una decisión técnica con contexto, alternativas y justificación.
 
+**Mock-first.** Principio (ADR-035) por el cual todo integrador externo
+(Resend, MercadoPago, WhatsApp, AFIP) se desarrolla primero con un adapter
+mock que simula la operación sin credenciales reales. El switch a producción
+ocurre en FASE 16.
+
+**Foundation.** Nombre informal de los Sprints 15a, 15b y 15c que
+establecieron la base arquitectónica modular: manifiestos `module.json`,
+migración física a `modules/`, ESLint rules de acoplamiento, E2E tests.
+
+**Adapter pattern.** Patrón de integradores externos: interface tipada +
+implementación mock + factory que resuelve el adapter activo por env var.
+Referencia: `ComunicacionAdapter` + `MockAdapter` + `resolveAdapter()`.
+
 **Recipe.** Procedimiento paso a paso para una operación recurrente (ej:
 agregar un módulo nuevo). Ver `ARCHITECTURE.md` §15.
 
@@ -83,8 +96,22 @@ envío + tracking.
 **Envío.** Una corrida de plantilla a un segmento de personas. Vive en
 `com_envios`.
 
-**Segmento.** Grupo de personas filtrado por criterios (atributo, padrón,
-equipo). No es tabla; se construye en query.
+**Lote.** Grupo de envíos masivos ejecutados en una sola operación. No es
+tabla propia; se agrupa por `metadata.lote_id` (UUID) en `com_envios`.
+Un lote tiene plantilla, canal, segmento y N envíos individuales.
+
+**Segmento.** Grupo de personas filtrado por criterios (tipo: todos_activos,
+equipo). No es tabla; se construye en query vía `resolverSegmento()`.
+Tipos disponibles en `SegmentoConfig` (union type).
+
+**Canal.** Medio por el cual se envía una comunicación: `email`, `inapp`
+(notificación in-app). Futuros: `whatsapp`, `sms`. Cada envío tiene un
+canal. La preferencia de canal por persona se implementa en FASE 2.5.
+
+**Plantilla sistema.** Las 18 plantillas seed protegidas que vienen
+preconfiguradas con el sistema (bienvenida, vencimiento, recibo, etc.).
+No se pueden eliminar (`deleted_at` bloqueado en UI). Se pueden editar
+pero no cambiar el slug.
 
 ---
 
