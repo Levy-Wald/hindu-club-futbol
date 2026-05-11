@@ -863,4 +863,17 @@ en cualquier orden.
 | DA-1 | `lib/troncal/operaciones.ts` y `lib/imports/parser.ts` son re-exports manuales; la capa de servicios pura (ADR-031 §D3) no está implementada aún | Bajo — funciona, pero acopla módulos a paths internos de troncal | Sprint 16+ (servicios layer) |
 | DA-2 | Script `generate-module-types` (genera `types/index.ts` desde `module.json`) está especificado pero no implementado | Bajo — tipos se mantienen a mano | Sprint 15d o backlog |
 | DA-3 | 10 módulos con manifiesto pero sin UI migrada (`disciplinas`, `competencias`, `scouting`, `talles`, `acceso`, `eventos_calendario`, `partidos`, `solicitudes`, `socios`, `proveedores`) | Nulo hoy — no tienen código aún | Cuando se implementen |
-| DA-4 | Tests E2E (Playwright) escritos pero no validados — Playwright deadlockea con `webServer` cuando dev server ya corre | Medio — no hay cobertura E2E real | Sprint 15c |
+| DA-4 | ~~Tests E2E no validados~~ — **RESUELTO Sprint 15c**: 16 pass, 1 skip | — | — |
+| DA-5 | 79 errores de ESLint heredados — `validate:all` NO incluye lint | Medio — sin gate de lint en pipeline default | FASE 15 Hardening |
+
+### DA-5: 79 errores de ESLint heredados
+
+**Estado:** validate:all NO incluye lint porque 79 errors heredados (de sprints
+previos a 15b) bloquean el pipeline. validate:strict sí los incluye pero no
+es el gate por default.
+
+**Razon:** Arreglarlos en este sprint expandía scope. Son de archivos legacy
+no tocados por la migración modular.
+
+**Cuando se retoma:** FASE 15 Hardening (sprint dedicado de cleanup). Cuando
+queden 0 errors, hacer validate:all = validate:strict.

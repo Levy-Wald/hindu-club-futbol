@@ -6,9 +6,9 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint 15b completado.
-> Sprints 14d a 15a cerrados. FASE 1 oficialmente cerrada.
-> Sprint 15b: Migración física a /modules/<slug>/ + route groups + E2E + lockdown.
+> Última actualización: 11 de mayo de 2026 — Sprint 15c completado.
+> Sprints 14d a 15b cerrados. FASE 1 oficialmente cerrada.
+> Sprint 15c: E2E tests verdes — playwright fix + usuario dedicado.
 
 ---
 
@@ -18,11 +18,9 @@
 para Hindu Club Futbol: suscripciones, cuotas, cobranza, centros de costo,
 salud, utileria, cuerpo tecnico, notificaciones in-app, concesiones.
 
-**Ultimo sprint cerrado:** **15b** — Migración Física + E2E + Lockdown.
-Route groups (troncal) y (modulos) en app/admin/. 8 módulos migrados
-físicamente a modules/<slug>/ con thin-wrapper pattern. 3 ESLint rules custom
-(no-cross-module-imports, no-module-importing-from-app, troncal-cannot-import-modules).
-Playwright configurado con 11 E2E tests. Pipeline validate:all. Build verde.
+**Ultimo sprint cerrado:** **15c** — E2E Tests Verdes.
+Fix playwright.config.ts (sin webServer), usuario E2E dedicado (e2e-test@levywald.com),
+16 tests pasan + 1 skip. test:e2e devuelto a validate:all. docs/E2E-TESTING.md creado.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).

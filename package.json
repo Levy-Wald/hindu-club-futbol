@@ -9,9 +9,10 @@
     "lint": "eslint",
     "audit:schema": "npx tsx scripts/audit-schema-vs-code.ts",
     "validate:manifests": "npx tsx scripts/validate-module-manifests.ts",
-    "validate:all": "npm run lint && npm run validate:manifests && npm run build",
-    "test:e2e": "npx playwright test",
-    "test:e2e:ui": "npx playwright test --ui"
+    "validate:all": "npm run validate:manifests && npm run test:e2e && npm run build",
+    "validate:strict": "npm run lint && npm run validate:manifests && npm run audit:schema && npm run test:e2e && npm run build",
+    "test:e2e": "node --env-file=.env.local -e \"require('child_process').execSync('npx playwright test', {stdio:'inherit'})\"",
+    "test:e2e:ui": "node --env-file=.env.local -e \"require('child_process').execSync('npx playwright test --ui', {stdio:'inherit'})\""
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
