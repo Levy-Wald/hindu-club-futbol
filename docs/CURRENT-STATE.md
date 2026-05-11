@@ -6,9 +6,9 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint FASE 2.3 completado.
+> Última actualización: 11 de mayo de 2026 — Sprint FASE 2.4 completado.
 > Sprints 14d a 15c cerrados. FASE 1 oficialmente cerrada.
-> Sprint FASE 2.3: Envíos masivos con segmentación MVP.
+> Sprint FASE 2.4: Cron de vencimientos + recordatorios automáticos.
 
 ---
 
@@ -18,12 +18,12 @@
 para Hindu Club Futbol: suscripciones, cuotas, cobranza, centros de costo,
 salud, utileria, cuerpo tecnico, notificaciones in-app, concesiones.
 
-**Ultimo sprint cerrado:** **FASE 2.3** — Envíos Masivos con Segmentación.
-Wizard de envío masivo: seleccionar plantilla, canal, segmento (todos_activos
-o equipo). Preview con conteo de destinatarios. Bulk insert en batches de 500
-vía MockAdapter.enviarMasivo(). Lotes agrupados por metadata.lote_id.
-Tab "Envíos masivos" con historial. Detalle de lote con envíos individuales.
-11 E2E tests para comunicaciones (26 total passed, 1 skip).
+**Ultimo sprint cerrado:** **FASE 2.4** — Cron de vencimientos + recordatorios
+automáticos. 3 cron jobs (apto_vence_7d, cuota_vence_7d, cuota_vencida_7d) con
+service role client, dedup 7d via origen_modulo_slug nativo, segmento
+personas_ids_directos, com_jobs_log table. Tab "Automatizaciones" con historial
+de ejecuciones y detalle por job. 15 E2E tests comunicaciones (30 total passed,
+1 skip).
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -36,7 +36,7 @@ Tab "Envíos masivos" con historial. Detalle de lote con envíos individuales.
 
 | Métrica | Valor |
 |---|---|
-| Tablas en `public` | 116 |
+| Tablas en `public` | 117 |
 | Tablas con RLS habilitada | 116 (100%) |
 | RLS policies | 358 |
 | Funciones custom (`pg_proc` en public) | 128 |
@@ -45,10 +45,10 @@ Tab "Envíos masivos" con historial. Detalle de lote con envíos individuales.
 | Storage buckets | 6 (incl. private-utileria-fotos) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
 | Páginas Next.js | 64 (7 públicas + 57 admin) |
-| API routes | 12 (5 endpoints v1 + 3 internos + 4 crons) |
+| API routes | 15 (5 endpoints v1 + 3 internos + 7 crons) |
 | Server actions | ~160 en 26 archivos |
 | Componentes custom (no shadcn) | ~115 |
-| Tests E2E (Playwright) | 27 specs (26 pass, 1 skip) |
+| Tests E2E (Playwright) | 31 specs (30 pass, 1 skip) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |

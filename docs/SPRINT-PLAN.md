@@ -50,22 +50,11 @@ Tag: `v0.1.0-fase1-cierre`
 | 2.1 | Motor de comunicacion core (mock-first): adapter pattern, MockAdapter, renderTemplate, enviarComunicacion, page con 2 tabs | `v0.4.0-fase2-sprint1-motor` | 16 pass, 1 skip | Cerrado |
 | 2.2 | Editor CRUD de plantillas: editor con preview, auto-deteccion variables, permisos por atributo, proteccion sistema, 7 E2E tests | `v0.5.0-fase2-sprint2-editor` | 23 pass, 1 skip | Cerrado |
 | 2.3 | Envios masivos con segmentacion MVP: wizard, segmentos (todos_activos, equipo), preview, bulk insert batches 500, lotes, historial, detalle lote, 11 E2E comunicaciones | `v0.6.0-fase2-sprint3-envios-masivos` | 26 pass, 1 skip | Cerrado |
+| 2.4 | Cron vencimientos + recordatorios: 3 triggers (apto_vence_7d, cuota_vence_7d, cuota_vencida_7d), service role client, dedup 7d nativo, segmento personas_ids_directos, com_jobs_log, tab Automatizaciones, 4 E2E nuevos | `v0.7.0-fase2-sprint4-cron` | 30 pass, 1 skip | Cerrado |
 
 ---
 
 ## Sprint actual
-
-### Sprint FASE 2.4 — Cron de vencimientos + recordatorios automaticos
-**Capa:** Modulo (Comunicaciones) - **Fase:** FASE 2
-
-**Objetivo.** Envios automaticos por vencimiento de cuotas y recordatorios
-configurables. Cron que dispara plantillas a segmentos relevantes.
-
-**Dependencias previas.** Sprint FASE 2.3 cerrado. Tag `v0.6.0-fase2-sprint3-envios-masivos`.
-
----
-
-## Proximos en cola
 
 ### Sprint FASE 2.5 — Preferencias de canales por persona
 **Capa:** Modulo (Comunicaciones) - **Fase:** FASE 2
@@ -73,7 +62,11 @@ configurables. Cron que dispara plantillas a segmentos relevantes.
 **Objetivo.** Cada persona elige por que canal quiere recibir comunicaciones
 (email, in-app, futuro whatsapp). El sistema respeta la preferencia al enviar.
 
+**Dependencias previas.** Sprint FASE 2.4 cerrado. Tag `v0.7.0-fase2-sprint4-cron`.
+
 ---
+
+## Proximos en cola
 
 ### Sprint FASE 3.1 — Control de asistencias operativo (mobile)
 **Capa:** Modulo (Asistencias) - **Fase:** FASE 3

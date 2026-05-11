@@ -56,7 +56,7 @@ producto terminado. **Todo se construye en modo mock por default.** Ver
 | Autenticacion (Supabase Auth) | Done | Email + magic link |
 | Audit log | Done | 46k+ entradas registrando |
 | API REST v1 con scopes | Done | 5 endpoints |
-| Crons (vencimientos, cleanup, notificaciones, canon) | Done | 4 crons configurados |
+| Crons (vencimientos, cleanup, notificaciones, canon, apto, cuotas) | Done | 7 crons configurados |
 
 ### CRM core — Done
 
@@ -141,7 +141,7 @@ hasta FASE 16 (ADR-035).
 
 **Depende de.** FASE 1.
 
-**Tag:** `v0.6.0-fase2-sprint3-envios-masivos` (Sprints 2.1-2.3 completados)
+**Tag:** `v0.7.0-fase2-sprint4-cron` (Sprints 2.1-2.4 completados)
 
 ### Modulos
 
@@ -150,7 +150,7 @@ hasta FASE 16 (ADR-035).
 | 2.1 | Motor de comunicacion core (mock-first) | Done | v0.4.0 |
 | 2.2 | Editor de plantillas + variables | Done | v0.5.0 |
 | 2.3 | Envios masivos con segmentacion | Done | v0.6.0 |
-| 2.4 | Cron de vencimientos + recordatorios automaticos | Orange | — |
+| 2.4 | Cron de vencimientos + recordatorios automaticos | Done | v0.7.0 |
 | 2.5 | Preferencias de canales por persona | Orange | — |
 
 ---
