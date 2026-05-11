@@ -21,13 +21,13 @@ function fail(message: string): ActionResult {
 
 export async function aprobarSolicitud(solicitudId: string): Promise<ActionResult> {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return fail('No autenticado')
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return fail('No autenticado')
 
   const { data: persona } = await supabase
     .from('personas')
     .select('id')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .is('deleted_at', null)
     .maybeSingle()
 
@@ -76,13 +76,13 @@ export async function aprobarSolicitud(solicitudId: string): Promise<ActionResul
 
 export async function rechazarSolicitud(solicitudId: string, motivo: string): Promise<ActionResult> {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return fail('No autenticado')
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return fail('No autenticado')
 
   const { data: persona } = await supabase
     .from('personas')
     .select('id')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .is('deleted_at', null)
     .maybeSingle()
 
@@ -200,8 +200,8 @@ export async function eliminarPlantilla(id: string): Promise<ActionResult> {
 
 export async function probarPlantilla(id: string): Promise<ActionResult> {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return fail('No autenticado')
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return fail('No autenticado')
 
   const { data: plantilla } = await supabase
     .from('com_plantillas')
@@ -215,7 +215,7 @@ export async function probarPlantilla(id: string): Promise<ActionResult> {
 
   // TODO: Implementar envio real de email de prueba cuando el servicio de email este configurado.
   // Por ahora, solo simulamos el envio exitoso.
-  return success(`Email de prueba enviado a ${session.user.email}`)
+  return success(`Email de prueba enviado a ${user.email}`)
 }
 
 // =============================================================================

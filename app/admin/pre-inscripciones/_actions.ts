@@ -66,13 +66,13 @@ export async function aprobarPreInscripcion(inscripcionId: string) {
   }
 
   // Get reviewer persona_id
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
   let reviewerId: string | null = null
-  if (session) {
+  if (user) {
     const { data: reviewer } = await supabase
       .from('personas')
       .select('id')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .maybeSingle()
     reviewerId = reviewer?.id ?? null
   }
@@ -100,13 +100,13 @@ export async function aprobarPreInscripcion(inscripcionId: string) {
 export async function rechazarPreInscripcion(inscripcionId: string, motivo: string) {
   const supabase = await createClient()
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
   let reviewerId: string | null = null
-  if (session) {
+  if (user) {
     const { data: reviewer } = await supabase
       .from('personas')
       .select('id')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .maybeSingle()
     reviewerId = reviewer?.id ?? null
   }

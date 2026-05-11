@@ -26,13 +26,13 @@ export async function crearApiKey(formData: FormData) {
   const supabase = await createClient()
 
   // Get persona_id for created_by
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
   let createdBy: string | null = null
-  if (session) {
+  if (user) {
     const { data: persona } = await supabase
       .from('personas')
       .select('id')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .maybeSingle()
     createdBy = persona?.id ?? null
   }

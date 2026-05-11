@@ -11,13 +11,13 @@ function formatResult(ok: boolean, message: string) {
 
 export async function editarMiPerfil(datos: Record<string, unknown>) {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return formatResult(false, 'No autenticado')
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return formatResult(false, 'No autenticado')
 
   const { data: persona } = await supabase
     .from('personas')
     .select('id')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .is('deleted_at', null)
     .maybeSingle()
 
@@ -36,13 +36,13 @@ export async function editarMiPerfil(datos: Record<string, unknown>) {
 
 export async function solicitarCambioDatos(campo: string, valorActual: string, valorNuevo: string) {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return formatResult(false, 'No autenticado')
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return formatResult(false, 'No autenticado')
 
   const { data: persona } = await supabase
     .from('personas')
     .select('id')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .is('deleted_at', null)
     .maybeSingle()
 
@@ -65,13 +65,13 @@ export async function solicitarCambioDatos(campo: string, valorActual: string, v
 
 export async function solicitarIngresoEquipo(equipoId: string, rolSolicitado: string, mensaje?: string) {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return formatResult(false, 'No autenticado')
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return formatResult(false, 'No autenticado')
 
   const { data: persona } = await supabase
     .from('personas')
     .select('id')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .is('deleted_at', null)
     .maybeSingle()
 

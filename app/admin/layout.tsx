@@ -11,14 +11,12 @@ export default async function AdminLayout({
 }) {
   const supabase = await createClient()
   // El middleware ya valida el user y redirige si no hay sesión.
-  // Usamos getSession() que lee del cookie (sin round-trip de red).
-  const { data: { session } } = await supabase.auth.getSession()
+  // getUser() valida contra auth server (seguro, sin deprecation warnings).
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (!user) {
     redirect('/login')
   }
-
-  const user = session.user
 
   // Obtener persona_id del usuario logueado para notificaciones
   const { data: persona } = await supabase

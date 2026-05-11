@@ -8,15 +8,15 @@ export default async function MiCuentaPage() {
   const supabase = await createClient()
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  if (!session) redirect('/login')
+  if (!user) redirect('/login')
 
   const { data: persona } = await supabase
     .from('personas')
     .select('id, nombre, apellido, foto_url, dni, email, telefono, fecha_nacimiento, created_at')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .single()
 
   if (!persona) {

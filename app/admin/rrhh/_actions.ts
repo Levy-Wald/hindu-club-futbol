@@ -356,12 +356,12 @@ export async function aprobarLiquidacion(id: string): Promise<ActionResult> {
 
   // Obtener persona actual para registrar quién aprobó
   let aprobadaPorId: string | null = null
-  const { data: { session } } = await supabase.auth.getSession()
-  if (session) {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
     const { data: persona } = await supabase
       .from('personas')
       .select('id')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .maybeSingle()
     aprobadaPorId = persona?.id ?? null
   }
@@ -471,12 +471,12 @@ export async function anularLiquidacion(id: string): Promise<ActionResult> {
   if (liquidacion.movimiento_caja_id) {
     // Obtener persona actual para registrar quién anuló el movimiento
     let anuladorId: string | null = null
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
       const { data: persona } = await supabase
         .from('personas')
         .select('id')
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
         .maybeSingle()
       anuladorId = persona?.id ?? null
     }

@@ -4,8 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function fetchMiPersonaCompleta() {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return null
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
 
   // Misma query que fetchPersonaById pero buscando por user_id
   const { data: persona } = await supabase
@@ -30,7 +30,7 @@ export async function fetchMiPersonaCompleta() {
         )
       )
     `)
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .is('deleted_at', null)
     .maybeSingle()
 

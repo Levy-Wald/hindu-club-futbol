@@ -21,10 +21,7 @@ async function requireStaff() {
 // Items
 // -------------------------------------------------------------------
 
-const CATEGORIAS = [
-  'indumentaria_juego', 'indumentaria_entrenamiento', 'material_deportivo',
-  'gym', 'medico', 'primeros_auxilios', 'accesorios', 'consumible', 'otro',
-] as const
+import { CATEGORIAS } from './_constants'
 
 export async function listarItems(filtros?: {
   categoria?: string
@@ -600,4 +597,3 @@ export async function fetchEquiposUtileria() {
   return data ?? []
 }
 
-export { CATEGORIAS }

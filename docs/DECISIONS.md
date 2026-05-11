@@ -1741,6 +1741,142 @@ elegida y se referencia desde el Sprint correspondiente.
 
 ---
 
+## ADR-028 — PIM unificado: productos, servicios y suscripciones bajo un solo catálogo
+
+**Fecha:** 2026-05-11
+**Estado:** Aceptado, implementación pendiente (FASE 3)
+**Capa:** Troncal PIM
+**Tomado por:** Arquitecto
+
+### Contexto
+
+El sistema tiene tres catálogos de "cosas vendibles" que evolucionaron
+por separado:
+- `productos_servicios` (troncal ERP): productos físicos y servicios
+  del club
+- `cuotas_planes` (troncal ERP): planes de suscripción recurrente
+- `concesion_productos` (módulo concesiones): catálogo del concesionario
+
+Esto genera duplicación de lógica de precios, categorías, stock y
+descuentos. A futuro (shop, e-commerce, marketplace) se necesita un
+catálogo unificado.
+
+### Decisión
+
+En FASE 3 (PIM — Product Information Management), unificar bajo un
+solo catálogo `pim_productos` con `tipo` discriminador:
+- `tipo = 'producto'` → item físico con stock
+- `tipo = 'servicio'` → sin stock
+- `tipo = 'suscripcion'` → recurrente con periodicidad
+- `tipo = 'concesion'` → item de concesionario (aislado financieramente)
+
+Tabla `pim_precios` separada con vigencia temporal. Tabla
+`pim_categorias` jerárquica. Vista `v_pim_catalogo_activo` como
+interfaz principal.
+
+### Alternativas descartadas
+
+1. **Mantener catálogos separados** — descartado a largo plazo. Impide
+   shop unificado y reportes cruzados.
+2. **Unificar ahora (Sprint 14k.8)** — descartado. Refactor demasiado
+   grande para el cierre de FASE 1.
+
+### Consecuencias
+
+FASE 3 incluirá migración de datos de los 3 catálogos al modelo PIM.
+Hasta entonces, cada módulo mantiene su catálogo propio sin cambios.
+
+---
+
+## ADR-029 — Dashboard Salud con métricas agregadas y alertas
+
+**Fecha:** 2026-05-11
+**Estado:** Aceptado, implementación pendiente (FASE 4)
+**Capa:** Vertical Club Deportivo
+**Tomado por:** Arquitecto
+
+### Contexto
+
+El módulo Salud actual (ADR-022) es read-only con 7 tabs de listados.
+Para operaciones reales del club se necesitan métricas agregadas:
+- Lesiones activas por equipo/disciplina
+- Certificados médicos próximos a vencer
+- Personas sin obra social declarada
+- Alertas de menores sin autorización vigente
+
+### Decisión
+
+En FASE 4 (Dashboards Operativos), agregar al módulo Salud:
+1. Dashboard con cards de métricas (COUNT queries sobre views existentes)
+2. Alertas configurables por umbral (ej: "certificado vence en <30 días")
+3. Export CSV por tab (ya preparado en permisos: `puede_exportar`)
+4. Integración con `eventos` para notificaciones automáticas de vencimiento
+
+### Alternativas descartadas
+
+1. **Implementar ahora** — descartado. FASE 1 cierra con vista read-only
+   funcional. Métricas agregan complejidad sin urgencia operativa.
+
+### Consecuencias
+
+Las views `v_salud_*` ya creadas servirán como base. Se agregarán
+funciones SQL de agregación sobre ellas. El modelo de permisos (ADR-022)
+ya soporta el nivel de acceso requerido.
+
+---
+
+## ADR-030 — Soft-delete uniforme: `deleted_at` como único mecanismo
+
+**Fecha:** 2026-05-11
+**Estado:** Vigente
+**Capa:** Plataforma
+**Tomado por:** Arquitecto + Code
+
+### Contexto
+
+El sistema usa dos mecanismos de "borrado lógico" inconsistentemente:
+- `deleted_at` (timestamptz, nullable): patrón correcto en `personas`,
+  `equipos`, y tablas recientes
+- `activo` (boolean): patrón legacy en `sedes`, `concesionarios`,
+  `cuotas_planes`
+
+Esto causó bugs reales:
+- Salud buscaba `.eq('activo', true)` en `personas` (columna inexistente)
+- Queries mixtas que filtran por `activo` en unas tablas y `deleted_at`
+  en otras
+
+### Decisión
+
+1. **Patrón único:** `deleted_at IS NULL` = activo, `deleted_at IS NOT
+   NULL` = borrado lógico. Toda tabla nueva DEBE usar este patrón.
+2. **Migración gradual:** tablas con `activo` boolean se migran
+   progresivamente (agregar `deleted_at`, poblar, deprecar `activo`).
+   No es urgente: se hace tabla por tabla cuando se toca el módulo.
+3. **Queries:** usar `.is('deleted_at', null)` en lugar de
+   `.eq('activo', true)`. Views SQL usan `WHERE deleted_at IS NULL`.
+4. **Función helper:** `fn_soft_delete(table, id)` que setea
+   `deleted_at = NOW()` con audit trail.
+
+### Alternativas descartadas
+
+1. **Mantener ambos mecanismos** — descartado. Fuente de bugs demostrada.
+2. **Hard delete** — descartado. Violad D12 (soft delete everywhere).
+3. **Migrar todo de golpe** — descartado. Demasiadas tablas, riesgo alto.
+
+### Consecuencias
+
+**Positivas:**
+- Consistencia en queries
+- Un solo patrón para RLS policies
+- Timestamp de borrado (cuándo se borró, no solo "está borrado")
+- Restore trivial: `UPDATE SET deleted_at = NULL`
+
+**Negativas:**
+- Periodo de coexistencia con `activo` en tablas legacy
+- Cada migración de tabla requiere verificar todas las queries
+
+---
+
 ## Convenciones de este documento
 
 - Los ADRs son **inmutables** una vez publicados. Si una decisión cambia,

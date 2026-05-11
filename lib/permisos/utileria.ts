@@ -17,7 +17,7 @@ export interface PermisosUtileria {
 
 export async function obtenerPermisosUtileria(): Promise<PermisosUtileria> {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const denegado: PermisosUtileria = {
     es_staff_utileria: false,
@@ -32,9 +32,9 @@ export async function obtenerPermisosUtileria(): Promise<PermisosUtileria> {
     persona_id: null,
   }
 
-  if (!session) return denegado
+  if (!user) return denegado
 
-  const userId = session.user.id
+  const userId = user.id
 
   const { data: persona } = await supabase
     .from('personas')

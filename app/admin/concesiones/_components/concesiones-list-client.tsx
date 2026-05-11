@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Plus, Store, MapPin, ShoppingBag, TrendingUp } from 'lucide-react'
+import { toast } from 'sonner'
 import { crearConcesionario } from '../_actions'
 import { PersonaSearchInput } from './persona-search-input'
 
@@ -41,12 +42,18 @@ export function ConcesionesListClient({ concesionarios }: { concesionarios: Conc
   })
 
   function handleSubmit() {
-    if (!formData.nombre_comercial.trim() || !formData.persona_id) return
+    if (!formData.nombre_comercial.trim() || !formData.persona_id) {
+      toast.error('Completá nombre comercial y persona responsable')
+      return
+    }
     startTransition(async () => {
       const res = await crearConcesionario(formData)
       if (res.ok) {
+        toast.success(res.message ?? 'Concesionario creado')
         setOpen(false)
         setFormData({ persona_id: '', nombre_comercial: '', descripcion: '', canon_porcentaje: 0, canon_minimo_mensual: 0, fecha_inicio_acuerdo: new Date().toISOString().split('T')[0], notas: '' })
+      } else {
+        toast.error(res.message ?? 'Error al crear concesionario')
       }
     })
   }

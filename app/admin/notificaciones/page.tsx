@@ -5,9 +5,9 @@ import { NotificacionesClient } from './_components/notificaciones-client'
 
 export default async function NotificacionesPage() {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (!user) {
     return (
       <div className="space-y-6">
         <h1 className="text-xl font-bold sm:text-2xl">Notificaciones</h1>
@@ -23,7 +23,7 @@ export default async function NotificacionesPage() {
   const { data: persona } = await supabase
     .from('personas')
     .select('id')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .is('deleted_at', null)
     .maybeSingle()
 

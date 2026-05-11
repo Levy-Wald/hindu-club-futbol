@@ -18,7 +18,7 @@ export interface PermisosConcesiones {
 
 export async function obtenerPermisosConcesiones(): Promise<PermisosConcesiones> {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const denegado: PermisosConcesiones = {
     es_admin_concesiones: false,
@@ -32,9 +32,9 @@ export async function obtenerPermisosConcesiones(): Promise<PermisosConcesiones>
     persona_id: null,
   }
 
-  if (!session) return denegado
+  if (!user) return denegado
 
-  const userId = session.user.id
+  const userId = user.id
 
   const { data: persona } = await supabase
     .from('personas')

@@ -20,9 +20,9 @@ export interface PermisosSalud {
 
 export async function obtenerPermisosSalud(): Promise<PermisosSalud> {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (!user) {
     return {
       puede_ver_lesiones: false, puede_ver_datos_medicos: false,
       puede_ver_obra_social: false, puede_ver_autorizaciones: false,
@@ -32,7 +32,7 @@ export async function obtenerPermisosSalud(): Promise<PermisosSalud> {
     }
   }
 
-  const userId = session.user.id
+  const userId = user.id
 
   // Get persona_id for this user
   const { data: persona } = await supabase

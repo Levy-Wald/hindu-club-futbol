@@ -4,13 +4,13 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function fetchMiEquipo() {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return null
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
 
   const { data: persona } = await supabase
     .from('personas')
     .select('id')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .is('deleted_at', null)
     .maybeSingle()
 

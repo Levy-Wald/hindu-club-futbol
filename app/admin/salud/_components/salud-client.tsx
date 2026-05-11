@@ -236,7 +236,7 @@ function LevantarCasoDialog({ open, onOpenChange }: { open: boolean; onOpenChang
       .select('id, apellido, nombre')
       .eq('tenant_id', '11111111-1111-1111-1111-111111111111')
       .or(`apellido.ilike.%${q}%,nombre.ilike.%${q}%`)
-      .eq('activo', true)
+      .is('deleted_at', null)
       .order('apellido')
       .limit(8)
     const resultados: PersonaResult[] = (data ?? []).map((p: { id: string; apellido: string; nombre: string }) => ({

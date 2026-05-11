@@ -223,12 +223,12 @@ export async function anularMovimiento(id: string, motivo: string): Promise<Acti
 
   // Obtener persona actual para registrar quién anuló
   let anuladorId: string | null = null
-  const { data: { session } } = await supabase.auth.getSession()
-  if (session) {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
     const { data: persona } = await supabase
       .from('personas')
       .select('id')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .maybeSingle()
     anuladorId = persona?.id ?? null
   }
@@ -537,12 +537,12 @@ export async function emitirCuotasMasivas(
 
   // Obtener persona actual (emitido_por)
   let emitidoPorId: string | null = null
-  const { data: { session } } = await supabase.auth.getSession()
-  if (session) {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
     const { data: persona } = await supabase
       .from('personas')
       .select('id')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .maybeSingle()
     emitidoPorId = persona?.id ?? null
   }
@@ -1011,12 +1011,12 @@ export async function cerrarPeriodo(id: string): Promise<ActionResult> {
 
   // Obtener persona actual
   let cerradoPorId: string | null = null
-  const { data: { session } } = await supabase.auth.getSession()
-  if (session) {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
     const { data: persona } = await supabase
       .from('personas')
       .select('id')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .maybeSingle()
     cerradoPorId = persona?.id ?? null
   }

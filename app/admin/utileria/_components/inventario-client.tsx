@@ -13,7 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { toast } from 'sonner'
 import { Loader2, Plus, Search, Package, Pencil, Trash2 } from 'lucide-react'
 import type { PermisosUtileria } from '@/lib/permisos/utileria'
-import { listarItems, crearItem, editarItem, darDeBajaItem, fetchEquiposUtileria, CATEGORIAS } from '../_actions'
+import { listarItems, crearItem, editarItem, darDeBajaItem, fetchEquiposUtileria } from '../_actions'
+import { CATEGORIAS } from '../_constants'
 
 interface Equipo { id: string; nombre: string }
 
