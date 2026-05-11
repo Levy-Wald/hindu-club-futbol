@@ -180,6 +180,93 @@ export async function fetchContadorNoLeidos(personaId: string) {
 }
 
 // =============================================================================
+// Lotes (envíos masivos)
+// =============================================================================
+
+export interface LoteResumen {
+  lote_id: string
+  plantilla_slug: string
+  canal: string
+  segmento_tipo: string
+  primer_envio: string
+  total: number
+  enviados: number
+  fallados: number
+}
+
+export async function listarLotes(limit = 50): Promise<LoteResumen[]> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('com_envios')
+    .select('metadata, plantilla_slug, canal, created_at, estado')
+    .eq('tenant_id', TENANT_ID)
+    .not('metadata->lote_id', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(limit * 100)
+
+  if (error) return []
+
+  const lotesMap = new Map<string, LoteResumen>()
+
+  for (const row of data ?? []) {
+    const meta = row.metadata as Record<string, unknown> | null
+    const lote_id = meta?.lote_id as string | undefined
+    if (!lote_id) continue
+
+    if (!lotesMap.has(lote_id)) {
+      const segmento = meta?.segmento as Record<string, unknown> | undefined
+      lotesMap.set(lote_id, {
+        lote_id,
+        plantilla_slug: row.plantilla_slug ?? '',
+        canal: row.canal,
+        segmento_tipo: (segmento?.tipo as string) ?? 'desconocido',
+        primer_envio: row.created_at,
+        total: 0,
+        enviados: 0,
+        fallados: 0,
+      })
+    }
+
+    const lote = lotesMap.get(lote_id)!
+    lote.total++
+    if (row.estado === 'enviado') lote.enviados++
+    if (row.estado === 'fallado') lote.fallados++
+  }
+
+  return Array.from(lotesMap.values()).slice(0, limit)
+}
+
+export async function obtenerEnviosDelLote(loteId: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('com_envios')
+    .select(`
+      id, canal, estado, error_mensaje, plantilla_slug, destinatario, created_at, metadata,
+      persona:personas(id, nombre, apellido)
+    `)
+    .eq('tenant_id', TENANT_ID)
+    .filter('metadata->lote_id', 'eq', `"${loteId}"`)
+    .order('created_at', { ascending: false })
+    .limit(2500)
+
+  if (error) return []
+
+  return (data ?? []) as unknown as Array<{
+    id: string
+    canal: string
+    estado: string
+    error_mensaje: string | null
+    plantilla_slug: string | null
+    destinatario: string | null
+    created_at: string
+    metadata: Record<string, unknown> | null
+    persona: { id: string; nombre: string; apellido: string } | null
+  }>
+}
+
+// =============================================================================
 // Dashboard
 // =============================================================================
 

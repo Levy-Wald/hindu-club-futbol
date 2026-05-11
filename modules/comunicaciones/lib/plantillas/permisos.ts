@@ -7,6 +7,7 @@ export interface PermisosComunicaciones {
   puede_editar: boolean
   puede_eliminar: boolean
   puede_duplicar: boolean
+  puede_enviar_masivo: boolean
   persona_id: string | null
 }
 
@@ -19,6 +20,7 @@ export async function obtenerPermisosComunicaciones(): Promise<PermisosComunicac
     puede_editar: false,
     puede_eliminar: false,
     puede_duplicar: false,
+    puede_enviar_masivo: false,
     persona_id: null,
   }
 
@@ -50,6 +52,7 @@ export async function obtenerPermisosComunicaciones(): Promise<PermisosComunicac
     puede_editar: esEditor,
     puede_eliminar: esAdminCom,
     puede_duplicar: esAdminCom,
+    puede_enviar_masivo: esAdminCom,
     persona_id: persona.id,
   }
 }

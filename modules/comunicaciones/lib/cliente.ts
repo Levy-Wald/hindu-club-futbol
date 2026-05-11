@@ -1,9 +1,14 @@
 'use server'
 
+import { randomUUID } from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import { TENANT_ID } from '@/lib/tenant'
 import { resolveAdapter } from './adapters/factory'
 import { renderTemplate } from './renderer'
+import { resolverSegmento } from './segmentos/resolver'
+import { descripcionSegmento } from './segmentos/descripciones'
+import type { SegmentoConfig } from './segmentos/tipos'
+import type { EnvioMasivoRow } from './adapter'
 
 interface EnviarOpts {
   personaId: string
@@ -113,5 +118,97 @@ export async function enviarComunicacion(opts: EnviarOpts): Promise<EnviarResult
     ok: result.success,
     envioId: envio?.id,
     error: result.error,
+  }
+}
+
+// =============================================================================
+// Envío masivo
+// =============================================================================
+
+export type EnvioMasivoRequest = {
+  tenantId: string
+  plantillaSlug: string
+  canal: 'email' | 'inapp'
+  segmento: SegmentoConfig
+  variablesGlobales?: Record<string, string>
+}
+
+export type EnvioMasivoResultado = {
+  lote_id: string
+  total_destinatarios: number
+  total_enviados: number
+  total_fallados: number
+  segmento_nombre: string
+}
+
+export async function enviarComunicacionMasiva(
+  request: EnvioMasivoRequest
+): Promise<EnvioMasivoResultado> {
+  const adapter = resolveAdapter()
+  const segmento = await resolverSegmento(request.tenantId, request.segmento)
+
+  if (segmento.total === 0) {
+    return {
+      lote_id: '',
+      total_destinatarios: 0,
+      total_enviados: 0,
+      total_fallados: 0,
+      segmento_nombre: descripcionSegmento(request.segmento),
+    }
+  }
+
+  // Fetch plantilla by slug
+  const supabase = await createClient()
+  const { data: plantilla } = await supabase
+    .from('com_plantillas')
+    .select('slug, nombre, tipo, asunto, cuerpo')
+    .eq('tenant_id', request.tenantId)
+    .eq('slug', request.plantillaSlug)
+    .eq('activa', true)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  if (!plantilla) throw new Error(`Plantilla no encontrada: ${request.plantillaSlug}`)
+
+  const lote_id = randomUUID()
+
+  const envios: EnvioMasivoRow[] = segmento.personas.map(persona => {
+    const variables: Record<string, string> = {
+      ...request.variablesGlobales,
+      nombre: persona.nombre,
+      apellido: persona.apellido,
+      nombre_completo: `${persona.nombre} ${persona.apellido}`,
+    }
+
+    const destinatario = request.canal === 'email' ? persona.email_principal : persona.id
+    const sinDestinatario = request.canal === 'email' && !persona.email_principal
+
+    return {
+      persona_id: persona.id,
+      canal: request.canal,
+      destinatario: destinatario ?? null,
+      plantilla_slug: plantilla.slug,
+      asunto: plantilla.asunto ? renderTemplate(plantilla.asunto, variables) : null,
+      cuerpo_renderizado: renderTemplate(plantilla.cuerpo, variables),
+      estado: sinDestinatario ? 'fallado' : 'enviado',
+      error_mensaje: sinDestinatario ? 'sin_email' : null,
+      enviado_at: sinDestinatario ? null : new Date().toISOString(),
+      origen_modulo_slug: 'comunicaciones',
+      metadata: {
+        mock: adapter.name === 'mock',
+        lote_id,
+        segmento: { tipo: request.segmento.tipo, ...segmento.parametros },
+      },
+    }
+  })
+
+  await adapter.enviarMasivo(request.tenantId, envios)
+
+  return {
+    lote_id,
+    total_destinatarios: segmento.total,
+    total_enviados: envios.filter(e => e.estado === 'enviado').length,
+    total_fallados: envios.filter(e => e.estado === 'fallado').length,
+    segmento_nombre: descripcionSegmento(request.segmento),
   }
 }

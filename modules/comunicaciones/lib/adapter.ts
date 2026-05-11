@@ -17,7 +17,22 @@ export interface EnvioResult {
   error?: string
 }
 
+export interface EnvioMasivoRow {
+  persona_id: string
+  canal: string
+  destinatario: string | null
+  plantilla_slug: string
+  asunto: string | null
+  cuerpo_renderizado: string
+  estado: string
+  error_mensaje: string | null
+  enviado_at: string | null
+  origen_modulo_slug: string
+  metadata: Record<string, unknown>
+}
+
 export interface ComunicacionAdapter {
   readonly name: string
   enviar(request: EnvioRequest): Promise<EnvioResult>
+  enviarMasivo(tenantId: string, envios: EnvioMasivoRow[]): Promise<void>
 }

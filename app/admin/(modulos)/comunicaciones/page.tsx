@@ -3,14 +3,16 @@ import { TENANT_ID } from '@/lib/tenant'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { PlantillasTable } from '@/modules/comunicaciones/ui/plantillas-table'
 import { EnviosTable } from '@/modules/comunicaciones/ui/envios-table'
+import { LotesTable } from '@/modules/comunicaciones/ui/lotes-table'
 import { obtenerPermisosComunicaciones } from '@/modules/comunicaciones/lib/plantillas/permisos'
-import { FileText, Send } from 'lucide-react'
+import { listarLotes } from '@/modules/comunicaciones/lib/queries'
+import { FileText, Send, Users } from 'lucide-react'
 
 export default async function ComunicacionesPage() {
   const supabase = await createClient()
   const permisos = await obtenerPermisosComunicaciones()
 
-  const [plantillasRes, enviosRes] = await Promise.all([
+  const [plantillasRes, enviosRes, lotes] = await Promise.all([
     supabase
       .from('com_plantillas')
       .select('id, nombre, slug, tipo, asunto, cuerpo, variables_disponibles, activa, metadata, created_at, updated_at')
@@ -26,6 +28,7 @@ export default async function ComunicacionesPage() {
       .eq('tenant_id', TENANT_ID)
       .order('created_at', { ascending: false })
       .limit(100),
+    listarLotes(),
   ])
 
   const plantillas = plantillasRes.data ?? []
@@ -71,6 +74,10 @@ export default async function ComunicacionesPage() {
             <Send className="h-4 w-4" />
             Envios
           </TabsTrigger>
+          <TabsTrigger value="envios-masivos" data-testid="tab-envios-masivos">
+            <Users className="h-4 w-4" />
+            Envios masivos
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="plantillas" data-testid="panel-plantillas">
@@ -82,6 +89,12 @@ export default async function ComunicacionesPage() {
         <TabsContent value="envios" data-testid="panel-envios">
           <div className="pt-4">
             <EnviosTable envios={envios} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="envios-masivos" data-testid="panel-envios-masivos">
+          <div className="pt-4">
+            <LotesTable lotes={lotes} puede_enviar_masivo={permisos.puede_enviar_masivo} />
           </div>
         </TabsContent>
       </Tabs>

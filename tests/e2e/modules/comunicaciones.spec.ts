@@ -6,6 +6,7 @@ test.describe('Comunicaciones', () => {
     await expect(page.getByRole('main').getByTestId('comunicaciones-page')).toBeVisible({ timeout: 10000 })
     await expect(page.getByRole('main').getByTestId('tab-plantillas')).toBeVisible()
     await expect(page.getByRole('main').getByTestId('tab-envios')).toBeVisible()
+    await expect(page.getByRole('main').getByTestId('tab-envios-masivos')).toBeVisible()
   })
 
   test('plantillas tab shows 18 seed rows', async ({ page }) => {
@@ -87,5 +88,78 @@ test.describe('Comunicaciones', () => {
 
     // Wait for deletion and verify count decreased
     await expect(page.locator('[data-testid="plantillas-row"]')).toHaveCount(countBefore - 1, { timeout: 10000 })
+  })
+
+  // === Envíos masivos (FASE 2.3) ===
+
+  test('wizard envio masivo carga correctamente', async ({ page }) => {
+    await page.goto('/admin/comunicaciones/envios-masivos/nuevo')
+    await expect(page.getByTestId('envio-masivo-wizard')).toBeVisible({ timeout: 15000 })
+
+    // Verify all sections exist
+    await expect(page.getByTestId('select-plantilla-trigger')).toBeVisible()
+    await expect(page.getByTestId('select-segmento')).toBeVisible()
+
+    // Default segmento is "todos_activos", preview should load
+    await expect(page.getByTestId('preview-conteo')).toContainText(/\d+ destinatarios/, { timeout: 15000 })
+  })
+
+  test('envio masivo a equipo muestra preview', async ({ page }) => {
+    await page.goto('/admin/comunicaciones/envios-masivos/nuevo')
+    await expect(page.getByTestId('envio-masivo-wizard')).toBeVisible({ timeout: 15000 })
+
+    // Switch to equipo
+    await page.getByTestId('select-segmento').click()
+    await page.getByRole('option', { name: /equipo/i }).click()
+
+    // Should show equipo selector
+    await expect(page.getByTestId('select-equipo')).toBeVisible()
+
+    // Select first equipo
+    await page.getByTestId('select-equipo').click()
+    await page.getByRole('option').first().click()
+
+    // Preview should load
+    await expect(page.getByTestId('preview-conteo')).toContainText(/\d+ destinatarios/, { timeout: 15000 })
+  })
+
+  test('envio masivo ejecuta y redirige a detalle', async ({ page }) => {
+    test.setTimeout(60000)
+    await page.goto('/admin/comunicaciones/envios-masivos/nuevo')
+    await expect(page.getByTestId('envio-masivo-wizard')).toBeVisible({ timeout: 15000 })
+
+    // Select plantilla (first one)
+    await page.getByTestId('select-plantilla-trigger').click()
+    await page.getByRole('option').first().click()
+
+    // Switch segmento to equipo (smaller set, faster)
+    await page.getByTestId('select-segmento').click()
+    await page.getByRole('option', { name: /equipo/i }).click()
+    await page.getByTestId('select-equipo').click()
+    await page.getByRole('option').first().click()
+
+    // Wait for preview
+    await expect(page.getByTestId('preview-conteo')).toContainText(/\d+ destinatarios/, { timeout: 15000 })
+
+    // Click enviar
+    await page.getByTestId('btn-enviar-masivo').click()
+
+    // Confirm dialog
+    await page.getByTestId('btn-confirmar-envio').click()
+
+    // Should redirect to lote detail
+    await expect(page).toHaveURL(/\/envios-masivos\/[0-9a-f-]{36}/, { timeout: 30000 })
+    await expect(page.getByTestId('lote-detalle')).toBeVisible({ timeout: 10000 })
+    await expect(page.getByTestId('envio-row').first()).toBeVisible({ timeout: 10000 })
+  })
+
+  test('tab envios masivos muestra historial', async ({ page }) => {
+    await page.goto('/admin/comunicaciones')
+    await page.getByRole('main').getByTestId('tab-envios-masivos').click()
+    await expect(page.getByRole('main').getByTestId('panel-envios-masivos')).toBeVisible({ timeout: 10000 })
+    await expect(page.getByTestId('lotes-section')).toBeVisible()
+
+    // Should have at least 1 lote from previous test
+    await expect(page.getByTestId('lote-row').first()).toBeVisible({ timeout: 10000 })
   })
 })
