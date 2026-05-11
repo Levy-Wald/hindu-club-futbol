@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { ArrowLeft, Calendar, Info, Users, Shirt, Settings, Trophy, Building2, Image } from 'lucide-react'
+import { ArrowLeft, Calendar, Info, Users, Shirt, Settings, Trophy, Building2, Image, Briefcase } from 'lucide-react'
 import { fetchEquipoDetalle, fetchRolesEquipo, fetchCategoriasEquipo, fetchEntidadesFederaciones, fetchSedes, fetchCanchas } from '../_lib/queries'
 import { Plantel } from './_components/plantel'
 import { EditarEquipoForm } from './_components/editar-equipo-form'
@@ -12,6 +12,7 @@ import { EquipoComposicion } from './_components/equipo-composicion'
 import { CalendarioPanel } from './_components/horarios-panel'
 import { IndumentariaPanel } from './_components/indumentaria-panel'
 import { EliminarEquipoButton } from './_components/eliminar-equipo-button'
+import { CuerpoTecnicoTab } from './_components/cuerpo-tecnico-tab'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -156,6 +157,10 @@ export default async function EquipoDetallePage({ params }: PageProps) {
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Plantel completo</span>
             </TabsTrigger>
+            <TabsTrigger value="cuerpo-tecnico">
+              <Briefcase className="h-4 w-4" />
+              <span className="hidden sm:inline">Cuerpo Técnico</span>
+            </TabsTrigger>
             <TabsTrigger value="indumentaria">
               <Shirt className="h-4 w-4" />
               <span className="hidden sm:inline">Indumentaria</span>
@@ -264,6 +269,13 @@ export default async function EquipoDetallePage({ params }: PageProps) {
               roles={todosRoles}
               tipo="jugador"
             />
+          </div>
+        </TabsContent>
+
+        {/* Cuerpo Técnico Tab */}
+        <TabsContent value="cuerpo-tecnico">
+          <div className="pt-4">
+            <CuerpoTecnicoTab equipoId={equipo.id} />
           </div>
         </TabsContent>
 

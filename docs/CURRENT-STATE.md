@@ -6,9 +6,10 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint 14j cerrado
-> (Utilería del Club: 6 tablas, 2 funciones SQL, 5 pantallas, kits, solicitudes,
-> cargos de reposición prorrateados, trigger de stock, sidebar).
+> Última actualización: 11 de mayo de 2026 — Sprint 14k.5 cerrado
+> (Cuerpo Técnico + Refactor Permisos: UNIQUE index para roles liderazgo,
+> 2 views, 2 funciones SQL, 4 atributos eliminados, tab Cuerpo Técnico en
+> equipo detalle, página global cuerpo técnico, refactor utileria permisos).
 
 ---
 
@@ -17,12 +18,13 @@
 **Estado general:** Plataforma con esqueleto técnico avanzado, datos
 operativos limitados al vertical Club Deportivo en tenant Hindu.
 
-**Último sprint cerrado:** **14j** — Utilería del Club. 6 tablas nuevas
-(`utileria_items`, `utileria_kits`, `utileria_kit_items`, `utileria_solicitudes`,
-`utileria_solicitud_items`, `utileria_cargos_reposicion`). 2 funciones SQL
-(`fn_generar_cargos_reposicion`, `fn_reversar_cargo_reposicion`). Trigger
-`sync_stock_utileria`. 6 atributos operativos. 5 pantallas
-(`/admin/utileria/*`). Bucket `private-utileria-fotos`. ADR-023.
+**Último sprint cerrado:** **14k.5** — Cuerpo Técnico + Refactor de Permisos.
+UNIQUE INDEX parcial para dt/capitan/manager por equipo. Views
+`v_personas_equipos_vigentes` (211 rows) y `v_cuerpo_tecnico`. Funciones
+`fn_persona_tiene_rol_equipo` y `fn_equipos_donde_puede_solicitar_utileria`.
+4 atributos `deportivo.*` eliminados. Tab "Cuerpo Técnico" en equipo detalle.
+Página global `/admin/equipos/cuerpo-tecnico`. `lib/permisos/utileria.ts`
+refactorizado con RPC. ADR-024.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -38,11 +40,11 @@ operativos limitados al vertical Club Deportivo en tenant Hindu.
 | Tablas en `public` | 103 (+cuotas_pagos) |
 | Tablas con RLS habilitada | 102 (100%) |
 | RLS policies | 316 (+5 cuotas_pagos) |
-| Funciones custom (`pg_proc` en public) | 111 (+fn_cobrar_cuota, fn_anular_pago) |
+| Funciones custom (`pg_proc` en public) | 113 (+fn_persona_tiene_rol_equipo, fn_equipos_donde_puede_solicitar_utileria) |
 | Triggers | 87 (+sync_estado_cuota_desde_pagos, set_updated_at, validar_suma_pagos) |
-| VIEWs | 15 (10 `fin_*` sin uso + 3 cuotas + v_centros_costo_stats) |
+| VIEWs | 17 (+v_personas_equipos_vigentes, v_cuerpo_tecnico) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 57 (7 públicas + 50 admin) |
+| Páginas Next.js | 58 (7 públicas + 51 admin) |
 | API routes | 10 (5 endpoints v1 + 3 internos + 2 crons) |
 | Server actions | 131 en 25 archivos |
 | Componentes custom (no shadcn) | ~105 |
@@ -50,7 +52,7 @@ operativos limitados al vertical Club Deportivo en tenant Hindu.
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,389 |
 | Equipos (Hindu) | 7 |
-| Atributos en catálogo | 61 (8 con personas asignadas) |
+| Atributos en catálogo | 57 (-4 deportivo.* eliminados) |
 | Módulos catalogados | 34 |
 | Módulos activos en Hindu | 17 |
 

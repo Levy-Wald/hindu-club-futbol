@@ -86,6 +86,7 @@ const rrhhSubItems: NavItemDef[] = [
 
 const clubItems: NavItemDef[] = [
   { label: 'Equipos', href: '/admin/equipos', icon: Shield },
+  { label: 'Cuerpo Técnico', href: '/admin/equipos/cuerpo-tecnico', icon: Briefcase },
   { label: 'Padrones', href: '/admin/padrones', icon: ClipboardList },
   { label: 'Salud', href: '/admin/salud', icon: HeartPulse },
 ]

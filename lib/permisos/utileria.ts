@@ -15,8 +15,6 @@ export interface PermisosUtileria {
   persona_id: string | null
 }
 
-const ROLES_RESPONSABLE = ['dt', 'capitan', 'subcapitan', 'delegado']
-
 export async function obtenerPermisosUtileria(): Promise<PermisosUtileria> {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
@@ -61,16 +59,14 @@ export async function obtenerPermisosUtileria(): Promise<PermisosUtileria> {
   const esAdmin = atributos.includes('admin_sistema') || atributos.includes('admin_tenant')
   const esStaff = esAdmin || atributos.includes('staff_utileria') || atributos.includes('comision_utileria')
 
-  // Get equipos where persona is DT/Capitán/SubCapitán/Delegado
+  // Use DB function to get equipos where persona can request utilería
   const { data: equiposData } = await supabase
-    .from('personas_equipos')
-    .select('equipo_id')
-    .eq('persona_id', personaId)
-    .eq('tenant_id', TENANT_ID)
-    .eq('activo', true)
-    .in('rol_equipo_slug', ROLES_RESPONSABLE)
+    .rpc('fn_equipos_donde_puede_solicitar_utileria', {
+      p_tenant_id: TENANT_ID,
+      p_persona_id: personaId,
+    })
 
-  const equiposResponsable = (equiposData ?? []).map(e => e.equipo_id)
+  const equiposResponsable = (equiposData ?? []) as unknown as string[]
 
   return {
     es_staff_utileria: esStaff,

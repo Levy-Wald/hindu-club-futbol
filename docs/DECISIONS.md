@@ -1389,6 +1389,77 @@ Trigger `sync_stock_utileria` mantiene stock sincronizado.
 
 ---
 
+## ADR-024 — Cuerpo Técnico desde personas_equipos, sin atributos paralelos
+
+**Fecha:** 2026-05-11
+**Estado:** Decidido
+**Capa:** Vertical Club Deportivo
+**Decisores:** Arquitecto + Yair Levy Wald
+
+### Contexto
+
+Los roles de staff en equipos (DT, preparador físico, kinesiólogo, etc.)
+se modelaban en dos lugares simultáneamente:
+1. `personas_equipos.rol_equipo_slug` (tabla existente con 13 roles en
+   `catalogo_roles_equipo`)
+2. Atributos paralelos (`deportivo.dt`, `deportivo.capitan`,
+   `deportivo.delegado`, `deportivo.preparador_fisico`)
+
+Los atributos duplicaban información ya presente en `personas_equipos` y
+no aportaban contexto de equipo (un DT puede dirigir múltiples equipos).
+
+### Decisión
+
+1. **Fuente única:** `personas_equipos.rol_equipo_slug` es la fuente de
+   verdad para roles de equipo (deportivos y staff).
+2. **Eliminar atributos redundantes:** Se borran los 4 atributos
+   `deportivo.*` del catálogo (verificado: 0 asignaciones existentes).
+3. **UNIQUE constraint:** Roles de liderazgo único (`dt`, `capitan`,
+   `manager`) tienen UNIQUE INDEX parcial por equipo. `subcapitan`
+   admite múltiples (caso real: AIF Selección tiene 2).
+4. **Vistas SQL:** `v_personas_equipos_vigentes` y `v_cuerpo_tecnico`
+   centralizan la lógica de "vigente = activo AND (fecha_fin IS NULL OR
+   fecha_fin >= CURRENT_DATE)".
+5. **Funciones SQL:** `fn_persona_tiene_rol_equipo` y
+   `fn_equipos_donde_puede_solicitar_utileria` reemplazan queries ad-hoc.
+6. **UI:** Tab "Cuerpo Técnico" en detalle de equipo + página global
+   `/admin/equipos/cuerpo-tecnico`.
+
+### Alternativas descartadas
+
+1. **Mantener atributos como cache** — descartado. Doble fuente de verdad
+   sin beneficio real; los queries van directo a `personas_equipos`.
+2. **Tabla separada `cuerpo_tecnico`** — descartado. `personas_equipos`
+   ya tiene toda la estructura necesaria con `rol_equipo_slug`.
+
+### Consecuencias
+
+- 4 atributos eliminados del catálogo
+- `lib/permisos/utileria.ts` refactorizado: usa `fn_equipos_donde_puede_solicitar_utileria` RPC
+- 2 vistas + 2 funciones SQL nuevas
+- 1 UNIQUE INDEX parcial (dt, capitan, manager por equipo)
+- Tab nuevo en equipo detalle + página global
+
+---
+
+## PRE-MORTEM Sprint 14k.5 — Cuerpo Técnico
+
+**Fecha:** 2026-05-11
+**Capa:** Vertical Club Deportivo
+**Tomado por:** Arquitecto
+
+### Top 3 riesgos
+
+1. **UNIQUE INDEX con CURRENT_DATE en predicate falla por IMMUTABLE** —
+   Ya ocurrió. Mitigación: usar `fecha_fin IS NULL` como proxy de
+   "vigente sin fecha de fin". Vencimiento por fecha se maneja en views.
+2. **Datos existentes violan UNIQUE** — Ya ocurrió: 2 subcapitanes en
+   AIF Selección. Mitigación: excluir `subcapitan` del UNIQUE constraint.
+3. **RPC `fn_equipos_donde_puede_solicitar_utileria` retorna formato
+   inesperado** — Mitigación: cast explícito en TypeScript.
+
+---
+
 - **D-PENDING-06:** Internacionalización (i18n) — postergada.
 - **D-PENDING-07:** Acceso de jugadores via app móvil o PWA.
 - **D-PENDING-08:** Plan de cuentas estándar argentino como template
