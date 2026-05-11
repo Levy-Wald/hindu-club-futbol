@@ -6,9 +6,9 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint FASE 2.1 completado.
+> Última actualización: 11 de mayo de 2026 — Sprint FASE 2.2 completado.
 > Sprints 14d a 15c cerrados. FASE 1 oficialmente cerrada.
-> Sprint FASE 2.1: Motor de comunicación mock-first con adapter pattern.
+> Sprint FASE 2.2: Editor CRUD de plantillas con preview y permisos.
 
 ---
 
@@ -18,11 +18,12 @@
 para Hindu Club Futbol: suscripciones, cuotas, cobranza, centros de costo,
 salud, utileria, cuerpo tecnico, notificaciones in-app, concesiones.
 
-**Ultimo sprint cerrado:** **FASE 2.1** — Motor de Comunicación (Mock-First).
-Adapter pattern: ComunicacionAdapter interface + MockAdapter + factory.
-renderTemplate() mustache renderer. enviarComunicacion() public API.
-Page con 2 tabs (Plantillas + Envios). probarPlantilla() wired to adapter.
-Fix envios sub-page (FK columns corregidos). E2E test con tabs.
+**Ultimo sprint cerrado:** **FASE 2.2** — Editor CRUD de Plantillas.
+PlantillaEditorForm con preview en tiempo real, auto-detección de variables
+{{mustache}}. Permisos por atributo (comunicaciones.admin/editor).
+Protección plantillas del sistema (slug/tipo readonly, no eliminable).
+Server actions: crear, actualizar, softDelete, duplicar, toggleActiva.
+7 E2E tests para comunicaciones (22 total passed, 1 skip).
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -47,7 +48,7 @@ Fix envios sub-page (FK columns corregidos). E2E test con tabs.
 | API routes | 12 (5 endpoints v1 + 3 internos + 4 crons) |
 | Server actions | ~160 en 26 archivos |
 | Componentes custom (no shadcn) | ~115 |
-| Tests E2E (Playwright) | 11 specs |
+| Tests E2E (Playwright) | 23 specs (22 pass, 1 skip) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,389 |
 | Equipos (Hindu) | 7 |
@@ -89,7 +90,7 @@ significativos.
 historial), `/admin/externos/*`, `/admin/comunicaciones/*`,
 `/admin/pre-inscripciones`.
 
-**Server actions:** 13 personas + 6 entidades + 9 comunicaciones + 3
+**Server actions:** 13 personas + 6 entidades + 14 comunicaciones + 3
 pre-inscripciones.
 
 **Gaps:** envíos reales (Sprint 15a — Resend), pre-inscripciones públicas
@@ -494,6 +495,11 @@ Historial referenciado en commits del repo. Listado resumido:
   enviarComunicacion() public API, page con 2 tabs (Plantillas + Envios),
   probarPlantilla() wired to adapter, fix envios sub-page FK columns,
   module.json v2 con exports_api.
+- **FASE 2.2** — Editor CRUD de Plantillas: PlantillaEditorForm con preview
+  en tiempo real, auto-detección de variables {{mustache}}, permisos por
+  atributo (comunicaciones.admin/editor), protección plantillas del sistema,
+  server actions (crear, actualizar, softDelete, duplicar, toggleActiva),
+  parser de variables con sincronización automática, 7 E2E tests.
 
 ---
 
