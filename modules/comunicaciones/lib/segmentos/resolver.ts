@@ -1,11 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { SegmentoConfig, SegmentoResuelto } from './tipos'
 
 export async function resolverSegmento(
   tenantId: string,
-  config: SegmentoConfig
+  config: SegmentoConfig,
+  supabaseClient?: SupabaseClient
 ): Promise<SegmentoResuelto> {
-  const supabase = await createClient()
+  const supabase = supabaseClient ?? await createClient()
 
   if (config.tipo === 'todos_activos') {
     const { data, error } = await supabase
@@ -55,6 +57,28 @@ export async function resolverSegmento(
       parametros: { equipo_id: config.equipo_id },
       personas: personas ?? [],
       total: personas?.length ?? 0,
+    }
+  }
+
+  if (config.tipo === 'personas_ids_directos') {
+    if (config.persona_ids.length === 0) {
+      return { tipo: 'personas_ids_directos', parametros: {}, personas: [], total: 0 }
+    }
+
+    const { data, error } = await supabase
+      .from('personas')
+      .select('id, nombre, apellido, email_principal, whatsapp')
+      .in('id', config.persona_ids)
+      .eq('tenant_id', tenantId)
+      .is('deleted_at', null)
+
+    if (error) throw new Error(`Error resolviendo personas directas: ${error.message}`)
+
+    return {
+      tipo: 'personas_ids_directos',
+      parametros: { count: config.persona_ids.length },
+      personas: data ?? [],
+      total: data?.length ?? 0,
     }
   }
 

@@ -28,11 +28,12 @@ export interface EnvioMasivoRow {
   error_mensaje: string | null
   enviado_at: string | null
   origen_modulo_slug: string
+  origen_entidad_id: string | null
   metadata: Record<string, unknown>
 }
 
 export interface ComunicacionAdapter {
   readonly name: string
   enviar(request: EnvioRequest): Promise<EnvioResult>
-  enviarMasivo(tenantId: string, envios: EnvioMasivoRow[]): Promise<void>
+  enviarMasivo(tenantId: string, envios: EnvioMasivoRow[], supabaseClient?: import('@supabase/supabase-js').SupabaseClient): Promise<void>
 }

@@ -4,15 +4,16 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { PlantillasTable } from '@/modules/comunicaciones/ui/plantillas-table'
 import { EnviosTable } from '@/modules/comunicaciones/ui/envios-table'
 import { LotesTable } from '@/modules/comunicaciones/ui/lotes-table'
+import { JobsLogTable } from '@/modules/comunicaciones/ui/jobs-log-table'
 import { obtenerPermisosComunicaciones } from '@/modules/comunicaciones/lib/plantillas/permisos'
-import { listarLotes } from '@/modules/comunicaciones/lib/queries'
-import { FileText, Send, Users } from 'lucide-react'
+import { listarLotes, listarJobsLog } from '@/modules/comunicaciones/lib/queries'
+import { FileText, Send, Users, Clock } from 'lucide-react'
 
 export default async function ComunicacionesPage() {
   const supabase = await createClient()
   const permisos = await obtenerPermisosComunicaciones()
 
-  const [plantillasRes, enviosRes, lotes] = await Promise.all([
+  const [plantillasRes, enviosRes, lotes, jobsLog] = await Promise.all([
     supabase
       .from('com_plantillas')
       .select('id, nombre, slug, tipo, asunto, cuerpo, variables_disponibles, activa, metadata, created_at, updated_at')
@@ -29,6 +30,7 @@ export default async function ComunicacionesPage() {
       .order('created_at', { ascending: false })
       .limit(100),
     listarLotes(),
+    listarJobsLog(),
   ])
 
   const plantillas = plantillasRes.data ?? []
@@ -78,6 +80,10 @@ export default async function ComunicacionesPage() {
             <Users className="h-4 w-4" />
             Envios masivos
           </TabsTrigger>
+          <TabsTrigger value="automatizaciones" data-testid="tab-automatizaciones">
+            <Clock className="h-4 w-4" />
+            Automatizaciones
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="plantillas" data-testid="panel-plantillas">
@@ -95,6 +101,12 @@ export default async function ComunicacionesPage() {
         <TabsContent value="envios-masivos" data-testid="panel-envios-masivos">
           <div className="pt-4">
             <LotesTable lotes={lotes} puede_enviar_masivo={permisos.puede_enviar_masivo} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="automatizaciones" data-testid="panel-automatizaciones">
+          <div className="pt-4">
+            <JobsLogTable jobs={jobsLog} />
           </div>
         </TabsContent>
       </Tabs>

@@ -1,8 +1,9 @@
-export type SegmentoTipo = 'todos_activos' | 'equipo'
+export type SegmentoTipo = 'todos_activos' | 'equipo' | 'personas_ids_directos'
 
 export type SegmentoConfig =
   | { tipo: 'todos_activos' }
   | { tipo: 'equipo'; equipo_id: string }
+  | { tipo: 'personas_ids_directos'; persona_ids: string[] }
 
 export type SegmentoResuelto = {
   tipo: SegmentoTipo

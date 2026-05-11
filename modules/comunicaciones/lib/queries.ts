@@ -267,6 +267,38 @@ export async function obtenerEnviosDelLote(loteId: string) {
 }
 
 // =============================================================================
+// Jobs Log (cron automatizaciones)
+// =============================================================================
+
+export async function listarJobsLog(limit = 50) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('com_jobs_log')
+    .select('*')
+    .eq('tenant_id', TENANT_ID)
+    .order('started_at', { ascending: false })
+    .limit(limit)
+
+  if (error) return []
+  return data ?? []
+}
+
+export async function obtenerJobLog(id: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('com_jobs_log')
+    .select('*')
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (error) return null
+  return data
+}
+
+// =============================================================================
 // Dashboard
 // =============================================================================
 

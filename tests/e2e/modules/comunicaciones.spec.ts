@@ -164,4 +164,32 @@ test.describe('Comunicaciones', () => {
     await expect(page.getByTestId('lotes-section')).toBeVisible()
     await expect(page.getByTestId('btn-nuevo-envio-masivo')).toBeVisible()
   })
+
+  // === Automatizaciones (FASE 2.4) ===
+
+  test('tab automatizaciones es accesible', async ({ page }) => {
+    await page.goto('/admin/comunicaciones')
+    await page.getByRole('main').getByTestId('tab-automatizaciones').click()
+    await expect(page.getByRole('main').getByTestId('panel-automatizaciones')).toBeVisible({ timeout: 10000 })
+    await expect(page.getByTestId('jobs-log-section')).toBeVisible()
+  })
+
+  test('page loads with 4 tabs including automatizaciones', async ({ page }) => {
+    await page.goto('/admin/comunicaciones')
+    await expect(page.getByRole('main').getByTestId('comunicaciones-page')).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole('main').getByTestId('tab-plantillas')).toBeVisible()
+    await expect(page.getByRole('main').getByTestId('tab-envios')).toBeVisible()
+    await expect(page.getByRole('main').getByTestId('tab-envios-masivos')).toBeVisible()
+    await expect(page.getByRole('main').getByTestId('tab-automatizaciones')).toBeVisible()
+  })
+
+  test('cron apto-vence-7d responde 401 sin auth', async ({ request }) => {
+    const response = await request.get('/api/cron/apto-vence-7d')
+    expect(response.status()).toBe(401)
+  })
+
+  test('cron cuota-vence-7d responde 401 sin auth', async ({ request }) => {
+    const response = await request.get('/api/cron/cuota-vence-7d')
+    expect(response.status()).toBe(401)
+  })
 })

@@ -1,5 +1,3 @@
-'use server'
-
 import { randomUUID } from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import { TENANT_ID } from '@/lib/tenant'
@@ -7,6 +5,7 @@ import { resolveAdapter } from './adapters/factory'
 import { renderTemplate } from './renderer'
 import { resolverSegmento } from './segmentos/resolver'
 import { descripcionSegmento } from './segmentos/descripciones'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { SegmentoConfig } from './segmentos/tipos'
 import type { EnvioMasivoRow } from './adapter'
 
@@ -131,6 +130,9 @@ export type EnvioMasivoRequest = {
   canal: 'email' | 'inapp'
   segmento: SegmentoConfig
   variablesGlobales?: Record<string, string>
+  origenModuloSlug?: string
+  origenEntidadId?: string
+  supabaseClient?: SupabaseClient
 }
 
 export type EnvioMasivoResultado = {
@@ -145,7 +147,8 @@ export async function enviarComunicacionMasiva(
   request: EnvioMasivoRequest
 ): Promise<EnvioMasivoResultado> {
   const adapter = resolveAdapter()
-  const segmento = await resolverSegmento(request.tenantId, request.segmento)
+  const supabase = request.supabaseClient ?? await createClient()
+  const segmento = await resolverSegmento(request.tenantId, request.segmento, request.supabaseClient)
 
   if (segmento.total === 0) {
     return {
@@ -158,7 +161,6 @@ export async function enviarComunicacionMasiva(
   }
 
   // Fetch plantilla by slug
-  const supabase = await createClient()
   const { data: plantilla } = await supabase
     .from('com_plantillas')
     .select('slug, nombre, tipo, asunto, cuerpo')
@@ -171,6 +173,8 @@ export async function enviarComunicacionMasiva(
   if (!plantilla) throw new Error(`Plantilla no encontrada: ${request.plantillaSlug}`)
 
   const lote_id = randomUUID()
+  const origenModulo = request.origenModuloSlug || 'comunicaciones'
+  const origenEntidad = request.origenEntidadId || null
 
   const envios: EnvioMasivoRow[] = segmento.personas.map(persona => {
     const variables: Record<string, string> = {
@@ -193,7 +197,8 @@ export async function enviarComunicacionMasiva(
       estado: sinDestinatario ? 'fallado' : 'enviado',
       error_mensaje: sinDestinatario ? 'sin_email' : null,
       enviado_at: sinDestinatario ? null : new Date().toISOString(),
-      origen_modulo_slug: 'comunicaciones',
+      origen_modulo_slug: origenModulo,
+      origen_entidad_id: origenEntidad,
       metadata: {
         mock: adapter.name === 'mock',
         lote_id,
@@ -202,7 +207,7 @@ export async function enviarComunicacionMasiva(
     }
   })
 
-  await adapter.enviarMasivo(request.tenantId, envios)
+  await adapter.enviarMasivo(request.tenantId, envios, request.supabaseClient)
 
   return {
     lote_id,

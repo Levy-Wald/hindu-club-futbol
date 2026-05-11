@@ -15,6 +15,18 @@
     {
       "path": "/api/cron/calcular-canon-mensual",
       "schedule": "0 8 6 * *"
+    },
+    {
+      "path": "/api/cron/apto-vence-7d",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/cuota-vence-7d",
+      "schedule": "5 12 * * *"
+    },
+    {
+      "path": "/api/cron/cuota-vencida-7d",
+      "schedule": "10 12 * * *"
     }
   ]
 }

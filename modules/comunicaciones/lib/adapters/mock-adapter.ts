@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ComunicacionAdapter, EnvioRequest, EnvioResult, EnvioMasivoRow } from '../adapter'
 
 export class MockAdapter implements ComunicacionAdapter {
@@ -12,8 +13,8 @@ export class MockAdapter implements ComunicacionAdapter {
     }
   }
 
-  async enviarMasivo(tenantId: string, envios: EnvioMasivoRow[]): Promise<void> {
-    const supabase = await createClient()
+  async enviarMasivo(tenantId: string, envios: EnvioMasivoRow[], supabaseClient?: SupabaseClient): Promise<void> {
+    const supabase = supabaseClient ?? await createClient()
     const BATCH_SIZE = 500
 
     for (let i = 0; i < envios.length; i += BATCH_SIZE) {
