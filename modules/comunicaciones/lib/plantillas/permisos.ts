@@ -43,7 +43,7 @@ export async function obtenerPermisosComunicaciones(): Promise<PermisosComunicac
     .eq('activo', true)
 
   const atributos = (attrs ?? []).map(a => a.atributo_slug)
-  const esAdmin = atributos.includes('admin_sistema') || atributos.includes('admin_tenant')
+  const esAdmin = atributos.includes('sistema.admin') || atributos.includes('tenant.admin')
   const esAdminCom = esAdmin || atributos.includes('comunicaciones.admin')
   const esEditor = esAdminCom || atributos.includes('comunicaciones.editor')
 

@@ -213,13 +213,13 @@ test.describe('Comunicaciones', () => {
     const jobLogIds: string[] = []
 
     try {
-      // SETUP: dar permiso admin_sistema temporal al E2E user
+      // SETUP: dar permiso comunicaciones.admin temporal al E2E user
       const { data: attr } = await supabase
         .from('personas_atributos')
         .insert({
           tenant_id: TENANT,
           persona_id: PERSONA_E2E,
-          atributo_slug: 'admin_sistema',
+          atributo_slug: 'comunicaciones.admin',
           activo: true,
         })
         .select('id')

@@ -460,8 +460,8 @@ export async function ejecutarEnvioMasivo(input: {
     .eq('activo', true)
 
   const atributos = (attrs ?? []).map(a => a.atributo_slug)
-  const tienePermiso = atributos.includes('admin_sistema') ||
-    atributos.includes('admin_tenant') ||
+  const tienePermiso = atributos.includes('sistema.admin') ||
+    atributos.includes('tenant.admin') ||
     atributos.includes('comunicaciones.admin')
 
   if (!tienePermiso) return { ok: false, message: 'Sin permisos para envíos masivos' }
@@ -512,7 +512,9 @@ export async function ejecutarTriggerManual(jobSlug: string): Promise<ActionResu
     .eq('activo', true)
 
   const atributos = (attrs ?? []).map(a => a.atributo_slug)
-  const tienePermiso = atributos.includes('admin_sistema') || atributos.includes('admin_tenant')
+  const tienePermiso = atributos.includes('sistema.admin') ||
+    atributos.includes('tenant.admin') ||
+    atributos.includes('comunicaciones.admin')
   if (!tienePermiso) return fail('Sin permisos para ejecutar automatizaciones')
 
   if (!VALID_TRIGGERS.includes(jobSlug as typeof VALID_TRIGGERS[number])) {
