@@ -27,7 +27,7 @@ export default async function EquiposPublicosPage() {
         {Object.entries(grouped).map(([disciplina, teams]) => (
           <div key={disciplina} className="mb-12">
             <h2 className="text-xl font-semibold capitalize mb-6 flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-[#F2C531]" />
+              <Trophy className="h-5 w-5 text-gold-500" />
               {disciplina}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -35,18 +35,18 @@ export default async function EquiposPublicosPage() {
                 const cat = equipo.categoria as unknown as { nombre_display: string; edad_min: number | null; edad_max: number | null } | null
                 return (
                   <Link key={equipo.id} href={`/equipos/${equipo.id}`}
-                    className="group block rounded-xl border bg-card p-4 hover:shadow-lg transition-all hover:border-[#3A8FC5]/50">
+                    className="group block rounded-xl border bg-card p-4 hover:shadow-lg transition-all hover:border-brand-500/50">
                     <div className="flex items-center gap-3">
                       {equipo.escudo_url ? (
                         <img src={equipo.escudo_url} alt="" className="h-12 w-12 rounded-lg object-contain" />
                       ) : (
                         <div className="h-12 w-12 rounded-lg flex items-center justify-center"
-                          style={{ backgroundColor: equipo.color_principal || '#3A8FC5' }}>
+                          style={{ backgroundColor: equipo.color_principal || 'var(--color-brand-500)' }}>
                           <Trophy className="h-6 w-6 text-white/80" />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold truncate group-hover:text-[#3A8FC5] transition-colors">{equipo.nombre}</h3>
+                        <h3 className="font-semibold truncate group-hover:text-brand-500 transition-colors">{equipo.nombre}</h3>
                         <p className="text-sm text-muted-foreground">
                           {cat?.nombre_display || 'Sin categoria'}
                           {cat?.edad_min != null && cat?.edad_max != null && (
@@ -57,7 +57,7 @@ export default async function EquiposPublicosPage() {
                           <p className="text-xs text-muted-foreground mt-0.5">{equipo.torneo}</p>
                         )}
                       </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-[#3A8FC5] transition-colors" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-brand-500 transition-colors" />
                     </div>
                   </Link>
                 )

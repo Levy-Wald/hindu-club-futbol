@@ -355,7 +355,7 @@ export function Plantel({ equipoId, miembros, roles, tipo }: PlantelProps) {
                   <p className="text-xs text-muted-foreground">No se encontraron personas.</p>
                 )}
                 {selectedPersona && (
-                  <p className="text-xs text-green-600">
+                  <p className="text-xs text-success-600">
                     Seleccionado: {selectedPersona.apellido}, {selectedPersona.nombre}
                     {selectedPersona.numero_documento && ` (DNI ${selectedPersona.numero_documento})`}
                   </p>

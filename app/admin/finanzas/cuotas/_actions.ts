@@ -171,20 +171,20 @@ export async function editarBonificacion(bonificacionId: string, input: Bonifica
 }
 
 // -------------------------------------------------------------------
-// Emitir cuotas masivas
+// Preview emisión (cuenta suscripciones elegibles)
 // -------------------------------------------------------------------
 
-export async function emitirCuotasMasivas(
-  planId: string,
-  padronId: string | null,
-  periodo: string // formato YYYY-MM
-) {
+export async function previewEmision(planId: string, periodo: string) {
   const supabase = await createClient()
 
-  // 1. Obtener el plan
+  if (!planId || !periodo) {
+    return formatResult(false, 'Plan y periodo son obligatorios')
+  }
+
+  // Obtener plan
   const { data: plan, error: planError } = await supabase
     .from('cuotas_planes')
-    .select('*')
+    .select('id, nombre, monto, moneda, dia_vencimiento')
     .eq('id', planId)
     .eq('tenant_id', TENANT_ID)
     .single()
@@ -193,214 +193,432 @@ export async function emitirCuotasMasivas(
     return formatResult(false, 'Plan no encontrado')
   }
 
-  if (!plan.activo) {
-    return formatResult(false, 'El plan no esta activo')
-  }
-
-  // 2. Obtener personas segun padron
-  let personaIds: string[] = []
-
-  if (padronId) {
-    // Obtener personas del padron especifico
-    const { data: personasPadron, error: ppError } = await supabase
-      .from('personas_padrones')
-      .select('persona_id')
-      .eq('padron_id', padronId)
-      .eq('tenant_id', TENANT_ID)
-
-    if (ppError) {
-      return formatResult(false, `Error al obtener personas del padron: ${ppError.message}`)
-    }
-
-    personaIds = (personasPadron || []).map((pp) => pp.persona_id)
-  } else {
-    // Obtener todas las personas activas del tenant
-    const { data: personas, error: pError } = await supabase
-      .from('personas')
-      .select('id')
-      .eq('tenant_id', TENANT_ID)
-      .eq('estado', 'activo')
-      .is('deleted_at', null)
-
-    if (pError) {
-      return formatResult(false, `Error al obtener personas: ${pError.message}`)
-    }
-
-    personaIds = (personas || []).map((p) => p.id)
-  }
-
-  if (personaIds.length === 0) {
-    return formatResult(false, 'No se encontraron personas para emitir cuotas')
-  }
-
-  // 3. Obtener bonificaciones activas del plan
-  const { data: bonificaciones } = await supabase
-    .from('cuotas_bonificaciones')
-    .select('*')
-    .eq('plan_id', planId)
-    .eq('tenant_id', TENANT_ID)
-    .eq('activo', true)
-
-  // 4. Calcular fecha de vencimiento
+  // Contar suscripciones activas al plan
   const [anio, mes] = periodo.split('-').map(Number)
-  const diaVenc = Math.min(plan.dia_vencimiento, 28)
-  const fechaVencimiento = new Date(anio, mes - 1, diaVenc).toISOString().split('T')[0]
+  const ultimoDia = new Date(anio, mes, 0).getDate()
+  const ultimoDiaMes = `${anio}-${String(mes).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`
 
-  // 5. Verificar que no existan cuotas ya emitidas para este plan+periodo
-  const { data: existentes } = await supabase
-    .from('cuotas_emitidas')
-    .select('persona_id')
+  const { count: totalSuscripciones } = await supabase
+    .from('suscripciones')
+    .select('*', { count: 'exact', head: true })
+    .eq('tenant_id', TENANT_ID)
+    .eq('plan_id', planId)
+    .eq('estado', 'activa')
+    .lte('fecha_alta', ultimoDiaMes)
+
+  // Verificar si ya hay emisión activa para este plan+periodo
+  const { data: emisionExistente } = await supabase
+    .from('emisiones_cuota')
+    .select('id, cantidad_emitida, estado')
+    .eq('tenant_id', TENANT_ID)
     .eq('plan_id', planId)
     .eq('periodo', periodo)
-    .eq('tenant_id', TENANT_ID)
+    .eq('estado', 'activa')
+    .maybeSingle()
 
-  const existentesSet = new Set((existentes || []).map((e) => e.persona_id))
-  const personasNuevas = personaIds.filter((id) => !existentesSet.has(id))
-
-  if (personasNuevas.length === 0) {
-    return formatResult(false, 'Todas las cuotas ya fueron emitidas para este periodo')
-  }
-
-  // 6. Calcular montos con bonificaciones y crear cuotas
-  const cuotasToInsert = personasNuevas.map((personaId) => {
-    let montoFinal = plan.monto
-    const bonificacionesAplicadas: Array<{ nombre: string; descuento: number }> = []
-
-    if (bonificaciones && bonificaciones.length > 0) {
-      for (const bonif of bonificaciones) {
-        let descuento = 0
-        if (bonif.tipo === 'porcentaje') {
-          descuento = montoFinal * (bonif.valor / 100)
-        } else if (bonif.tipo === 'monto_fijo') {
-          descuento = bonif.valor
-        }
-        montoFinal = Math.max(0, montoFinal - descuento)
-        bonificacionesAplicadas.push({ nombre: bonif.nombre, descuento })
-      }
-    }
-
-    return {
-      tenant_id: TENANT_ID,
-      plan_id: planId,
-      persona_id: personaId,
-      periodo,
-      monto_original: plan.monto,
-      monto_final: montoFinal,
-      moneda: plan.moneda || 'ARS',
-      fecha_vencimiento: fechaVencimiento,
-      estado: 'pendiente' as const,
-      bonificaciones_aplicadas: bonificacionesAplicadas,
-      metadata: {},
-    }
-  })
-
-  const { error: insertError } = await supabase
-    .from('cuotas_emitidas')
-    .insert(cuotasToInsert)
-
-  if (insertError) {
-    return formatResult(false, `Error al emitir cuotas: ${insertError.message}`)
-  }
-
-  // 7. Crear registro de emision
-  const { error: emisionError } = await supabase
-    .from('emisiones_cuota')
-    .insert({
-      tenant_id: TENANT_ID,
-      plan_id: planId,
-      padron_id: padronId,
-      periodo,
-      cantidad: personasNuevas.length,
-      monto_unitario: plan.monto,
-      metadata: {},
-    })
-
-  if (emisionError) {
-    // No es critico, la emision ya se hizo
-    console.error('Error al registrar emision:', emisionError.message)
-  }
-
-  revalidatePath('/admin/finanzas/cuotas')
-  return formatResult(true, `Se emitieron ${personasNuevas.length} cuotas correctamente`, {
-    cantidad: personasNuevas.length,
+  return formatResult(true, 'Preview calculado', {
+    plan_nombre: plan.nombre,
+    plan_monto: plan.monto,
+    plan_moneda: plan.moneda,
+    total_suscripciones: totalSuscripciones ?? 0,
+    emision_existente: emisionExistente ? {
+      id: emisionExistente.id,
+      cantidad: emisionExistente.cantidad_emitida,
+    } : null,
+    monto_total_estimado: (totalSuscripciones ?? 0) * plan.monto,
   })
 }
 
 // -------------------------------------------------------------------
-// Cobrar cuota
+// Emitir cuotas masivas (wraps fn_emitir_cuotas_masivas)
+// -------------------------------------------------------------------
+
+export async function emitirCuotasMasivas(planId: string, periodo: string) {
+  const supabase = await createClient()
+
+  if (!planId || !periodo) {
+    return formatResult(false, 'Plan y periodo son obligatorios')
+  }
+
+  const { data, error } = await supabase.rpc('fn_emitir_cuotas_masivas', {
+    p_tenant_id: TENANT_ID,
+    p_plan_id: planId,
+    p_periodo: periodo,
+  })
+
+  if (error) {
+    return formatResult(false, `Error al emitir cuotas: ${error.message}`)
+  }
+
+  // Function returns TABLE rows — first row is the result
+  const rows = data as Array<{
+    emision_id: string
+    total_emitidas: number
+    total_skipped: number
+    total_monto: number
+    detalle: { ya_existia?: boolean; plan_nombre?: string }
+  }>
+  const result = rows[0]
+
+  if (!result) {
+    return formatResult(false, 'Error inesperado: sin resultado de emisión')
+  }
+
+  if (result.detalle?.ya_existia) {
+    return formatResult(false, `Ya existe una emisión activa para este plan y periodo (${result.total_emitidas} cuotas)`)
+  }
+
+  revalidatePath('/admin/finanzas/cuotas')
+  return formatResult(true, `Se emitieron ${result.total_emitidas} cuotas correctamente`, {
+    emision_id: result.emision_id,
+    total_emitidas: result.total_emitidas,
+    total_skipped: result.total_skipped,
+    total_monto: result.total_monto,
+  })
+}
+
+// -------------------------------------------------------------------
+// Anular emisión (wraps fn_anular_emision)
+// -------------------------------------------------------------------
+
+export async function anularEmision(emisionId: string, motivo?: string) {
+  const supabase = await createClient()
+
+  if (!emisionId) {
+    return formatResult(false, 'ID de emisión es obligatorio')
+  }
+
+  const { data, error } = await supabase.rpc('fn_anular_emision', {
+    p_emision_id: emisionId,
+    p_motivo: motivo || 'Anulación manual',
+  })
+
+  if (error) {
+    return formatResult(false, `Error al anular emisión: ${error.message}`)
+  }
+
+  const rows = data as Array<{
+    cuotas_anuladas: number
+    cuotas_no_anulables: number
+    estado_final: string
+  }>
+  const result = rows[0]
+
+  if (!result) {
+    return formatResult(false, 'Error inesperado: sin resultado de anulación')
+  }
+
+  revalidatePath('/admin/finanzas/cuotas')
+  return formatResult(
+    true,
+    `Emisión anulada: ${result.cuotas_anuladas} cuotas anuladas` +
+    (result.cuotas_no_anulables > 0 ? `, ${result.cuotas_no_anulables} ya pagadas (no se anulan)` : ''),
+    result
+  )
+}
+
+// -------------------------------------------------------------------
+// Fetch emisiones
+// -------------------------------------------------------------------
+
+export async function fetchEmisiones() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('emisiones_cuota')
+    .select('id, plan_id, periodo, cantidad_emitida, monto_total, estado, anulada_at, anulada_motivo, created_at, cuotas_planes(nombre)')
+    .eq('tenant_id', TENANT_ID)
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  if (error) return []
+  return data ?? []
+}
+
+// -------------------------------------------------------------------
+// Fetch cuotas con vista v_cuotas_completas
+// -------------------------------------------------------------------
+
+export async function fetchCuotasCompletas(filters?: {
+  plan_id?: string
+  periodo?: string
+  estado?: string
+  persona_id?: string
+}) {
+  const supabase = await createClient()
+
+  let query = supabase
+    .from('v_cuotas_completas')
+    .select('*')
+    .eq('tenant_id', TENANT_ID)
+    .order('fecha_vencimiento', { ascending: true })
+    .limit(300)
+
+  if (filters?.plan_id) query = query.eq('plan_id', filters.plan_id)
+  if (filters?.periodo) query = query.eq('periodo', filters.periodo)
+  if (filters?.estado) query = query.eq('estado', filters.estado)
+  if (filters?.persona_id) query = query.eq('persona_id', filters.persona_id)
+
+  const { data, error } = await query
+  if (error) {
+    console.error('fetchCuotasCompletas error:', error.message)
+    return []
+  }
+  return data ?? []
+}
+
+// -------------------------------------------------------------------
+// Fetch cuenta corriente persona
+// -------------------------------------------------------------------
+
+export async function fetchCuentaCorrientePersona(personaId: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('v_cuenta_corriente_persona')
+    .select('*')
+    .eq('tenant_id', TENANT_ID)
+    .eq('persona_id', personaId)
+
+  if (error) return []
+  return data ?? []
+}
+
+// -------------------------------------------------------------------
+// Cobrar cuota (wraps fn_cobrar_cuota)
 // -------------------------------------------------------------------
 
 export async function cobrarCuota(
   cuotaId: string,
+  monto: number,
   cajaId: string,
-  medioPagoId: string
+  medioPagoId: string,
+  options?: {
+    fechaPago?: string
+    tipoComprobanteId?: string
+    observaciones?: string
+  }
 ) {
   const supabase = await createClient()
 
-  // 1. Obtener cuota
-  const { data: cuota, error: cuotaError } = await supabase
-    .from('cuotas_emitidas')
-    .select('*, cuotas_planes(nombre)')
-    .eq('id', cuotaId)
-    .eq('tenant_id', TENANT_ID)
-    .single()
+  const { data, error } = await supabase.rpc('fn_cobrar_cuota', {
+    p_cuota_id: cuotaId,
+    p_monto: monto,
+    p_medio_pago_id: medioPagoId,
+    p_caja_id: cajaId,
+    p_fecha_pago: options?.fechaPago || new Date().toISOString().split('T')[0],
+    p_tipo_comprobante_id: options?.tipoComprobanteId || null,
+    p_observaciones: options?.observaciones || null,
+  })
 
-  if (cuotaError || !cuota) {
-    return formatResult(false, 'Cuota no encontrada')
+  if (error) {
+    if (error.message.includes('duplicada')) {
+      return formatResult(false, 'Cobranza duplicada detectada. Esperá unos segundos e intentá de nuevo.')
+    }
+    if (error.message.includes('excede monto')) {
+      return formatResult(false, 'El monto ingresado excede el saldo pendiente de la cuota')
+    }
+    return formatResult(false, `Error al cobrar: ${error.message}`)
   }
 
-  if (cuota.estado === 'pagada') {
-    return formatResult(false, 'La cuota ya esta pagada')
-  }
+  const rows = data as Array<{
+    pago_id: string
+    movimiento_id: string
+    comprobante_numero: string | null
+    nuevo_estado_cuota: string
+  }>
+  const result = rows[0]
 
-  if (cuota.estado === 'anulada') {
-    return formatResult(false, 'La cuota esta anulada')
-  }
-
-  // 2. Crear movimiento de caja (ingreso)
-  const { data: movimiento, error: movError } = await supabase
-    .from('movimientos_caja')
-    .insert({
-      tenant_id: TENANT_ID,
-      caja_id: cajaId,
-      tipo: 'ingreso',
-      monto: cuota.monto_final,
-      moneda: cuota.moneda || 'ARS',
-      medio_pago_id: medioPagoId,
-      concepto: `Cobro cuota: ${cuota.cuotas_planes?.nombre || 'Plan'} - ${cuota.periodo}`,
-      persona_id: cuota.persona_id,
-      referencia_tipo: 'cuota_emitida',
-      referencia_id: cuotaId,
-      metadata: {},
-    })
-    .select('id')
-    .single()
-
-  if (movError) {
-    return formatResult(false, `Error al crear movimiento: ${movError.message}`)
-  }
-
-  // 3. Actualizar cuota
-  const { error: updateError } = await supabase
-    .from('cuotas_emitidas')
-    .update({
-      estado: 'pagada',
-      fecha_pago: new Date().toISOString(),
-      movimiento_id: movimiento.id,
-    })
-    .eq('id', cuotaId)
-    .eq('tenant_id', TENANT_ID)
-
-  if (updateError) {
-    return formatResult(false, `Error al actualizar cuota: ${updateError.message}`)
+  if (!result) {
+    return formatResult(false, 'Error inesperado: sin resultado de cobranza')
   }
 
   revalidatePath('/admin/finanzas/cuotas')
-  return formatResult(true, 'Cuota cobrada correctamente')
+  return formatResult(true, 'Cuota cobrada correctamente', result)
 }
 
 // -------------------------------------------------------------------
-// Anular cuota
+// Cobrar cuotas masivo (varias cuotas de una persona)
+// -------------------------------------------------------------------
+
+export async function cobrarCuotasMasivo(
+  cuotaIds: string[],
+  cajaId: string,
+  medioPagoId: string,
+  options?: {
+    fechaPago?: string
+    tipoComprobanteId?: string
+    observaciones?: string
+  }
+) {
+  const supabase = await createClient()
+  const resultados: Array<{ cuotaId: string; ok: boolean; error?: string; comprobanteNumero?: string }> = []
+
+  for (const cuotaId of cuotaIds) {
+    // Get remaining balance for this cuota
+    const { data: cuota } = await supabase
+      .from('cuotas_emitidas')
+      .select('monto_final')
+      .eq('id', cuotaId)
+      .eq('tenant_id', TENANT_ID)
+      .single()
+
+    if (!cuota) {
+      resultados.push({ cuotaId, ok: false, error: 'Cuota no encontrada' })
+      continue
+    }
+
+    // Get sum of confirmed payments
+    const { data: pagosData } = await supabase
+      .from('cuotas_pagos')
+      .select('monto_pagado')
+      .eq('cuota_id', cuotaId)
+      .eq('estado', 'confirmado')
+
+    const sumaPagos = (pagosData ?? []).reduce((sum, p) => sum + Number(p.monto_pagado), 0)
+    const saldoPendiente = Number(cuota.monto_final) - sumaPagos
+
+    if (saldoPendiente <= 0) {
+      resultados.push({ cuotaId, ok: false, error: 'Cuota ya pagada' })
+      continue
+    }
+
+    const result = await cobrarCuota(cuotaId, saldoPendiente, cajaId, medioPagoId, options)
+    resultados.push({
+      cuotaId,
+      ok: result.ok,
+      error: result.ok ? undefined : result.message,
+      comprobanteNumero: result.ok ? (result.data as Record<string, unknown>)?.comprobante_numero as string : undefined,
+    })
+  }
+
+  const exitosas = resultados.filter(r => r.ok).length
+  const fallidas = resultados.filter(r => !r.ok).length
+
+  revalidatePath('/admin/finanzas/cuotas')
+  return formatResult(
+    fallidas === 0,
+    fallidas === 0
+      ? `${exitosas} cuota(s) cobrada(s) correctamente`
+      : `${exitosas} cobrada(s), ${fallidas} con error`,
+    { resultados }
+  )
+}
+
+// -------------------------------------------------------------------
+// Anular pago (wraps fn_anular_pago)
+// -------------------------------------------------------------------
+
+export async function anularPago(pagoId: string, motivo: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase.rpc('fn_anular_pago', {
+    p_pago_id: pagoId,
+    p_motivo: motivo || 'Anulación manual',
+  })
+
+  if (error) {
+    return formatResult(false, `Error al anular pago: ${error.message}`)
+  }
+
+  const rows = data as Array<{
+    pago_anulado_id: string
+    movimiento_reverso_id: string
+    nuevo_estado_cuota: string
+  }>
+  const result = rows[0]
+
+  if (!result) {
+    return formatResult(false, 'Error inesperado: sin resultado de anulación')
+  }
+
+  revalidatePath('/admin/finanzas/cuotas')
+  return formatResult(true, 'Pago anulado correctamente', result)
+}
+
+// -------------------------------------------------------------------
+// Fetch pagos por cuota
+// -------------------------------------------------------------------
+
+export async function fetchPagosPorCuota(cuotaId: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('cuotas_pagos')
+    .select('*, medios_pago(nombre), cajas(nombre)')
+    .eq('cuota_id', cuotaId)
+    .eq('tenant_id', TENANT_ID)
+    .order('created_at', { ascending: false })
+
+  if (error) return []
+  return data ?? []
+}
+
+// -------------------------------------------------------------------
+// Fetch pagos por persona
+// -------------------------------------------------------------------
+
+export async function fetchPagosPorPersona(personaId: string, filters?: {
+  estado?: string
+}) {
+  const supabase = await createClient()
+
+  let query = supabase
+    .from('cuotas_pagos')
+    .select(`
+      *,
+      medios_pago(nombre),
+      cajas(nombre),
+      cuotas_emitidas!inner(persona_id, periodo, plan_id, cuotas_planes(nombre))
+    `)
+    .eq('tenant_id', TENANT_ID)
+    .eq('cuotas_emitidas.persona_id', personaId)
+    .order('fecha_pago', { ascending: false })
+    .limit(100)
+
+  if (filters?.estado) query = query.eq('estado', filters.estado)
+
+  const { data, error } = await query
+  if (error) {
+    console.error('fetchPagosPorPersona error:', error.message)
+    return []
+  }
+  return data ?? []
+}
+
+// -------------------------------------------------------------------
+// Fetch saldo pendiente de cuota (para UI de cobranza)
+// -------------------------------------------------------------------
+
+export async function fetchSaldoCuota(cuotaId: string) {
+  const supabase = await createClient()
+
+  const { data: cuota } = await supabase
+    .from('cuotas_emitidas')
+    .select('monto_final, estado')
+    .eq('id', cuotaId)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (!cuota) return { monto_final: 0, suma_pagos: 0, saldo_pendiente: 0 }
+
+  const { data: pagos } = await supabase
+    .from('cuotas_pagos')
+    .select('monto_pagado')
+    .eq('cuota_id', cuotaId)
+    .eq('estado', 'confirmado')
+
+  const sumaPagos = (pagos ?? []).reduce((sum, p) => sum + Number(p.monto_pagado), 0)
+
+  return {
+    monto_final: Number(cuota.monto_final),
+    suma_pagos: sumaPagos,
+    saldo_pendiente: Number(cuota.monto_final) - sumaPagos,
+  }
+}
+
+// -------------------------------------------------------------------
+// Anular cuota individual
 // -------------------------------------------------------------------
 
 export async function anularCuota(cuotaId: string) {
@@ -437,55 +655,4 @@ export async function anularCuota(cuotaId: string) {
 
   revalidatePath('/admin/finanzas/cuotas')
   return formatResult(true, 'Cuota anulada correctamente')
-}
-
-// -------------------------------------------------------------------
-// Contar personas afectadas por emision
-// -------------------------------------------------------------------
-
-export async function contarPersonasEmision(
-  planId: string,
-  padronId: string | null,
-  periodo: string
-) {
-  const supabase = await createClient()
-
-  let totalPersonas = 0
-
-  if (padronId) {
-    const { count, error } = await supabase
-      .from('personas_padrones')
-      .select('*', { count: 'exact', head: true })
-      .eq('padron_id', padronId)
-      .eq('tenant_id', TENANT_ID)
-
-    if (error) return formatResult(false, error.message)
-    totalPersonas = count ?? 0
-  } else {
-    const { count, error } = await supabase
-      .from('personas')
-      .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', TENANT_ID)
-      .eq('estado', 'activo')
-      .is('deleted_at', null)
-
-    if (error) return formatResult(false, error.message)
-    totalPersonas = count ?? 0
-  }
-
-  // Restar las que ya tienen cuota emitida para este periodo+plan
-  const { count: yaEmitidas } = await supabase
-    .from('cuotas_emitidas')
-    .select('*', { count: 'exact', head: true })
-    .eq('plan_id', planId)
-    .eq('periodo', periodo)
-    .eq('tenant_id', TENANT_ID)
-
-  const nuevas = Math.max(0, totalPersonas - (yaEmitidas ?? 0))
-
-  return formatResult(true, 'Conteo realizado', {
-    total_personas: totalPersonas,
-    ya_emitidas: yaEmitidas ?? 0,
-    nuevas,
-  })
 }

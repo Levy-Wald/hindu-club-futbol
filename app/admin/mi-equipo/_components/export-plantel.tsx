@@ -148,8 +148,8 @@ export function ExportPlantel({ equipo, plantel }: ExportPlantelProps) {
                   />
                 ) : null}
                 <div>
-                  <h3 className="font-bold text-sm text-gray-900">{equipo.nombre}</h3>
-                  <p className="text-xs text-gray-500">
+                  <h3 className="font-bold text-sm text-neutral-900">{equipo.nombre}</h3>
+                  <p className="text-xs text-neutral-500">
                     {[equipo.categoria, equipo.disciplina, equipo.torneo].filter(Boolean).join(' · ')}
                   </p>
                 </div>
@@ -160,32 +160,32 @@ export function ExportPlantel({ equipo, plantel }: ExportPlantelProps) {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b text-left">
-                  <th className="pb-1.5 font-semibold text-gray-600 w-8">#</th>
-                  <th className="pb-1.5 font-semibold text-gray-600">Jugador</th>
-                  <th className="pb-1.5 font-semibold text-gray-600">Rol</th>
-                  <th className="pb-1.5 font-semibold text-gray-600">Posición</th>
-                  <th className="pb-1.5 font-semibold text-gray-600">WhatsApp</th>
+                  <th className="pb-1.5 font-semibold text-neutral-600 w-8">#</th>
+                  <th className="pb-1.5 font-semibold text-neutral-600">Jugador</th>
+                  <th className="pb-1.5 font-semibold text-neutral-600">Rol</th>
+                  <th className="pb-1.5 font-semibold text-neutral-600">Posición</th>
+                  <th className="pb-1.5 font-semibold text-neutral-600">WhatsApp</th>
                 </tr>
               </thead>
               <tbody>
                 {listado.map((m, idx) => (
-                  <tr key={m.id} className={idx % 2 === 0 ? 'bg-gray-50' : ''}>
-                    <td className="py-1.5 text-gray-500 font-mono">{m.dorsal ?? '-'}</td>
-                    <td className="py-1.5 font-medium text-gray-900">
+                  <tr key={m.id} className={idx % 2 === 0 ? 'bg-neutral-50' : ''}>
+                    <td className="py-1.5 text-neutral-500 font-mono">{m.dorsal ?? '-'}</td>
+                    <td className="py-1.5 font-medium text-neutral-900">
                       {m.persona?.apellido}, {m.persona?.nombre}
                     </td>
-                    <td className="py-1.5 text-gray-600">
+                    <td className="py-1.5 text-neutral-600">
                       {ROL_LABELS[m.rol_equipo_slug] || m.rol_equipo_slug}
                     </td>
-                    <td className="py-1.5 text-gray-600">{m.posicion || '-'}</td>
-                    <td className="py-1.5 text-gray-600">{m.persona?.whatsapp || '-'}</td>
+                    <td className="py-1.5 text-neutral-600">{m.posicion || '-'}</td>
+                    <td className="py-1.5 text-neutral-600">{m.persona?.whatsapp || '-'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
             {/* Footer */}
-            <p className="text-[10px] text-gray-400 mt-4 text-right">
+            <p className="text-[10px] text-neutral-400 mt-4 text-right">
               Generado el {new Date().toLocaleDateString('es-AR')} · {listado.length} integrantes
             </p>
           </div>

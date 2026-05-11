@@ -445,25 +445,39 @@ chicas.
 
 ## 8. Color
 
-### 8.1 Sistema de tokens
+### 8.1 Design Tokens System (ver ADR-018)
 
-Usar CSS variables vía Tailwind shadcn:
---background, --foreground
---primary, --primary-foreground
---secondary, --secondary-foreground
---muted, --muted-foreground
---accent, --accent-foreground
---destructive, --destructive-foreground
---border, --input, --ring
---card, --card-foreground
---popover, --popover-foreground
+Fuente única: `/styles/tokens.css`. Registrados en `globals.css` vía
+`@theme inline`. Escalas disponibles:
 
-NUNCA hardcodear colores hex en componentes. Siempre token.
+**Semánticos shadcn:** --background, --foreground, --primary, --secondary,
+--muted, --accent, --destructive, --border, --input, --ring, --card,
+--popover (y sus `-foreground`).
+
+**Escalas de color (Tailwind classes):**
+- `brand-{50-950}` — color primario del tenant
+- `gold-{50-900}` — color secundario/accent
+- `neutral-{50-950}` — grises
+- `success-{50-900}` — estados positivos
+- `warning-{50-900}` — alertas
+- `error-{50-900}` — errores
+- `info-{50-900}` — informativo
+
+**Reglas:**
+- NUNCA hex codes en className. Usar tokens: `bg-brand-500`, `text-error-600`.
+- NUNCA nombres de color raw (`green-600`, `red-100`). Usar semánticos.
+- Excepciones: color pickers (branding), colores dinámicos de equipo,
+  libs externas (toPng).
 
 ### 8.2 Branding por tenant
 
-`tenant_config_publica.colores_primarios` (jsonb) puede sobrescribir:
-- `--primary` y derivados
+`tenant_config_publica.color_primario` y `color_secundario` se inyectan
+como CSS variables en el root layout:
+- `color_primario` → `--primary-500`
+- `color_secundario` → `--accent-gold-500`
+
+Todos los componentes que usan `brand-500` y `gold-500` se adaptan
+automáticamente sin tocar código.
 
 El resto del sistema se mantiene neutral para no romper accesibilidad.
 

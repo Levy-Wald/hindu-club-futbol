@@ -78,7 +78,7 @@ export default async function NotificacionesPage() {
           </p>
         </div>
         {noLeidos > 0 && (
-          <Badge variant="default" className="bg-[#3A8FC5]">
+          <Badge variant="default" className="bg-brand-500">
             {noLeidos} sin leer
           </Badge>
         )}

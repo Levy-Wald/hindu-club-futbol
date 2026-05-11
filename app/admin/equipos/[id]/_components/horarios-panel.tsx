@@ -109,21 +109,21 @@ const CONDICIONES = [
 ]
 
 const TIPO_COLORES: Record<string, string> = {
-  entrenamiento: 'bg-blue-500/80 border-blue-600 text-white',
-  partido: 'bg-green-500/80 border-green-600 text-white',
-  practica_informal: 'bg-cyan-500/80 border-cyan-600 text-white',
+  entrenamiento: 'bg-info-500/80 border-info-600 text-white',
+  partido: 'bg-success-500/80 border-success-600 text-white',
+  practica_informal: 'bg-info-500/80 border-info-600 text-white',
   reunion: 'bg-purple-500/80 border-purple-600 text-white',
-  evaluacion_fisica: 'bg-amber-500/80 border-amber-600 text-white',
-  otro: 'bg-gray-500/80 border-gray-600 text-white',
+  evaluacion_fisica: 'bg-warning-500/80 border-warning-600 text-white',
+  otro: 'bg-neutral-500/80 border-neutral-600 text-white',
 }
 
 const TIPO_BADGE_COLORES: Record<string, string> = {
-  entrenamiento: 'bg-blue-100 text-blue-800 border-blue-200',
-  partido: 'bg-green-100 text-green-800 border-green-200',
-  practica_informal: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+  entrenamiento: 'bg-info-100 text-info-800 border-info-200',
+  partido: 'bg-success-100 text-success-800 border-success-200',
+  practica_informal: 'bg-info-100 text-info-800 border-info-200',
   reunion: 'bg-purple-100 text-purple-800 border-purple-200',
-  evaluacion_fisica: 'bg-amber-100 text-amber-800 border-amber-200',
-  otro: 'bg-gray-100 text-gray-800 border-gray-200',
+  evaluacion_fisica: 'bg-warning-100 text-warning-800 border-warning-200',
+  otro: 'bg-neutral-100 text-neutral-800 border-neutral-200',
 }
 
 const DIAS_SEMANA_NOMBRE = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']

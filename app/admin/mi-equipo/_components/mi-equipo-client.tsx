@@ -447,8 +447,8 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-3 border rounded-lg p-4">
-              <div className="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
-                <Trophy className="h-5 w-5 text-amber-600" />
+              <div className="h-10 w-10 rounded-lg bg-warning-100 dark:bg-warning-900/30 flex items-center justify-center shrink-0">
+                <Trophy className="h-5 w-5 text-warning-600" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold">{equipo.torneo as string}</p>
@@ -549,7 +549,7 @@ export function MiEquipoClient({ equipo, miAsignacion, plantel, horarios }: MiEq
                               href={`https://wa.me/${(p.whatsapp as string).replace(/\D/g, '')}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-1 hover:text-green-600 transition-colors"
+                              className="flex items-center gap-1 hover:text-success-600 transition-colors"
                             >
                               <MessageCircle className="h-3 w-3" />
                               {p.whatsapp as string}
@@ -798,7 +798,7 @@ function PersonaCardCompleta({
             href={`https://wa.me/${(p.whatsapp as string).replace(/\D/g, '')}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-green-600 transition-colors"
+            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-success-600 transition-colors"
           >
             <MessageCircle className="h-3.5 w-3.5" />
             {p.whatsapp as string}

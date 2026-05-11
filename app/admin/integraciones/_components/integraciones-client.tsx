@@ -292,18 +292,18 @@ function LogsTab({ logs, apiKeys }: { logs: ApiLog[]; apiKeys: ApiKey[] }) {
   const keyMap = new Map(apiKeys.map((k) => [k.id, k.nombre]))
 
   function statusColor(code: number) {
-    if (code < 300) return 'text-green-600'
-    if (code < 400) return 'text-yellow-600'
-    return 'text-red-600'
+    if (code < 300) return 'text-success-600'
+    if (code < 400) return 'text-warning-600'
+    return 'text-error-600'
   }
 
   function methodColor(method: string) {
     switch (method) {
-      case 'GET': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
-      case 'POST': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-      case 'PATCH': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
-      case 'DELETE': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'GET': return 'bg-info-100 text-info-800 dark:bg-info-900 dark:text-info-300'
+      case 'POST': return 'bg-success-100 text-success-800 dark:bg-success-900 dark:text-success-300'
+      case 'PATCH': return 'bg-warning-100 text-warning-800 dark:bg-warning-900 dark:text-warning-300'
+      case 'DELETE': return 'bg-error-100 text-error-800 dark:bg-error-900 dark:text-error-300'
+      default: return 'bg-neutral-100 text-neutral-800'
     }
   }
 

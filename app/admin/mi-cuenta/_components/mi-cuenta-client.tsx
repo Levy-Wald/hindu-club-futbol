@@ -146,11 +146,11 @@ const PLAN_LABELS: Record<string, string> = {
 }
 
 const ESTADO_CUOTA_STYLES: Record<string, string> = {
-  pendiente: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-  vencida: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-  pagada: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  parcial: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
-  anulada: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
+  pendiente: 'bg-warning-100 text-warning-800 dark:bg-warning-900/30 dark:text-warning-400',
+  vencida: 'bg-error-100 text-error-800 dark:bg-error-900/30 dark:text-error-400',
+  pagada: 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-400',
+  parcial: 'bg-warning-100 text-warning-800 dark:bg-warning-900/30 dark:text-warning-400',
+  anulada: 'bg-neutral-100 text-neutral-800 dark:bg-neutral-900/30 dark:text-neutral-400',
 }
 
 const ESTADO_CUOTA_LABELS: Record<string, string> = {
@@ -446,9 +446,9 @@ export function MiCuentaClient({
                   className={cn(
                     'text-2xl font-bold mt-1 tabular-nums',
                     saldo > 0
-                      ? 'text-green-600 dark:text-green-400'
+                      ? 'text-success-600 dark:text-success-400'
                       : saldo < 0
-                        ? 'text-red-600 dark:text-red-400'
+                        ? 'text-error-600 dark:text-error-400'
                         : 'text-foreground'
                   )}
                 >
@@ -459,16 +459,16 @@ export function MiCuentaClient({
                 className={cn(
                   'h-9 w-9 rounded-lg flex items-center justify-center shrink-0',
                   saldo > 0
-                    ? 'bg-green-100 dark:bg-green-900/30'
+                    ? 'bg-success-100 dark:bg-success-900/30'
                     : saldo < 0
-                      ? 'bg-red-100 dark:bg-red-900/30'
+                      ? 'bg-error-100 dark:bg-error-900/30'
                       : 'bg-muted'
                 )}
               >
                 {saldo > 0 ? (
-                  <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <TrendingUp className="h-4 w-4 text-success-600 dark:text-success-400" />
                 ) : saldo < 0 ? (
-                  <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
+                  <TrendingDown className="h-4 w-4 text-error-600 dark:text-error-400" />
                 ) : (
                   <Minus className="h-4 w-4 text-muted-foreground" />
                 )}
@@ -476,12 +476,12 @@ export function MiCuentaClient({
             </div>
             <div className="mt-3">
               {alDia ? (
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700 dark:text-green-400">
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success-700 dark:text-success-400">
                   <CheckCircle2 className="h-3.5 w-3.5" />
                   Al día
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-700 dark:text-red-400">
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-error-700 dark:text-error-400">
                   <AlertTriangle className="h-3.5 w-3.5" />
                   {cuotasVencidas.length} cuota{cuotasVencidas.length > 1 ? 's' : ''} vencida{cuotasVencidas.length > 1 ? 's' : ''}
                 </span>
@@ -772,7 +772,7 @@ export function MiCuentaClient({
                             <span
                               className={cn(
                                 'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold',
-                                ESTADO_CUOTA_STYLES[cuota.estado] ?? 'bg-gray-100 text-gray-800'
+                                ESTADO_CUOTA_STYLES[cuota.estado] ?? 'bg-neutral-100 text-neutral-800'
                               )}
                             >
                               {ESTADO_CUOTA_LABELS[cuota.estado] ?? cuota.estado}
@@ -871,8 +871,8 @@ export function MiCuentaClient({
                               className={cn(
                                 'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold',
                                 mov.tipo === 'ingreso'
-                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                  : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                  ? 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-400'
+                                  : 'bg-error-100 text-error-800 dark:bg-error-900/30 dark:text-error-400'
                               )}
                             >
                               {mov.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'}
@@ -885,8 +885,8 @@ export function MiCuentaClient({
                             className={cn(
                               'text-right font-mono text-sm font-semibold tabular-nums',
                               mov.tipo === 'ingreso'
-                                ? 'text-green-600 dark:text-green-400'
-                                : 'text-red-600 dark:text-red-400'
+                                ? 'text-success-600 dark:text-success-400'
+                                : 'text-error-600 dark:text-error-400'
                             )}
                           >
                             {mov.tipo === 'ingreso' ? '+' : '−'}

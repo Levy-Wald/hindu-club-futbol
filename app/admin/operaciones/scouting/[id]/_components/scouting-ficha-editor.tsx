@@ -65,8 +65,8 @@ function EstrellasInteractivas({
           <Star
             className={`h-5 w-5 ${
               valor !== null && n <= valor
-                ? 'fill-amber-400 text-amber-400'
-                : 'fill-none text-muted-foreground/40 hover:text-amber-300'
+                ? 'fill-warning-400 text-warning-400'
+                : 'fill-none text-muted-foreground/40 hover:text-warning-300'
             }`}
           />
         </button>

@@ -228,7 +228,7 @@ function CatalogoList({
             }`}
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${item.activo ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`} />
+              <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${item.activo ? 'bg-success-500' : 'bg-muted-foreground/30'}`} />
               <div className="min-w-0">
                 <p className="text-sm font-medium truncate">{item.nombre}</p>
                 <p className="text-[11px] text-muted-foreground truncate font-mono">{item.slug}</p>

@@ -18,11 +18,11 @@ export interface CuentaNode {
 }
 
 const tipoColors: Record<string, string> = {
-  activo: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-  pasivo: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  activo: 'bg-info-100 text-info-800 dark:bg-info-900/30 dark:text-info-400',
+  pasivo: 'bg-error-100 text-error-800 dark:bg-error-900/30 dark:text-error-400',
   patrimonio_neto: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
-  ingreso: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  egreso: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
+  ingreso: 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-400',
+  egreso: 'bg-warning-100 text-warning-800 dark:bg-warning-900/30 dark:text-warning-400',
 }
 
 const tipoLabels: Record<string, string> = {
@@ -96,7 +96,7 @@ function TreeNode({ node, level = 0 }: { node: CuentaNode; level?: number }) {
         <span
           className={cn(
             'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium flex-shrink-0',
-            tipoColors[node.tipo] ?? 'bg-gray-100 text-gray-800'
+            tipoColors[node.tipo] ?? 'bg-neutral-100 text-neutral-800'
           )}
         >
           {tipoLabels[node.tipo] ?? node.tipo}
@@ -259,7 +259,7 @@ function ExpandableTreeNode({
         <span
           className={cn(
             'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium flex-shrink-0',
-            tipoColors[node.tipo] ?? 'bg-gray-100 text-gray-800'
+            tipoColors[node.tipo] ?? 'bg-neutral-100 text-neutral-800'
           )}
         >
           {tipoLabels[node.tipo] ?? node.tipo}

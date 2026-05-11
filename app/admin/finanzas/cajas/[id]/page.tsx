@@ -65,11 +65,11 @@ function tipoLabel(tipo: string) {
 function tipoBadgeClass(tipo: string): string {
   switch (tipo) {
     case 'ingreso':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+      return 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-400'
     case 'egreso':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+      return 'bg-error-100 text-error-800 dark:bg-error-900/30 dark:text-error-400'
     case 'transferencia':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+      return 'bg-info-100 text-info-800 dark:bg-info-900/30 dark:text-info-400'
     default:
       return ''
   }
@@ -227,12 +227,12 @@ export default async function CajaDetailPage({ params }: PageProps) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
-              <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success-100 dark:bg-success-900/30">
+              <TrendingUp className="h-5 w-5 text-success-600 dark:text-success-400" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Ingresos del mes</p>
-              <p className="text-lg font-bold text-green-600 dark:text-green-400">
+              <p className="text-lg font-bold text-success-600 dark:text-success-400">
                 {formatMoney(ingresosMes, moneda)}
               </p>
             </div>
@@ -240,12 +240,12 @@ export default async function CajaDetailPage({ params }: PageProps) {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
-              <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-error-100 dark:bg-error-900/30">
+              <TrendingDown className="h-5 w-5 text-error-600 dark:text-error-400" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Egresos del mes</p>
-              <p className="text-lg font-bold text-red-600 dark:text-red-400">
+              <p className="text-lg font-bold text-error-600 dark:text-error-400">
                 {formatMoney(egresosMes, moneda)}
               </p>
             </div>
@@ -258,7 +258,7 @@ export default async function CajaDetailPage({ params }: PageProps) {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Neto del mes</p>
-              <p className={`text-lg font-bold ${ingresosMes - egresosMes >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+              <p className={`text-lg font-bold ${ingresosMes - egresosMes >= 0 ? 'text-success-600 dark:text-success-400' : 'text-error-600 dark:text-error-400'}`}>
                 {formatMoney(ingresosMes - egresosMes, moneda)}
               </p>
             </div>
@@ -336,7 +336,7 @@ export default async function CajaDetailPage({ params }: PageProps) {
                         <TableCell className={esAnulado ? 'line-through' : ''}>
                           {categoria?.nombre ?? '-'}
                         </TableCell>
-                        <TableCell className={`text-right font-medium ${esAnulado ? 'line-through' : mov.tipo === 'ingreso' ? 'text-green-600 dark:text-green-400' : mov.tipo === 'egreso' ? 'text-red-600 dark:text-red-400' : ''}`}>
+                        <TableCell className={`text-right font-medium ${esAnulado ? 'line-through' : mov.tipo === 'ingreso' ? 'text-success-600 dark:text-success-400' : mov.tipo === 'egreso' ? 'text-error-600 dark:text-error-400' : ''}`}>
                           {mov.tipo === 'egreso' ? '-' : ''}
                           {formatMoney(mov.monto_neto, moneda)}
                         </TableCell>

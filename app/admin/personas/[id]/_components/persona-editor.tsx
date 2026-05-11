@@ -27,6 +27,9 @@ import { SeccionDeporteEquipos } from './secciones/deporte-equipos'
 import { TabAtributos } from './tab-atributos'
 import { TabVinculos } from './tab-vinculos'
 import { TabPadrones } from './tab-padrones'
+import { TabSuscripciones } from './tab-suscripciones'
+import { TabCuotas } from './tab-cuotas'
+import { TabPagos } from './tab-pagos'
 import { ExportDialog } from './export-dialog'
 
 interface PersonaEditorProps {
@@ -191,6 +194,9 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
             )}
             <TabsTrigger value="vinculos">Vínculos</TabsTrigger>
             {!esMiPerfil && <TabsTrigger value="padrones">Padrones</TabsTrigger>}
+            {!esMiPerfil && <TabsTrigger value="suscripciones">Suscripciones</TabsTrigger>}
+            {!esMiPerfil && <TabsTrigger value="cuotas">Cuotas</TabsTrigger>}
+            {!esMiPerfil && <TabsTrigger value="pagos">Pagos</TabsTrigger>}
             <TabsTrigger value="ficha">Ficha total</TabsTrigger>
           </TabsList>
         </div>
@@ -198,12 +204,12 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
         {/* PERSONAL: identidad + contacto + dirección */}
         <TabsContent value="personal" className="mt-4 space-y-4">
           {camposBloqueados && (
-            <div className="border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-200">
+            <div className="border border-warning-200 dark:border-warning-800 bg-warning-50 dark:bg-warning-950/30 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-warning-800 dark:text-warning-200">
                 <Lock className="h-4 w-4" />
                 Datos de identidad protegidos
               </div>
-              <p className="text-xs text-amber-700 dark:text-amber-300">
+              <p className="text-xs text-warning-700 dark:text-warning-300">
                 Los campos de documento, CUIL/CUIT y nombre legal no se pueden editar directamente.
                 Para modificarlos, enviá una solicitud de cambio que será revisada por un administrador.
               </p>
@@ -293,6 +299,18 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
             estadosPadron={estadosPadron}
             tiposSocio={tiposSocio}
           />
+        </TabsContent>
+
+        <TabsContent value="suscripciones" className="mt-4">
+          <TabSuscripciones personaId={persona.id as string} />
+        </TabsContent>
+
+        <TabsContent value="cuotas" className="mt-4">
+          <TabCuotas personaId={persona.id as string} />
+        </TabsContent>
+
+        <TabsContent value="pagos" className="mt-4">
+          <TabPagos personaId={persona.id as string} />
         </TabsContent>
 
         {/* FICHA TOTAL — read-only overview */}

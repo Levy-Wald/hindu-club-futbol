@@ -183,7 +183,7 @@ export function PersonasImportWizard() {
                   <p className="text-sm font-medium truncate">{m.sourceHeader}</p>
                   <p className="text-xs text-muted-foreground truncate">ej: {parsedData.rows[0]?.[i] ?? '—'}</p>
                 </div>
-                {m.confidence >= 0.7 && m.targetField && <Check className="h-3 w-3 text-green-600 shrink-0" />}
+                {m.confidence >= 0.7 && m.targetField && <Check className="h-3 w-3 text-success-600 shrink-0" />}
                 <Select value={m.targetField ?? IGNORE_VALUE} onValueChange={(v) => handleMappingChange(i, v ?? IGNORE_VALUE)}>
                   <SelectTrigger className="h-8 text-xs w-[150px]"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -237,20 +237,20 @@ export function PersonasImportWizard() {
       {step === 'results' && results && (
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <CheckCircle2 className="h-8 w-8 text-green-600" />
+            <CheckCircle2 className="h-8 w-8 text-success-600" />
             <h2 className="text-lg font-medium">Importación completada</h2>
           </div>
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="rounded-md border p-3">
-              <p className="text-2xl font-bold text-green-600">{results.imported}</p>
+              <p className="text-2xl font-bold text-success-600">{results.imported}</p>
               <p className="text-xs text-muted-foreground">Importadas</p>
             </div>
             <div className="rounded-md border p-3">
-              <p className="text-2xl font-bold text-yellow-600">{results.skipped}</p>
+              <p className="text-2xl font-bold text-warning-600">{results.skipped}</p>
               <p className="text-xs text-muted-foreground">Omitidas (duplicadas)</p>
             </div>
             <div className="rounded-md border p-3">
-              <p className="text-2xl font-bold text-red-600">{results.errors.length}</p>
+              <p className="text-2xl font-bold text-error-600">{results.errors.length}</p>
               <p className="text-xs text-muted-foreground">Errores</p>
             </div>
           </div>

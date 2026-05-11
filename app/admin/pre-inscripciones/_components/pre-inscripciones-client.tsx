@@ -132,13 +132,13 @@ function estadoBadgeVariant(estado: string): 'default' | 'secondary' | 'destruct
 function estadoBadgeClass(estado: string): string {
   switch (estado) {
     case 'pendiente':
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+      return 'bg-warning-100 text-warning-800 dark:bg-warning-900/30 dark:text-warning-400'
     case 'en_revision':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+      return 'bg-info-100 text-info-800 dark:bg-info-900/30 dark:text-info-400'
     case 'aprobada':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+      return 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-400'
     case 'rechazada':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+      return 'bg-error-100 text-error-800 dark:bg-error-900/30 dark:text-error-400'
     default:
       return ''
   }
@@ -230,10 +230,10 @@ export function PreInscripcionesClient({
   // Stats data
   const statsCards = [
     { key: 'todas', label: 'Total', value: stats.total, colorClass: 'text-foreground' },
-    { key: 'pendiente', label: 'Pendientes', value: stats.pendiente, colorClass: 'text-yellow-600 dark:text-yellow-400' },
-    { key: 'en_revision', label: 'En revision', value: stats.en_revision, colorClass: 'text-blue-600 dark:text-blue-400' },
-    { key: 'aprobada', label: 'Aprobadas', value: stats.aprobada, colorClass: 'text-green-600 dark:text-green-400' },
-    { key: 'rechazada', label: 'Rechazadas', value: stats.rechazada, colorClass: 'text-red-600 dark:text-red-400' },
+    { key: 'pendiente', label: 'Pendientes', value: stats.pendiente, colorClass: 'text-warning-600 dark:text-warning-400' },
+    { key: 'en_revision', label: 'En revision', value: stats.en_revision, colorClass: 'text-info-600 dark:text-info-400' },
+    { key: 'aprobada', label: 'Aprobadas', value: stats.aprobada, colorClass: 'text-success-600 dark:text-success-400' },
+    { key: 'rechazada', label: 'Rechazadas', value: stats.rechazada, colorClass: 'text-error-600 dark:text-error-400' },
   ]
 
   return (
@@ -676,9 +676,9 @@ function DetalleExpandido({ inscripcion }: { inscripcion: PreInscripcion }) {
       )}
 
       {ins.motivo_rechazo && (
-        <div className="border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30 rounded-lg p-3">
-          <p className="text-xs font-medium text-red-600 dark:text-red-400 mb-0.5">Motivo de rechazo</p>
-          <p className="text-red-800 dark:text-red-300">{ins.motivo_rechazo}</p>
+        <div className="border border-error-200 dark:border-error-900 bg-error-50 dark:bg-error-950/30 rounded-lg p-3">
+          <p className="text-xs font-medium text-error-600 dark:text-error-400 mb-0.5">Motivo de rechazo</p>
+          <p className="text-error-800 dark:text-error-300">{ins.motivo_rechazo}</p>
         </div>
       )}
 

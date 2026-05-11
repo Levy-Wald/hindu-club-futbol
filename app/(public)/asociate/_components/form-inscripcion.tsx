@@ -206,7 +206,7 @@ export function FormInscripcion({
   if (submitted) {
     return (
       <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
-        <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-green-100 text-green-600 animate-in zoom-in-50 duration-500">
+        <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-success-100 text-success-600 animate-in zoom-in-50 duration-500">
           <Check className="size-10" />
         </div>
         <h2 className="mt-6 text-2xl font-bold text-foreground">
@@ -242,7 +242,7 @@ export function FormInscripcion({
         </div>
         <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
           <div
-            className="h-full rounded-full bg-[#3A8FC5] transition-all duration-500 ease-out"
+            className="h-full rounded-full bg-brand-500 transition-all duration-500 ease-out"
             style={{ width: `${((step + 1) / totalSteps) * 100}%` }}
           />
         </div>
@@ -299,7 +299,7 @@ export function FormInscripcion({
           {isLastStep ? (
             <Button
               size="lg"
-              className="bg-[#3A8FC5] hover:bg-[#3A8FC5]/90 text-white h-11 px-6"
+              className="bg-brand-500 hover:bg-brand-500/90 text-white h-11 px-6"
               disabled={!canAdvance() || isPending}
               onClick={handleSubmit}
             >
@@ -315,7 +315,7 @@ export function FormInscripcion({
           ) : (
             <Button
               size="lg"
-              className="bg-[#3A8FC5] hover:bg-[#3A8FC5]/90 text-white h-11 px-6"
+              className="bg-brand-500 hover:bg-brand-500/90 text-white h-11 px-6"
               disabled={!canAdvance()}
               onClick={handleNext}
             >
@@ -374,13 +374,13 @@ function StepTipo({
         <button
           type="button"
           onClick={() => onChange(false)}
-          className={`flex flex-col items-center gap-3 rounded-xl border-2 p-6 transition-all hover:border-[#3A8FC5] hover:shadow-md ${
+          className={`flex flex-col items-center gap-3 rounded-xl border-2 p-6 transition-all hover:border-brand-500 hover:shadow-md ${
             value === false
-              ? 'border-[#3A8FC5] bg-[#3A8FC5]/5 shadow-md'
+              ? 'border-brand-500 bg-brand-500/5 shadow-md'
               : 'border-border'
           }`}
         >
-          <div className="flex size-14 items-center justify-center rounded-full bg-[#3A8FC5]/10 text-[#3A8FC5]">
+          <div className="flex size-14 items-center justify-center rounded-full bg-brand-500/10 text-brand-500">
             <User className="size-7" />
           </div>
           <div>
@@ -394,13 +394,13 @@ function StepTipo({
         <button
           type="button"
           onClick={() => onChange(true)}
-          className={`flex flex-col items-center gap-3 rounded-xl border-2 p-6 transition-all hover:border-[#3A8FC5] hover:shadow-md ${
+          className={`flex flex-col items-center gap-3 rounded-xl border-2 p-6 transition-all hover:border-brand-500 hover:shadow-md ${
             value === true
-              ? 'border-[#3A8FC5] bg-[#3A8FC5]/5 shadow-md'
+              ? 'border-brand-500 bg-brand-500/5 shadow-md'
               : 'border-border'
           }`}
         >
-          <div className="flex size-14 items-center justify-center rounded-full bg-[#F2C531]/10 text-[#F2C531]">
+          <div className="flex size-14 items-center justify-center rounded-full bg-gold-500/10 text-gold-500">
             <Baby className="size-7" />
           </div>
           <div>
@@ -677,13 +677,13 @@ function StepDeporte({
           <button
             type="button"
             onClick={() => update('disciplina_slug', 'futbol')}
-            className={`flex w-full items-center gap-4 rounded-xl border-2 p-4 transition-all hover:border-[#3A8FC5] ${
+            className={`flex w-full items-center gap-4 rounded-xl border-2 p-4 transition-all hover:border-brand-500 ${
               data.disciplina_slug === 'futbol'
-                ? 'border-[#3A8FC5] bg-[#3A8FC5]/5'
+                ? 'border-brand-500 bg-brand-500/5'
                 : 'border-border'
             }`}
           >
-            <div className="flex size-12 items-center justify-center rounded-full bg-[#3A8FC5]/10 text-[#3A8FC5]">
+            <div className="flex size-12 items-center justify-center rounded-full bg-brand-500/10 text-brand-500">
               <Circle className="size-6" />
             </div>
             <div className="text-left">
@@ -852,7 +852,7 @@ function StepConfirmacion({
               href="/terminos"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#3A8FC5] underline underline-offset-2 hover:text-[#3A8FC5]/80"
+              className="text-brand-500 underline underline-offset-2 hover:text-brand-500/80"
             >
               terminos y condiciones
             </a>{' '}

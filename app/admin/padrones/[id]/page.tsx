@@ -259,7 +259,7 @@ export default async function PadronDetallePage({ params }: PageProps) {
                 <Link
                   key={run.id}
                   href={`/admin/padrones/${padron.id}/sync/${run.id}`}
-                  className={`block rounded-lg border p-3 ${isActive ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/20' : ''}`}
+                  className={`block rounded-lg border p-3 ${isActive ? 'border-warning-500 bg-warning-50 dark:bg-warning-950/20' : ''}`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
@@ -294,7 +294,7 @@ export default async function PadronDetallePage({ params }: PageProps) {
                   const isActive = ['revisando', 'matching', 'aplicando'].includes(run.estado)
                   const resumen = run.resumen ?? {}
                   return (
-                    <TableRow key={run.id} className={isActive ? 'bg-amber-50 dark:bg-amber-950/20' : ''}>
+                    <TableRow key={run.id} className={isActive ? 'bg-warning-50 dark:bg-warning-950/20' : ''}>
                       <TableCell className="font-medium">{run.archivo_origen}</TableCell>
                       <TableCell className="text-muted-foreground text-sm">
                         {new Date(run.fecha_inicio).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}

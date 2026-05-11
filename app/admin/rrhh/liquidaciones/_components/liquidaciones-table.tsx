@@ -45,10 +45,10 @@ function formatFecha(iso: string | null): string {
 
 function estadoBadgeClass(e: string): string {
   const map: Record<string, string> = {
-    borrador: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
-    aprobada: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-    pagada: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-    anulada: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    borrador: 'bg-neutral-100 text-neutral-800 dark:bg-neutral-900/30 dark:text-neutral-400',
+    aprobada: 'bg-info-100 text-info-800 dark:bg-info-900/30 dark:text-info-400',
+    pagada: 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-400',
+    anulada: 'bg-error-100 text-error-800 dark:bg-error-900/30 dark:text-error-400',
   }
   return map[e] ?? ''
 }

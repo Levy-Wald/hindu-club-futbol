@@ -42,6 +42,7 @@ Sin envelope, Code trabaja a ciegas y la documentación se desincroniza.
     3. /docs/CURRENT-STATE.md        (estado real del proyecto hoy)
     4. /docs/SPRINT-PLAN.md          (sprint actual + próximos)
     5. /docs/GLOSSARY.md             (términos de dominio)
+    6. /docs/ROADMAP.md              (roadmap por fases, sin fechas)
 
     Si alguno de esos archivos no existe o está vacío, parar y avisar.
     ═══════════════════════════════════════════════════════════════════
@@ -226,6 +227,34 @@ sprint, el sprint no está cerrado.
 Mensajes a Yair siguen el formato del punto 4 (CIERRE DE SPRINT). Sin
 formato libre. Sin "todo OK!" sin detalle.
 
+### R-PE8 — Lectura de docs vivos completa
+
+Code lee TODOS los docs listados en CLAUDE.md §instrucciones antes de
+arrancar cualquier sprint. Si un doc no existe o está vacío, Code lo
+reporta al arquitecto. No se arranca con contexto parcial.
+
+### R-PE9 — Pre-mortem obligatorio para sprints de alto riesgo
+
+Antes de arrancar implementación, el arquitecto realiza un pre-mortem
+documentado cuando el sprint cumple AL MENOS UNA de:
+
+- Duración estimada > 3 días
+- Toca capa Plataforma (auth, multi-tenant, imports, API)
+- Introduce integración externa (Resend, MercadoPago, etc.)
+- Refactor que afecta > 50 archivos
+- Riesgo de regresión visual o de datos crítica
+- Operaciones sobre datos productivos de un tenant activo
+
+El pre-mortem se publica como entrada en DECISIONS.md con la plantilla
+del §7 — Caso D ANTES de pegar el spec a Code. Code lo lee como parte
+del HEADER del sprint y aplica las mitigaciones obligatorias.
+
+Para sprints menores (bug fix, feature acotada < 3 días, capa no
+crítica) el pre-mortem se omite.
+
+Code no puede arrancar un sprint que requiere pre-mortem si el
+pre-mortem no está publicado.
+
 ---
 
 ## 6. Ejemplo completo — un pedido envuelto
@@ -342,6 +371,56 @@ Para tareas exploratorias sin código de producción:
 
 Si durante una exploración aparece que hay que implementar algo, parar y
 volver al flujo normal con envelope completo.
+
+### Caso D — Pre-mortem antes de sprint de alto riesgo
+
+Cuando aplica R-PE9, el arquitecto publica este bloque en DECISIONS.md
+ANTES de pegar el spec del sprint a Code.
+
+**Plantilla:**
+
+```
+## PRE-MORTEM Sprint <N> — <nombre>
+**Fecha:** YYYY-MM-DD
+**Capa:** <capa>
+**Duración estimada:** <días>
+**Tomado por:** Arquitecto
+
+### Escenario hipotético
+"Estamos a 1 semana del cierre y el sprint FALLÓ. <descripción de
+cómo se ve el fracaso>"
+
+### Por qué pudo haber fallado
+
+1. **<razón concreta>**
+   Probabilidad: ALTA / MEDIA / BAJA · Impacto: ALTO / MEDIO / BAJO
+   <explicación breve>
+   Mitigación: <acción concreta>
+
+2. **<razón concreta>**
+   [...]
+
+(mínimo 5, ideal 8-12)
+
+### Top 3 riesgos (por prob × impacto)
+
+1. **<riesgo más crítico>** → Mitigación obligatoria: <acción>
+2. **<segundo>** → Mitigación obligatoria: <acción>
+3. **<tercero>** → Mitigación obligatoria: <acción>
+
+### Ajustes al spec del sprint
+<Qué se cambió en el alcance o en el plan basado en este pre-mortem.
+Los criterios de aceptación se actualizan para incluir las
+mitigaciones.>
+
+### Indicadores tempranos de falla
+<Qué señales miramos durante la ejecución que indicarían que estamos
+yendo hacia el escenario hipotético. Cuándo dispara cada alerta.>
+```
+
+Code lee este pre-mortem como parte del HEADER del sprint y aplica
+todas las mitigaciones obligatorias en su implementación. Si durante
+el sprint aparece un indicador temprano de falla, Code para y consulta.
 
 ---
 

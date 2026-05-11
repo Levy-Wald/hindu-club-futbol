@@ -312,14 +312,10 @@ explícitos.
 
 ## 7. Roadmap macro
 
-    2026 MAY  ━━━ Sprint 14d-14f: Fundación + suscripciones + cobranza
-    2026 JUN  ━━━ Mes de prueba Hindu. Sprints 15a-15c: comunicaciones, reportes, RRHH
-    2026 JUL  ━━━ Full operativo Hindu. Sprints 15d-15e: MercadoPago, onboarding tenant
-    2026 Q3   ━━━ Demo y onboarding de segundo cliente (Hacoaj-tier)
-    2026 Q4   ━━━ Tercer cliente. Estabilización
-    2027 Q1+  ━━━ Evaluar separación del troncal según demanda
+El roadmap completo está en `ROADMAP.md`. Este documento solo
+declara la visión a largo plazo. No hay fechas comprometidas.
 
-Sprint plan detallado en `SPRINT-PLAN.md`.
+Sprint plan operativo (sprint actual + próximos 3) en `SPRINT-PLAN.md`.
 
 ---
 
@@ -350,3 +346,19 @@ no documentado acá, parar y consultar.
 **Yair:** leer cada vez que tengas una idea nueva de producto, antes de
 pasarme la solicitud. Si tu idea no cuadra con este modelo, lo discutimos y
 ajustamos el modelo.
+
+### Documentos vivos del proyecto
+
+| # | Documento | Propósito | Mantiene |
+|---|---|---|---|
+| 1 | MASTER-PROJECT.md | Visión, capas, decisiones marco | Arquitecto |
+| 2 | ARCHITECTURE.md | Convenciones, patrones, anti-patrones | Arquitecto |
+| 3 | CURRENT-STATE.md | Estado actual numérico, tablas por capa | Code |
+| 4 | ROADMAP.md | Roadmap arquitectónico por fases, sin tiempos | Arquitecto |
+| 5 | SPRINT-PLAN.md | Sprint actual + próximos 3 en cola | Arquitecto |
+| 6 | DECISIONS.md | ADRs cronológicos | Arquitecto + Code |
+| 7 | PROMPT-ENVELOPE.md | Header/footer de cada sprint | Arquitecto |
+| 8 | GLOSSARY.md | Términos del dominio | Arquitecto |
+| 9 | UI-UX.md | Estándares de diseño y UX | Arquitecto |
+| 10 | PERFORMANCE.md | Objetivos y patrones de performance | Arquitecto |
+| 11 | SECURITY.md | Políticas y controles de seguridad | Arquitecto |

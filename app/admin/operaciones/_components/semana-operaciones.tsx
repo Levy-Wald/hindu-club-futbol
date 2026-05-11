@@ -27,12 +27,12 @@ import type { EventoSemana, EquipoSimple } from '../_lib/queries'
 // ---------------------------------------------------------------------------
 
 const TIPOS_EVENTO = [
-  { value: 'entrenamiento', label: 'Entrenamiento', color: 'bg-blue-100 text-blue-800' },
-  { value: 'partido', label: 'Partido', color: 'bg-green-100 text-green-800' },
-  { value: 'practica_informal', label: 'Práctica informal', color: 'bg-cyan-100 text-cyan-800' },
-  { value: 'reunion', label: 'Reunión', color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'evaluacion_fisica', label: 'Evaluación física', color: 'bg-amber-100 text-amber-800' },
-  { value: 'otro', label: 'Otro', color: 'bg-gray-100 text-gray-800' },
+  { value: 'entrenamiento', label: 'Entrenamiento', color: 'bg-info-100 text-info-800' },
+  { value: 'partido', label: 'Partido', color: 'bg-success-100 text-success-800' },
+  { value: 'practica_informal', label: 'Práctica informal', color: 'bg-info-100 text-info-800' },
+  { value: 'reunion', label: 'Reunión', color: 'bg-warning-100 text-warning-800' },
+  { value: 'evaluacion_fisica', label: 'Evaluación física', color: 'bg-warning-100 text-warning-800' },
+  { value: 'otro', label: 'Otro', color: 'bg-neutral-100 text-neutral-800' },
 ] as const
 
 const DIAS_SEMANA = [
@@ -90,7 +90,7 @@ function formatRangoSemana(lunes: Date): string {
 
 function getTipoBadge(tipo: string) {
   const found = TIPOS_EVENTO.find((t) => t.value === tipo)
-  return found ?? { value: tipo, label: tipo, color: 'bg-gray-100 text-gray-800' }
+  return found ?? { value: tipo, label: tipo, color: 'bg-neutral-100 text-neutral-800' }
 }
 
 function formatHora(h: string | null): string {

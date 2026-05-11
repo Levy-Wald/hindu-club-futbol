@@ -34,7 +34,7 @@ async function getBranding() {
     const supabase = await createClient()
     const { data } = await supabase
       .from('tenant_config_publica')
-      .select('favicon_url, fuente_titulos, fuente_cuerpo, nombre_display, color_primario')
+      .select('favicon_url, fuente_titulos, fuente_cuerpo, nombre_display, color_primario, color_secundario')
       .eq('tenant_id', TENANT_ID)
       .maybeSingle()
     return data
@@ -67,6 +67,8 @@ export default async function RootLayout({
 
   const fuenteTitulos = branding?.fuente_titulos ?? 'Inter'
   const fuenteCuerpo = branding?.fuente_cuerpo ?? 'Inter'
+  const colorPrimario = branding?.color_primario || null
+  const colorSecundario = branding?.color_secundario || null
 
   // Build Google Fonts import URL
   const fontsToLoad = new Set<string>()
@@ -94,6 +96,8 @@ export default async function RootLayout({
               :root {
                 --font-heading: '${fuenteTitulos}', var(--font-geist-sans), sans-serif;
                 --font-body: '${fuenteCuerpo}', var(--font-geist-sans), sans-serif;
+                ${colorPrimario ? `--primary-500: ${colorPrimario};` : ''}
+                ${colorSecundario ? `--accent-gold-500: ${colorSecundario};` : ''}
               }
             `,
           }}

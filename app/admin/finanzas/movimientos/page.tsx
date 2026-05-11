@@ -28,11 +28,11 @@ function formatFecha(iso: string): string {
 function tipoBadgeClass(tipo: string): string {
   switch (tipo) {
     case 'ingreso':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+      return 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-400'
     case 'egreso':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+      return 'bg-error-100 text-error-800 dark:bg-error-900/30 dark:text-error-400'
     case 'transferencia':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+      return 'bg-info-100 text-info-800 dark:bg-info-900/30 dark:text-info-400'
     default:
       return ''
   }
@@ -252,9 +252,9 @@ export default async function MovimientosPage({ searchParams }: PageProps) {
                             esAnulado
                               ? 'line-through'
                               : mov.tipo === 'ingreso'
-                                ? 'text-green-600 dark:text-green-400'
+                                ? 'text-success-600 dark:text-success-400'
                                 : mov.tipo === 'egreso'
-                                  ? 'text-red-600 dark:text-red-400'
+                                  ? 'text-error-600 dark:text-error-400'
                                   : ''
                           }`}
                         >

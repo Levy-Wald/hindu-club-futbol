@@ -39,11 +39,11 @@ interface AsistenciasEventoProps {
 // --- Constantes ---
 
 const ESTADOS = [
-  { value: 'pendiente', label: 'Pendiente', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-  { value: 'confirmado', label: 'Confirmado', color: 'bg-green-100 text-green-800 border-green-200' },
-  { value: 'rechazado', label: 'Rechazado', color: 'bg-red-100 text-red-800 border-red-200' },
-  { value: 'presente', label: 'Presente', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-  { value: 'ausente', label: 'Ausente', color: 'bg-gray-100 text-gray-800 border-gray-200' },
+  { value: 'pendiente', label: 'Pendiente', color: 'bg-warning-100 text-warning-800 border-warning-200' },
+  { value: 'confirmado', label: 'Confirmado', color: 'bg-success-100 text-success-800 border-success-200' },
+  { value: 'rechazado', label: 'Rechazado', color: 'bg-error-100 text-error-800 border-error-200' },
+  { value: 'presente', label: 'Presente', color: 'bg-info-100 text-info-800 border-info-200' },
+  { value: 'ausente', label: 'Ausente', color: 'bg-neutral-100 text-neutral-800 border-neutral-200' },
 ]
 
 function getEstadoConfig(estado: string) {

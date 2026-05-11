@@ -65,7 +65,7 @@ function EstadoBadge({ estado }: { estado: string }) {
   // Incorporado gets a green tint
   if (estado === 'incorporado') {
     return (
-      <Badge variant="default" className="bg-emerald-600 hover:bg-emerald-700">
+      <Badge variant="default" className="bg-success-600 hover:bg-success-700">
         {config.label}
       </Badge>
     )
@@ -83,7 +83,7 @@ function Estrellas({ valor }: { valor: number | null }) {
           key={n}
           className={`h-3.5 w-3.5 ${
             n <= valor
-              ? 'fill-amber-400 text-amber-400'
+              ? 'fill-warning-400 text-warning-400'
               : 'fill-none text-muted-foreground/40'
           }`}
         />

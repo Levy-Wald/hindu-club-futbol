@@ -55,8 +55,8 @@ export default async function EquipoDetallePublicoPage({
     STAFF_ROLES.includes(m.rol_equipo_slug)
   )
 
-  const colorPrincipal = equipo.color_principal || '#3A8FC5'
-  const colorSecundario = equipo.color_secundario || '#1E3A5F'
+  const colorPrincipal = equipo.color_principal || 'var(--color-brand-500)'
+  const colorSecundario = equipo.color_secundario || 'var(--color-brand-900)'
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hindu-club.vercel.app'
   const pageUrl = `${siteUrl}/equipos/${id}`
@@ -149,7 +149,7 @@ export default async function EquipoDetallePublicoPage({
         {jugadores.length > 0 && (
           <section>
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Users className="h-6 w-6 text-[#3A8FC5]" />
+              <Users className="h-6 w-6 text-brand-500" />
               Plantel
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
@@ -197,8 +197,8 @@ export default async function EquipoDetallePublicoPage({
                       <Badge
                         className="mt-1 text-[10px] px-1.5"
                         style={{
-                          backgroundColor: esCapitan ? '#F2C531' : '#3A8FC5',
-                          color: esCapitan ? '#1E3A5F' : 'white',
+                          backgroundColor: esCapitan ? 'var(--color-gold-500)' : 'var(--color-brand-500)',
+                          color: esCapitan ? 'var(--color-brand-900)' : 'white',
                         }}
                       >
                         <Star className="h-2.5 w-2.5 mr-0.5" />
@@ -216,7 +216,7 @@ export default async function EquipoDetallePublicoPage({
         {staff.length > 0 && (
           <section>
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Shield className="h-6 w-6 text-[#3A8FC5]" />
+              <Shield className="h-6 w-6 text-brand-500" />
               Cuerpo tecnico
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -259,7 +259,7 @@ export default async function EquipoDetallePublicoPage({
         {equipo.eventos && equipo.eventos.length > 0 && (
           <section>
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Calendar className="h-6 w-6 text-[#3A8FC5]" />
+              <Calendar className="h-6 w-6 text-brand-500" />
               Proximos eventos
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -305,7 +305,7 @@ export default async function EquipoDetallePublicoPage({
         {/* QR Code */}
         <section className="flex flex-col items-center text-center py-8 border-t">
           <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-            <QrCode className="h-5 w-5 text-[#3A8FC5]" />
+            <QrCode className="h-5 w-5 text-brand-500" />
             Compartir equipo
           </h3>
           <p className="text-sm text-muted-foreground mb-4">
@@ -333,7 +333,7 @@ export default async function EquipoDetallePublicoPage({
           </p>
           <Button
             size="lg"
-            className="mt-6 bg-[#F2C531] text-[#1E3A5F] hover:bg-[#F2C531]/90 font-semibold"
+            className="mt-6 bg-gold-500 text-brand-900 hover:bg-gold-500/90 font-semibold"
             render={<Link href="/asociate" />}
           >
             Quiero asociarme

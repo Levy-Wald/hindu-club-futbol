@@ -460,9 +460,9 @@ function comparePadronVsPadron(
     rows,
     stats: [
       { key: 'todos', label: 'Total', count: rows.length, color: 'text-foreground', icon: <Users className="h-4 w-4" /> },
-      { key: 'en_ambos', label: 'En ambos', count: enAmbos, color: 'text-green-600', icon: <UserCheck className="h-4 w-4" /> },
-      { key: 'solo_a', label: 'Solo en A', count: soloA, color: 'text-blue-600', icon: <Users className="h-4 w-4" /> },
-      { key: 'solo_b', label: 'Solo en B', count: soloB, color: 'text-yellow-600', icon: <Users className="h-4 w-4" /> },
+      { key: 'en_ambos', label: 'En ambos', count: enAmbos, color: 'text-success-600', icon: <UserCheck className="h-4 w-4" /> },
+      { key: 'solo_a', label: 'Solo en A', count: soloA, color: 'text-info-600', icon: <Users className="h-4 w-4" /> },
+      { key: 'solo_b', label: 'Solo en B', count: soloB, color: 'text-warning-600', icon: <Users className="h-4 w-4" /> },
     ],
   }
 }
@@ -494,8 +494,8 @@ function comparePadronVsPersonas(
     rows,
     stats: [
       { key: 'todos', label: 'Total personas', count: rows.length, color: 'text-foreground', icon: <Users className="h-4 w-4" /> },
-      { key: 'en_ambos', label: 'En el padrón', count: enPadron, color: 'text-green-600', icon: <UserCheck className="h-4 w-4" /> },
-      { key: 'sin_padron', label: 'Sin este padrón', count: sinPadron, color: 'text-red-600', icon: <UserX className="h-4 w-4" /> },
+      { key: 'en_ambos', label: 'En el padrón', count: enPadron, color: 'text-success-600', icon: <UserCheck className="h-4 w-4" /> },
+      { key: 'sin_padron', label: 'Sin este padrón', count: sinPadron, color: 'text-error-600', icon: <UserX className="h-4 w-4" /> },
     ],
   }
 }
@@ -538,9 +538,9 @@ function comparePadronVsEquipos(
     rows,
     stats: [
       { key: 'todos', label: 'Total', count: rows.length, color: 'text-foreground', icon: <Users className="h-4 w-4" /> },
-      { key: 'en_ambos', label: 'En padrón + equipo', count: enAmbos, color: 'text-green-600', icon: <UserCheck className="h-4 w-4" /> },
-      { key: 'solo_a', label: 'Solo en padrón', count: soloPadron, color: 'text-blue-600', icon: <Users className="h-4 w-4" /> },
-      { key: 'solo_b', label: 'Solo en equipo', count: soloEquipo, color: 'text-yellow-600', icon: <UserX className="h-4 w-4" /> },
+      { key: 'en_ambos', label: 'En padrón + equipo', count: enAmbos, color: 'text-success-600', icon: <UserCheck className="h-4 w-4" /> },
+      { key: 'solo_a', label: 'Solo en padrón', count: soloPadron, color: 'text-info-600', icon: <Users className="h-4 w-4" /> },
+      { key: 'solo_b', label: 'Solo en equipo', count: soloEquipo, color: 'text-warning-600', icon: <UserX className="h-4 w-4" /> },
     ],
   }
 }

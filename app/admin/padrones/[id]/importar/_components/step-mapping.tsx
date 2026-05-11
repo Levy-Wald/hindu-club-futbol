@@ -118,7 +118,7 @@ export function StepMapping({ parsedData, onComplete, onBack }: StepMappingProps
               </div>
               <div className="shrink-0">
                 {mapping.confidence >= 0.7 && mapping.targetField && (
-                  <Check className="h-3 w-3 text-green-600 inline mr-1" />
+                  <Check className="h-3 w-3 text-success-600 inline mr-1" />
                 )}
               </div>
               <Select

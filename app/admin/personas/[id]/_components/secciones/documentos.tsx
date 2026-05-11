@@ -59,11 +59,11 @@ function BadgeEstado({ fecha }: { fecha: string | null }) {
   const estado = getEstadoVencimiento(fecha)
   switch (estado) {
     case 'vigente':
-      return <Badge variant="outline" className="border-green-500 text-green-600 dark:text-green-400">Vigente</Badge>
+      return <Badge variant="outline" className="border-success-500 text-success-600 dark:text-success-400">Vigente</Badge>
     case 'por_vencer':
-      return <Badge variant="outline" className="border-yellow-500 text-yellow-600 dark:text-yellow-400">Por vencer</Badge>
+      return <Badge variant="outline" className="border-warning-500 text-warning-600 dark:text-warning-400">Por vencer</Badge>
     case 'vencido':
-      return <Badge variant="outline" className="border-red-500 text-red-600 dark:text-red-400">Vencido</Badge>
+      return <Badge variant="outline" className="border-error-500 text-error-600 dark:text-error-400">Vencido</Badge>
     default:
       return <Badge variant="outline" className="text-muted-foreground">Sin fecha</Badge>
   }
@@ -72,11 +72,11 @@ function BadgeEstado({ fecha }: { fecha: string | null }) {
 function BadgeResultado({ resultado }: { resultado: string | null }) {
   switch (resultado) {
     case 'apto':
-      return <Badge variant="outline" className="border-green-500 text-green-600 dark:text-green-400">Apto</Badge>
+      return <Badge variant="outline" className="border-success-500 text-success-600 dark:text-success-400">Apto</Badge>
     case 'no_apto':
-      return <Badge variant="outline" className="border-red-500 text-red-600 dark:text-red-400">No apto</Badge>
+      return <Badge variant="outline" className="border-error-500 text-error-600 dark:text-error-400">No apto</Badge>
     case 'apto_con_observaciones':
-      return <Badge variant="outline" className="border-yellow-500 text-yellow-600 dark:text-yellow-400">Apto c/obs.</Badge>
+      return <Badge variant="outline" className="border-warning-500 text-warning-600 dark:text-warning-400">Apto c/obs.</Badge>
     case 'pendiente':
       return <Badge variant="outline" className="text-muted-foreground">Pendiente</Badge>
     default:

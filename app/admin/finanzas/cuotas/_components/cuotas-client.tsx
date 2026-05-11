@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Select,
@@ -67,9 +68,13 @@ import {
   crearBonificacion,
   editarBonificacion,
   emitirCuotasMasivas,
+  previewEmision,
+  anularEmision,
+  fetchEmisiones,
+  fetchCuotasCompletas,
   cobrarCuota,
   anularCuota,
-  contarPersonasEmision,
+  fetchSaldoCuota,
 } from '../_actions'
 
 // -------------------------------------------------------------------
@@ -119,18 +124,14 @@ interface CuotaEmitida {
 interface Emision {
   id: string
   plan_id: string
-  padron_id: string | null
   periodo: string
-  cantidad: number
-  monto_unitario: number
+  cantidad_emitida: number
+  monto_total: number
+  estado: string
+  anulada_at: string | null
+  anulada_motivo: string | null
   created_at: string
   cuotas_planes?: { nombre: string } | null
-  padrones?: { nombre: string } | null
-}
-
-interface Padron {
-  id: string
-  nombre: string
 }
 
 interface Caja {
@@ -141,6 +142,12 @@ interface Caja {
 interface MedioPago {
   id: string
   nombre: string
+}
+
+interface TipoComprobante {
+  id: string
+  nombre: string
+  slug: string
 }
 
 interface PlanForm {
@@ -210,13 +217,15 @@ function formatFecha(iso: string): string {
 function estadoBadgeClass(estado: string): string {
   switch (estado) {
     case 'pendiente':
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+      return 'bg-warning-100 text-warning-800 dark:bg-warning-900/30 dark:text-warning-400'
     case 'vencida':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+      return 'bg-error-100 text-error-800 dark:bg-error-900/30 dark:text-error-400'
     case 'pagada':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+      return 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-400'
+    case 'parcial':
+      return 'bg-info-100 text-info-800 dark:bg-info-900/30 dark:text-info-400'
     case 'anulada':
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
+      return 'bg-neutral-100 text-neutral-800 dark:bg-neutral-900/30 dark:text-neutral-400'
     default:
       return ''
   }
@@ -226,8 +235,31 @@ function estadoLabel(estado: string): string {
   switch (estado) {
     case 'pendiente': return 'Pendiente'
     case 'vencida': return 'Vencida'
+    case 'parcial': return 'Parcial'
     case 'pagada': return 'Pagada'
     case 'anulada': return 'Anulada'
+    default: return estado
+  }
+}
+
+function emisionEstadoBadgeClass(estado: string): string {
+  switch (estado) {
+    case 'activa':
+      return 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-400'
+    case 'anulada':
+      return 'bg-error-100 text-error-800 dark:bg-error-900/30 dark:text-error-400'
+    case 'anulada_parcial':
+      return 'bg-warning-100 text-warning-800 dark:bg-warning-900/30 dark:text-warning-400'
+    default:
+      return ''
+  }
+}
+
+function emisionEstadoLabel(estado: string): string {
+  switch (estado) {
+    case 'activa': return 'Activa'
+    case 'anulada': return 'Anulada'
+    case 'anulada_parcial': return 'Anulada parcial'
     default: return estado
   }
 }
@@ -922,17 +954,20 @@ function PlanesTab() {
 
 function EmisionesTab() {
   const [planes, setPlanes] = useState<Plan[]>([])
-  const [padrones, setPadrones] = useState<Padron[]>([])
   const [emisiones, setEmisiones] = useState<Emision[]>([])
   const [selectedPlanId, setSelectedPlanId] = useState('')
-  const [selectedPadronId, setSelectedPadronId] = useState('todos')
   const [periodo, setPeriodo] = useState(getCurrentPeriodo())
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
-  const [conteo, setConteo] = useState<{
-    total_personas: number
-    ya_emitidas: number
-    nuevas: number
+  const [preview, setPreview] = useState<{
+    plan_nombre: string
+    plan_monto: number
+    plan_moneda: string
+    total_suscripciones: number
+    emision_existente: { id: string; cantidad: number } | null
+    monto_total_estimado: number
   } | null>(null)
+  const [anularDialogEmision, setAnularDialogEmision] = useState<Emision | null>(null)
+  const [anularMotivo, setAnularMotivo] = useState('')
   const [isPending, startTransition] = useTransition()
   const [loading, setLoading] = useState(true)
   const [searchEmisiones, setSearchEmisiones] = useState('')
@@ -941,29 +976,18 @@ function EmisionesTab() {
   async function fetchData() {
     const supabase = createClient()
 
-    const [planesRes, padronesRes, emisionesRes] = await Promise.all([
+    const [planesRes, emisionesData] = await Promise.all([
       supabase
         .from('cuotas_planes')
         .select('*')
         .eq('tenant_id', TENANT_ID)
         .eq('activo', true)
         .order('nombre'),
-      supabase
-        .from('padrones')
-        .select('id, nombre')
-        .eq('tenant_id', TENANT_ID)
-        .order('nombre'),
-      supabase
-        .from('emisiones_cuota')
-        .select('*, cuotas_planes(nombre), padrones(nombre)')
-        .eq('tenant_id', TENANT_ID)
-        .order('created_at', { ascending: false })
-        .limit(50),
+      fetchEmisiones(),
     ])
 
     if (planesRes.data) setPlanes(planesRes.data as Plan[])
-    if (padronesRes.data) setPadrones(padronesRes.data as Padron[])
-    if (emisionesRes.data) setEmisiones(emisionesRes.data as Emision[])
+    setEmisiones(emisionesData as unknown as Emision[])
     setLoading(false)
   }
 
@@ -976,26 +1000,15 @@ function EmisionesTab() {
       toast.error('Selecciona un plan')
       return
     }
-
     if (!periodo) {
       toast.error('Selecciona un periodo')
       return
     }
 
     startTransition(async () => {
-      const result = await contarPersonasEmision(
-        selectedPlanId,
-        selectedPadronId === 'todos' ? null : selectedPadronId,
-        periodo
-      )
-
+      const result = await previewEmision(selectedPlanId, periodo)
       if (result.ok) {
-        const data = result.data as {
-          total_personas: number
-          ya_emitidas: number
-          nuevas: number
-        }
-        setConteo(data)
+        setPreview(result.data as typeof preview)
         setConfirmDialogOpen(true)
       } else {
         toast.error(result.message)
@@ -1005,16 +1018,26 @@ function EmisionesTab() {
 
   function handleEmitir() {
     startTransition(async () => {
-      const result = await emitirCuotasMasivas(
-        selectedPlanId,
-        selectedPadronId === 'todos' ? null : selectedPadronId,
-        periodo
-      )
-
+      const result = await emitirCuotasMasivas(selectedPlanId, periodo)
       if (result.ok) {
         toast.success(result.message)
         setConfirmDialogOpen(false)
-        setConteo(null)
+        setPreview(null)
+        fetchData()
+      } else {
+        toast.error(result.message)
+      }
+    })
+  }
+
+  function handleAnularEmision() {
+    if (!anularDialogEmision) return
+    startTransition(async () => {
+      const result = await anularEmision(anularDialogEmision.id, anularMotivo || undefined)
+      if (result.ok) {
+        toast.success(result.message)
+        setAnularDialogEmision(null)
+        setAnularMotivo('')
         fetchData()
       } else {
         toast.error(result.message)
@@ -1025,10 +1048,13 @@ function EmisionesTab() {
   const filteredEmisiones = emisiones.filter((emision) => {
     if (!searchEmisiones) return true
     const q = searchEmisiones.toLowerCase()
+    const planName = Array.isArray(emision.cuotas_planes)
+      ? (emision.cuotas_planes as unknown as Array<{ nombre: string }>)[0]?.nombre ?? ''
+      : emision.cuotas_planes?.nombre ?? ''
     return (
-      (emision.cuotas_planes?.nombre ?? '').toLowerCase().includes(q) ||
-      (emision.padrones?.nombre ?? '').toLowerCase().includes(q) ||
-      emision.periodo.toLowerCase().includes(q)
+      planName.toLowerCase().includes(q) ||
+      emision.periodo.toLowerCase().includes(q) ||
+      emision.estado.toLowerCase().includes(q)
     )
   })
 
@@ -1050,15 +1076,20 @@ function EmisionesTab() {
       : filteredEmisiones
     if (source.length === 0) return null
     return {
-      headers: ['Plan', 'Padron', 'Periodo', 'Cantidad', 'Monto unitario', 'Fecha'],
-      rows: source.map((e) => [
-        e.cuotas_planes?.nombre ?? '-',
-        e.padrones?.nombre ?? 'Todos',
-        e.periodo,
-        String(e.cantidad),
-        formatMoney(e.monto_unitario),
-        formatFecha(e.created_at),
-      ]),
+      headers: ['Plan', 'Periodo', 'Cantidad', 'Monto total', 'Estado', 'Fecha'],
+      rows: source.map((e) => {
+        const planName = Array.isArray(e.cuotas_planes)
+          ? (e.cuotas_planes as unknown as Array<{ nombre: string }>)[0]?.nombre ?? '-'
+          : e.cuotas_planes?.nombre ?? '-'
+        return [
+          planName,
+          e.periodo,
+          String(e.cantidad_emitida),
+          formatMoney(e.monto_total),
+          emisionEstadoLabel(e.estado),
+          formatFecha(e.created_at),
+        ]
+      }),
       filename: 'emisiones-cuotas',
     }
   }
@@ -1079,9 +1110,12 @@ function EmisionesTab() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Emitir cuotas</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Emite cuotas para todas las suscripciones activas de un plan.
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Plan *</Label>
               <Select value={selectedPlanId} onValueChange={(val) => setSelectedPlanId(val ?? '')}>
@@ -1092,23 +1126,6 @@ function EmisionesTab() {
                   {planes.map((plan) => (
                     <SelectItem key={plan.id} value={plan.id}>
                       {plan.nombre} ({formatMoney(plan.monto, plan.moneda)})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Padron</Label>
-              <Select value={selectedPadronId} onValueChange={(val) => setSelectedPadronId(val ?? 'todos')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos los activos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos los activos</SelectItem>
-                  {padrones.map((padron) => (
-                    <SelectItem key={padron.id} value={padron.id}>
-                      {padron.nombre}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1130,7 +1147,7 @@ function EmisionesTab() {
             <Button onClick={handlePreEmitir} disabled={isPending || !selectedPlanId}>
               {isPending && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
               <Send className="h-4 w-4 mr-1" />
-              Emitir cuotas
+              Previsualizar emisión
             </Button>
           </div>
         </CardContent>
@@ -1180,36 +1197,70 @@ function EmisionesTab() {
                     />
                   </TableHead>
                   <TableHead>Plan</TableHead>
-                  <TableHead>Padron</TableHead>
                   <TableHead>Periodo</TableHead>
                   <TableHead className="text-right">Cantidad</TableHead>
-                  <TableHead className="text-right">Monto unitario</TableHead>
+                  <TableHead className="text-right">Monto total</TableHead>
+                  <TableHead>Estado</TableHead>
                   <TableHead>Fecha</TableHead>
+                  <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredEmisiones.map((emision) => (
-                  <TableRow key={emision.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedEmisiones.has(emision.id)}
-                        onCheckedChange={() => toggleSelectEmision(emision.id)}
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {emision.cuotas_planes?.nombre ?? '-'}
-                    </TableCell>
-                    <TableCell>{emision.padrones?.nombre ?? 'Todos'}</TableCell>
-                    <TableCell>{emision.periodo}</TableCell>
-                    <TableCell className="text-right">{emision.cantidad}</TableCell>
-                    <TableCell className="text-right font-mono">
-                      {formatMoney(emision.monto_unitario)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatFecha(emision.created_at)}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filteredEmisiones.map((emision) => {
+                  const planName = Array.isArray(emision.cuotas_planes)
+                    ? (emision.cuotas_planes as unknown as Array<{ nombre: string }>)[0]?.nombre ?? '-'
+                    : emision.cuotas_planes?.nombre ?? '-'
+                  return (
+                    <TableRow key={emision.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedEmisiones.has(emision.id)}
+                          onCheckedChange={() => toggleSelectEmision(emision.id)}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">{planName}</TableCell>
+                      <TableCell>{emision.periodo}</TableCell>
+                      <TableCell className="text-right">{emision.cantidad_emitida}</TableCell>
+                      <TableCell className="text-right font-mono">
+                        {formatMoney(emision.monto_total)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="secondary"
+                          className={emisionEstadoBadgeClass(emision.estado)}
+                        >
+                          {emisionEstadoLabel(emision.estado)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {formatFecha(emision.created_at)}
+                      </TableCell>
+                      <TableCell>
+                        {emision.estado === 'activa' && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              render={<Button variant="ghost" size="icon-sm" disabled={isPending} />}
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => {
+                                  setAnularDialogEmision(emision)
+                                  setAnularMotivo('')
+                                }}
+                              >
+                                <Ban className="h-4 w-4 mr-2" />
+                                Anular emisión
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
             </div>
@@ -1225,65 +1276,66 @@ function EmisionesTab() {
         getData={getEmisionesExportData}
       />
 
-      {/* Dialog confirmacion emision */}
+      {/* Dialog preview + confirmacion emision */}
       <Dialog
         open={confirmDialogOpen}
         onOpenChange={(open) => {
           if (!open) {
             setConfirmDialogOpen(false)
-            setConteo(null)
+            setPreview(null)
           }
         }}
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirmar emision de cuotas</DialogTitle>
+            <DialogTitle>Confirmar emisión de cuotas</DialogTitle>
             <DialogDescription>
               Revisa los datos antes de emitir las cuotas.
             </DialogDescription>
           </DialogHeader>
 
-          {conteo && (
+          {preview && (
             <div className="space-y-3 text-sm">
               <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Plan:</span>
-                  <span className="font-medium">
-                    {planes.find((p) => p.id === selectedPlanId)?.nombre ?? '-'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Padron:</span>
-                  <span className="font-medium">
-                    {selectedPadronId === 'todos'
-                      ? 'Todos los activos'
-                      : padrones.find((p) => p.id === selectedPadronId)?.nombre ?? '-'}
-                  </span>
+                  <span className="font-medium">{preview.plan_nombre}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Periodo:</span>
                   <span className="font-medium">{periodo}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Monto total:</span>
+                  <span className="font-medium font-mono">
+                    {formatMoney(preview.plan_monto, preview.plan_moneda)}
+                  </span>
+                </div>
               </div>
 
               <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total personas:</span>
-                  <span className="font-medium">{conteo.total_personas}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Ya emitidas:</span>
-                  <span className="font-medium">{conteo.ya_emitidas}</span>
+                  <span className="text-muted-foreground">Suscripciones activas:</span>
+                  <span className="font-bold text-lg">{preview.total_suscripciones}</span>
                 </div>
                 <div className="flex justify-between border-t pt-2">
-                  <span className="font-medium">Cuotas nuevas a emitir:</span>
-                  <span className="font-bold text-lg">{conteo.nuevas}</span>
+                  <span className="text-muted-foreground">Monto total estimado:</span>
+                  <span className="font-bold font-mono">
+                    {formatMoney(preview.monto_total_estimado, preview.plan_moneda)}
+                  </span>
                 </div>
               </div>
 
-              {conteo.nuevas === 0 && (
-                <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                  No hay cuotas nuevas para emitir en este periodo.
+              {preview.emision_existente && (
+                <p className="text-sm text-warning-600 dark:text-warning-400">
+                  Ya existe una emisión activa para este plan y periodo ({preview.emision_existente.cantidad} cuotas).
+                  No se pueden emitir cuotas duplicadas.
+                </p>
+              )}
+
+              {preview.total_suscripciones === 0 && (
+                <p className="text-sm text-warning-600 dark:text-warning-400">
+                  No hay suscripciones activas para este plan.
                 </p>
               )}
             </div>
@@ -1294,7 +1346,7 @@ function EmisionesTab() {
               variant="outline"
               onClick={() => {
                 setConfirmDialogOpen(false)
-                setConteo(null)
+                setPreview(null)
               }}
               disabled={isPending}
             >
@@ -1302,11 +1354,82 @@ function EmisionesTab() {
             </Button>
             <Button
               onClick={handleEmitir}
-              disabled={isPending || (conteo?.nuevas ?? 0) === 0}
+              disabled={
+                isPending ||
+                !preview ||
+                preview.total_suscripciones === 0 ||
+                !!preview.emision_existente
+              }
             >
               {isPending && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
               <Send className="h-4 w-4 mr-1" />
-              Emitir {conteo?.nuevas ?? 0} cuotas
+              Emitir {preview?.total_suscripciones ?? 0} cuotas
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog anular emision */}
+      <Dialog
+        open={!!anularDialogEmision}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAnularDialogEmision(null)
+            setAnularMotivo('')
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Anular emisión</DialogTitle>
+            <DialogDescription>
+              Se anularán todas las cuotas pendientes/vencidas de esta emisión. Las cuotas ya pagadas no se anulan.
+            </DialogDescription>
+          </DialogHeader>
+
+          {anularDialogEmision && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Periodo:</span>
+                  <span className="font-medium">{anularDialogEmision.periodo}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Cuotas emitidas:</span>
+                  <span className="font-medium">{anularDialogEmision.cantidad_emitida}</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="anular-motivo">Motivo (opcional)</Label>
+                <Input
+                  id="anular-motivo"
+                  placeholder="Ej: Error en la emisión"
+                  value={anularMotivo}
+                  onChange={(e) => setAnularMotivo(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setAnularDialogEmision(null)
+                setAnularMotivo('')
+              }}
+              disabled={isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleAnularEmision}
+              disabled={isPending}
+            >
+              {isPending && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+              Anular emisión
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1331,6 +1454,13 @@ function EstadoCuotasTab() {
   const [cobrarDialog, setCobrarDialog] = useState<CuotaEmitida | null>(null)
   const [cobrarCajaId, setCobrarCajaId] = useState('')
   const [cobrarMedioPagoId, setCobrarMedioPagoId] = useState('')
+  const [cobrarMonto, setCobrarMonto] = useState('')
+  const [cobrarSaldoPendiente, setCobrarSaldoPendiente] = useState(0)
+  const [cobrarFechaPago, setCobrarFechaPago] = useState('')
+  const [cobrarGenerarComprobante, setCobrarGenerarComprobante] = useState(true)
+  const [cobrarTipoComprobanteId, setCobrarTipoComprobanteId] = useState('')
+  const [cobrarObservaciones, setCobrarObservaciones] = useState('')
+  const [tiposComprobante, setTiposComprobante] = useState<TipoComprobante[]>([])
   const [isPending, startTransition] = useTransition()
   const [loading, setLoading] = useState(true)
   const [searchCuotas, setSearchCuotas] = useState('')
@@ -1338,7 +1468,7 @@ function EstadoCuotasTab() {
   async function fetchData() {
     const supabase = createClient()
 
-    const [planesRes, cajasRes, mediosRes] = await Promise.all([
+    const [planesRes, cajasRes, mediosRes, tiposRes] = await Promise.all([
       supabase
         .from('cuotas_planes')
         .select('*')
@@ -1356,40 +1486,52 @@ function EstadoCuotasTab() {
         .eq('tenant_id', TENANT_ID)
         .eq('activo', true)
         .order('nombre'),
+      supabase
+        .from('tipos_comprobante')
+        .select('id, nombre, slug')
+        .eq('tenant_id', TENANT_ID)
+        .eq('activo', true)
+        .order('orden'),
     ])
 
     if (planesRes.data) setPlanes(planesRes.data as Plan[])
     if (cajasRes.data) setCajas(cajasRes.data as Caja[])
     if (mediosRes.data) setMediosPago(mediosRes.data as MedioPago[])
+    if (tiposRes.data) {
+      const tipos = tiposRes.data as TipoComprobante[]
+      setTiposComprobante(tipos)
+      const reciboX = tipos.find(t => t.slug === 'recibo_x')
+      if (reciboX) setCobrarTipoComprobanteId(reciboX.id)
+    }
 
     setLoading(false)
   }
 
-  async function fetchCuotas() {
-    const supabase = createClient()
-
-    let query = supabase
-      .from('cuotas_emitidas')
-      .select('*, personas(nombre, apellido), cuotas_planes(nombre)')
-      .eq('tenant_id', TENANT_ID)
-      .order('fecha_vencimiento', { ascending: true })
-      .limit(200)
-
-    if (filtroPlan !== 'todos') {
-      query = query.eq('plan_id', filtroPlan)
-    }
-
-    if (filtroPeriodo) {
-      query = query.eq('periodo', filtroPeriodo)
-    }
-
-    if (filtroEstado !== 'todos') {
-      query = query.eq('estado', filtroEstado)
-    }
-
-    const { data } = await query
-
-    if (data) setCuotas(data as CuotaEmitida[])
+  async function loadCuotas() {
+    const data = await fetchCuotasCompletas({
+      plan_id: filtroPlan !== 'todos' ? filtroPlan : undefined,
+      periodo: filtroPeriodo || undefined,
+      estado: filtroEstado !== 'todos' ? filtroEstado : undefined,
+    })
+    // Map v_cuotas_completas to CuotaEmitida shape
+    setCuotas(data.map((c: Record<string, unknown>) => ({
+      id: c.id as string,
+      plan_id: c.plan_id as string,
+      persona_id: c.persona_id as string,
+      periodo: c.periodo as string,
+      monto_original: c.monto_original as number,
+      monto_final: c.monto_final as number,
+      moneda: (c.moneda as string) || 'ARS',
+      fecha_vencimiento: c.fecha_vencimiento as string,
+      estado: c.estado as string,
+      fecha_pago: c.fecha_pago as string | null,
+      movimiento_id: c.movimiento_id as string | null,
+      bonificaciones_aplicadas: c.bonificaciones_aplicadas as Array<{ nombre: string; descuento: number }> | null,
+      personas: (c.persona_nombre || c.persona_apellido)
+        ? { nombre: c.persona_nombre as string, apellido: c.persona_apellido as string }
+        : null,
+      cuotas_planes: c.plan_nombre ? { nombre: c.plan_nombre as string } : null,
+    })))
   }
 
   useEffect(() => {
@@ -1398,8 +1540,9 @@ function EstadoCuotasTab() {
 
   useEffect(() => {
     if (!loading) {
-      fetchCuotas()
+      loadCuotas()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtroPlan, filtroPeriodo, filtroEstado, loading])
 
   function toggleSelect(cuotaId: string) {
@@ -1416,7 +1559,7 @@ function EstadoCuotasTab() {
 
   function toggleSelectAll() {
     const cobrablesAll = filteredCuotas.filter(
-      (c) => c.estado === 'pendiente' || c.estado === 'vencida'
+      (c) => c.estado === 'pendiente' || c.estado === 'vencida' || c.estado === 'parcial'
     )
     if (selectedCuotas.size === cobrablesAll.length) {
       setSelectedCuotas(new Set())
@@ -1425,27 +1568,49 @@ function EstadoCuotasTab() {
     }
   }
 
-  function handleCobrar(cuota: CuotaEmitida) {
+  async function handleCobrar(cuota: CuotaEmitida) {
     setCobrarDialog(cuota)
     setCobrarCajaId('')
     setCobrarMedioPagoId('')
+    setCobrarFechaPago(new Date().toISOString().split('T')[0])
+    setCobrarGenerarComprobante(true)
+    setCobrarObservaciones('')
+    // Default tipo comprobante to Recibo X
+    const reciboX = tiposComprobante.find(t => t.slug === 'recibo_x')
+    setCobrarTipoComprobanteId(reciboX?.id ?? '')
+    // Fetch real saldo pendiente
+    const saldo = await fetchSaldoCuota(cuota.id)
+    setCobrarSaldoPendiente(saldo.saldo_pendiente)
+    setCobrarMonto(String(saldo.saldo_pendiente))
   }
 
   function handleConfirmCobrar() {
     if (!cobrarDialog) return
 
+    const monto = Number(cobrarMonto)
+    if (!monto || monto <= 0) {
+      toast.error('El monto debe ser mayor a 0')
+      return
+    }
+    if (monto > cobrarSaldoPendiente) {
+      toast.error('El monto no puede superar el saldo pendiente')
+      return
+    }
     if (!cobrarCajaId) {
       toast.error('Selecciona una caja')
       return
     }
-
     if (!cobrarMedioPagoId) {
       toast.error('Selecciona un medio de pago')
       return
     }
 
     startTransition(async () => {
-      const result = await cobrarCuota(cobrarDialog.id, cobrarCajaId, cobrarMedioPagoId)
+      const result = await cobrarCuota(cobrarDialog.id, monto, cobrarCajaId, cobrarMedioPagoId, {
+        fechaPago: cobrarFechaPago || undefined,
+        tipoComprobanteId: cobrarGenerarComprobante ? cobrarTipoComprobanteId || undefined : undefined,
+        observaciones: cobrarObservaciones.trim() || undefined,
+      })
       if (result.ok) {
         toast.success(result.message)
         setCobrarDialog(null)
@@ -1454,7 +1619,7 @@ function EstadoCuotasTab() {
           next.delete(cobrarDialog.id)
           return next
         })
-        fetchCuotas()
+        loadCuotas()
       } else {
         toast.error(result.message)
       }
@@ -1479,7 +1644,7 @@ function EstadoCuotasTab() {
       const result = await anularCuota(cuotaId)
       if (result.ok) {
         toast.success(result.message)
-        fetchCuotas()
+        loadCuotas()
       } else {
         toast.error(result.message)
       }
@@ -1531,7 +1696,7 @@ function EstadoCuotasTab() {
   }
 
   const cobrables = filteredCuotas.filter(
-    (c) => c.estado === 'pendiente' || c.estado === 'vencida'
+    (c) => c.estado === 'pendiente' || c.estado === 'vencida' || c.estado === 'parcial'
   )
 
   return (
@@ -1598,6 +1763,7 @@ function EstadoCuotasTab() {
                   <SelectItem value="todos">Todos</SelectItem>
                   <SelectItem value="pendiente">Pendiente</SelectItem>
                   <SelectItem value="vencida">Vencida</SelectItem>
+                  <SelectItem value="parcial">Parcial</SelectItem>
                   <SelectItem value="pagada">Pagada</SelectItem>
                   <SelectItem value="anulada">Anulada</SelectItem>
                 </SelectContent>
@@ -1659,7 +1825,7 @@ function EstadoCuotasTab() {
                 <TableBody>
                   {filteredCuotas.map((cuota) => {
                     const esCobrable =
-                      cuota.estado === 'pendiente' || cuota.estado === 'vencida'
+                      cuota.estado === 'pendiente' || cuota.estado === 'vencida' || cuota.estado === 'parcial'
                     const totalBonif = cuota.monto_original - cuota.monto_final
 
                     return (
@@ -1684,7 +1850,7 @@ function EstadoCuotasTab() {
                         </TableCell>
                         <TableCell className="text-right font-mono">
                           {totalBonif > 0 ? (
-                            <span className="text-green-600 dark:text-green-400">
+                            <span className="text-success-600 dark:text-success-400">
                               -{formatMoney(totalBonif, cuota.moneda)}
                             </span>
                           ) : (
@@ -1768,7 +1934,7 @@ function EstadoCuotasTab() {
           <div className="space-y-3 md:hidden">
             {filteredCuotas.map((cuota) => {
               const esCobrable =
-                cuota.estado === 'pendiente' || cuota.estado === 'vencida'
+                cuota.estado === 'pendiente' || cuota.estado === 'vencida' || cuota.estado === 'parcial'
               const totalBonif = cuota.monto_original - cuota.monto_final
 
               return (
@@ -1802,7 +1968,7 @@ function EstadoCuotasTab() {
                             {formatMoney(cuota.monto_final, cuota.moneda)}
                           </span>
                           {totalBonif > 0 && (
-                            <span className="text-green-600 dark:text-green-400">
+                            <span className="text-success-600 dark:text-success-400">
                               (Bonif: -{formatMoney(totalBonif, cuota.moneda)})
                             </span>
                           )}
@@ -1863,97 +2029,159 @@ function EstadoCuotasTab() {
       <Dialog
         open={!!cobrarDialog}
         onOpenChange={(open) => {
-          if (!open) {
-            setCobrarDialog(null)
-            setCobrarCajaId('')
-            setCobrarMedioPagoId('')
-          }
+          if (!open) setCobrarDialog(null)
         }}
       >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Cobrar cuota</DialogTitle>
             <DialogDescription>
-              Selecciona la caja y el medio de pago para registrar el cobro.
+              Registra el cobro de la cuota seleccionada.
             </DialogDescription>
           </DialogHeader>
 
           {cobrarDialog && (
-            <div className="space-y-3 text-sm bg-muted/50 rounded-lg p-3">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Persona:</span>
-                <span className="font-medium">
-                  {cobrarDialog.personas
-                    ? `${cobrarDialog.personas.apellido}, ${cobrarDialog.personas.nombre}`
-                    : '-'}
-                </span>
+            <div className="space-y-4">
+              {/* Resumen cuota */}
+              <div className="space-y-2 text-sm bg-muted/50 rounded-lg p-3">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Persona:</span>
+                  <span className="font-medium">
+                    {cobrarDialog.personas
+                      ? `${cobrarDialog.personas.apellido}, ${cobrarDialog.personas.nombre}`
+                      : '-'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Plan:</span>
+                  <span className="font-medium">{cobrarDialog.cuotas_planes?.nombre ?? '-'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Periodo:</span>
+                  <span className="font-medium">{cobrarDialog.periodo}</span>
+                </div>
+                <div className="flex justify-between border-t pt-2">
+                  <span className="text-muted-foreground">Total cuota:</span>
+                  <span className="font-mono">{formatMoney(cobrarDialog.monto_final, cobrarDialog.moneda)}</span>
+                </div>
+                {cobrarSaldoPendiente < cobrarDialog.monto_final && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Saldo pendiente:</span>
+                    <span className="font-mono font-bold text-info-600 dark:text-info-400">
+                      {formatMoney(cobrarSaldoPendiente, cobrarDialog.moneda)}
+                    </span>
+                  </div>
+                )}
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Plan:</span>
-                <span className="font-medium">
-                  {cobrarDialog.cuotas_planes?.nombre ?? '-'}
-                </span>
+
+              {/* Monto a cobrar */}
+              <div className="space-y-2">
+                <Label>Monto a cobrar *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  max={cobrarSaldoPendiente}
+                  value={cobrarMonto}
+                  onChange={(e) => setCobrarMonto(e.target.value)}
+                  className="font-mono"
+                />
+                {cobrarSaldoPendiente > 0 && Number(cobrarMonto) < cobrarSaldoPendiente && Number(cobrarMonto) > 0 && (
+                  <p className="text-xs text-info-600 dark:text-info-400">
+                    Pago parcial — quedará un saldo de {formatMoney(cobrarSaldoPendiente - Number(cobrarMonto), cobrarDialog.moneda)}
+                  </p>
+                )}
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Periodo:</span>
-                <span className="font-medium">{cobrarDialog.periodo}</span>
+
+              {/* Caja y medio de pago */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Caja *</Label>
+                  <Select value={cobrarCajaId} onValueChange={(val) => setCobrarCajaId(val ?? '')}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cajas.map((caja) => (
+                        <SelectItem key={caja.id} value={caja.id}>{caja.nombre}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Medio de pago *</Label>
+                  <Select value={cobrarMedioPagoId} onValueChange={(val) => setCobrarMedioPagoId(val ?? '')}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mediosPago.map((mp) => (
+                        <SelectItem key={mp.id} value={mp.id}>{mp.nombre}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="flex justify-between border-t pt-2">
-                <span className="font-medium">Monto a cobrar:</span>
-                <span className="font-bold text-lg">
-                  {formatMoney(cobrarDialog.monto_final, cobrarDialog.moneda)}
-                </span>
+
+              {/* Fecha de pago */}
+              <div className="space-y-2">
+                <Label>Fecha de pago</Label>
+                <Input
+                  type="date"
+                  value={cobrarFechaPago}
+                  onChange={(e) => setCobrarFechaPago(e.target.value)}
+                />
+              </div>
+
+              {/* Comprobante */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="generar-comprobante"
+                    checked={cobrarGenerarComprobante}
+                    onCheckedChange={(checked) => setCobrarGenerarComprobante(checked === true)}
+                  />
+                  <Label htmlFor="generar-comprobante" className="cursor-pointer">Generar comprobante</Label>
+                </div>
+                {cobrarGenerarComprobante && (
+                  <Select value={cobrarTipoComprobanteId} onValueChange={(val) => setCobrarTipoComprobanteId(val ?? '')}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tipo de comprobante" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tiposComprobante.map((tc) => (
+                        <SelectItem key={tc.id} value={tc.id}>{tc.nombre}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+
+              {/* Observaciones */}
+              <div className="space-y-2">
+                <Label>Observaciones</Label>
+                <Textarea
+                  value={cobrarObservaciones}
+                  onChange={(e) => setCobrarObservaciones(e.target.value)}
+                  placeholder="Opcional"
+                  rows={2}
+                />
               </div>
             </div>
           )}
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Caja *</Label>
-              <Select value={cobrarCajaId} onValueChange={(val) => setCobrarCajaId(val ?? '')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar caja" />
-                </SelectTrigger>
-                <SelectContent>
-                  {cajas.map((caja) => (
-                    <SelectItem key={caja.id} value={caja.id}>
-                      {caja.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Medio de pago *</Label>
-              <Select value={cobrarMedioPagoId} onValueChange={(val) => setCobrarMedioPagoId(val ?? '')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar medio de pago" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mediosPago.map((mp) => (
-                    <SelectItem key={mp.id} value={mp.id}>
-                      {mp.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => {
-                setCobrarDialog(null)
-                setCobrarCajaId('')
-                setCobrarMedioPagoId('')
-              }}
+              onClick={() => setCobrarDialog(null)}
               disabled={isPending}
             >
               Cancelar
             </Button>
-            <Button onClick={handleConfirmCobrar} disabled={isPending}>
+            <Button
+              onClick={handleConfirmCobrar}
+              disabled={isPending || !cobrarCajaId || !cobrarMedioPagoId || !cobrarMonto || Number(cobrarMonto) <= 0}
+            >
               {isPending && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
               <DollarSign className="h-4 w-4 mr-1" />
               Cobrar

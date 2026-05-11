@@ -67,11 +67,11 @@ function BadgeSeguro({ desde, hasta }: { desde: string | null; hasta: string | n
   const estado = getEstadoSeguro(desde, hasta)
   switch (estado) {
     case 'vigente':
-      return <Badge variant="outline" className="border-green-500 text-green-600 dark:text-green-400">Seguro vigente</Badge>
+      return <Badge variant="outline" className="border-success-500 text-success-600 dark:text-success-400">Seguro vigente</Badge>
     case 'por_vencer':
-      return <Badge variant="outline" className="border-yellow-500 text-yellow-600 dark:text-yellow-400">Seguro por vencer</Badge>
+      return <Badge variant="outline" className="border-warning-500 text-warning-600 dark:text-warning-400">Seguro por vencer</Badge>
     case 'vencido':
-      return <Badge variant="outline" className="border-red-500 text-red-600 dark:text-red-400">Seguro vencido</Badge>
+      return <Badge variant="outline" className="border-error-500 text-error-600 dark:text-error-400">Seguro vencido</Badge>
     default:
       return null
   }
@@ -419,7 +419,7 @@ export function SeccionVehiculos({ personaId, tenantId }: SeccionVehiculosProps)
                   <div className="flex flex-wrap gap-1.5">
                     <BadgeSeguro desde={v.seguro_vigencia_desde} hasta={v.seguro_vigencia_hasta} />
                     {v.permite_ingreso_club && (
-                      <Badge variant="outline" className="border-blue-500 text-blue-600 dark:text-blue-400">Ingreso club</Badge>
+                      <Badge variant="outline" className="border-info-500 text-info-600 dark:text-info-400">Ingreso club</Badge>
                     )}
                     {v.lugar_estacionamiento_asignado && (
                       <Badge variant="secondary" className="text-xs">Est: {v.lugar_estacionamiento_asignado}</Badge>

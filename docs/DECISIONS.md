@@ -629,6 +629,382 @@ se reevalúa en sprint posterior si hay valor.
 
 ---
 
+## PRE-MORTEM Sprint 14d.5 — Design Tokens System
+**Fecha:** 2026-05-10
+**Capa:** Plataforma (UI)
+**Duración estimada:** 4-5 días
+**Tomado por:** Arquitecto
+
+### Escenario hipotético
+"Estamos a 1 semana del cierre del Sprint 14d.5 y FALLÓ. El refactor
+no terminó / introdujo regresiones visuales que Hindu detectó durante
+el mes de prueba / atrasó el roadmap 1 semana extra / Code interpretó
+mal el alcance y tocó cosas que no debía."
+
+### Por qué pudo haber fallado
+
+1. **Regresión visual sutil no detectada en review casual.**
+   Probabilidad: ALTA · Impacto: MEDIO
+   Un componente cambió de `bg-blue-500` a `bg-primary`, pero el
+   primario del sistema es un azul ligeramente distinto. En review
+   no se nota; los usuarios sí lo notan.
+   Mitigación: review pantalla por pantalla obligatorio en criterios
+   de aceptación. Comparación side-by-side antes/después de cada
+   carpeta refactorizada.
+
+2. **Sprint se estira más de los 5 días estimados.**
+   Probabilidad: ALTA · Impacto: ALTO
+   105 componentes es solo una estimación. Hex codes en clases
+   dinámicas, casos especiales, decisiones de producto durante el
+   refactor pueden multiplicar el tiempo.
+   Mitigación: alcance dividido en fases por carpeta. Build verde
+   entre cada fase. Si día 5 sin terminar, parar y evaluar (no
+   acumular deuda silenciosa).
+
+3. **Branding del tenant Hindu deja de funcionar después del refactor.**
+   Probabilidad: MEDIA · Impacto: ALTO
+   El sistema de aplicar `tenant_config_publica.colores_primarios`
+   sobrescribe CSS vars. Si el refactor cambia los nombres o la
+   estrategia, Hindu pierde su branding.
+   Mitigación: criterio de aceptación explícito "branding del tenant
+   sigue funcionando". Validación manual con Hindu antes de cerrar.
+
+4. **Hex codes en clases dinámicas (template literals) no detectados.**
+   Probabilidad: MEDIA · Impacto: MEDIO
+   `<div className={\`bg-${color}-${shade}\`}>` no lo detecta el grep
+   simple. Quedan colores hardcoded escondidos.
+   Mitigación: grep regex específico para template literals tipo
+   `\`bg-\${...}\``. Revisión manual de cualquier match.
+
+5. **Modo oscuro se rompe.**
+   Probabilidad: MEDIA · Impacto: MEDIO
+   Cada refactor de componente debería validarse en ambos modos. Es
+   fácil olvidarlo.
+   Mitigación: criterio de aceptación explícito "modo oscuro
+   funciona". Toggle obligatorio en review por carpeta.
+
+6. **Code interpreta mal el spec y refactoriza demasiado.**
+   Probabilidad: BAJA · Impacto: ALTO
+   Code podría cambiar layouts, estructura o componentes en lugar de
+   solo tokens. Eso rompe la promesa de "visual idéntico".
+   Mitigación: §NO ESTÁ EN ESTE SPRINT del spec lo dice explícito.
+   Si Code detecta caso ambiguo, parar y consultar (R-PE3).
+
+7. **Conflictos por valores arbitrarios que requieren decisión.**
+   Probabilidad: MEDIA · Impacto: BAJO
+   "Este `p-[13px]` raro, ¿a qué token corresponde, 12 o 16?"
+   Mitigación: regla por default — redondear hacia el más cercano de
+   la escala (12 si <14, 16 si >=14). Si genera regresión visual
+   inaceptable, levantarlo como excepción.
+
+8. **CSS vars agregan overhead de performance.**
+   Probabilidad: MUY BAJA · Impacto: BAJO
+   CSS vars son nativas, no agregan overhead medible.
+   Mitigación: criterio de aceptación incluye "Lighthouse Performance
+   mobile no baja". Si baja, investigar.
+
+9. **Conflicto con cambios paralelos en otros sprints.**
+   Probabilidad: BAJA · Impacto: MEDIO
+   Si Yair empieza otro entorno en paralelo (como dijo), pueden
+   chocar.
+   Mitigación: Sprint 14d.5 corre solo, sin trabajo paralelo en
+   componentes hasta que cierre.
+
+10. **Componentes shadcn ya tienen tokens, pero wrappers propios los
+    sobrescriben con hardcoded.**
+    Probabilidad: MEDIA · Impacto: BAJO
+    Confusión sobre dónde está el valor real.
+    Mitigación: priorizar wrappers propios primero. Documentar caso
+    a caso si shadcn nativo necesita override.
+
+### Top 3 riesgos (por prob × impacto)
+
+1. **Sprint se estira más de 5 días** → Mitigación obligatoria:
+   refactor por carpeta con build verde entre cada una. Stop &
+   evaluate en día 5.
+
+2. **Regresión visual sutil no detectada** → Mitigación obligatoria:
+   review pantalla por pantalla, side-by-side, registrado en commit
+   message con qué carpetas se validaron.
+
+3. **Branding del tenant Hindu se rompe** → Mitigación obligatoria:
+   validación manual de branding Hindu como último paso antes de
+   cerrar sprint. Si rompe, no se cierra.
+
+### Ajustes al spec del sprint
+
+Basado en este pre-mortem, ajustes obligatorios al spec original:
+
+- **Parte 3 (Refactor) se ejecuta en FASES, una carpeta a la vez:**
+  1. `/components/` (atómicos primero)
+  2. `/app/admin/personas/`
+  3. `/app/admin/equipos/`
+  4. `/app/admin/padrones/`
+  5. `/app/admin/externos/`
+  6. `/app/admin/finanzas/`
+  7. `/app/admin/rrhh/`
+  8. `/app/admin/comunicaciones/`
+  9. `/app/admin/operaciones/`
+  10. `/app/admin/configuracion/` + resto
+
+  Build verde + review visual obligatorio después de cada fase.
+
+- **Parte 2 (Auditoría) suma grep de template literals:**
+  ```bash
+  grep -rE "(bg|text|border)-\\\${" app/ components/ \
+    --include="*.tsx" --include="*.ts"
+  ```
+  Toda match se revisa manualmente.
+
+- **Criterio de aceptación 6 expandido:** "Sitio visualmente idéntico
+  al estado previo al sprint" incluye:
+  - Validación en modo claro Y oscuro
+  - Validación de branding del tenant Hindu activo
+  - Comparación side-by-side de las 10 carpetas principales
+
+- **Stop & evaluate en día 5:** si al día 5 el sprint no terminó,
+  Code reporta al arquitecto con: % completado, qué queda, qué se
+  encontró que no estaba estimado. Decisión conjunta: seguir,
+  pausar, o reducir alcance.
+
+### Indicadores tempranos de falla
+
+Señales que disparan alerta durante la ejecución:
+
+- Día 2: si la auditoría inicial (Parte 2) reporta > 1000 hex codes
+  o > 2000 color names → el alcance es mucho mayor de lo estimado,
+  evaluar.
+- Día 3: si no se completó al menos /components/ + 2 carpetas de
+  /admin/ → atraso real, ajustar.
+- Cualquier momento: si un componente refactorizado rompe modo
+  oscuro → parar la carpeta entera, revisar metodología.
+- Cualquier momento: si Hindu (tenant de prueba activo) pierde su
+  branding visualmente → rollback inmediato del último cambio,
+  investigar.
+- Cualquier momento: si build se rompe y no se puede reparar en < 30
+  minutos → revertir al último build verde.
+
+---
+
+## ADR-018 — Design Tokens System
+**Fecha:** 2026-05-10
+**Estado:** Vigente
+**Capa:** Plataforma (UI)
+**Tomado por:** Arquitecto
+
+### Contexto
+Los componentes usaban colores hardcodeados (hex como `#3A8FC5`, Tailwind
+names como `green-600`). Esto impedía: (a) branding por tenant, (b) dark
+mode consistente, (c) cambios de look sin tocar 100+ archivos.
+
+### Decisión
+Crear un sistema de tokens CSS centralizado:
+- **Fuente única:** `/styles/tokens.css` define todos los tokens visuales.
+- **Tailwind v4:** `globals.css` los registra vía `@theme inline`.
+- **Escalas semánticas:** `brand-*`, `gold-*`, `success-*`, `warning-*`,
+  `error-*`, `info-*`, `neutral-*` reemplazan colores raw.
+- **Branding runtime:** El root layout inyecta `--primary-500` y
+  `--accent-gold-500` desde `tenant_config_publica` en un `<style>` tag.
+- **Theme swap:** Crear un archivo en `/styles/themes/` y importarlo
+  después de `tokens.css` para cambiar el look completo.
+
+### Reglas derivadas
+1. Cero hex codes en componentes (excepciones: color pickers, dinámicos
+   de equipo, bibliotecas externas).
+2. Cero nombres de color Tailwind raw (green, red, blue, gray, etc.).
+3. Toda clase de color usa tokens semánticos registrados en `@theme inline`.
+
+### Alternativas descartadas
+- CSS-in-JS tokens (styled-components): agrega runtime, no usa Tailwind.
+- Tailwind config file: proyecto usa Tailwind v4 CSS-native, no hay
+  `tailwind.config.ts`.
+
+### Consecuencias
+- Branding por tenant funciona con solo 2 CSS variables.
+- Cambiar paleta completa = editar 1 archivo (`tokens.css`).
+- Componentes son agnósticos al color real.
+
+---
+
+## ADR-019 — Suscripciones como entidad propia, no como atributo
+**Fecha:** 2026-05-10
+**Estado:** Decidido
+**Capa:** Troncal ERP + Vertical Club
+**Decisores:** Arquitecto + Yair Levy Wald
+
+### Contexto
+Hindu Club opera el "Fondo Fútbol 2026", un sistema donde socios pagan una
+cuota mensual para sostener la disciplina. Existe ya un atributo
+`suscriptor` que se agrega via pipeline desde el padrón importado.
+
+El atributo `suscriptor` indica QUIÉN es suscriptor, pero no responde:
+- ¿A qué plan está suscripto? (puede haber múltiples planes en el futuro)
+- ¿Desde cuándo? (fecha de inicio)
+- ¿Hasta cuándo? (vigencia)
+- ¿Con qué monto pactado? (puede diferir del monto del plan por bonificación)
+- ¿Estado? (activa, pausada, dada de baja con motivo)
+- ¿Quién la dio de alta y cuándo?
+
+Esta información no se puede modelar limpiamente en un atributo
+booleano.
+
+### Decisión
+Crear tabla `suscripciones` como entidad propia con relación N:N entre
+`personas` y `cuotas_planes`, con metadata de la suscripción (vigencia,
+monto acordado, estado, motivo de baja).
+
+El atributo `suscriptor` se mantiene como marca rápida ("esta persona
+tiene al menos una suscripción activa"), pero la fuente de verdad
+operacional es la tabla `suscripciones`.
+
+### Alternativas evaluadas
+1. **Atributo + JSON metadata** — descartado. Difícil de querear, no hay
+   integridad referencial con `cuotas_planes`.
+2. **Solo cuotas emitidas, sin suscripciones** — descartado. No permite
+   distinguir "suscripto pero todavía no le emití cuota este mes" vs
+   "no suscripto". Se necesita el concepto de suscripción activa
+   independiente de la emisión.
+3. **Suscripción dentro de `cuotas_planes`** — descartado. Un plan tiene
+   N suscripciones; mezclar las dos cosas rompe normalización.
+
+### Consecuencias
+**Positivas:**
+- Modelo limpio que escala a múltiples planes por persona
+- Permite trazabilidad histórica (alta, baja, motivo)
+- Permite reportes precisos: "cuántos suscriptos al plan X tengo hoy"
+- Habilita emisión de cuotas con join directo (suscripcion → plan → monto)
+
+**Negativas:**
+- Sumar una tabla más al modelo
+- Necesidad de mantener sincronizado el atributo `suscriptor` con la
+  existencia de al menos 1 suscripción activa (vía trigger)
+
+### Implementación
+Ver Sprint 14e (Parte 3 - Migration y Parte 5 - Trigger de sincronización).
+
+---
+
+## PRE-MORTEM Sprint 14e — Modelo de Suscripciones
+**Fecha:** 2026-05-10
+**Capa:** Troncal ERP + Vertical Club
+**Duración estimada:** sin estimar (R-PE9 aplica por capa crítica + migración de datos)
+**Tomado por:** Arquitecto
+
+### Escenario hipotético
+"Estamos a 1 semana del cierre del Sprint 14e y FALLÓ. La tabla
+suscripciones quedó con datos inconsistentes, el pipeline no aplicó
+correctamente las 57 suscripciones del padrón, o el modelo no escala
+para los próximos sprints (emisión de cuotas, cobranza)."
+
+### Por qué pudo haber fallado
+
+1. **Sincronización atributo `suscriptor` ↔ tabla `suscripciones` se rompe.**
+   Probabilidad: ALTA · Impacto: ALTO
+   Si el trigger no maneja todos los casos (alta, baja, modificación de
+   vigencia, persona con múltiples suscripciones), queda el atributo
+   marcando "suscriptor" cuando no hay suscripciones activas, o viceversa.
+   Mitigación: trigger compuesto AFTER INSERT/UPDATE/DELETE en
+   suscripciones que recalcula el atributo en cada operación. Test
+   manual con casos: alta única, alta doble, baja con otra activa, baja
+   total.
+
+2. **El pipeline re-aplicado crea suscripciones DUPLICADAS** (la persona ya
+   tiene suscripción activa al mismo plan y se le agrega otra).
+   Probabilidad: ALTA · Impacto: ALTO
+   Mitigación: la acción `crear_suscripcion` debe ser idempotente con
+   UNIQUE constraint en (tenant_id, persona_id, plan_id, fecha_baja IS NULL).
+   Si existe suscripción activa, no crear duplicada; actualizar metadata
+   si difiere.
+
+3. **57 suscripciones aplicadas con monto incorrecto** porque el plan se
+   cargó con valor placeholder y nadie reemplazó.
+   Probabilidad: MEDIA · Impacto: ALTO
+   Mitigación: NO aplicar el run hasta que Yair confirme monto real del
+   Fondo Fútbol. Spec marca placeholders explícitos. Validación pre-apply
+   en UI: "estás por crear 57 suscripciones con monto $X, confirmás?"
+
+4. **Migration falla por nombre de función trigger incorrecto.**
+   Probabilidad: MEDIA · Impacto: MEDIO
+   Code-generated migrations usan `set_updated_at()` cuando el schema usa
+   `trg_set_updated_at`.
+   Mitigación: revisar manualmente toda referencia a funciones en la
+   migration ANTES de aplicarla. Recordatorio en el spec.
+
+5. **RLS bloquea el SELECT del usuario admin** porque la política está
+   mal escrita.
+   Probabilidad: MEDIA · Impacto: ALTO
+   Mitigación: copiar la estructura de RLS exacta de
+   `cuotas_planes` que ya funciona. Test con usuario admin Hindu antes
+   de cerrar sprint.
+
+6. **El UI tab no muestra suscripciones porque hay ambigüedad de FK** (la
+   misma persona aparece como suscriptor y como `dado_de_alta_por`).
+   Probabilidad: MEDIA · Impacto: MEDIO
+   Mitigación: usar FK hints explícitos en queries PostgREST
+   (`!persona_id`, `!dado_de_alta_por`). Aprendido en Sprint 14a.9.
+
+7. **Re-aplicar el run crea personas duplicadas** porque match fuzzy
+   detecta como nueva una persona que ya está en el padrón principal.
+   Probabilidad: MEDIA · Impacto: ALTO
+   Mitigación: el run ya tiene match resuelto (manual o automático). Solo
+   queda APLICAR. No re-correr matching. Pre-condición del sprint:
+   matching del run está cerrado.
+
+8. **Trigger de sincronización entra en loop infinito** porque al
+   actualizar el atributo dispara otro trigger que toca suscripciones.
+   Probabilidad: BAJA · Impacto: ALTO
+   Mitigación: trigger usa `pg_trigger_depth()` para no recursionar.
+   Patrón conocido del schema.
+
+9. **Performance del listado global se degrada** con joins anidados
+   (suscripcion → plan → producto → persona → atributos).
+   Probabilidad: BAJA · Impacto: BAJO
+   Mitigación: crear vista `v_suscripciones_completas` con todos los joins
+   pre-resueltos. Índices compuestos. Paginación en UI.
+
+10. **El sprint se cierra con tabla creada pero suscripciones reales
+    NO aplicadas** porque Yair no tuvo los datos del Fondo Fútbol a
+    tiempo.
+    Probabilidad: ALTA · Impacto: BAJO
+    Mitigación: aceptar esto como caso válido. El sprint cierra con
+    modelo + UI + pipeline ampliado. La aplicación del run es Parte 10,
+    "operacional" y puede quedar pendiente sin bloquear el sprint.
+
+### Top 3 riesgos (por prob × impacto)
+
+1. **Sincronización atributo ↔ tabla se rompe** → Mitigación obligatoria:
+   trigger AFTER en suscripciones con tests manuales de los 4 casos.
+
+2. **Pipeline crea suscripciones duplicadas al re-aplicar** → Mitigación
+   obligatoria: UNIQUE constraint parcial (WHERE fecha_baja IS NULL) +
+   acción `crear_suscripcion` idempotente con UPSERT.
+
+3. **57 suscripciones aplicadas con monto incorrecto** → Mitigación
+   obligatoria: NO aplicar run sin confirmación explícita de monto real.
+   Validación pre-apply en UI con preview de monto.
+
+### Ajustes al spec del sprint
+
+- Parte 3 (Migration) suma UNIQUE PARTIAL INDEX y nombre de función
+  trigger verificado.
+- Parte 4 (Pipeline) suma acción `crear_suscripcion` con UPSERT.
+- Parte 5 (Apply rule executor) implementa idempotencia explícita.
+- Parte 6 (Carga inicial producto+plan) usa placeholders marcados.
+- Parte 7 (UI ficha persona) usa FK hints PostgREST.
+- Parte 10 (Re-aplicar run) requiere CONFIRMACIÓN de monto real antes de
+  ejecutar.
+
+### Indicadores tempranos de falla
+
+- Migration falla en `apply_migration`: revisar nombre de función trigger.
+- Build falla: revisar imports y FK hints.
+- En run preview: si aparecen >57 suscripciones a crear, es duplicación.
+- Tras run apply: si COUNT(suscripciones activas) ≠ COUNT(personas con
+  atributo `suscriptor`), trigger está roto.
+- Performance del listado global > 2 segundos: falta vista o índice.
+
+---
+
 ## Decisiones pendientes (sin ADR aún)
 
 Estas requieren decisión próximamente. Se convierten en ADR cuando se
@@ -641,6 +1017,227 @@ toman:
 - **D-PENDING-03:** Estrategia de tests automatizados.
 - **D-PENDING-04:** Manejo de migraciones de datos entre tenants.
 - **D-PENDING-05:** Estrategia de backups y restore.
+## ADR-020 — Emisión de cuotas como evento atómico con rollback
+
+**Fecha:** 2026-05-10
+**Estado:** Decidido
+**Capa:** Troncal ERP
+**Decisores:** Arquitecto + Yair Levy Wald
+
+### Contexto
+
+Hindu necesita emitir cuotas mensuales del Fondo Fútbol a 57 suscriptores
+en una sola operación. Pero esta operación es transaccional y compleja:
+- Si falla a la mitad, no puede quedar a medias (50 emitidas + 7
+  pendientes)
+- Si hay error de monto, debe haber forma de revertir TODO el lote
+- Es responsable de generar movimientos contables (cuenta de deudores)
+- Debe ser idempotente (re-ejecutar el mismo período no duplica)
+
+### Decisión
+
+Modelar la emisión como una entidad propia (`emisiones_cuota`) que
+agrupa cuotas emitidas en un solo evento. La emisión se ejecuta en una
+función SQL atómica que:
+1. Crea el registro en `emisiones_cuota` (header del lote)
+2. Inserta N filas en `cuotas_emitidas` linkeadas con `emision_id`
+3. Genera movimientos contables (cuenta debe = deudores; cuenta haber = ingreso)
+4. Actualiza `cuentas_corrientes` con saldo deudor
+
+Si cualquier paso falla, ROLLBACK completo. La anulación de un lote
+revierte todas las cuotas + movimientos asociados.
+
+### Alternativas evaluadas
+
+1. **Sin tabla `emisiones_cuota`, solo `cuotas_emitidas` con metadata** —
+   descartado. Anulación de lote completo sería compleja de implementar.
+2. **Emisión en cliente con loop de inserts** — descartado. Sin
+   atomicidad, sin idempotencia, sin rollback.
+3. **Emisión vía Edge Function asincrónica** — descartado por ahora.
+   Para 57 cuotas no se justifica complejidad.
+
+### Consecuencias
+
+**Positivas:**
+- Atomicidad garantizada
+- Rollback completo de lotes errados
+- Auditoría: quién emitió qué lote y cuándo
+- Idempotencia: re-emitir mismo período no duplica
+
+**Negativas:**
+- Función SQL larga (~150 líneas) requiere review cuidadoso
+- Performance: para 57 cuotas no hay problema. Para 5000+ habría que
+  evaluar batching.
+
+---
+
+## PRE-MORTEM Sprint 14f — Emisión de Cuotas
+
+**Fecha:** 2026-05-10
+**Capa:** Troncal ERP
+**Tomado por:** Arquitecto
+
+### Escenario hipotético
+
+"Hindu intentó emitir las cuotas del mes y algo salió mal. O se
+emitieron con monto incorrecto, o se duplicaron, o el movimiento
+contable quedó inconsistente, o se emitieron a personas que no son
+suscriptoras."
+
+### Por qué pudo haber fallado
+
+1. **Emisión a personas que NO son suscriptoras del plan.**
+   Prob: MEDIA · Impacto: ALTO.
+   Mitigación: función SQL valida suscripción activa al plan.
+
+2. **Re-emitir mismo período crea cuotas duplicadas.**
+   Prob: ALTA · Impacto: ALTO.
+   Mitigación: UNIQUE parcial en cuotas_emitidas + idempotencia.
+
+3. **Bonificaciones aplicadas incorrectamente.**
+   Prob: MEDIA · Impacto: ALTO.
+   Mitigación: prioridad en tabla, aplicación ordenada.
+
+4. **Movimiento contable huérfano.**
+   Prob: BAJA · Impacto: ALTO.
+   Mitigación: transacción SQL atómica.
+
+5. **Timeout en emisiones grandes (5000+).**
+   Prob: BAJA · Impacto: MEDIO.
+   Mitigación: función directa por ahora, batching futuro.
+
+6. **Saldo cuenta corriente desincronizado.**
+   Prob: MEDIA · Impacto: ALTO.
+   Mitigación: trigger de recálculo + test ciclo completo.
+
+7. **Período mal interpretado.**
+   Prob: BAJA · Impacto: MEDIO.
+   Mitigación: formato estricto YYYY-MM + validación.
+
+8. **Anulación no anula cuotas YA PAGADAS.**
+   Prob: MEDIA · Impacto: BAJO.
+   Mitigación: estado 'anulada_parcial' + UI clara.
+
+9. **Fecha vencimiento incorrecta (día 31 en febrero).**
+   Prob: MEDIA · Impacto: BAJO.
+   Mitigación: LEAST(día_plan, último_día_mes).
+
+10. **Notificación in-app no se dispara.**
+    Prob: ALTA · Impacto: BAJO.
+    Mitigación: skip silencioso si tabla no existe.
+
+### Top 3 riesgos
+
+1. Re-emitir duplica → UNIQUE parcial obligatorio.
+2. Emisión a no-suscriptores → JOIN con suscripciones activas.
+3. Saldo desincronizado → trigger + test ciclo completo.
+
+---
+
+## ADR-021 — Tabla `cuotas_pagos` como detalle de cobranza, separada de `cuotas_emitidas`
+
+**Fecha:** 2026-05-11
+**Estado:** Decidido
+**Capa:** Troncal ERP
+**Decisores:** Arquitecto + Yair Levy Wald
+
+### Contexto
+
+Una cuota emitida (`cuotas_emitidas`) puede cobrarse de varias formas:
+
+- **Pago total único:** efectivo, una sola operación, cuota queda pagada.
+- **Pago parcial único:** la persona paga $5000 de $10000, queda en estado
+  `parcial`.
+- **Pagos parciales múltiples:** persona paga $3000 + $3000 + $4000 en 3
+  operaciones distintas. Cada pago tiene su medio, fecha, monto, comprobante.
+
+`cuotas_emitidas` tiene un solo `fecha_pago` y un solo `movimiento_id`,
+lo que no escala a múltiples pagos por cuota. Hay que separar.
+
+### Decisión
+
+Crear tabla `cuotas_pagos` con la relación 1:N: una cuota tiene N pagos.
+Cada pago tiene su propio movimiento contable. La cuota actualiza su
+estado en función de la suma de pagos:
+
+- Suma de pagos < monto_final → estado `parcial`
+- Suma de pagos = monto_final → estado `pagada`
+- Suma de pagos > monto_final → no permitido (constraint)
+
+El campo `cuotas_emitidas.fecha_pago` se mantiene como **fecha del primer
+pago** (compatibilidad). El campo `movimiento_id` queda obsoleto.
+
+### Alternativas evaluadas
+
+1. **Mantener solo 1 pago por cuota** — descartado. No permite pagos
+   parciales detallados.
+2. **Pagos como movimientos directos sin tabla intermedia** — descartado.
+   Hace difícil cancelar un pago específico.
+3. **JSON en `cuotas_emitidas.metadata.pagos`** — descartado. Sin
+   integridad referencial.
+
+### Consecuencias
+
+**Positivas:**
+- Modelo limpio que soporta todos los casos de cobranza reales
+- Trazabilidad completa: quién cobró, cuándo, con qué medio, cuánto
+- Anulación de pago individual sin tocar la cuota
+- Habilita planes de pago internos (convenios, FASE 6)
+
+**Negativas:**
+- Tabla adicional, joins más largos para queries simples
+- Trigger de sincronización entre `cuotas_pagos` y `cuotas_emitidas.estado`
+
+---
+
+## PRE-MORTEM Sprint 14g — Cobranza Manual
+
+**Fecha:** 2026-05-11
+**Capa:** Troncal ERP
+**Tomado por:** Arquitecto
+
+### Escenario hipotético
+
+"Hindu cobró 30 cuotas durante el mes. Al revisar reportes, los números
+no cuadran: cuentas corrientes desactualizadas, cuotas marcadas pagadas
+sin movimiento de caja correspondiente, o doble cobro de la misma cuota."
+
+### Por qué pudo haber fallado
+
+1. **Cobranza duplicada de la misma cuota.**
+   Prob: ALTA · Impacto: ALTO.
+   Mitigación: función SQL con check de idempotencia (5min window) +
+   UI loading state bloquea doble click.
+
+2. **Estado de cuota no se sincroniza al cancelar pago.**
+   Prob: ALTA · Impacto: ALTO.
+   Mitigación: trigger AFTER en `cuotas_pagos` recalcula estado
+   cada vez desde cero.
+
+3. **Movimiento contable no se genera al cobrar.**
+   Prob: MEDIA · Impacto: ALTO.
+   Mitigación: `fn_cobrar_cuota` crea movimiento en misma transacción.
+
+4. **Pago parcial supera monto de la cuota.**
+   Prob: BAJA · Impacto: MEDIO.
+   Mitigación: constraint CHECK + validación en UI.
+
+5. **Anulación de pago no anula movimiento de caja.**
+   Prob: MEDIA · Impacto: ALTO.
+   Mitigación: `fn_anular_pago` crea movimiento reverso (no borra).
+
+6. **Cobranza de cuota anulada.**
+   Prob: BAJA · Impacto: ALTO.
+   Mitigación: función valida estado != 'anulada'.
+
+### Top 3 riesgos
+
+1. Cobranza duplicada → idempotencia en función + loading state.
+2. Sincronización estado cuota ↔ pagos rota → trigger AFTER recalcula.
+3. Anulación deja movimiento huérfano → movimiento reverso obligatorio.
+
+---
+
 - **D-PENDING-06:** Internacionalización (i18n) — postergada.
 - **D-PENDING-07:** Acceso de jugadores via app móvil o PWA.
 - **D-PENDING-08:** Plan de cuentas estándar argentino como template

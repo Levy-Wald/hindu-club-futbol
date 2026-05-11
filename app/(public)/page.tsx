@@ -127,7 +127,7 @@ function ordenCapitanes(a: CapitanRow, b: CapitanRow): number {
 
 function HeroSection({ config }: { config: ConfigPublica }) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#3A8FC5] via-[#2B6A9C] to-[#1E3A5F]">
+    <section className="relative overflow-hidden bg-gradient-to-br from-brand-500 via-brand-600 to-brand-900">
       {/* Patrón decorativo */}
       <div className="absolute inset-0 opacity-10">
         <div
@@ -139,7 +139,7 @@ function HeroSection({ config }: { config: ConfigPublica }) {
           }}
         />
       </div>
-      <div className="absolute top-0 right-0 h-full w-1/2 bg-gradient-to-l from-[#1E3A5F]/40 to-transparent" />
+      <div className="absolute top-0 right-0 h-full w-1/2 bg-gradient-to-l from-brand-900/40 to-transparent" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-32 lg:px-8">
         <div className="flex flex-col items-center text-center">
@@ -171,7 +171,7 @@ function HeroSection({ config }: { config: ConfigPublica }) {
             </Link>
             <Link
               href="/asociate"
-              className="inline-flex items-center justify-center rounded-lg bg-[#F2C531] px-8 py-3 text-sm font-semibold text-[#1E3A5F] shadow-lg transition-all hover:bg-[#f5d060] hover:shadow-xl"
+              className="inline-flex items-center justify-center rounded-lg bg-gold-500 px-8 py-3 text-sm font-semibold text-brand-900 shadow-lg transition-all hover:bg-gold-400 hover:shadow-xl"
             >
               Inscribite
             </Link>
@@ -185,7 +185,7 @@ function HeroSection({ config }: { config: ConfigPublica }) {
           viewBox="0 0 1440 80"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="block w-full text-white dark:text-[#0a0a0a]"
+          className="block w-full text-white dark:text-neutral-950"
           preserveAspectRatio="none"
         >
           <path
@@ -200,10 +200,10 @@ function HeroSection({ config }: { config: ConfigPublica }) {
 
 function ProximosEventosSection({ eventos }: { eventos: Evento[] }) {
   return (
-    <section className="bg-white py-16 sm:py-24 dark:bg-[#0a0a0a]">
+    <section className="bg-white py-16 sm:py-24 dark:bg-neutral-950">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-white">
+          <h2 className="text-3xl font-bold text-neutral-900 sm:text-4xl dark:text-white">
             Próximos eventos
           </h2>
           <p className="mt-2 text-muted-foreground">
@@ -235,7 +235,7 @@ function ProximosEventosSection({ eventos }: { eventos: Evento[] }) {
                   className="min-w-[280px] shrink-0 rounded-xl border border-border bg-card p-5 ring-1 ring-foreground/5 transition-shadow hover:shadow-md sm:min-w-0"
                 >
                   <div className="mb-3 flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#3A8FC5]/10 px-3 py-1 text-xs font-medium text-[#3A8FC5] dark:bg-[#3A8FC5]/20">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-500/10 px-3 py-1 text-xs font-medium text-brand-500 dark:bg-brand-500/20">
                       {ev.tipo_evento_slug === 'partido' ? (
                         <Trophy className="h-3 w-3" />
                       ) : (
@@ -246,13 +246,13 @@ function ProximosEventosSection({ eventos }: { eventos: Evento[] }) {
                   </div>
 
                   <div className="mb-3 flex items-start gap-3">
-                    <div className="flex flex-col items-center rounded-lg bg-[#3A8FC5]/5 px-3 py-2 dark:bg-[#3A8FC5]/10">
+                    <div className="flex flex-col items-center rounded-lg bg-brand-500/5 px-3 py-2 dark:bg-brand-500/10">
                       <span className="text-xs font-medium uppercase text-muted-foreground">
                         {ev.fecha
                           ? new Date(ev.fecha + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'short' })
                           : ''}
                       </span>
-                      <span className="text-2xl font-bold text-[#3A8FC5]">
+                      <span className="text-2xl font-bold text-brand-500">
                         {ev.fecha ? new Date(ev.fecha + 'T12:00:00').getDate() : ''}
                       </span>
                     </div>
@@ -321,10 +321,10 @@ function LigasYTorneosSection({
     .filter((cat) => cat.equipos.length > 0)
 
   return (
-    <section className="bg-gray-50/50 py-16 sm:py-24 dark:bg-[#111]">
+    <section className="bg-neutral-50/50 py-16 sm:py-24 dark:bg-neutral-950">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-white">
+          <h2 className="text-3xl font-bold text-neutral-900 sm:text-4xl dark:text-white">
             Nuestras ligas y torneos
           </h2>
           <p className="mt-2 text-muted-foreground">
@@ -349,8 +349,8 @@ function LigasYTorneosSection({
                     className="h-10 w-10 rounded-lg object-contain"
                   />
                 ) : (
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#3A8FC5]/10">
-                    <Shield className="h-5 w-5 text-[#3A8FC5]" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-500/10">
+                    <Shield className="h-5 w-5 text-brand-500" />
                   </div>
                 )}
                 <div>
@@ -362,7 +362,7 @@ function LigasYTorneosSection({
                     href={fed.web_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="ml-2 text-muted-foreground transition-colors hover:text-[#3A8FC5]"
+                    className="ml-2 text-muted-foreground transition-colors hover:text-brand-500"
                   >
                     <ExternalLink className="h-4 w-4" />
                   </a>
@@ -383,7 +383,7 @@ function LigasYTorneosSection({
                 <h3 className="text-lg font-semibold text-foreground">
                   {cat.nombre_display}
                 </h3>
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#3A8FC5]/10 px-2.5 py-0.5 text-xs font-medium text-[#3A8FC5] dark:bg-[#3A8FC5]/20">
+                <span className="inline-flex items-center gap-1 rounded-full bg-brand-500/10 px-2.5 py-0.5 text-xs font-medium text-brand-500 dark:bg-brand-500/20">
                   <Users className="h-3 w-3" />
                   {cat.equipos.length} {cat.equipos.length === 1 ? 'equipo' : 'equipos'}
                 </span>
@@ -461,9 +461,9 @@ function AvatarPlaceholder({
 
   return (
     <div
-      className={`${sizeClasses} flex items-center justify-center rounded-full bg-[#3A8FC5]/10 ring-2 ring-[#3A8FC5]/20 dark:bg-[#3A8FC5]/20`}
+      className={`${sizeClasses} flex items-center justify-center rounded-full bg-brand-500/10 ring-2 ring-brand-500/20 dark:bg-brand-500/20`}
     >
-      <span className={`${textSize} font-semibold text-[#3A8FC5]`}>
+      <span className={`${textSize} font-semibold text-brand-500`}>
         {getInitials(nombre, apellido)}
       </span>
     </div>
@@ -474,10 +474,10 @@ function CapitanesSection({ capitanes }: { capitanes: CapitanRow[] }) {
   const sorted = [...capitanes].sort(ordenCapitanes)
 
   return (
-    <section className="bg-white py-16 sm:py-24 dark:bg-[#0a0a0a]">
+    <section className="bg-white py-16 sm:py-24 dark:bg-neutral-950">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-white">
+          <h2 className="text-3xl font-bold text-neutral-900 sm:text-4xl dark:text-white">
             Nuestros capitanes
           </h2>
           <p className="mt-2 text-muted-foreground">
@@ -552,8 +552,8 @@ function CapitanesSection({ capitanes }: { capitanes: CapitanRow[] }) {
                   <span
                     className={`mt-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                       cap.rol_equipo_slug === 'capitan'
-                        ? 'bg-[#F2C531]/20 text-[#a8850a] dark:bg-[#F2C531]/10 dark:text-[#F2C531]'
-                        : 'bg-[#3A8FC5]/10 text-[#3A8FC5] dark:bg-[#3A8FC5]/20'
+                        ? 'bg-gold-500/20 text-gold-800 dark:bg-gold-500/10 dark:text-gold-500'
+                        : 'bg-brand-500/10 text-brand-500 dark:bg-brand-500/20'
                     }`}
                   >
                     {ROL_LABELS[cap.rol_equipo_slug] ?? cap.rol_equipo_slug}
@@ -577,10 +577,10 @@ function StaffSection({ staff }: { staff: StaffRow[] }) {
   )
 
   return (
-    <section className="bg-gray-50/50 py-16 sm:py-24 dark:bg-[#111]">
+    <section className="bg-neutral-50/50 py-16 sm:py-24 dark:bg-neutral-950">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-white">
+          <h2 className="text-3xl font-bold text-neutral-900 sm:text-4xl dark:text-white">
             Nuestro staff
           </h2>
           <p className="mt-2 text-muted-foreground">
@@ -642,7 +642,7 @@ function StaffGroup({ title, items }: { title: string; items: StaffRow[] }) {
                 <p className="truncate text-sm font-medium text-foreground">
                   {inicialNombre(persona.nombre, persona.apellido)}
                 </p>
-                <p className="truncate text-xs text-[#3A8FC5]">
+                <p className="truncate text-xs text-brand-500">
                   {ROL_LABELS[member.rol_equipo_slug] ?? member.rol_equipo_slug}
                 </p>
                 {equipo?.nombre && (
@@ -694,14 +694,14 @@ function PalmaresSection({ palmares }: { palmares: PalmaresItem[] }) {
             .map((item, i) => (
             <div
               key={i}
-              className="group relative overflow-hidden rounded-xl border border-[#F2C531]/30 bg-card p-5 transition-all hover:border-[#F2C531] hover:shadow-lg"
+              className="group relative overflow-hidden rounded-xl border border-gold-500/30 bg-card p-5 transition-all hover:border-gold-500 hover:shadow-lg"
             >
               <div className="flex items-start gap-3">
                 <span className="text-3xl" role="img" aria-label={item.tipo}>
                   {tipoIcon[item.tipo] ?? '🏆'}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium text-[#F2C531]">{item.anio}</p>
+                  <p className="text-xs font-medium text-gold-500">{item.anio}</p>
                   <h3 className="mt-0.5 font-semibold text-foreground leading-tight">
                     {item.titulo}
                   </h3>
@@ -713,7 +713,7 @@ function PalmaresSection({ palmares }: { palmares: PalmaresItem[] }) {
                 </div>
               </div>
               {/* Decorative gold accent */}
-              <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-[#F2C531] to-[#F2C531]/0 opacity-0 transition-opacity group-hover:opacity-100" />
+              <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-gold-500 to-gold-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
             </div>
           ))}
         </div>
@@ -724,7 +724,7 @@ function PalmaresSection({ palmares }: { palmares: PalmaresItem[] }) {
 
 function AsociateCTASection({ config }: { config: ConfigPublica }) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#F2C531] via-[#e5b820] to-[#d4a510]">
+    <section className="relative overflow-hidden bg-gradient-to-br from-gold-500 via-gold-600 to-gold-700">
       {/* Patrón decorativo */}
       <div className="absolute inset-0 opacity-10">
         <div
@@ -739,16 +739,16 @@ function AsociateCTASection({ config }: { config: ConfigPublica }) {
 
       <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold text-[#1E3A5F] sm:text-4xl">
+          <h2 className="text-3xl font-bold text-brand-900 sm:text-4xl">
             {config?.asociate_titulo ?? 'Sumate a Hindu Club'}
           </h2>
 
-          <p className="mt-4 text-lg font-medium text-[#1E3A5F]/80">
+          <p className="mt-4 text-lg font-medium text-brand-900/80">
             {config?.asociate_bajada ?? 'Sé parte de nuestra familia futbolera.'}
           </p>
 
           {config?.asociate_descripcion && (
-            <p className="mt-3 text-[#1E3A5F]/70">
+            <p className="mt-3 text-brand-900/70">
               {config.asociate_descripcion}
             </p>
           )}
@@ -756,7 +756,7 @@ function AsociateCTASection({ config }: { config: ConfigPublica }) {
           <div className="mt-8">
             <Link
               href="/asociate"
-              className="inline-flex items-center justify-center rounded-lg bg-[#1E3A5F] px-10 py-3.5 text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#2a4f7a] hover:shadow-xl"
+              className="inline-flex items-center justify-center rounded-lg bg-brand-900 px-10 py-3.5 text-sm font-semibold text-white shadow-lg transition-all hover:bg-brand-800 hover:shadow-xl"
             >
               Inscribite
             </Link>
@@ -783,10 +783,10 @@ function ContactoSection({ config }: { config: ConfigPublica }) {
     : null
 
   return (
-    <section className="bg-white py-16 sm:py-24 dark:bg-[#0a0a0a]">
+    <section className="bg-white py-16 sm:py-24 dark:bg-neutral-950">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-white">
+          <h2 className="text-3xl font-bold text-neutral-900 sm:text-4xl dark:text-white">
             Contacto
           </h2>
           <p className="mt-2 text-muted-foreground">Comunicate con nosotros</p>
@@ -798,8 +798,8 @@ function ContactoSection({ config }: { config: ConfigPublica }) {
               href={`mailto:${contactoEmail}`}
               className="flex items-center gap-4 rounded-xl border border-border bg-card p-5 ring-1 ring-foreground/5 transition-shadow hover:shadow-md"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#3A8FC5]/10 dark:bg-[#3A8FC5]/20">
-                <Mail className="h-5 w-5 text-[#3A8FC5]" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand-500/10 dark:bg-brand-500/20">
+                <Mail className="h-5 w-5 text-brand-500" />
               </div>
               <div>
                 <p className="text-xs font-medium uppercase text-muted-foreground">Email</p>
@@ -813,8 +813,8 @@ function ContactoSection({ config }: { config: ConfigPublica }) {
               href={`tel:${contactoTelefono}`}
               className="flex items-center gap-4 rounded-xl border border-border bg-card p-5 ring-1 ring-foreground/5 transition-shadow hover:shadow-md"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#3A8FC5]/10 dark:bg-[#3A8FC5]/20">
-                <Phone className="h-5 w-5 text-[#3A8FC5]" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand-500/10 dark:bg-brand-500/20">
+                <Phone className="h-5 w-5 text-brand-500" />
               </div>
               <div>
                 <p className="text-xs font-medium uppercase text-muted-foreground">Teléfono</p>
@@ -830,8 +830,8 @@ function ContactoSection({ config }: { config: ConfigPublica }) {
               rel="noopener noreferrer"
               className="flex items-center gap-4 rounded-xl border border-border bg-card p-5 ring-1 ring-foreground/5 transition-shadow hover:shadow-md"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-500/10 dark:bg-green-500/20">
-                <MessageCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-success-500/10 dark:bg-success-500/20">
+                <MessageCircle className="h-5 w-5 text-success-600 dark:text-success-400" />
               </div>
               <div>
                 <p className="text-xs font-medium uppercase text-muted-foreground">WhatsApp</p>
@@ -842,8 +842,8 @@ function ContactoSection({ config }: { config: ConfigPublica }) {
 
           {contactoDireccion && (
             <div className="flex items-center gap-4 rounded-xl border border-border bg-card p-5 ring-1 ring-foreground/5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F2C531]/10 dark:bg-[#F2C531]/20">
-                <MapPin className="h-5 w-5 text-[#F2C531]" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gold-500/10 dark:bg-gold-500/20">
+                <MapPin className="h-5 w-5 text-gold-500" />
               </div>
               <div>
                 <p className="text-xs font-medium uppercase text-muted-foreground">Dirección</p>
@@ -853,7 +853,7 @@ function ContactoSection({ config }: { config: ConfigPublica }) {
                     href={String(contactoMapa)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-1 inline-flex items-center gap-1 text-xs text-[#3A8FC5] hover:underline"
+                    className="mt-1 inline-flex items-center gap-1 text-xs text-brand-500 hover:underline"
                   >
                     Ver en mapa
                     <ExternalLink className="h-3 w-3" />

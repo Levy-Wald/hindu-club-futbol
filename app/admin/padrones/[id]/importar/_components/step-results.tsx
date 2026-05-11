@@ -19,13 +19,13 @@ export function StepResults({ summary, padronId }: StepResultsProps) {
       {/* Status header */}
       <div className="flex items-center gap-3">
         {success && !hasErrors && (
-          <CheckCircle2 className="h-8 w-8 text-green-600" />
+          <CheckCircle2 className="h-8 w-8 text-success-600" />
         )}
         {success && hasErrors && (
-          <AlertTriangle className="h-8 w-8 text-yellow-600" />
+          <AlertTriangle className="h-8 w-8 text-warning-600" />
         )}
         {!success && (
-          <XCircle className="h-8 w-8 text-red-600" />
+          <XCircle className="h-8 w-8 text-error-600" />
         )}
         <div>
           <h2 className="text-lg font-medium">
@@ -43,10 +43,10 @@ export function StepResults({ summary, padronId }: StepResultsProps) {
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <ResultCard count={summary.nuevas} label="Personas creadas" color="text-green-600" />
-        <ResultCard count={summary.vinculadas} label="Vinculadas al padrón" color="text-blue-600" />
-        <ResultCard count={summary.actualizadas} label="Datos actualizados" color="text-yellow-600" />
-        <ResultCard count={summary.errores} label="Errores" color="text-red-600" />
+        <ResultCard count={summary.nuevas} label="Personas creadas" color="text-success-600" />
+        <ResultCard count={summary.vinculadas} label="Vinculadas al padrón" color="text-info-600" />
+        <ResultCard count={summary.actualizadas} label="Datos actualizados" color="text-warning-600" />
+        <ResultCard count={summary.errores} label="Errores" color="text-error-600" />
       </div>
 
       {/* Error details */}

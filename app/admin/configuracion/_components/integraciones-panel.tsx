@@ -83,8 +83,8 @@ const CATEGORIES: Category[] = [
     slug: 'cobros',
     name: 'Cobros y pagos',
     icon: CreditCard,
-    color: 'bg-emerald-100 dark:bg-emerald-900/40',
-    textColor: 'text-emerald-700 dark:text-emerald-300',
+    color: 'bg-success-100 dark:bg-success-900/40',
+    textColor: 'text-success-700 dark:text-success-300',
     items: [
       {
         name: 'MercadoPago',
@@ -112,8 +112,8 @@ const CATEGORIES: Category[] = [
     slug: 'crm',
     name: 'CRM y comunicación',
     icon: MessageSquare,
-    color: 'bg-blue-100 dark:bg-blue-900/40',
-    textColor: 'text-blue-700 dark:text-blue-300',
+    color: 'bg-info-100 dark:bg-info-900/40',
+    textColor: 'text-info-700 dark:text-info-300',
     items: [
       {
         name: 'Zoho CRM',
@@ -146,8 +146,8 @@ const CATEGORIES: Category[] = [
     slug: 'deportivo',
     name: 'Deportivo',
     icon: Trophy,
-    color: 'bg-amber-100 dark:bg-amber-900/40',
-    textColor: 'text-amber-700 dark:text-amber-300',
+    color: 'bg-warning-100 dark:bg-warning-900/40',
+    textColor: 'text-warning-700 dark:text-warning-300',
     items: [
       {
         name: 'ATC Sports',
@@ -194,8 +194,8 @@ const CATEGORIES: Category[] = [
     slug: 'almacenamiento',
     name: 'Almacenamiento',
     icon: HardDrive,
-    color: 'bg-orange-100 dark:bg-orange-900/40',
-    textColor: 'text-orange-700 dark:text-orange-300',
+    color: 'bg-warning-100 dark:bg-warning-900/40',
+    textColor: 'text-warning-700 dark:text-warning-300',
     items: [
       {
         name: 'Google Drive',
@@ -218,8 +218,8 @@ const CATEGORIES: Category[] = [
     slug: 'desarrollo',
     name: 'Desarrollo',
     icon: Code,
-    color: 'bg-slate-100 dark:bg-slate-800/60',
-    textColor: 'text-slate-700 dark:text-slate-300',
+    color: 'bg-neutral-100 dark:bg-neutral-800/60',
+    textColor: 'text-neutral-700 dark:text-neutral-300',
     items: [
       {
         name: 'API REST',
@@ -266,13 +266,13 @@ const STATUS_CONFIG: Record<
   activa: {
     label: 'Activa',
     badgeClass:
-      'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800',
+      'bg-success-100 text-success-700 border-success-200 dark:bg-success-900/40 dark:text-success-300 dark:border-success-800',
     buttonLabel: 'Configurar',
   },
   disponible: {
     label: 'Disponible',
     badgeClass:
-      'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800',
+      'bg-info-100 text-info-700 border-info-200 dark:bg-info-900/40 dark:text-info-300 dark:border-info-800',
     buttonLabel: 'Conectar',
   },
   proximamente: {
@@ -335,7 +335,7 @@ function IntegrationCard({ integration, category }: IntegrationCardProps) {
     <Card className="group relative flex flex-col overflow-hidden border hover:border-primary/30 hover:shadow-md transition-all duration-200">
       {/* Top accent line for active integrations */}
       {integration.status === 'activa' && (
-        <div className="absolute inset-x-0 top-0 h-0.5 bg-emerald-500" />
+        <div className="absolute inset-x-0 top-0 h-0.5 bg-success-500" />
       )}
 
       <CardContent className="flex flex-col gap-4 p-5 flex-1">

@@ -272,7 +272,7 @@ export function MovimientoForm({
       <div className="rounded-lg bg-muted/50 p-3">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium">Monto neto</span>
-          <span className={`text-lg font-bold ${montoNeto > 0 ? (tipo === 'ingreso' ? 'text-green-600 dark:text-green-400' : tipo === 'egreso' ? 'text-red-600 dark:text-red-400' : '') : ''}`}>
+          <span className={`text-lg font-bold ${montoNeto > 0 ? (tipo === 'ingreso' ? 'text-success-600 dark:text-success-400' : tipo === 'egreso' ? 'text-error-600 dark:text-error-400' : '') : ''}`}>
             {formatMoney(montoNeto)}
           </span>
         </div>

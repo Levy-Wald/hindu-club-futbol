@@ -57,10 +57,10 @@ function formatFecha(fecha: string) {
 }
 
 const ESTADO_BADGES: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; className: string }> = {
-  pendiente: { variant: 'outline', className: 'border-yellow-500 text-yellow-700 bg-yellow-50' },
-  enviado: { variant: 'outline', className: 'border-blue-500 text-blue-700 bg-blue-50' },
+  pendiente: { variant: 'outline', className: 'border-warning-500 text-warning-700 bg-warning-50' },
+  enviado: { variant: 'outline', className: 'border-info-500 text-info-700 bg-info-50' },
   fallado: { variant: 'destructive', className: '' },
-  entregado: { variant: 'outline', className: 'border-emerald-500 text-emerald-700 bg-emerald-50' },
+  entregado: { variant: 'outline', className: 'border-success-500 text-success-700 bg-success-50' },
   leido: { variant: 'secondary', className: '' },
 }
 

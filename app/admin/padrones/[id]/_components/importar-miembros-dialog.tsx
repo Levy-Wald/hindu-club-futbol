@@ -482,15 +482,15 @@ export function ImportarMiembrosDialog({ padronId, estadosPadron, tiposSocio }: 
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="rounded-md border p-3">
-                <p className="text-2xl font-bold text-green-600">{results.imported}</p>
+                <p className="text-2xl font-bold text-success-600">{results.imported}</p>
                 <p className="text-xs text-muted-foreground">Agregados</p>
               </div>
               <div className="rounded-md border p-3">
-                <p className="text-2xl font-bold text-yellow-600">{results.skipped}</p>
+                <p className="text-2xl font-bold text-warning-600">{results.skipped}</p>
                 <p className="text-xs text-muted-foreground">Ya existian</p>
               </div>
               <div className="rounded-md border p-3">
-                <p className="text-2xl font-bold text-red-600">{results.errors.length}</p>
+                <p className="text-2xl font-bold text-error-600">{results.errors.length}</p>
                 <p className="text-xs text-muted-foreground">Errores</p>
               </div>
             </div>

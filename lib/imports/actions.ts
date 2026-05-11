@@ -32,6 +32,7 @@ interface ApplyAction {
   equipo_resolver?: string
   campos_default?: Record<string, unknown>
   atributos_iniciales?: string[]
+  plan_slug?: string
 }
 
 interface ApplyRule {
@@ -740,6 +741,48 @@ async function executeApplyAction(
           rol_equipo_slug: rolSlug, fecha_inicio: new Date().toISOString().split('T')[0], activo: true,
         })
         if (peErr) return { ok: false, error: `Error asignando equipo: ${peErr.message}` }
+      }
+      return { ok: true }
+    }
+
+    case 'crear_suscripcion': {
+      if (!personaId) return { ok: false, error: 'No hay persona para crear suscripción' }
+      if (!action.plan_slug) return { ok: false, error: 'plan_slug requerido' }
+
+      // Resolve plan by metadata->>'slug'
+      const { data: plan } = await sc.from('cuotas_planes')
+        .select('id, monto')
+        .eq('tenant_id', TENANT_ID)
+        .eq('activo', true)
+        .filter('metadata->>slug', 'eq', action.plan_slug)
+        .maybeSingle()
+
+      if (!plan) return { ok: false, error: `Plan "${action.plan_slug}" no encontrado` }
+
+      // Parse monto from parsed_data if available
+      const montoRaw = parsedData.monto as string | number | undefined
+      const montoPactado = montoRaw ? parseFloat(String(montoRaw)) : null
+
+      // Check if active subscription already exists (partial unique index handles this too)
+      const { data: existingSub } = await sc.from('suscripciones')
+        .select('id')
+        .eq('tenant_id', TENANT_ID)
+        .eq('persona_id', personaId)
+        .eq('plan_id', plan.id)
+        .is('fecha_baja', null)
+        .maybeSingle()
+
+      if (!existingSub) {
+        const { error: subErr } = await sc.from('suscripciones').insert({
+          tenant_id: TENANT_ID,
+          persona_id: personaId,
+          plan_id: plan.id,
+          estado: 'activa',
+          fecha_alta: new Date().toISOString().split('T')[0],
+          monto_pactado: montoPactado && !isNaN(montoPactado) && montoPactado > 0 ? montoPactado : null,
+          origen: 'import',
+        })
+        if (subErr) return { ok: false, error: `Error creando suscripción: ${subErr.message}` }
       }
       return { ok: true }
     }

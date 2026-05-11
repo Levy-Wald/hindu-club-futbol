@@ -141,9 +141,9 @@ export function StepConfirm({ importRows, padronId, padronNombre, onComplete, on
       <div className="rounded-md border p-4 space-y-4">
         <h3 className="text-sm font-medium">Resumen de operaciones</h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <PlanCard icon={<UserPlus className="h-4 w-4" />} count={plan.crear} label="Crear nuevas" color="text-green-600" />
-          <PlanCard icon={<Link2 className="h-4 w-4" />} count={plan.vincular} label="Vincular existentes" color="text-blue-600" />
-          <PlanCard icon={<Pencil className="h-4 w-4" />} count={plan.actualizar} label="Con datos nuevos" color="text-yellow-600" />
+          <PlanCard icon={<UserPlus className="h-4 w-4" />} count={plan.crear} label="Crear nuevas" color="text-success-600" />
+          <PlanCard icon={<Link2 className="h-4 w-4" />} count={plan.vincular} label="Vincular existentes" color="text-info-600" />
+          <PlanCard icon={<Pencil className="h-4 w-4" />} count={plan.actualizar} label="Con datos nuevos" color="text-warning-600" />
           <PlanCard icon={<Ban className="h-4 w-4" />} count={plan.omitir} label="Omitir (duplicadas)" color="text-muted-foreground" />
         </div>
 

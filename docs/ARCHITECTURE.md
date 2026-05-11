@@ -636,3 +636,43 @@ Documentadas en `DECISIONS.md` cuando se tomen:
 | Cambio de stack técnico | Yair |
 | Cambio de decisión marco (D1-D8 en MASTER) | Yair |
 | Roadmap / prioridades | Yair |
+
+---
+
+## 20. Design Tokens System (ADR-018)
+
+### Estructura
+
+```
+styles/
+├── tokens.css            ← fuente única de tokens
+└── themes/
+    └── theme-test.css    ← theme de prueba (no commitear import activo)
+app/
+└── globals.css           ← importa tokens.css, registra en @theme inline
+```
+
+### Tokens disponibles
+
+| Escala | Prefijo Tailwind | Shades | Uso |
+|---|---|---|---|
+| Neutral | `neutral-*` | 50-950 | Grises, bordes, fondos, texto |
+| Brand | `brand-*` | 50-950 | Color primario del tenant |
+| Gold | `gold-*` | 50-900 | Color secundario/accent |
+| Success | `success-*` | 50-900 | Estados positivos, activo, ok |
+| Warning | `warning-*` | 50-900 | Alertas, precaución |
+| Error | `error-*` | 50-900 | Errores, destructivo |
+| Info | `info-*` | 50-900 | Informativo, azul neutro |
+
+### Reglas
+
+1. **Cero hex codes** en `className`. Excepciones: color pickers
+   (branding), colores dinámicos de equipo, libs externas (toPng).
+2. **Cero nombres raw** (`green-600`, `red-100`, `gray-500`). Usar
+   tokens semánticos (`success-600`, `error-100`, `neutral-500`).
+3. **Brand tokens** se overridean en runtime desde `tenant_config_publica`
+   vía `<style>` en root layout.
+4. **Para agregar un shade:** editar `tokens.css`, registrar en
+   `globals.css` `@theme inline`, usar en componentes.
+5. **Para un theme completo:** crear archivo en `/styles/themes/`,
+   importar después de `tokens.css` en `globals.css`.

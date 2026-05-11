@@ -290,8 +290,8 @@ export function FusionModal({ idA, idB, onClose, onComplete }: FusionModalProps)
         </div>
 
         {/* Merge direction summary */}
-        <div className="flex items-center gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-sm">
-          <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+        <div className="flex items-center gap-2 p-3 rounded-md bg-warning-50 dark:bg-warning-950/30 border border-warning-200 dark:border-warning-800 text-sm">
+          <AlertTriangle className="h-4 w-4 text-warning-600 shrink-0" />
           <span>
             <strong>{masterId === idA ? nameB : nameA}</strong> será eliminada.
             Todas sus relaciones (equipos, padrones, finanzas, etc.) se transfieren a{' '}

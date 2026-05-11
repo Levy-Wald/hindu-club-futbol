@@ -40,7 +40,7 @@ export default async function PrivacidadPage() {
             <p>
               Conforme a la Ley 25.326, usted tiene derecho a acceder, rectificar y suprimir sus datos
               personales. Para ejercer estos derechos, contacte a{' '}
-              <a href={`mailto:${config?.email_contacto || 'contacto@club.com'}`} className="text-[#3A8FC5] hover:underline">
+              <a href={`mailto:${config?.email_contacto || 'contacto@club.com'}`} className="text-brand-500 hover:underline">
                 {config?.email_contacto || 'contacto@club.com'}
               </a>.
             </p>

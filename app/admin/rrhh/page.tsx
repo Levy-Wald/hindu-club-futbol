@@ -34,8 +34,8 @@ export default async function RRHHDashboardPage() {
         {/* Empleados activos */}
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
-            <div className="rounded-md bg-[#3A8FC5]/10 p-2">
-              <Users className="h-5 w-5 text-[#3A8FC5]" />
+            <div className="rounded-md bg-brand-500/10 p-2">
+              <Users className="h-5 w-5 text-brand-500" />
             </div>
             <div>
               <p className="text-2xl font-bold">{totalEmpleados}</p>
@@ -47,8 +47,8 @@ export default async function RRHHDashboardPage() {
         {/* Contratos vigentes */}
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
-            <div className="rounded-md bg-emerald-500/10 p-2">
-              <FileText className="h-5 w-5 text-emerald-600" />
+            <div className="rounded-md bg-success-500/10 p-2">
+              <FileText className="h-5 w-5 text-success-600" />
             </div>
             <div>
               <p className="text-2xl font-bold">{contratosVigentes}</p>
@@ -60,8 +60,8 @@ export default async function RRHHDashboardPage() {
         {/* Costo mensual estimado */}
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
-            <div className="rounded-md bg-[#F2C531]/10 p-2">
-              <Banknote className="h-5 w-5 text-[#F2C531]" />
+            <div className="rounded-md bg-gold-500/10 p-2">
+              <Banknote className="h-5 w-5 text-gold-500" />
             </div>
             <div>
               <p className="text-2xl font-bold">{formatMoney(costoMensualARS)}</p>
@@ -73,8 +73,8 @@ export default async function RRHHDashboardPage() {
         {/* Liquidaciones pendientes */}
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
-            <div className="rounded-md bg-red-500/10 p-2">
-              <ClipboardList className="h-5 w-5 text-red-600" />
+            <div className="rounded-md bg-error-500/10 p-2">
+              <ClipboardList className="h-5 w-5 text-error-600" />
             </div>
             <div>
               <p className="text-2xl font-bold">{liquidacionesPendientes}</p>

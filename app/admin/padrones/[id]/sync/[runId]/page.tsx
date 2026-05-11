@@ -72,11 +72,11 @@ export default async function SyncRunDetailPage({ params }: Props) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-        <StatCard label="Exactos" value={conteos.exacto ?? 0} color="text-green-600" />
-        <StatCard label="Auto-fuzzy" value={conteos.auto_fuzzy ?? 0} color="text-blue-600" />
-        <StatCard label="A revisar" value={conteos.revisar ?? 0} color="text-amber-600" />
-        <StatCard label="Sin match" value={conteos.sin_match ?? 0} color="text-orange-600" />
-        <StatCard label="Aplicados" value={conteos.apply_aplicado ?? 0} color="text-green-600" />
+        <StatCard label="Exactos" value={conteos.exacto ?? 0} color="text-success-600" />
+        <StatCard label="Auto-fuzzy" value={conteos.auto_fuzzy ?? 0} color="text-info-600" />
+        <StatCard label="A revisar" value={conteos.revisar ?? 0} color="text-warning-600" />
+        <StatCard label="Sin match" value={conteos.sin_match ?? 0} color="text-warning-600" />
+        <StatCard label="Aplicados" value={conteos.apply_aplicado ?? 0} color="text-success-600" />
         <StatCard label="Pend. equipo" value={conteos.apply_pendiente_revision_equipo ?? 0} color="text-purple-600" />
       </div>
 

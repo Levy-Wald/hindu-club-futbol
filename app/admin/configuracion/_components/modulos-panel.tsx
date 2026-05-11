@@ -36,14 +36,14 @@ const CATEGORIA_LABELS: Record<string, string> = {
 }
 
 const CATEGORIA_ICONS: Record<string, { emoji: string; color: string }> = {
-  tronco:      { emoji: '🏛️', color: 'bg-slate-100 text-slate-700' },
-  disciplina:  { emoji: '⚽', color: 'bg-green-100 text-green-700' },
+  tronco:      { emoji: '🏛️', color: 'bg-neutral-100 text-neutral-700' },
+  disciplina:  { emoji: '⚽', color: 'bg-success-100 text-success-700' },
   vertical:    { emoji: '📐', color: 'bg-violet-100 text-violet-700' },
   canal:       { emoji: '📡', color: 'bg-sky-100 text-sky-700' },
-  integracion: { emoji: '🔗', color: 'bg-amber-100 text-amber-700' },
-  premium:     { emoji: '⭐', color: 'bg-yellow-100 text-yellow-700' },
-  operaciones: { emoji: '⚙️', color: 'bg-orange-100 text-orange-700' },
-  financiero:  { emoji: '💰', color: 'bg-emerald-100 text-emerald-700' },
+  integracion: { emoji: '🔗', color: 'bg-warning-100 text-warning-700' },
+  premium:     { emoji: '⭐', color: 'bg-warning-100 text-warning-700' },
+  operaciones: { emoji: '⚙️', color: 'bg-warning-100 text-warning-700' },
+  financiero:  { emoji: '💰', color: 'bg-success-100 text-success-700' },
 }
 
 export function ModulosPanel({ modulos }: ModulosPanelProps) {
@@ -105,7 +105,7 @@ export function ModulosPanel({ modulos }: ModulosPanelProps) {
         if (catModulos.length === 0) return null
 
         const activosCount = catModulos.filter((m) => m.activado).length
-        const icon = CATEGORIA_ICONS[cat] ?? { emoji: '📦', color: 'bg-gray-100 text-gray-700' }
+        const icon = CATEGORIA_ICONS[cat] ?? { emoji: '📦', color: 'bg-neutral-100 text-neutral-700' }
 
         return (
           <div key={cat} className="space-y-3">
@@ -132,7 +132,7 @@ export function ModulosPanel({ modulos }: ModulosPanelProps) {
                   key={modulo.slug}
                   className={`relative transition-all overflow-hidden ${
                     modulo.activado
-                      ? 'border-l-4 border-l-green-500 shadow-sm'
+                      ? 'border-l-4 border-l-success-500 shadow-sm'
                       : 'border-l-4 border-l-transparent opacity-80 hover:opacity-100'
                   }`}
                 >
@@ -159,7 +159,7 @@ export function ModulosPanel({ modulos }: ModulosPanelProps) {
 
                     <div className="flex items-center gap-2 pl-11 flex-wrap">
                       {modulo.activado && (
-                        <Badge className="text-xs bg-green-100 text-green-700 hover:bg-green-100 border-0">
+                        <Badge className="text-xs bg-success-100 text-success-700 hover:bg-success-100 border-0">
                           Activo
                         </Badge>
                       )}

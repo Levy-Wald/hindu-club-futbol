@@ -64,10 +64,10 @@ const TIPO_ICONS: Record<string, typeof Bell> = {
 }
 
 const TIPO_COLORS: Record<string, string> = {
-  info: 'text-[#3A8FC5]',
-  alerta: 'text-[#F2C531]',
-  exito: 'text-emerald-600',
-  email: 'text-[#1E3A5F]',
+  info: 'text-brand-500',
+  alerta: 'text-gold-500',
+  exito: 'text-success-600',
+  email: 'text-brand-900',
 }
 
 // -------------------------------------------------------------------
@@ -152,7 +152,7 @@ export function NotificacionesClient({ mensajes: initialMensajes, personaId }: N
               <Card
                 key={m.id}
                 className={`cursor-pointer transition-colors hover:bg-muted/50 ${
-                  !m.leido ? 'border-l-2 border-l-[#3A8FC5] bg-[#3A8FC5]/5' : ''
+                  !m.leido ? 'border-l-2 border-l-brand-500 bg-brand-500/5' : ''
                 }`}
                 onClick={() => {
                   if (!m.leido) handleMarcarLeido(m.id)
@@ -168,7 +168,7 @@ export function NotificacionesClient({ mensajes: initialMensajes, personaId }: N
                         {m.asunto}
                       </p>
                       {!m.leido && (
-                        <Badge variant="default" className="bg-[#3A8FC5] text-[10px]">
+                        <Badge variant="default" className="bg-brand-500 text-[10px]">
                           Nuevo
                         </Badge>
                       )}

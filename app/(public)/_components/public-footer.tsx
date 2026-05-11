@@ -31,7 +31,7 @@ export function PublicFooter({
   ]
 
   return (
-    <footer className="border-t border-white/10 bg-[#1E3A5F] text-gray-300 dark:bg-[#0C1D2C]">
+    <footer className="border-t border-white/10 bg-brand-900 text-neutral-300 dark:bg-brand-950">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* Sobre el club */}
@@ -127,15 +127,15 @@ export function PublicFooter({
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
             <div className="flex items-center gap-3">
               <Image src={logoUrl} alt={clubNombre} width={24} height={24} className="h-6 w-6 opacity-70" />
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-neutral-400">
                 &copy; {anioActual} {clubNombre}. Todos los derechos reservados.
               </span>
             </div>
             <div className="flex gap-4">
-              <Link href="/terminos" className="text-xs text-gray-400 transition-colors hover:text-white">
+              <Link href="/terminos" className="text-xs text-neutral-400 transition-colors hover:text-white">
                 Términos
               </Link>
-              <Link href="/privacidad" className="text-xs text-gray-400 transition-colors hover:text-white">
+              <Link href="/privacidad" className="text-xs text-neutral-400 transition-colors hover:text-white">
                 Privacidad
               </Link>
             </div>

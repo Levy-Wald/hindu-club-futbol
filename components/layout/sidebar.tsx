@@ -70,6 +70,7 @@ const finanzasSubItems: NavItemDef[] = [
   { label: 'Movimientos', href: '/admin/finanzas/movimientos', icon: ArrowLeftRight },
   { label: 'Productos', href: '/admin/finanzas/productos', icon: Package },
   { label: 'Cuotas', href: '/admin/finanzas/cuotas', icon: Receipt },
+  { label: 'Suscripciones', href: '/admin/finanzas/suscripciones', icon: CreditCard },
   { label: 'Plan de Cuentas', href: '/admin/finanzas/plan-cuentas', icon: BookOpen },
 ]
 

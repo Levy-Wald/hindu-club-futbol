@@ -277,10 +277,10 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
     <div className="space-y-4">
       {/* Pending teams section */}
       {pendingTeams.length > 0 && (
-        <div className="border rounded-md p-4 bg-amber-50 dark:bg-amber-950/20 space-y-3">
+        <div className="border rounded-md p-4 bg-warning-50 dark:bg-warning-950/20 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              <AlertTriangle className="h-5 w-5 text-warning-600" />
               <h3 className="font-semibold">Equipos pendientes de aprobacion</h3>
             </div>
             <Button variant="outline" size="sm" onClick={handleApproveAllTeams} disabled={isPending}>
@@ -299,7 +299,7 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
                 </div>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleApproveTeam(team.equipo_id)} disabled={isPending}>
-                    <Check className="h-4 w-4 text-green-600" />
+                    <Check className="h-4 w-4 text-success-600" />
                   </Button>
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRejectTeam(team.equipo_id)} disabled={isPending}>
                     <X className="h-4 w-4 text-destructive" />
@@ -439,7 +439,7 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
                       </TableCell>
                       <TableCell>
                         {isConfirmedNew ? (
-                          <Badge variant="outline" className="text-green-600 border-green-600">
+                          <Badge variant="outline" className="text-success-600 border-success-600">
                             <UserPlus className="h-3 w-3 mr-1" />
                             Crear nueva
                           </Badge>
@@ -451,7 +451,7 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
                             <DropdownMenuContent align="end">
                               {isRevisar && topCandidate && (
                                 <DropdownMenuItem onClick={() => handleResolve(row.id, 'aceptar_top')}>
-                                  <Check className="mr-2 h-4 w-4 text-green-600" />
+                                  <Check className="mr-2 h-4 w-4 text-success-600" />
                                   Aceptar match
                                 </DropdownMenuItem>
                               )}
@@ -541,12 +541,12 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
       {applyResult && (
         <div className="border rounded-md p-4 bg-muted/30 space-y-3">
           <h3 className="font-semibold flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <CheckCircle2 className="h-5 w-5 text-success-600" />
             Resultado de la aplicación
           </h3>
           <div className="grid grid-cols-3 gap-3">
             <div className="text-center p-3 rounded-md bg-background border">
-              <div className="text-2xl font-bold text-green-600">{applyResult.aplicados}</div>
+              <div className="text-2xl font-bold text-success-600">{applyResult.aplicados}</div>
               <div className="text-xs text-muted-foreground">Aplicados</div>
             </div>
             <div className="text-center p-3 rounded-md bg-background border">
@@ -554,7 +554,7 @@ export function RunReviewClient({ runId, padronId, estado, conteos }: Props) {
               <div className="text-xs text-muted-foreground">Fallados</div>
             </div>
             <div className="text-center p-3 rounded-md bg-background border">
-              <div className={`text-2xl font-bold ${applyResult.pendientes_equipo > 0 ? 'text-amber-600' : 'text-muted-foreground'}`}>{applyResult.pendientes_equipo}</div>
+              <div className={`text-2xl font-bold ${applyResult.pendientes_equipo > 0 ? 'text-warning-600' : 'text-muted-foreground'}`}>{applyResult.pendientes_equipo}</div>
               <div className="text-xs text-muted-foreground">Pendientes equipo</div>
             </div>
           </div>

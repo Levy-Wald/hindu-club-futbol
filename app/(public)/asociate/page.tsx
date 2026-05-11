@@ -10,7 +10,7 @@ export default async function AsociatePage() {
   return (
     <div className="min-h-screen">
       {/* Hero mini */}
-      <section className="bg-gradient-to-br from-[#3A8FC5] to-[#1E3A5F] text-white py-12 sm:py-16 text-center px-4">
+      <section className="bg-gradient-to-br from-brand-500 to-brand-900 text-white py-12 sm:py-16 text-center px-4">
         <img
           src="/hindu-logo.png"
           alt="Hindu Club"

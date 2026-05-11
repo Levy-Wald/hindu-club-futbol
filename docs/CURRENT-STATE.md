@@ -6,8 +6,8 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 10 de mayo de 2026 — al cierre de Sprint 14c.2
-> (pre-Sprint 14d).
+> Última actualización: 11 de mayo de 2026 — Sprint 14g en curso
+> (Cobranza manual: cuotas_pagos, fn_cobrar_cuota, fn_anular_pago, UI modal mejorado, tab Pagos).
 
 ---
 
@@ -16,12 +16,13 @@
 **Estado general:** Plataforma con esqueleto técnico avanzado, datos
 operativos limitados al vertical Club Deportivo en tenant Hindu.
 
-**Último sprint cerrado:** **14c.2** — Pipeline `suscriptores_por_equipo`
-configurado, padrón "Hindu Futbol Suscriptores 2026" creado, atributo
-`suscriptor` agregado al catálogo. E2E pendiente.
+**Último sprint cerrado:** **14f** — Emisión de cuotas masivas, anulación,
+vistas, UI refactorizada, tab Cuotas en persona.
 
-**Próximo sprint:** **14d** — Fundación documental + deprecación legacy +
-reorganización UI por capas.
+**Sprint en curso:** **14g** — Cobranza manual. Tabla `cuotas_pagos` (1:N con
+cuotas_emitidas), trigger `sync_estado_cuota_desde_pagos`, SQL functions
+`fn_cobrar_cuota` / `fn_anular_pago`, UI mejorada con monto editable, pagos
+parciales, comprobante, tab Pagos en persona.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -34,12 +35,12 @@ reorganización UI por capas.
 
 | Métrica | Valor |
 |---|---|
-| Tablas en `public` | 101 |
-| Tablas con RLS habilitada | 101 (100%) |
-| RLS policies | 311 |
-| Funciones custom (`pg_proc` en public) | 109 |
-| Triggers | 84 |
-| VIEWs | 11 (10 `fin_*` sin uso → drop en 14d) |
+| Tablas en `public` | 103 (+cuotas_pagos) |
+| Tablas con RLS habilitada | 102 (100%) |
+| RLS policies | 316 (+5 cuotas_pagos) |
+| Funciones custom (`pg_proc` en public) | 111 (+fn_cobrar_cuota, fn_anular_pago) |
+| Triggers | 87 (+sync_estado_cuota_desde_pagos, set_updated_at, validar_suma_pagos) |
+| VIEWs | 14 (10 `fin_*` sin uso + 3 cuotas: v_cuotas_completas, v_cuotas_resumen_periodo, v_cuenta_corriente_persona) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
 | Páginas Next.js | 55 (7 públicas + 48 admin) |
 | API routes | 10 (5 endpoints v1 + 3 internos + 2 crons) |
@@ -67,7 +68,7 @@ significativos.
 | Tabla | Rows | Notas |
 |---|---|---|
 | `personas` | 2,389 | 106 columnas (mezcla con conceptos de salud/laboral/deportivo a refactorizar a futuro) |
-| `personas_atributos` | 2,569 | 8 atributos activos en uso |
+| `personas_atributos` | ~2,620 | 9 atributos activos en uso (incl. suscriptor x51) |
 | `personas_padrones` | 2,561 | 4 padrones |
 | `personas_vinculos` | 4 | Familiares/tutores cargados manualmente |
 | `personas_documentos_identidad` | 2 | Sub-uso |
@@ -110,31 +111,29 @@ pre-inscripciones.
 | `catalogo_categorias_movimiento` | 21 | Cargado |
 | `cotizaciones` | 1 | Tipo de cambio cargado |
 
-**Tablas transaccionales (VACÍAS):**
+**Tablas transaccionales:**
 
 | Tabla | Rows | Estado |
 |---|---|---|
-| `movimientos_caja` | 0 | UI operativa esperando primer movimiento |
-| `cuotas_planes` | 0 | A cargar en Sprint 14e ("Fondo Fútbol 2026") |
-| `cuotas_emitidas` | 0 | A emitir en Sprint 14f |
+| `movimientos_caja` | 4+ | Generados por fn_cobrar_cuota y fn_anular_pago (Sprint 14g) |
+| `cuotas_planes` | 1 | Fondo Fútbol 2026 (Sprint 14e) |
+| `cuotas_emitidas` | 51 | Emitidas via `fn_emitir_cuotas_masivas` (Sprint 14f) |
 | `cuotas_bonificaciones` | 0 | Sin uso |
-| `emisiones_cuota` | 0 | Sin uso |
+| `cuotas_pagos` | 2+ | Pagos registrados via fn_cobrar_cuota (Sprint 14g) |
+| `emisiones_cuota` | 2 | 1 activa (51 cuotas, 2026-05) + 1 anulada (Sprint 14f) |
 | `convenios_pago` | 0 | Sin uso |
 | `cuentas_corrientes` | 0 | Sin uso |
-| `productos_servicios` | 0 | A cargar en Sprint 14e |
+| `productos_servicios` | 1 | Fondo Fútbol 2026 (Sprint 14e) |
 | `producto_proveedor` | 0 | Sin uso |
-
-**Tabla pendiente de crear (Sprint 14e):**
-- `suscripciones` — persona ↔ plan ↔ vigencia
+| `suscripciones` | 51 | 51 activas del padrón Suscriptores (Sprint 14e) |
 
 **Rutas UI operativas:** `/admin/finanzas/*` (dashboard, cajas, movimientos,
-cuotas, productos, plan-cuentas, productos/importar).
+cuotas, productos, suscripciones, plan-cuentas, productos/importar).
 
-**Server actions:** 35 (cajas, movimientos, productos, planes, cuotas,
-convenios, períodos, cotizaciones, config).
+**Server actions:** 41 (cajas, movimientos, productos, planes, cuotas,
+suscripciones, convenios, períodos, cotizaciones, config).
 
 **Gaps:**
-- Tabla `suscripciones` (14e)
 - Centros de costo: UI CRUD inexistente (15b)
 - Reportes financieros: inexistentes (15b)
 - Cobranza vía MercadoPago (15d)
@@ -202,7 +201,7 @@ operaciones + 3 scouting.
 |---|---|---|
 | Hindu Global | (legacy, sin pipeline) | 2,361 |
 | Hindu Futbol Jugadores 2026 | `jugadores_por_equipo` | 162 únicas / 211 asignaciones |
-| Hindu Futbol Suscriptores 2026 | `suscriptores_por_equipo` | 0 (E2E pendiente) |
+| Hindu Futbol Suscriptores 2026 | `suscriptores_por_equipo` | 51 (Sprint 14e) |
 
 **Gaps:** eventos/asistencias operativos (postergado), scouting con uso real
 (postergado), partidos cargados (postergado).
@@ -297,13 +296,13 @@ domingo 3AM). `CRON_SECRET` pendiente de configurar en Vercel.
 - Branding básico configurado
 
 **Personas:** 2,389
-- Atributos activos en uso: jugador (211), socio (alta cantidad), suscriptor (0
-  hasta E2E pendiente), tenant.staff, tenant.admin_padron, sistema.admin
+- Atributos activos en uso: jugador (211), socio (alta cantidad), suscriptor (51),
+  tenant.staff, tenant.admin_padron, sistema.admin
 
 **Padrones:**
 - Hindu Global: 2,361
 - Hindu Futbol Jugadores 2026: 162 únicas / 211 asignaciones a equipos
-- Hindu Futbol Suscriptores 2026: 0 (E2E pendiente)
+- Hindu Futbol Suscriptores 2026: 51 (Sprint 14e aplicado)
 - 1 padrón inactivo (residual)
 
 **Equipos:** 7 (fútbol) con 211 jugadores cargados
@@ -320,7 +319,8 @@ domingo 3AM). `CRON_SECRET` pendiente de configurar en Vercel.
 - Período contable abierto
 - 3 cajas configuradas
 - Config financiera completa
-- 0 movimientos, 0 cuotas, 0 productos cargados
+- 1 producto (Fondo Fútbol 2026), 1 plan, 51 suscripciones activas
+- 0 movimientos, 0 cuotas emitidas
 
 **Entidades:** 3 (FACCMA, AIF, una más residual)
 
@@ -385,10 +385,10 @@ inicializados en Hindu.
 
 | Item | Severidad | Sprint planeado |
 |---|---|---|
-| Documentación viva no existe | Alta | **14d** (en ejecución) |
-| Legacy `padron_syncs` activo (730 líneas + 30 refs) | Alta | **14d** |
-| 10 VIEWs `fin_*` sin uso | Media | **14d** |
-| 3 atributos duplicados (`admin_*` viejos) | Media | **14d** |
+| ~~Documentación viva no existe~~ | ~~Alta~~ | ✅ Sprint 14d |
+| ~~Legacy `padron_syncs` activo~~ | ~~Alta~~ | ✅ Sprint 14d |
+| ~~10 VIEWs `fin_*` sin uso~~ | ~~Media~~ | ✅ Sprint 14d |
+| ~~3 atributos duplicados~~ | ~~Media~~ | ✅ Sprint 14d |
 | `RESEND_API_KEY` no configurada en Vercel | Alta | 15a |
 | `CRON_SECRET` no configurada en Vercel (crons expuestos) | Alta | 15a o antes |
 | `lib/imports/actions.ts` 530+ líneas monolíticas | Media | 17a |
@@ -418,8 +418,15 @@ Historial referenciado en commits del repo. Listado resumido:
 - **14c.1.2** — Bug: split apellido compuesto.
 - **14c.1.3** — Bug B: equipos pendientes en cadena.
 - **14c.2** — Pipeline `suscriptores_por_equipo` (setup; E2E pendiente).
-
-**Próximo:** 14d (en ejecución por Code al momento de esta versión).
+- **14d** — Living docs system (12 docs actualizados/creados).
+- **14d.5** — Design Tokens System: `/styles/tokens.css` como fuente
+  única de tokens, refactor de ~80 archivos para eliminar hex codes y
+  color names hardcodeados, branding runtime via CSS vars (ADR-018).
+- **14e** — Suscripciones: tabla `suscripciones` con RLS + sync trigger
+  `sync_atributo_suscriptor`, producto + plan "Fondo Fútbol 2026",
+  acción executor `crear_suscripcion`, 51 suscripciones activas,
+  tab "Suscripciones" en ficha persona, página global
+  `/admin/finanzas/suscripciones` (ADR-019).
 
 ---
 

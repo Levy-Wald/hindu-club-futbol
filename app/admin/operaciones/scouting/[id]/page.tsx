@@ -67,7 +67,7 @@ export default async function ScoutingDetallePage({ params }: PageProps) {
           </div>
           <div className="shrink-0">
             {ficha.estado === 'incorporado' ? (
-              <Badge variant="default" className="bg-emerald-600 hover:bg-emerald-700">
+              <Badge variant="default" className="bg-success-600 hover:bg-success-700">
                 {ESTADOS_LABEL[ficha.estado]}
               </Badge>
             ) : (

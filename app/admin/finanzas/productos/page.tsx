@@ -278,31 +278,31 @@ function tipoLabel(tipo: string): string {
 function tipoBadgeClass(tipo: string): string {
   switch (tipo) {
     case 'producto':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+      return 'bg-info-100 text-info-800 dark:bg-info-900/30 dark:text-info-400'
     case 'servicio':
       return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
     case 'cuota':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+      return 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-400'
     case 'actividad':
-      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+      return 'bg-warning-100 text-warning-800 dark:bg-warning-900/30 dark:text-warning-400'
     case 'alquiler':
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+      return 'bg-warning-100 text-warning-800 dark:bg-warning-900/30 dark:text-warning-400'
     case 'insumo':
-      return 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400'
+      return 'bg-info-100 text-info-800 dark:bg-info-900/30 dark:text-info-400'
     case 'activo':
-      return 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400'
+      return 'bg-neutral-100 text-neutral-800 dark:bg-neutral-900/30 dark:text-neutral-400'
     case 'gasto':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+      return 'bg-error-100 text-error-800 dark:bg-error-900/30 dark:text-error-400'
     case 'locker':
-      return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400'
+      return 'bg-info-100 text-info-800 dark:bg-info-900/30 dark:text-info-400'
     case 'cochera':
-      return 'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400'
+      return 'bg-info-100 text-info-800 dark:bg-info-900/30 dark:text-info-400'
     case 'expensa':
       return 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-400'
     case 'multa':
-      return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+      return 'bg-warning-100 text-warning-800 dark:bg-warning-900/30 dark:text-warning-400'
     case 'consumo':
-      return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
+      return 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-400'
     default:
       return ''
   }
@@ -792,14 +792,14 @@ export default function ProductosPage() {
                         </TableCell>
                         <TableCell className="text-center">
                           {producto.es_arancelado ? (
-                            <DollarSign className="h-4 w-4 text-green-600 mx-auto" />
+                            <DollarSign className="h-4 w-4 text-success-600 mx-auto" />
                           ) : (
                             <span className="text-muted-foreground">-</span>
                           )}
                         </TableCell>
                         <TableCell className="text-center">
                           {producto.es_comprable ? (
-                            <ShoppingCart className="h-4 w-4 text-blue-600 mx-auto" />
+                            <ShoppingCart className="h-4 w-4 text-info-600 mx-auto" />
                           ) : (
                             <span className="text-muted-foreground">-</span>
                           )}
@@ -883,12 +883,12 @@ export default function ProductosPage() {
                         </div>
                         <div className="flex gap-3 mt-2">
                           {producto.es_arancelado && (
-                            <span className="inline-flex items-center gap-1 text-xs text-green-700 dark:text-green-400">
+                            <span className="inline-flex items-center gap-1 text-xs text-success-700 dark:text-success-400">
                               <DollarSign className="h-3 w-3" /> Vendible
                             </span>
                           )}
                           {producto.es_comprable && (
-                            <span className="inline-flex items-center gap-1 text-xs text-blue-700 dark:text-blue-400">
+                            <span className="inline-flex items-center gap-1 text-xs text-info-700 dark:text-info-400">
                               <ShoppingCart className="h-3 w-3" /> Comprable
                             </span>
                           )}

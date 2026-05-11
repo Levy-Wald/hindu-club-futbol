@@ -343,7 +343,7 @@ export function PlantillasClient({ plantillas: initialPlantillas }: PlantillasCl
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuItem
-                                className="text-red-600"
+                                className="text-error-600"
                                 onClick={() => handleEliminar(p.id)}
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />

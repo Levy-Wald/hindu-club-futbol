@@ -263,7 +263,7 @@ export function NuevoContratoDialog() {
                   )}
                 </div>
               ) : (
-                <p className="text-xs text-amber-600">
+                <p className="text-xs text-warning-600">
                   Esta persona no tiene datos laborales cargados.{' '}
                   <Link href={`/admin/personas/${selectedPersona.id}`} target="_blank" className="underline font-medium">
                     Completar ficha de {selectedPersona.nombre}

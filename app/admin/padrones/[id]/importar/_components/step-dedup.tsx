@@ -175,25 +175,25 @@ export function StepDedup({ parsedData, mappings, padronId, onComplete, onBack }
         <StatCard
           label="Personas nuevas"
           count={stats.nuevas}
-          color="text-green-600"
+          color="text-success-600"
           icon={<UserPlus className="h-4 w-4" />}
         />
         <StatCard
           label="Match exacto (DNI)"
           count={stats.exactas}
-          color="text-blue-600"
+          color="text-info-600"
           icon={<Link2 className="h-4 w-4" />}
         />
         <StatCard
           label="Match posible"
           count={stats.posibles}
-          color="text-yellow-600"
+          color="text-warning-600"
           icon={<AlertTriangle className="h-4 w-4" />}
         />
         <StatCard
           label="Duplicadas en lote"
           count={stats.duplicadas}
-          color="text-red-600"
+          color="text-error-600"
           icon={<AlertTriangle className="h-4 w-4" />}
         />
       </div>

@@ -1,0 +1,38 @@
+/*
+ * ClubCore — Theme Test
+ *
+ * Archivo de prueba para validar que el sistema de tokens es swappable.
+ * Para probar: importar este archivo en globals.css DESPUÉS de tokens.css
+ * y verificar que el sitio cambia de look sin tocar componentes.
+ *
+ * @import "../styles/themes/theme-test.css";
+ *
+ * NO commitear este import activo — solo para testing local.
+ */
+
+:root {
+  /* ─── PRIMARIO: Rojo deportivo ─── */
+  --primary-50: oklch(0.96 0.02 25);
+  --primary-100: oklch(0.90 0.05 25);
+  --primary-200: oklch(0.82 0.09 25);
+  --primary-300: oklch(0.72 0.14 25);
+  --primary-400: oklch(0.62 0.18 25);
+  --primary-500: oklch(0.55 0.20 25);
+  --primary-600: oklch(0.48 0.18 25);
+  --primary-700: oklch(0.40 0.15 25);
+  --primary-800: oklch(0.33 0.12 25);
+  --primary-900: oklch(0.27 0.09 25);
+  --primary-950: oklch(0.20 0.06 25);
+
+  /* ─── ACCENT: Verde lima ─── */
+  --accent-gold-50: oklch(0.97 0.03 130);
+  --accent-gold-100: oklch(0.94 0.06 130);
+  --accent-gold-200: oklch(0.90 0.10 130);
+  --accent-gold-300: oklch(0.86 0.14 130);
+  --accent-gold-400: oklch(0.82 0.16 130);
+  --accent-gold-500: oklch(0.78 0.18 130);
+  --accent-gold-600: oklch(0.68 0.16 130);
+  --accent-gold-700: oklch(0.58 0.14 130);
+  --accent-gold-800: oklch(0.48 0.12 130);
+  --accent-gold-900: oklch(0.38 0.09 130);
+}

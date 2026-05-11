@@ -203,7 +203,7 @@ export function VistasPanel({ modulo, modules, defaultColumns, storageKey }: Vis
                       onClick={() => handleSetDefault(v.id)}
                       title={v.es_default ? 'Es la vista por defecto' : 'Hacer por defecto'}
                     >
-                      {v.es_default ? <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" /> : <StarOff className="h-3 w-3" />}
+                      {v.es_default ? <Star className="h-3 w-3 text-warning-500 fill-warning-500" /> : <StarOff className="h-3 w-3" />}
                     </Button>
                     <Button
                       variant="ghost"

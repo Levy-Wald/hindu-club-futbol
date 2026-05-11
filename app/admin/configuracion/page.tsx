@@ -33,7 +33,7 @@ const PLAN_STYLES: Record<string, { label: string; className: string }> = {
   free:       { label: 'Free',       className: 'bg-muted text-muted-foreground border-border' },
   light:      { label: 'Light',      className: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800' },
   pro:        { label: 'Pro',        className: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950 dark:text-violet-300 dark:border-violet-800' },
-  enterprise: { label: 'Enterprise', className: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800' },
+  enterprise: { label: 'Enterprise', className: 'bg-warning-50 text-warning-700 border-warning-200 dark:bg-warning-950 dark:text-warning-300 dark:border-warning-800' },
 }
 
 export default async function ConfiguracionPage({
@@ -160,7 +160,7 @@ export default async function ConfiguracionPage({
                   {completionSteps.map((step) => (
                     <div key={step.label} className="flex items-center gap-1.5">
                       {step.done ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                        <CheckCircle2 className="h-3.5 w-3.5 text-success-500 shrink-0" />
                       ) : (
                         <Circle className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
                       )}
