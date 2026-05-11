@@ -6,8 +6,8 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint 14h cerrado
-> (Centros de costo UI completa: CRUD, árbol, detalle, stats, sidebar).
+> Última actualización: 11 de mayo de 2026 — Sprint 14i cerrado
+> (Vista Global de Salud: 7 tabs, permisos por atributo, audit log, 7 SQL views).
 
 ---
 
@@ -16,10 +16,11 @@
 **Estado general:** Plataforma con esqueleto técnico avanzado, datos
 operativos limitados al vertical Club Deportivo en tenant Hindu.
 
-**Último sprint cerrado:** **14h** — Centros de costo UI completa. 7 centros
-cargados (General + 6 nuevos). Vista `v_centros_costo_stats`. CRUD con árbol
-jerárquico, detalle con tabs (movimientos, productos, sub-centros, config).
-Sidebar con entrada Finanzas > Centros de Costo.
+**Último sprint cerrado:** **14i** — Vista Global de Salud. Módulo `/admin/salud`
+con 7 tabs read-only (Lesiones, Datos Médicos, Obra Social, Autorizaciones,
+Contactos Emergencia, Vehículos, Alertas). 7 SQL views (`v_salud_*`). Permisos
+por atributo (3 niveles). Audit log en cada acceso. Export CSV con footer
+confidencial. ADR-022. Sidebar en Club Deportivo.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).

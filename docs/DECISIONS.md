@@ -1238,6 +1238,96 @@ sin movimiento de caja correspondiente, o doble cobro de la misma cuota."
 
 ---
 
+## ADR-022 — Vista Global de Salud como módulo read-only con permisos por atributo
+
+**Fecha:** 2026-05-11
+**Estado:** Decidido
+**Capa:** Vertical Club Deportivo
+**Decisores:** Arquitecto + Yair Levy Wald
+
+### Contexto
+
+Los datos de salud (lesiones, datos médicos, obra social, autorizaciones,
+contactos de emergencia, vehículos) están dispersos en la ficha de cada
+persona. Para operaciones del club (partidos, entrenamientos, emergencias)
+se necesita una vista consolidada que cruce todas las personas.
+
+Estos datos son sensibles y requieren control de acceso diferenciado.
+
+### Decisión
+
+Crear módulo `/admin/salud` con 7 vistas read-only alimentadas por SQL
+views (`v_salud_*`). El acceso se controla por atributos:
+
+- `staff_acceso_total_salud` / admin → todo + exportar
+- `staff_medico` → lesiones, datos médicos, obra social, contactos (sin exportar)
+- Staff regular → lesiones, autorizaciones, contactos, vehículos (nivel básico)
+
+Cada acceso se registra en `audit_log` con acción `salud.*`.
+
+No se permite edición desde este módulo — la edición se hace en la ficha
+de cada persona.
+
+### Alternativas descartadas
+
+1. **Edición directa desde vista global** — descartado. Viola principio
+   de fuente única (ficha persona). Duplicaría lógica de validación.
+2. **Sin audit log** — descartado. Datos sensibles requieren trazabilidad.
+3. **Permisos por rol en tabla propia** — descartado. Atributos ya son
+   el mecanismo de roles del sistema (D7).
+
+### Consecuencias
+
+- 7 SQL views para consultas eficientes
+- 3 nuevos atributos en catálogo (staff_medico, staff_responsable_menores,
+  staff_acceso_total_salud)
+- `lib/permisos/salud.ts` centraliza lógica de permisos
+- Audit log en cada acceso a tab
+
+---
+
+## PRE-MORTEM Sprint 14i — Vista Global de Salud
+
+**Fecha:** 2026-05-11
+**Capa:** Vertical Club Deportivo
+**Tomado por:** Arquitecto
+
+### Escenario hipotético
+
+"El módulo de Salud se desplegó pero nadie puede acceder porque los
+atributos no están asignados, o las views fallan porque las tablas
+subyacentes no tienen datos, o el audit log genera overhead visible."
+
+### Por qué pudo haber fallado
+
+1. **Views referencian columnas que no existen.**
+   Prob: ALTA · Impacto: ALTO.
+   Mitigación: verificar cada view contra schema real antes de crear.
+   Ya corregido: `personas.activo` → `deleted_at IS NULL`,
+   `tipo_vehiculo` → `tipo_vehiculo_slug`, `acceso_autorizado` →
+   `permite_ingreso_club`.
+
+2. **Atributos no asignados a ningún usuario → nadie ve nada.**
+   Prob: ALTA · Impacto: MEDIO.
+   Mitigación: asignar atributos a Yair como parte del sprint.
+
+3. **Audit log INSERT falla por constraint y rompe la consulta.**
+   Prob: MEDIA · Impacto: ALTO.
+   Mitigación: audit log es fire-and-forget (sin await del resultado
+   en path crítico).
+
+4. **Performance de views con muchos joins en tablas vacías.**
+   Prob: BAJA · Impacto: BAJO.
+   Mitigación: LIMIT 200-300 en cada query. Hindu tiene <200 personas.
+
+### Top 3 riesgos
+
+1. Views con columnas incorrectas → verificar contra schema.
+2. Sin atributos asignados → INSERT en sprint.
+3. Audit log bloqueante → fire-and-forget.
+
+---
+
 - **D-PENDING-06:** Internacionalización (i18n) — postergada.
 - **D-PENDING-07:** Acceso de jugadores via app móvil o PWA.
 - **D-PENDING-08:** Plan de cuentas estándar argentino como template
