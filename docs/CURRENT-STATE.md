@@ -1,3 +1,3 @@
-# ARCHITECTURE.md
+# CURRENT-STATE.md
 
 Contenido pendiente del arquitecto.

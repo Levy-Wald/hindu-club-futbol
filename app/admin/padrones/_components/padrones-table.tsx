@@ -194,11 +194,7 @@ export function PadronesTable({ padrones }: PadronesTableProps) {
                           <Eye className="mr-2 h-4 w-4" />
                           Ver detalle
                         </DropdownMenuItem>
-                        <DropdownMenuItem render={<Link href={
-                          p.pipeline_slug
-                            ? `/admin/padrones/${p.id}/sync/nuevo`
-                            : `/admin/padrones/sincronizar?padronId=${p.id}`
-                        } />}>
+                        <DropdownMenuItem render={<Link href={`/admin/padrones/${p.id}/sync/nuevo`} />}>
                           <RefreshCw className="mr-2 h-4 w-4" />
                           Sincronizar
                         </DropdownMenuItem>

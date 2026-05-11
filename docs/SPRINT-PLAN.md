@@ -1,3 +1,3 @@
-# ARCHITECTURE.md
+# SPRINT-PLAN.md
 
 Contenido pendiente del arquitecto.

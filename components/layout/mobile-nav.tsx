@@ -33,6 +33,9 @@ import {
   Briefcase,
   FileText,
   DollarSign,
+  Send,
+  FileEdit,
+  Plug,
 } from 'lucide-react'
 
 const bottomNavItems = [
@@ -68,41 +71,115 @@ const finanzasSubItems: NavItemDef[] = [
   { label: 'Plan de Cuentas', href: '/admin/finanzas/plan-cuentas', icon: BookOpen },
 ]
 
-const fullMenuItems: NavItemDef[] = [
-  { label: 'Mi perfil', href: '/admin/mi-perfil', icon: UserCircle },
-  { label: 'Mi equipo', href: '/admin/mi-equipo', icon: Trophy },
-  { label: 'Mi cuenta', href: '/admin/mi-cuenta', icon: CreditCard },
-  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { label: 'Personas', href: '/admin/personas', icon: Users },
-  { label: 'Padrones', href: '/admin/padrones', icon: ClipboardList },
-  { label: 'Equipos', href: '/admin/equipos', icon: Shield },
-  { label: 'Entidades', href: '/admin/externos', icon: Building2 },
-  // Operaciones and Finanzas are handled as collapsible sections
-  { label: 'Comunicaciones', href: '/admin/comunicaciones', icon: MessageSquare },
-  { label: 'Pre-inscripciones', href: '/admin/pre-inscripciones', icon: UserPlus },
-  { label: 'Configuracion', href: '/admin/configuracion', icon: Settings },
+const comunicacionesSubItems: NavItemDef[] = [
+  { label: 'Dashboard', href: '/admin/comunicaciones', icon: BarChart3 },
+  { label: 'Plantillas', href: '/admin/comunicaciones/plantillas', icon: FileEdit },
+  { label: 'Envíos', href: '/admin/comunicaciones/envios', icon: Send },
 ]
+
+function MobileSectionHeader({ label }: { label: string }) {
+  return (
+    <div className="px-4 pt-4 pb-1">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+        {label}
+      </span>
+    </div>
+  )
+}
+
+function MobileCollapsible({
+  label,
+  icon: Icon,
+  isActive,
+  isOpen,
+  onToggle,
+  subItems,
+  pathname,
+  onClose,
+}: {
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  isActive: boolean
+  isOpen: boolean
+  onToggle: () => void
+  subItems: NavItemDef[]
+  pathname: string
+  onClose: () => void
+}) {
+  return (
+    <>
+      <button
+        onClick={onToggle}
+        className={cn(
+          'flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors w-full text-left',
+          isActive
+            ? 'bg-accent text-accent-foreground'
+            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+        )}
+      >
+        <Icon className="h-5 w-5" />
+        <span className="flex-1">{label}</span>
+        {isOpen ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+      </button>
+      {isOpen && (
+        <div className="space-y-0.5 ml-4">
+          {subItems.map((sub) => {
+            const isSubActive = sub.href === `/admin/${label.toLowerCase()}`
+              ? pathname === sub.href
+              : pathname.startsWith(sub.href)
+            return (
+              <Link
+                key={sub.href}
+                href={sub.href}
+                onClick={onClose}
+                className={cn(
+                  'flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
+                  isSubActive
+                    ? 'bg-accent text-accent-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                )}
+              >
+                <sub.icon className="h-4 w-4" />
+                {sub.label}
+              </Link>
+            )
+          })}
+        </div>
+      )}
+    </>
+  )
+}
 
 export function MobileNav() {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [operacionesOpen, setOperacionesOpen] = useState(
-    pathname.startsWith('/admin/operaciones')
-  )
-  const [finanzasOpen, setFinanzasOpen] = useState(
-    pathname.startsWith('/admin/finanzas')
-  )
-  const [rrhhOpen, setRRHHOpen] = useState(
-    pathname.startsWith('/admin/rrhh')
-  )
+  const [operacionesOpen, setOperacionesOpen] = useState(pathname.startsWith('/admin/operaciones'))
+  const [finanzasOpen, setFinanzasOpen] = useState(pathname.startsWith('/admin/finanzas'))
+  const [rrhhOpen, setRRHHOpen] = useState(pathname.startsWith('/admin/rrhh'))
+  const [comunicacionesOpen, setComunicacionesOpen] = useState(pathname.startsWith('/admin/comunicaciones'))
 
-  // Split menu items: Mi perfil through Entidades (0-7), then Comunicaciones onward (8+)
-  const beforeCollapsible = fullMenuItems.slice(0, 8) // Mi perfil through Entidades
-  const afterCollapsible = fullMenuItems.slice(8)       // Comunicaciones onward
+  const closeMenu = () => setMenuOpen(false)
 
-  const isOperacionesActive = pathname.startsWith('/admin/operaciones')
-  const isFinanzasActive = pathname.startsWith('/admin/finanzas')
-  const isRRHHActive = pathname.startsWith('/admin/rrhh')
+  function MobileNavItem({ item }: { item: NavItemDef }) {
+    const isActive = item.href === '/admin'
+      ? pathname === '/admin'
+      : pathname.startsWith(item.href)
+    return (
+      <Link
+        href={item.href}
+        onClick={closeMenu}
+        className={cn(
+          'flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors',
+          isActive
+            ? 'bg-accent text-accent-foreground'
+            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+        )}
+      >
+        <item.icon className="h-5 w-5" />
+        {item.label}
+      </Link>
+    )
+  }
 
   return (
     <>
@@ -131,9 +208,7 @@ export function MobileNav() {
                 href={item.href}
                 className={cn(
                   'flex flex-col items-center justify-center gap-0.5 w-16 py-1 rounded-md transition-colors',
-                  isActive
-                    ? 'text-primary'
-                    : 'text-muted-foreground'
+                  isActive ? 'text-primary' : 'text-muted-foreground'
                 )}
               >
                 <item.icon className={cn('h-5 w-5', isActive && 'stroke-[2.5px]')} />
@@ -149,184 +224,79 @@ export function MobileNav() {
         <div className="md:hidden fixed inset-0 z-[60] bg-background animate-in fade-in duration-150">
           <div className="flex items-center justify-between h-14 px-4 border-b">
             <span className="font-bold text-lg">Hindu Club</span>
-            <button onClick={() => setMenuOpen(false)} className="p-2 rounded-md hover:bg-accent">
+            <button onClick={closeMenu} className="p-2 rounded-md hover:bg-accent">
               <X className="h-5 w-5" />
             </button>
           </div>
-          <nav className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-3.5rem)]">
-            {beforeCollapsible.map((item) => {
-              const isActive = item.href === '/admin'
-                ? pathname === '/admin'
-                : pathname.startsWith(item.href)
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className={cn(
-                    'flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors',
-                    isActive
-                      ? 'bg-accent text-accent-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                  )}
-                >
-                  <item.icon className="h-5 w-5" />
-                  {item.label}
-                </Link>
-              )
-            })}
+          <nav className="p-4 space-y-0.5 overflow-y-auto max-h-[calc(100vh-3.5rem)]">
+            {/* Personal */}
+            <MobileNavItem item={{ label: 'Mi perfil', href: '/admin/mi-perfil', icon: UserCircle }} />
+            <MobileNavItem item={{ label: 'Mi equipo', href: '/admin/mi-equipo', icon: Trophy }} />
+            <MobileNavItem item={{ label: 'Mi cuenta', href: '/admin/mi-cuenta', icon: CreditCard }} />
 
-            {/* Operaciones collapsible section */}
-            <button
-              onClick={() => setOperacionesOpen(!operacionesOpen)}
-              className={cn(
-                'flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors w-full text-left',
-                isOperacionesActive
-                  ? 'bg-accent text-accent-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-              )}
-            >
-              <CalendarDays className="h-5 w-5" />
-              <span className="flex-1">Operaciones</span>
-              {operacionesOpen ? (
-                <ChevronDown className="h-5 w-5" />
-              ) : (
-                <ChevronRight className="h-5 w-5" />
-              )}
-            </button>
-            {operacionesOpen && (
-              <div className="space-y-0.5 ml-4">
-                {operacionesSubItems.map((sub) => {
-                  const isSubActive = sub.href === '/admin/operaciones'
-                    ? pathname === '/admin/operaciones'
-                    : pathname.startsWith(sub.href)
-                  return (
-                    <Link
-                      key={sub.href}
-                      href={sub.href}
-                      onClick={() => setMenuOpen(false)}
-                      className={cn(
-                        'flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
-                        isSubActive
-                          ? 'bg-accent text-accent-foreground'
-                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                      )}
-                    >
-                      <sub.icon className="h-4 w-4" />
-                      {sub.label}
-                    </Link>
-                  )
-                })}
-              </div>
-            )}
+            <div className="my-2 border-t" />
 
-            {/* Finanzas collapsible section */}
-            <button
-              onClick={() => setFinanzasOpen(!finanzasOpen)}
-              className={cn(
-                'flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors w-full text-left',
-                isFinanzasActive
-                  ? 'bg-accent text-accent-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-              )}
-            >
-              <Wallet className="h-5 w-5" />
-              <span className="flex-1">Finanzas</span>
-              {finanzasOpen ? (
-                <ChevronDown className="h-5 w-5" />
-              ) : (
-                <ChevronRight className="h-5 w-5" />
-              )}
-            </button>
-            {finanzasOpen && (
-              <div className="space-y-0.5 ml-4">
-                {finanzasSubItems.map((sub) => {
-                  const isSubActive = sub.href === '/admin/finanzas'
-                    ? pathname === '/admin/finanzas'
-                    : pathname.startsWith(sub.href)
-                  return (
-                    <Link
-                      key={sub.href}
-                      href={sub.href}
-                      onClick={() => setMenuOpen(false)}
-                      className={cn(
-                        'flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
-                        isSubActive
-                          ? 'bg-accent text-accent-foreground'
-                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                      )}
-                    >
-                      <sub.icon className="h-4 w-4" />
-                      {sub.label}
-                    </Link>
-                  )
-                })}
-              </div>
-            )}
+            {/* Dashboard */}
+            <MobileNavItem item={{ label: 'Dashboard', href: '/admin', icon: LayoutDashboard }} />
 
-            {/* RRHH collapsible section */}
-            <button
-              onClick={() => setRRHHOpen(!rrhhOpen)}
-              className={cn(
-                'flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors w-full text-left',
-                isRRHHActive
-                  ? 'bg-accent text-accent-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-              )}
-            >
-              <Briefcase className="h-5 w-5" />
-              <span className="flex-1">RRHH</span>
-              {rrhhOpen ? (
-                <ChevronDown className="h-5 w-5" />
-              ) : (
-                <ChevronRight className="h-5 w-5" />
-              )}
-            </button>
-            {rrhhOpen && (
-              <div className="space-y-0.5 ml-4">
-                {rrhhSubItems.map((sub) => {
-                  const isSubActive = sub.href === '/admin/rrhh'
-                    ? pathname === '/admin/rrhh'
-                    : pathname.startsWith(sub.href)
-                  return (
-                    <Link
-                      key={sub.href}
-                      href={sub.href}
-                      onClick={() => setMenuOpen(false)}
-                      className={cn(
-                        'flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
-                        isSubActive
-                          ? 'bg-accent text-accent-foreground'
-                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                      )}
-                    >
-                      <sub.icon className="h-4 w-4" />
-                      {sub.label}
-                    </Link>
-                  )
-                })}
-              </div>
-            )}
+            {/* CRM */}
+            <MobileSectionHeader label="CRM" />
+            <MobileNavItem item={{ label: 'Personas', href: '/admin/personas', icon: Users }} />
+            <MobileNavItem item={{ label: 'Entidades', href: '/admin/externos', icon: Building2 }} />
+            <MobileNavItem item={{ label: 'Pre-inscripciones', href: '/admin/pre-inscripciones', icon: UserPlus }} />
+            <MobileCollapsible
+              label="Comunicaciones"
+              icon={MessageSquare}
+              isActive={pathname.startsWith('/admin/comunicaciones')}
+              isOpen={comunicacionesOpen}
+              onToggle={() => setComunicacionesOpen(!comunicacionesOpen)}
+              subItems={comunicacionesSubItems}
+              pathname={pathname}
+              onClose={closeMenu}
+            />
 
-            {afterCollapsible.map((item) => {
-              const isActive = pathname.startsWith(item.href)
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className={cn(
-                    'flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors',
-                    isActive
-                      ? 'bg-accent text-accent-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                  )}
-                >
-                  <item.icon className="h-5 w-5" />
-                  {item.label}
-                </Link>
-              )
-            })}
+            {/* ERP */}
+            <MobileSectionHeader label="ERP" />
+            <MobileCollapsible
+              label="Finanzas"
+              icon={Wallet}
+              isActive={pathname.startsWith('/admin/finanzas')}
+              isOpen={finanzasOpen}
+              onToggle={() => setFinanzasOpen(!finanzasOpen)}
+              subItems={finanzasSubItems}
+              pathname={pathname}
+              onClose={closeMenu}
+            />
+            <MobileCollapsible
+              label="RRHH"
+              icon={Briefcase}
+              isActive={pathname.startsWith('/admin/rrhh')}
+              isOpen={rrhhOpen}
+              onToggle={() => setRRHHOpen(!rrhhOpen)}
+              subItems={rrhhSubItems}
+              pathname={pathname}
+              onClose={closeMenu}
+            />
+
+            {/* Club Deportivo */}
+            <MobileSectionHeader label="Club Deportivo" />
+            <MobileNavItem item={{ label: 'Equipos', href: '/admin/equipos', icon: Shield }} />
+            <MobileNavItem item={{ label: 'Padrones', href: '/admin/padrones', icon: ClipboardList }} />
+            <MobileCollapsible
+              label="Operaciones"
+              icon={CalendarDays}
+              isActive={pathname.startsWith('/admin/operaciones')}
+              isOpen={operacionesOpen}
+              onToggle={() => setOperacionesOpen(!operacionesOpen)}
+              subItems={operacionesSubItems}
+              pathname={pathname}
+              onClose={closeMenu}
+            />
+
+            {/* Plataforma */}
+            <MobileSectionHeader label="Plataforma" />
+            <MobileNavItem item={{ label: 'Integraciones', href: '/admin/integraciones', icon: Plug }} />
+            <MobileNavItem item={{ label: 'Configuración', href: '/admin/configuracion', icon: Settings }} />
           </nav>
         </div>
       )}

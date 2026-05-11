@@ -84,10 +84,7 @@ export default async function PadronDetallePage({ params }: PageProps) {
             estadosPadron={estadosPadron}
             tiposSocio={tiposSocio}
           />
-          <Link href={padron.pipeline_slug
-            ? `/admin/padrones/${padron.id}/sync/nuevo`
-            : `/admin/padrones/sincronizar?padronId=${padron.id}`
-          }>
+          <Link href={`/admin/padrones/${padron.id}/sync/nuevo`}>
             <Button variant="outline" size="sm">
               <RefreshCw className="h-4 w-4 mr-1" />
               Sincronizar

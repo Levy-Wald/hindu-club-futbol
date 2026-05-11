@@ -1,3 +1,3 @@
-# ARCHITECTURE.md
+# GLOSSARY.md
 
 Contenido pendiente del arquitecto.

@@ -42,21 +42,20 @@ interface NavItemDef {
   icon: React.ComponentType<{ className?: string }>
 }
 
+// --- Section definitions ---
+
 const personalItems: NavItemDef[] = [
   { label: 'Mi perfil', href: '/admin/mi-perfil', icon: UserCircle },
   { label: 'Mi equipo', href: '/admin/mi-equipo', icon: Trophy },
   { label: 'Mi cuenta', href: '/admin/mi-cuenta', icon: CreditCard },
 ]
 
-const operacionesSubItems: NavItemDef[] = [
-  { label: 'Esta semana', href: '/admin/operaciones', icon: Calendar },
-  { label: 'Scouting', href: '/admin/operaciones/scouting', icon: Search },
-]
+const dashboardItem: NavItemDef = { label: 'Dashboard', href: '/admin', icon: LayoutDashboard }
 
-const rrhhSubItems: NavItemDef[] = [
-  { label: 'Dashboard', href: '/admin/rrhh', icon: BarChart3 },
-  { label: 'Contratos', href: '/admin/rrhh/contratos', icon: FileText },
-  { label: 'Liquidaciones', href: '/admin/rrhh/liquidaciones', icon: DollarSign },
+const crmItems: NavItemDef[] = [
+  { label: 'Personas', href: '/admin/personas', icon: Users },
+  { label: 'Entidades', href: '/admin/externos', icon: Building2 },
+  { label: 'Pre-inscripciones', href: '/admin/pre-inscripciones', icon: UserPlus },
 ]
 
 const comunicacionesSubItems: NavItemDef[] = [
@@ -74,17 +73,28 @@ const finanzasSubItems: NavItemDef[] = [
   { label: 'Plan de Cuentas', href: '/admin/finanzas/plan-cuentas', icon: BookOpen },
 ]
 
-const adminItems: NavItemDef[] = [
-  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { label: 'Personas', href: '/admin/personas', icon: Users },
-  { label: 'Padrones', href: '/admin/padrones', icon: ClipboardList },
+const rrhhSubItems: NavItemDef[] = [
+  { label: 'Dashboard', href: '/admin/rrhh', icon: BarChart3 },
+  { label: 'Contratos', href: '/admin/rrhh/contratos', icon: FileText },
+  { label: 'Liquidaciones', href: '/admin/rrhh/liquidaciones', icon: DollarSign },
+]
+
+const clubItems: NavItemDef[] = [
   { label: 'Equipos', href: '/admin/equipos', icon: Shield },
-  { label: 'Entidades', href: '/admin/externos', icon: Building2 },
-  // Operaciones, Finanzas, RRHH, Comunicaciones are handled as collapsible sections
+  { label: 'Padrones', href: '/admin/padrones', icon: ClipboardList },
+]
+
+const operacionesSubItems: NavItemDef[] = [
+  { label: 'Esta semana', href: '/admin/operaciones', icon: Calendar },
+  { label: 'Scouting', href: '/admin/operaciones/scouting', icon: Search },
+]
+
+const plataformaItems: NavItemDef[] = [
   { label: 'Integraciones', href: '/admin/integraciones', icon: Plug },
-  { label: 'Pre-inscripciones', href: '/admin/pre-inscripciones', icon: UserPlus },
   { label: 'Configuración', href: '/admin/configuracion', icon: Settings },
 ]
+
+// --- Components ---
 
 function NavItem({ item, pathname }: { item: NavItemDef; pathname: string }) {
   const isActive = item.href === '/admin'
@@ -107,9 +117,8 @@ function NavItem({ item, pathname }: { item: NavItemDef; pathname: string }) {
 }
 
 function SubNavItem({ item, pathname }: { item: NavItemDef; pathname: string }) {
-  // Exact match for dashboard sub-items (e.g. /admin/finanzas, /admin/comunicaciones)
   const segments = item.href.split('/').filter(Boolean)
-  const isParentDashboard = segments.length === 2 // /admin/{module}
+  const isParentDashboard = segments.length === 2
   const isActive = isParentDashboard
     ? pathname === item.href
     : pathname.startsWith(item.href)
@@ -126,6 +135,16 @@ function SubNavItem({ item, pathname }: { item: NavItemDef; pathname: string }) 
       <item.icon className="h-3.5 w-3.5" />
       <span className="text-[13px]">{item.label}</span>
     </Link>
+  )
+}
+
+function SectionHeader({ label }: { label: string }) {
+  return (
+    <div className="px-3 pt-4 pb-1">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+        {label}
+      </span>
+    </div>
   )
 }
 
@@ -187,10 +206,6 @@ export function Sidebar() {
   const [rrhhOpen, setRRHHOpen] = useState(isRRHHActive)
   const [comunicacionesOpen, setComunicacionesOpen] = useState(isComunicacionesActive)
 
-  // Split adminItems: Dashboard through Entidades (0-4), then Integraciones onward (5+)
-  const beforeCollapsible = adminItems.slice(0, 5) // Dashboard through Entidades
-  const afterCollapsible = adminItems.slice(5)       // Integraciones, Pre-inscripciones, Configuración
-
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col border-r bg-sidebar">
       <div className="flex h-14 items-center border-b px-4">
@@ -198,45 +213,22 @@ export function Sidebar() {
           Hindu Club
         </Link>
       </div>
-      <nav className="flex-1 p-2 space-y-1">
+      <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+        {/* Personal */}
         {personalItems.map((item) => (
           <NavItem key={item.href} item={item} pathname={pathname} />
         ))}
+
         <div className="my-2 border-t" />
-        {beforeCollapsible.map((item) => (
+
+        {/* Vista general */}
+        <NavItem item={dashboardItem} pathname={pathname} />
+
+        {/* CRM */}
+        <SectionHeader label="CRM" />
+        {crmItems.map((item) => (
           <NavItem key={item.href} item={item} pathname={pathname} />
         ))}
-
-        <CollapsibleSection
-          label="Operaciones"
-          icon={CalendarDays}
-          isActive={isOperacionesActive}
-          isOpen={operacionesOpen}
-          onToggle={() => setOperacionesOpen(!operacionesOpen)}
-          subItems={operacionesSubItems}
-          pathname={pathname}
-        />
-
-        <CollapsibleSection
-          label="Finanzas"
-          icon={Wallet}
-          isActive={isFinanzasActive}
-          isOpen={finanzasOpen}
-          onToggle={() => setFinanzasOpen(!finanzasOpen)}
-          subItems={finanzasSubItems}
-          pathname={pathname}
-        />
-
-        <CollapsibleSection
-          label="RRHH"
-          icon={Briefcase}
-          isActive={isRRHHActive}
-          isOpen={rrhhOpen}
-          onToggle={() => setRRHHOpen(!rrhhOpen)}
-          subItems={rrhhSubItems}
-          pathname={pathname}
-        />
-
         <CollapsibleSection
           label="Comunicaciones"
           icon={MessageSquare}
@@ -247,7 +239,45 @@ export function Sidebar() {
           pathname={pathname}
         />
 
-        {afterCollapsible.map((item) => (
+        {/* ERP */}
+        <SectionHeader label="ERP" />
+        <CollapsibleSection
+          label="Finanzas"
+          icon={Wallet}
+          isActive={isFinanzasActive}
+          isOpen={finanzasOpen}
+          onToggle={() => setFinanzasOpen(!finanzasOpen)}
+          subItems={finanzasSubItems}
+          pathname={pathname}
+        />
+        <CollapsibleSection
+          label="RRHH"
+          icon={Briefcase}
+          isActive={isRRHHActive}
+          isOpen={rrhhOpen}
+          onToggle={() => setRRHHOpen(!rrhhOpen)}
+          subItems={rrhhSubItems}
+          pathname={pathname}
+        />
+
+        {/* Club Deportivo */}
+        <SectionHeader label="Club Deportivo" />
+        {clubItems.map((item) => (
+          <NavItem key={item.href} item={item} pathname={pathname} />
+        ))}
+        <CollapsibleSection
+          label="Operaciones"
+          icon={CalendarDays}
+          isActive={isOperacionesActive}
+          isOpen={operacionesOpen}
+          onToggle={() => setOperacionesOpen(!operacionesOpen)}
+          subItems={operacionesSubItems}
+          pathname={pathname}
+        />
+
+        {/* Plataforma */}
+        <SectionHeader label="Plataforma" />
+        {plataformaItems.map((item) => (
           <NavItem key={item.href} item={item} pathname={pathname} />
         ))}
       </nav>

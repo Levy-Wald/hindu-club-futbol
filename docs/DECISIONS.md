@@ -1,3 +1,3 @@
-# ARCHITECTURE.md
+# DECISIONS.md
 
 Contenido pendiente del arquitecto.
