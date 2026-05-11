@@ -1744,7 +1744,7 @@ elegida y se referencia desde el Sprint correspondiente.
 ## ADR-028 — PIM unificado: productos, servicios y suscripciones bajo un solo catálogo
 
 **Fecha:** 2026-05-11
-**Estado:** Aceptado, implementación pendiente (FASE 3)
+**Estado:** Aceptado, implementación pendiente (FASE 13)
 **Capa:** Troncal PIM
 **Tomado por:** Arquitecto
 
@@ -1763,7 +1763,7 @@ catálogo unificado.
 
 ### Decisión
 
-En FASE 3 (PIM — Product Information Management), unificar bajo un
+En FASE 13 (PIM — Product Information Management), unificar bajo un
 solo catálogo `pim_productos` con `tipo` discriminador:
 - `tipo = 'producto'` → item físico con stock
 - `tipo = 'servicio'` → sin stock
@@ -1783,7 +1783,7 @@ interfaz principal.
 
 ### Consecuencias
 
-FASE 3 incluirá migración de datos de los 3 catálogos al modelo PIM.
+FASE 13 incluirá migración de datos de los 3 catálogos al modelo PIM.
 Hasta entonces, cada módulo mantiene su catálogo propio sin cambios.
 
 ---
@@ -1791,7 +1791,7 @@ Hasta entonces, cada módulo mantiene su catálogo propio sin cambios.
 ## ADR-029 — Dashboard Salud con métricas agregadas y alertas
 
 **Fecha:** 2026-05-11
-**Estado:** Aceptado, implementación pendiente (FASE 4)
+**Estado:** Aceptado, implementación pendiente (FASE 6)
 **Capa:** Vertical Club Deportivo
 **Tomado por:** Arquitecto
 
@@ -1806,7 +1806,7 @@ Para operaciones reales del club se necesitan métricas agregadas:
 
 ### Decisión
 
-En FASE 4 (Dashboards Operativos), agregar al módulo Salud:
+En FASE 6 (Dashboards Operativos), agregar al módulo Salud:
 1. Dashboard con cards de métricas (COUNT queries sobre views existentes)
 2. Alertas configurables por umbral (ej: "certificado vence en <30 días")
 3. Export CSV por tab (ya preparado en permisos: `puede_exportar`)
