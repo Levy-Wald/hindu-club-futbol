@@ -6,8 +6,11 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint DOCS-5 cerrado.
-> Regla R-PE10 + ADR-039 canonizados (verificacion produccion via MCP).
+> Última actualización: 12 de mayo de 2026 — Sprint DOCS-6 cerrado.
+> Día completo: FASE 2 al 100%, FASE 3.1 al 100% validado contra prod,
+> serie DOCS-1 a DOCS-6 cerrada, 4 ADRs nuevos (036/037/038/039),
+> 2 bugs reales agarrados por E2E antes de Hindu (canonizados como
+> AP-001 y AP-002 en RUNBOOK).
 
 ---
 
@@ -552,6 +555,19 @@ Historial referenciado en commits del repo. Listado resumido:
   2 veces (Sprint 2.4-FIX y Sprint 3.1) donde Code reporto "Vercel
   ERROR" sobre deploys que estaban READY. Nueva regla R-PE10 + ADR-039
   formalizan la solucion estructural.
+- **Sprint 3.1 — fixes post-E2E (commits 917476e + b2d8147):** durante
+  validación E2E contra producción se detectaron 2 bugs reales: filtro
+  `deleted_at` en `personas_atributos` (columna inexistente — bug de
+  permisos silencioso) y `upsert + onConflict` con partial unique index
+  (500 server error en auto-poblado). Ambos fixes aplicados, E2E
+  re-corridos contra prod, 3 tests passed. Canonizados como AP-001 y
+  AP-002 en RUNBOOK.
+- **Sprint DOCS-6** — Canonización aprendizajes Sprint 3.1. Agregado al
+  RUNBOOK: sección "Niveles de verificación de un sprint" (4 niveles
+  acumulativos: build → deploy → funcional MCP → E2E real). Sección
+  "Anti-patrones detectados en producción" iniciada con AP-001 (asumir
+  deleted_at) y AP-002 (upsert con partial unique index). Catálogo
+  acumulativo para sprints futuros.
 - **Sprint DOCS-1** — Sincronización del sistema documental +
   canonización post-FASE 2. ADRs 036, 037, 038 canonizados. WORKFLOW.md
   eliminado. Sistema documental alineado con realidad de DB + repo.

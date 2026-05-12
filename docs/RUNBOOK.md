@@ -47,6 +47,8 @@
 | 18 | RLS denegando query inesperadamente | Alta |
 | 19 | Health checks rápidos al iniciar el día | Preventivo |
 | 20 | Contacto de escalación | N/A |
+| — | Cierre de sprint — los 4 niveles de verificación | Proceso |
+| — | Anti-patrones detectados en producción (AP-001, AP-002) | Referencia |
 
 ---
 
@@ -837,8 +839,239 @@ Si algo no coincide, ir al escenario correspondiente.
 
 ---
 
+## Escenario: Cierre de sprint — los 4 niveles de verificación
+
+Un sprint no se declara completo hasta que pasa los 4 niveles de
+verificación que se listan a continuación. Cada nivel verifica algo
+distinto. Saltar un nivel es asumir un riesgo conocido.
+
+### Nivel 1 — Build local
+
+**Qué verifica:** que el código compila sin errores de tipo y los
+linters no tienen rojos.
+
+**Cómo:**
+```bash
+npm run validate:all
+```
+
+Esperado: tests passed, linter OK, tsc sin errores.
+
+**Qué NO verifica:**
+- Si el código compila en Vercel (env vars distintas, build cache, etc.)
+- Si la app deployada renderiza
+- Si los server actions funcionan en runtime
+- Si las queries a DB devuelven lo esperado
+
+### Nivel 2 — Deploy verde en Vercel
+
+**Qué verifica:** que Vercel construyó el bundle y lo deployó a
+producción sin errores en el pipeline.
+
+**Cómo:** vía MCP `claude.ai Vercel`, tool `list_deployments`:
+- projectId, teamId del proyecto
+- Verificar `state=READY` del último deploy del commit final
+
+**NUNCA** verificar vía `vercel deploy` CLI local (regla R-PE10
+canonizada en DOCS-5, ADR-039).
+
+**Qué NO verifica:**
+- Si las server actions ejecutan correctamente en runtime
+- Si las queries a DB devuelven los datos esperados
+- Si el flujo del usuario funciona end-to-end
+
+### Nivel 3 — Verificación funcional vía MCP
+
+**Qué verifica:** que el schema y los datos de producción reflejan
+los cambios esperados del sprint.
+
+**Cómo:** vía MCP `claude.ai Supabase`, tool `execute_sql`:
+- Confirmar tablas/funciones/triggers creados
+- Confirmar datos sembrados (catálogos, módulos activados, etc.)
+- Confirmar constraints aplicados (CHECK, UNIQUE, FK)
+- Confirmar RLS habilitada en tablas nuevas
+
+**Qué NO verifica:**
+- Si la UI llama correctamente a los server actions
+- Si los server actions manejan correctamente los casos edge
+- Si el flujo desde el clic del usuario hasta la fila en DB funciona
+
+### Nivel 4 — End-to-end contra producción
+
+**Qué verifica:** que el flujo completo del usuario funciona en
+producción real, no en tu entorno local.
+
+**Cómo:**
+```bash
+cd <repo> && PLAYWRIGHT_BASE_URL=<url-prod> npx playwright test <archivo>.spec.ts
+```
+
+Tests deben tener fixture real + cleanup garantizado (ADR-038).
+
+**Es el único nivel que detecta:**
+- Bugs en server actions que solo se ven en runtime
+- Mismatches entre el schema declarado y el real (ej: columnas
+  inexistentes, indexes parciales incompatibles con onConflict)
+- Bugs de permisos que el build local no detecta
+- Problemas de timing/race conditions en optimistic UI
+- Edge cases del flujo del usuario que pruebas unitarias no cubren
+
+### Resumen
+
+| Nivel | Detecta | No detecta |
+|---|---|---|
+| 1. Build | Errores de tipo, sintaxis | Comportamiento en runtime |
+| 2. Deploy | Errores de build en Vercel | Comportamiento de la app |
+| 3. Funcional MCP | Schema/data en prod | Flujo del usuario |
+| 4. E2E | Flujo completo en prod | (es el último nivel) |
+
+**Los 4 niveles son acumulativos. Saltarse un nivel = riesgo conocido.**
+
+Para sprints que tocan UI, server actions o lógica de negocio, los
+4 niveles son obligatorios. Para sprints documentales (DOCS-N), los
+niveles 1 y 2 alcanzan (no hay UI ni server actions nuevos).
+
+---
+
+## Anti-patrones detectados en producción
+
+Catálogo acumulativo de bugs reales detectados mediante E2E contra
+producción que NO fueron capturados por build local ni verificación
+de schema. Cada entrada tiene: causa, detección, fix, lección.
+
+Este catálogo se consulta al diseñar nuevos sprints para evitar
+caer en los mismos patrones. Cada bug acá agrega una restricción
+implícita al envelope canónico.
+
+---
+
+### AP-001 — Asumir `deleted_at` en tablas sin soft-delete uniforme
+
+**Sprint origen:** FASE 3.1 (12-may-2026)
+**Archivo afectado:** `modules/asistencias/lib/permisos.ts`
+
+**Causa raíz:**
+Al diseñar el server action de verificación de permisos, se asumió
+que la tabla `personas_atributos` tenía columna `deleted_at` por
+herencia de ADR-030 (soft-delete uniforme). En realidad, ADR-030
+es aspiracional: tablas viejas como `personas_atributos` no tienen
+esa columna todavía.
+
+El código tenía:
+```ts
+.eq('atributo_slug', 'tenant.admin')
+.eq('activo', true)
+.is('deleted_at', null)  // ← columna inexistente
+.maybeSingle()
+```
+
+PostgREST devuelve un error que termina interpretándose como "el
+usuario no tiene el atributo". Resultado: el permiso de `tenant.admin`
+silenciosamente niega acceso a TODOS los usuarios.
+
+**Detección:**
+E2E contra producción retornó "Sin permiso para tomar asistencia
+en este evento" para el usuario admin de prueba. Investigación
+posterior reveló que el filtro `deleted_at` estaba fallando.
+
+**Fix aplicado (commit 917476e):**
+Eliminar `.is('deleted_at', null)` de la query. Mantener solo
+`.eq('activo', true)` que sí existe en la tabla.
+
+**Lección canonizada:**
+ADR-030 (soft-delete uniforme) describe el estado deseado, NO el
+estado actual del schema. Antes de aplicar `.is('deleted_at', null)`
+en una query, verificar con `information_schema.columns` que la
+columna existe en la tabla destino.
+
+**Mitigación preventiva:**
+En sprints que toquen tablas existentes, agregar a la verificación
+inicial del prompt una query como:
+```sql
+SELECT column_name FROM information_schema.columns
+WHERE table_name = '<tabla>' AND column_name = 'deleted_at';
+```
+
+Si no existe, NO aplicar el filtro y considerar agregar la columna
+como deuda separada (no inline en el sprint).
+
+---
+
+### AP-002 — `upsert + onConflict` con partial unique index
+
+**Sprint origen:** FASE 3.1 (12-may-2026)
+**Archivo afectado:** `modules/asistencias/lib/auto-poblar.ts`
+
+**Causa raíz:**
+Para garantizar idempotencia del auto-poblado de invitados, se usó:
+```ts
+await supabase.from('evento_invitados').upsert(rows, {
+  onConflict: 'evento_id,persona_id',
+  ignoreDuplicates: true,
+})
+```
+
+El unique index `uniq_evento_invitados_persona` es **parcial** (tiene
+WHERE clause) porque el modelo es polimórfico:
+```sql
+CREATE UNIQUE INDEX uniq_evento_invitados_persona
+  ON evento_invitados (evento_id, persona_id)
+  WHERE persona_id IS NOT NULL AND deleted_at IS NULL;
+```
+
+PostgREST `onConflict` requiere un unique constraint **completo**, NO
+parcial. El upsert falla en runtime con 500. El error es difícil de
+diagnosticar porque la query parece correcta a primera vista.
+
+**Detección:**
+E2E contra producción retornó 500 al cargar la pantalla de asistencia
+(porque dispara auto-poblado).
+
+**Fix aplicado (commit b2d8147):**
+Reemplazar `upsert` por patrón **check-then-insert**:
+1. Query: traer todos los invitados existentes del evento
+2. Filtrar en JS: solo nuevos (no presentes en la lista)
+3. Insert directo (sin `onConflict`) de los nuevos
+
+```ts
+const { data: existentes } = await supabase
+  .from('evento_invitados')
+  .select('persona_id')
+  .eq('evento_id', evento_id)
+  .is('deleted_at', null)
+
+const personasYaInvitadas = new Set(existentes?.map(e => e.persona_id))
+const nuevos = rowsParaInsertar.filter(r => !personasYaInvitadas.has(r.persona_id))
+
+if (nuevos.length > 0) {
+  await supabase.from('evento_invitados').insert(nuevos)
+}
+```
+
+**Lección canonizada:**
+Modelos polimórficos (CHECK exactly_one_not_null) requieren unique
+indexes parciales por diseño. PostgREST `onConflict` NO funciona
+con indexes parciales. Para idempotencia en esos casos, usar
+check-then-insert en lugar de upsert.
+
+**Mitigación preventiva:**
+Cuando un sprint use tabla con modelo polimórfico (persona/entidad/
+equipo o similar), nunca usar `.upsert()` con `onConflict`. Default
+a check-then-insert.
+
+Agregar al prompt envelope una verificación: "¿La tabla destino
+tiene unique index parcial? Si sí, NO usar upsert."
+
+---
+
+(Las próximas entradas AP-003, AP-004, etc. se agregarán cuando los
+E2E detecten nuevos anti-patrones reales en producción.)
+
+---
+
 ## Histórico de actualizaciones
 
 | Fecha | Sprint | Cambios |
 |---|---|---|
 | 2026-05-12 | DOCS-2 | Versión inicial con 20 escenarios |
+| 2026-05-12 | DOCS-6 | Sección "Niveles de verificación" + sección "Anti-patrones" con AP-001 y AP-002 |
