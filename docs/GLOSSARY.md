@@ -274,7 +274,17 @@ equipo. Vive en `esquemas_tacticos`.
 reunión, evento social. Vive en `eventos`.
 
 **Asistencia.** Registro de presencia de una persona en un evento. Vive en
-`evento_asistencias`.
+`evento_asistencias`. 6 estados: pendiente, presente, ausente, tarde,
+justificado, lesionado. Upsert idempotente por (tenant, evento, persona).
+
+**Invitado a evento.** Registro en `evento_invitados` que vincula una persona,
+entidad o equipo con un evento. Polymorphic con CHECK exactly_one_not_null.
+Origen: `auto_plantel` (auto-poblado desde personas_equipos), `manual`
+(agregado por admin), `evento_rol` (rol especial en el evento).
+
+**Plantel del evento.** Conjunto de invitados auto-poblados lazy al visitar la
+pantalla de asistencia de un evento con equipo asignado. Se carga desde
+`personas_equipos` activos del equipo. Idempotente (no duplica si ya existen).
 
 **Suscriptor.** Persona (jugador o no) que aporta económicamente a un fondo
 específico (ej: Fondo Fútbol). Modelado como atributo `suscriptor` +

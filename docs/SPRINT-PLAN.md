@@ -58,21 +58,24 @@ FASE 2 completada al 100% el 2026-05-12.
 
 ---
 
+## FASE 3 — Operacion deportiva (en curso)
+
+| Sprint | Tema | Tag | Tests E2E | Estado |
+|---|---|---|---|---|
+| 3.1 | Control de asistencias operativo (mobile): evento_invitados, auto-poblado lazy, 6 estados, React Query optimistic, permisos CT/admin | `v0.9.0` | 35/1/0 | Cerrado |
+
+---
+
 ## Sprint actual
 
-### Sprint FASE 3.1 — Control de asistencias operativo (mobile)
-**Capa:** Modulo (Asistencias) - **Fase:** FASE 3
-
-**Objetivo.** Tomar asistencia en entrenamientos y partidos desde mobile.
-
-**Dependencias previas.** FASE 2 cerrada. Tag `v0.8.0-fase2-completa`.
+### Sprint FASE 3.2 — (por definir)
+**Capa:** TBD - **Fase:** FASE 3
 
 ---
 
 ## Proximos en cola
 
-### Sprint FASE 3.2 — (por definir)
-**Capa:** TBD - **Fase:** FASE 3
+(por definir)
 
 ---
 

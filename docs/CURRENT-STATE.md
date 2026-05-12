@@ -6,25 +6,25 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint DOCS-4 cerrado.
-> FASE 2 completada (Sprint FASE 2.5 cerrado con tag v0.8.0-fase2-completa).
-> Sistema documental sincronizado + manual operativo + templates + system prompts.
+> Última actualización: 12 de mayo de 2026 — Sprint FASE 3.1 cerrado.
+> FASE 2 completada. FASE 3 iniciada (Sprint 3.1 cerrado con tag v0.9.0-fase3-sprint1).
+> Módulo Asistencias operativo mobile-first con React Query optimistic mutations.
 
 ---
 
 ## 0. Snapshot ejecutivo
 
 **Estado general:** FASE 1 cerrada. FASE 2 (Comunicación) completada al 100%.
+FASE 3 (Operación deportiva) iniciada con Sprint 3.1 cerrado.
 Plataforma con base operativa completa: suscripciones, cuotas, cobranza,
 centros de costo, salud, utileria, cuerpo tecnico, notificaciones in-app,
-concesiones, motor de comunicación mock-first con plantillas, envíos masivos,
-crons de vencimientos y preferencias por persona.
+concesiones, motor de comunicación mock-first, asistencias mobile-first.
 
-**Ultimo sprint cerrado:** **DOCS-4** — System Design unificado con vista
-completa del sistema, 8 diagramas Mermaid, 14 secciones cubriendo componentes,
-flujos críticos, multi-tenancy, dependencias externas, escalabilidad y deuda.
+**Ultimo sprint cerrado:** **FASE 3.1** — Control de asistencias operativo
+mobile con React Query optimistic mutations, auto-poblado lazy de invitados
+desde plantel, 6 estados, permisos por rol, 2 E2E tests.
 
-**Próximo sprint:** FASE 3.1 — Control de asistencias operativo mobile.
+**Próximo sprint:** FASE 3.2 — (por definir, operación deportiva).
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -37,27 +37,27 @@ flujos críticos, multi-tenancy, dependencias externas, escalabilidad y deuda.
 
 | Métrica | Valor |
 |---|---|
-| Tablas en `public` | 145 |
-| Tablas con RLS habilitada | 144 (99.3%) |
-| RLS policies | 359 |
-| Funciones custom (`pg_proc` en public) | 129 |
-| Triggers | 93 |
+| Tablas en `public` | 146 |
+| Tablas con RLS habilitada | 145 (99.3%) |
+| RLS policies | 361 |
+| Funciones custom (`pg_proc` en public) | 130 |
+| Triggers | 94 |
 | VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 64 (7 públicas + 57 admin) |
+| Páginas Next.js | 65 (7 públicas + 58 admin) |
 | API routes | 15 (5 endpoints v1 + 3 internos + 7 crons) |
-| Server actions | ~160 en 26 archivos |
-| Componentes custom (no shadcn) | ~115 |
-| Tests E2E (Playwright) | 34 specs (33 pass, 1 skip) |
+| Server actions | ~162 en 27 archivos |
+| Componentes custom (no shadcn) | ~121 |
+| Tests E2E (Playwright) | 36 specs (35 pass, 1 skip) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |
 | Atributos en catálogo | 64 (con columna `capa` clasificatoria) |
 | Tipos de notificación catalogados | 23 |
-| Módulos catalogados | 48 (36 + 11 nuevos + 1 vertical) |
-| Módulos activos en Hindu | 35+ |
-| Manifiestos module.json | 18 |
+| Módulos catalogados | 49 (36 + 11 nuevos + 1 vertical + 1 asistencias) |
+| Módulos activos en Hindu | 36+ |
+| Manifiestos module.json | 19 |
 | Verticales en catálogo | 4 (club_deportivo, country_deportivo, federacion_hub, polo_educativo) |
 
 ---
@@ -188,7 +188,8 @@ nivel que los demás (no una "capa vertical" separada).
 | `partidos_detalle` | 0 | Esqueleto |
 | `scouting_fichas` | 0 | UI funcional, sin uso |
 | `eventos` | 0 | Esqueleto |
-| `evento_asistencias` | 0 | Esqueleto |
+| `evento_invitados` | 0 | Polymorphic (persona/entidad/equipo), auto-poblado lazy desde plantel (Sprint FASE 3.1) |
+| `evento_asistencias` | 0 | 6 estados (pendiente/presente/ausente/tarde/justificado/lesionado), upsert idempotente (Sprint FASE 3.1) |
 | `personas_historial_categoria_deportiva` | 0 | Esqueleto |
 | `personas_historial_padron` | 0 | Esqueleto |
 | `personas_lesiones` | 0 | Esqueleto |
@@ -215,8 +216,14 @@ operaciones + 3 scouting.
 | Hindu Futbol Jugadores 2026 | `jugadores_por_equipo` | 162 únicas / 211 asignaciones |
 | Hindu Futbol Suscriptores 2026 | `suscriptores_por_equipo` | 51 (Sprint 14e) |
 
-**Gaps:** eventos/asistencias operativos (postergado), scouting con uso real
-(postergado), partidos cargados (postergado).
+**Módulo Asistencias (Sprint FASE 3.1):**
+Módulo migrado a `modules/asistencias/` con module.json, lib/ (types, queries,
+actions, auto-poblar, permisos, categorias), ui/ (pantalla-asistencia,
+seccion-categoria, fila-persona, sumario-asistencia, label-rol). Page en
+`app/admin/(troncal)/operaciones/eventos/[eventoId]/asistencia/`. React Query
+con optimistic mutations. RPC `fn_obtener_invitados_evento`.
+
+**Gaps:** scouting con uso real (postergado), partidos cargados (postergado).
 
 ---
 
@@ -530,6 +537,15 @@ Historial referenciado en commits del repo. Listado resumido:
   filtrar_personas_por_preferencias_comunicacion + UI admin
   /personas/[id] tab Comunicaciones. Tag v0.8.0.
   Cierra FASE 2 al 100%. 33/1/0 E2E.
+- **Sprint FASE 3.1** — Control de asistencias operativo (mobile).
+  Tabla `evento_invitados` polymorphic con CHECK exactly_one_not_null,
+  reclasificación de 10 roles staff → cuerpo_tecnico(6) + comision_delegados(4),
+  `evento_asistencias` extendida a 6 estados + FK a evento_invitados,
+  RPC `fn_obtener_invitados_evento`, auto-poblado lazy desde plantel,
+  verificación permisos (admin/CT), React Query con optimistic mutations,
+  UI mobile-first (sumario 6 chips + secciones colapsables + botones touch),
+  módulo activado en catálogo + tenant Hindu. 2 E2E tests.
+  Tag v0.9.0. 35/1/0 E2E.
 - **Sprint DOCS-1** — Sincronización del sistema documental +
   canonización post-FASE 2. ADRs 036, 037, 038 canonizados. WORKFLOW.md
   eliminado. Sistema documental alineado con realidad de DB + repo.
