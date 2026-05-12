@@ -1,0 +1,21 @@
+{
+  "slug": "asistencias",
+  "name": "Asistencias",
+  "version": "1.0.0",
+  "category": "operativo",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": ["equipos", "eventos_calendario"],
+  "soft_depends_on_modules": ["notificaciones"],
+  "owns_tables": ["evento_invitados"],
+  "owns_catalogs": [],
+  "permissions_required": ["tenant.admin"],
+  "events_emits": ["asistencias.asistencia_registrada", "asistencias.invitados_auto_poblados"],
+  "events_consumes": [],
+  "ui_routes": ["/admin/operaciones/eventos/[id]/asistencia"],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}
