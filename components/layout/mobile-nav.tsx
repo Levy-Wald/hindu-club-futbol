@@ -38,6 +38,7 @@ import {
   Plug,
   KeyRound,
   FileSpreadsheet,
+  CalendarRange,
 } from 'lucide-react'
 
 const bottomNavItems = [
@@ -79,6 +80,10 @@ const comunicacionesSubItems: NavItemDef[] = [
   { label: 'Dashboard', href: '/admin/comunicaciones', icon: BarChart3 },
   { label: 'Plantillas', href: '/admin/comunicaciones/plantillas', icon: FileEdit },
   { label: 'Envíos', href: '/admin/comunicaciones/envios', icon: Send },
+]
+
+const planificadoresSubItems: NavItemDef[] = [
+  { label: 'Mensual', href: '/admin/planificadores/mensual', icon: CalendarRange },
 ]
 
 function MobileSectionHeader({ label }: { label: string }) {
@@ -161,6 +166,7 @@ export function MobileNav() {
   const [finanzasOpen, setFinanzasOpen] = useState(pathname.startsWith('/admin/finanzas'))
   const [rrhhOpen, setRRHHOpen] = useState(pathname.startsWith('/admin/rrhh'))
   const [comunicacionesOpen, setComunicacionesOpen] = useState(pathname.startsWith('/admin/comunicaciones'))
+  const [planificadoresOpen, setPlanificadoresOpen] = useState(pathname.startsWith('/admin/planificadores'))
 
   const closeMenu = () => setMenuOpen(false)
 
@@ -293,6 +299,16 @@ export function MobileNav() {
               isOpen={operacionesOpen}
               onToggle={() => setOperacionesOpen(!operacionesOpen)}
               subItems={operacionesSubItems}
+              pathname={pathname}
+              onClose={closeMenu}
+            />
+            <MobileCollapsible
+              label="Planificadores"
+              icon={CalendarRange}
+              isActive={pathname.startsWith('/admin/planificadores')}
+              isOpen={planificadoresOpen}
+              onToggle={() => setPlanificadoresOpen(!planificadoresOpen)}
+              subItems={planificadoresSubItems}
               pathname={pathname}
               onClose={closeMenu}
             />

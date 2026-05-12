@@ -1,0 +1,21 @@
+{
+  "slug": "planificadores",
+  "name": "Planificadores",
+  "version": "1.0.0",
+  "category": "operaciones",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": ["equipos", "eventos_calendario"],
+  "soft_depends_on_modules": ["asistencias"],
+  "owns_tables": [],
+  "owns_catalogs": [],
+  "permissions_required": ["tenant.admin", "planificadores.editor"],
+  "events_emits": ["planificadores.evento_movido"],
+  "events_consumes": [],
+  "ui_routes": ["/admin/planificadores/mensual"],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

@@ -41,6 +41,7 @@ import {
   Store,
   KeyRound,
   FileSpreadsheet,
+  CalendarRange,
 } from 'lucide-react'
 
 interface NavItemDef {
@@ -114,6 +115,10 @@ const operacionesSubItems: NavItemDef[] = [
   { label: 'Acceso', href: '/admin/acceso', icon: KeyRound },
   { label: 'Nóminas externas', href: '/admin/nominas-externas', icon: FileSpreadsheet },
   { label: 'Scouting', href: '/admin/operaciones/scouting', icon: Search },
+]
+
+const planificadoresSubItems: NavItemDef[] = [
+  { label: 'Mensual', href: '/admin/planificadores/mensual', icon: CalendarRange },
 ]
 
 const plataformaItems: NavItemDef[] = [
@@ -230,12 +235,14 @@ export function Sidebar() {
   const isComunicacionesActive = pathname.startsWith('/admin/comunicaciones')
   const isUtileriaActive = pathname.startsWith('/admin/utileria')
   const isConcesionesActive = pathname.startsWith('/admin/concesiones')
+  const isPlanificadoresActive = pathname.startsWith('/admin/planificadores')
   const [operacionesOpen, setOperacionesOpen] = useState(isOperacionesActive)
   const [finanzasOpen, setFinanzasOpen] = useState(isFinanzasActive)
   const [rrhhOpen, setRRHHOpen] = useState(isRRHHActive)
   const [comunicacionesOpen, setComunicacionesOpen] = useState(isComunicacionesActive)
   const [utileriaOpen, setUtileriaOpen] = useState(isUtileriaActive)
   const [concesionesOpen, setConcesionesOpen] = useState(isConcesionesActive)
+  const [planificadoresOpen, setPlanificadoresOpen] = useState(isPlanificadoresActive)
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col border-r bg-sidebar">
@@ -322,6 +329,15 @@ export function Sidebar() {
           isOpen={operacionesOpen}
           onToggle={() => setOperacionesOpen(!operacionesOpen)}
           subItems={operacionesSubItems}
+          pathname={pathname}
+        />
+        <CollapsibleSection
+          label="Planificadores"
+          icon={CalendarRange}
+          isActive={isPlanificadoresActive}
+          isOpen={planificadoresOpen}
+          onToggle={() => setPlanificadoresOpen(!planificadoresOpen)}
+          subItems={planificadoresSubItems}
           pathname={pathname}
         />
 
