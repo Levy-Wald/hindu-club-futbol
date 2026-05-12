@@ -286,6 +286,19 @@ Origen: `auto_plantel` (auto-poblado desde personas_equipos), `manual`
 pantalla de asistencia de un evento con equipo asignado. Se carga desde
 `personas_equipos` activos del equipo. Idempotente (no duplica si ya existen).
 
+**Veredicto (acceso).** Resultado de la verificación de acceso al club:
+`verde` (socio activo o invitado a evento hoy), `amarillo` (invitado a
+evento cercano pero no hoy), `rojo` (sin membresía ni invitaciones). Se
+determina por RPC `verificar_acceso_persona` y se registra en `acceso_logs`.
+
+**Acceso log.** Registro de cada consulta de DNI en la pantalla de guardia.
+Audit trail con veredicto, motivos, persona encontrada, guardia que consultó.
+Vive en `acceso_logs`.
+
+**Guardia (acceso).** Persona con atributo `acceso.guardia` que opera la
+pantalla de control de acceso. Puede buscar por DNI y marcar presente en
+eventos.
+
 **Suscriptor.** Persona (jugador o no) que aporta económicamente a un fondo
 específico (ej: Fondo Fútbol). Modelado como atributo `suscriptor` +
 suscripción al plan correspondiente.
