@@ -16,7 +16,7 @@
     "catalogo_niveles_validacion",
     "tipos_evento_validacion_default"
   ],
-  "owns_catalogs": ["catalogo_niveles_validacion"],
+  "owns_catalogs": [],
   "permissions_required": ["nominas.admin", "tenant.admin"],
   "events_emits": ["nomina.submission_recibida", "nomina.item_confirmado"],
   "events_consumes": [],
