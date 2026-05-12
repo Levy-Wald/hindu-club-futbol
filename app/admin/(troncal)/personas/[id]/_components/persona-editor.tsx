@@ -31,6 +31,8 @@ import { TabSuscripciones } from './tab-suscripciones'
 import { TabCuotas } from './tab-cuotas'
 import { TabPagos } from './tab-pagos'
 import { ExportDialog } from './export-dialog'
+import { PreferenciasForm } from '@/modules/comunicaciones/ui/preferencias-form'
+import type { PreferenciasPersona } from '@/modules/comunicaciones/lib/preferencias/tipos'
 
 interface PersonaEditorProps {
   persona: Record<string, unknown>
@@ -40,6 +42,7 @@ interface PersonaEditorProps {
   estadosPadron: { id: string; slug: string; nombre: string }[]
   tiposSocio: { id: string; slug: string; nombre: string }[]
   categoriasEquipo: { id: string; nombre_display: string; edad_min?: number | null; edad_max?: number | null }[]
+  preferenciasComPersona?: PreferenciasPersona | null
   modo?: 'admin' | 'mi-perfil'
   defaultTab?: string
 }
@@ -97,7 +100,7 @@ function init(p: Record<string, unknown>): EditarPersonaInput {
   }
 }
 
-export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, padronesDisponibles, estadosPadron, tiposSocio, categoriasEquipo, modo = 'admin', defaultTab }: PersonaEditorProps) {
+export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, padronesDisponibles, estadosPadron, tiposSocio, categoriasEquipo, preferenciasComPersona, modo = 'admin', defaultTab }: PersonaEditorProps) {
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState<EditarPersonaInput>(() => init(persona))
   const [exportOpen, setExportOpen] = useState(false)
@@ -195,6 +198,7 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
             {!esMiPerfil && <TabsTrigger value="suscripciones">Suscripciones</TabsTrigger>}
             {!esMiPerfil && <TabsTrigger value="cuotas">Cuotas</TabsTrigger>}
             {!esMiPerfil && <TabsTrigger value="pagos">Pagos</TabsTrigger>}
+            {!esMiPerfil && <TabsTrigger value="comunicaciones">Comunicaciones</TabsTrigger>}
             <TabsTrigger value="ficha">Ficha total</TabsTrigger>
           </TabsList>
         </div>
@@ -309,6 +313,10 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
 
         <TabsContent value="pagos" className="mt-4">
           <TabPagos personaId={persona.id as string} />
+        </TabsContent>
+
+        <TabsContent value="comunicaciones" className="mt-4">
+          <PreferenciasForm personaId={persona.id as string} preferencias={preferenciasComPersona ?? null} />
         </TabsContent>
 
         {/* FICHA TOTAL — read-only overview */}

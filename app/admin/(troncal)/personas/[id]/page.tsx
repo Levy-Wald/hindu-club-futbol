@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { fetchPersonaById, fetchCatalogoAtributos, fetchCatalogoVinculos, fetchPadrones, fetchEstadosPadron, fetchTiposSocio, fetchCategoriasEquipo } from '../_lib/queries'
+import { obtenerPreferenciasPersona } from '@/modules/comunicaciones/lib/preferencias/actions'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { PersonaAvatar } from '../_components/persona-avatar'
@@ -19,7 +20,7 @@ export default async function PersonaDetallePage({ params, searchParams }: PageP
   const { tab } = await searchParams
 
   // Todas las queries en paralelo — no esperar persona para lanzar catálogos
-  const [personaResult, catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio, categoriasEquipo] = await Promise.all([
+  const [personaResult, catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio, categoriasEquipo, preferenciasComPersona] = await Promise.all([
     fetchPersonaById(id).catch(() => null),
     fetchCatalogoAtributos(),
     fetchCatalogoVinculos(),
@@ -27,6 +28,7 @@ export default async function PersonaDetallePage({ params, searchParams }: PageP
     fetchEstadosPadron(),
     fetchTiposSocio(),
     fetchCategoriasEquipo(),
+    obtenerPreferenciasPersona(id),
   ])
 
   if (!personaResult) notFound()
@@ -76,6 +78,7 @@ export default async function PersonaDetallePage({ params, searchParams }: PageP
         estadosPadron={estadosPadron}
         tiposSocio={tiposSocio}
         categoriasEquipo={categoriasEquipo}
+        preferenciasComPersona={preferenciasComPersona}
         defaultTab={tab}
       />
     </div>

@@ -5,9 +5,11 @@ import { resolveAdapter } from './adapters/factory'
 import { renderTemplate } from './renderer'
 import { resolverSegmento } from './segmentos/resolver'
 import { descripcionSegmento } from './segmentos/descripciones'
+import { filtrarPorPreferencias } from './preferencias/filtro'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { SegmentoConfig } from './segmentos/tipos'
 import type { EnvioMasivoRow } from './adapter'
+import type { CategoriaContenido } from './preferencias/tipos'
 
 interface EnviarOpts {
   personaId: string
@@ -133,6 +135,7 @@ export type EnvioMasivoRequest = {
   origenModuloSlug?: string
   origenEntidadId?: string
   supabaseClient?: SupabaseClient
+  categoria?: CategoriaContenido
 }
 
 export type EnvioMasivoResultado = {
@@ -140,6 +143,8 @@ export type EnvioMasivoResultado = {
   total_destinatarios: number
   total_enviados: number
   total_fallados: number
+  total_filtrados_preferencias: number
+  motivos_filtrado: { opt_out: number; horario: number; dia_excluido: number }
   segmento_nombre: string
 }
 
@@ -150,20 +155,22 @@ export async function enviarComunicacionMasiva(
   const supabase = request.supabaseClient ?? await createClient()
   const segmento = await resolverSegmento(request.tenantId, request.segmento, request.supabaseClient)
 
-  if (segmento.total === 0) {
-    return {
-      lote_id: '',
-      total_destinatarios: 0,
-      total_enviados: 0,
-      total_fallados: 0,
-      segmento_nombre: descripcionSegmento(request.segmento),
-    }
+  const emptyResult: EnvioMasivoResultado = {
+    lote_id: '',
+    total_destinatarios: 0,
+    total_enviados: 0,
+    total_fallados: 0,
+    total_filtrados_preferencias: 0,
+    motivos_filtrado: { opt_out: 0, horario: 0, dia_excluido: 0 },
+    segmento_nombre: descripcionSegmento(request.segmento),
   }
 
-  // Fetch plantilla by slug
+  if (segmento.total === 0) return emptyResult
+
+  // Fetch plantilla by slug (include categoria_contenido for preference filtering)
   const { data: plantilla } = await supabase
     .from('com_plantillas')
-    .select('slug, nombre, tipo, asunto, cuerpo')
+    .select('slug, nombre, tipo, asunto, cuerpo, categoria_contenido')
     .eq('tenant_id', request.tenantId)
     .eq('slug', request.plantillaSlug)
     .eq('activa', true)
@@ -172,11 +179,32 @@ export async function enviarComunicacionMasiva(
 
   if (!plantilla) throw new Error(`Plantilla no encontrada: ${request.plantillaSlug}`)
 
+  // Derive categoria from request or plantilla
+  const categoria = request.categoria ?? (plantilla.categoria_contenido as CategoriaContenido)
+
+  // Filter by preferences (opt-in/out + horario + dias)
+  const allPersonaIds = segmento.personas.map(p => p.id)
+  const prefResult = await filtrarPorPreferencias(supabase, request.tenantId, allPersonaIds, categoria)
+
+  const motivos_filtrado = {
+    opt_out: prefResult.filtrados.opt_out.length,
+    horario: prefResult.filtrados.horario.length,
+    dia_excluido: prefResult.filtrados.dia_excluido.length,
+  }
+  const total_filtrados = motivos_filtrado.opt_out + motivos_filtrado.horario + motivos_filtrado.dia_excluido
+
+  if (prefResult.aEnviar.length === 0) {
+    return { ...emptyResult, total_destinatarios: segmento.total, total_filtrados_preferencias: total_filtrados, motivos_filtrado }
+  }
+
+  const allowedSet = new Set(prefResult.aEnviar)
+  const personasPermitidas = segmento.personas.filter(p => allowedSet.has(p.id))
+
   const lote_id = randomUUID()
   const origenModulo = request.origenModuloSlug ?? null
   const origenEntidad = request.origenEntidadId ?? null
 
-  const envios: EnvioMasivoRow[] = segmento.personas.map(persona => {
+  const envios: EnvioMasivoRow[] = personasPermitidas.map(persona => {
     const variables: Record<string, string> = {
       ...request.variablesGlobales,
       nombre: persona.nombre,
@@ -203,6 +231,7 @@ export async function enviarComunicacionMasiva(
         mock: adapter.name === 'mock',
         lote_id,
         segmento: { tipo: request.segmento.tipo, ...segmento.parametros },
+        motivos_filtrado,
       },
     }
   })
@@ -214,6 +243,8 @@ export async function enviarComunicacionMasiva(
     total_destinatarios: segmento.total,
     total_enviados: envios.filter(e => e.estado === 'enviado').length,
     total_fallados: envios.filter(e => e.estado === 'fallado').length,
+    total_filtrados_preferencias: total_filtrados,
+    motivos_filtrado,
     segmento_nombre: descripcionSegmento(request.segmento),
   }
 }

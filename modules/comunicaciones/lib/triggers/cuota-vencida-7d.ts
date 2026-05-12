@@ -58,6 +58,7 @@ export async function ejecutarCuotaVencida7d(
     origenModuloSlug: ORIGEN_MODULO,
     origenEntidadId: jobLogId,
     supabaseClient: supabase,
+    categoria: 'transaccional',
   })
 
   detalles.push(`Lote ${resultado.lote_id}: ${resultado.total_enviados} enviados, ${resultado.total_fallados} fallados`)

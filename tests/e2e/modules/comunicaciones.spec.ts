@@ -296,4 +296,127 @@ test.describe('Comunicaciones', () => {
       }
     }
   })
+
+  // === Preferencias de comunicacion (FASE 2.5) ===
+
+  test('preferencias: transaccional ignora opt-out (apto vence se envia aunque opt_in=false)', async ({ page }) => {
+    test.setTimeout(60000)
+    const TENANT = '11111111-1111-1111-1111-111111111111'
+    const PERSONA_E2E = '99999999-9999-9999-9999-999999999999'
+    const supabase = serviceRole()
+
+    let prefId: string | null = null
+    let fixtureId: string | null = null
+    let atributoId: string | null = null
+    const jobLogIds: string[] = []
+
+    try {
+      // SETUP: permiso comunicaciones.admin
+      const { data: attr } = await supabase
+        .from('personas_atributos')
+        .insert({ tenant_id: TENANT, persona_id: PERSONA_E2E, atributo_slug: 'comunicaciones.admin', activo: true })
+        .select('id')
+        .single()
+      atributoId = attr?.id ?? null
+
+      // SETUP: preferencias con todos los opt-in en false
+      const { data: pref } = await supabase
+        .from('personas_preferencias_comunicacion')
+        .insert({
+          tenant_id: TENANT,
+          persona_id: PERSONA_E2E,
+          opt_in_marketing: false,
+          opt_in_eventos_club: false,
+          opt_in_partners: false,
+          opt_in_torneos: false,
+        })
+        .select('id')
+        .single()
+      prefId = pref?.id ?? null
+
+      // SETUP: apto fisico que vence en 5 dias
+      const fechaTarget = new Date()
+      fechaTarget.setDate(fechaTarget.getDate() + 5)
+      const { data: fix } = await supabase
+        .from('personas_autorizaciones')
+        .insert({
+          tenant_id: TENANT,
+          persona_id: PERSONA_E2E,
+          tipo_autorizacion_slug: 'apto_fisico',
+          estado: 'firmada',
+          activo: true,
+          fecha_vencimiento: fechaTarget.toISOString().slice(0, 10),
+        })
+        .select('id')
+        .single()
+      fixtureId = fix?.id ?? null
+
+      // ACTION: ejecutar trigger transaccional
+      await page.goto('/admin/comunicaciones')
+      await page.getByTestId('tab-automatizaciones').click()
+      await expect(page.getByTestId('jobs-log-section')).toBeVisible({ timeout: 10000 })
+      await page.getByTestId('ejecutar-apto_vence_7d').click()
+      await expect(page.getByTestId('job-log-toast')).toBeVisible({ timeout: 20000 })
+
+      // ASSERT: persona DEBE recibir aunque tenga todos los opt-in en false (transaccional)
+      const { data: jobs } = await supabase
+        .from('com_jobs_log')
+        .select('*')
+        .eq('tenant_id', TENANT)
+        .eq('job_slug', 'apto_vence_7d')
+        .order('started_at', { ascending: false })
+        .limit(1)
+
+      expect(jobs).toHaveLength(1)
+      expect(jobs![0].status).toBe('completed')
+      expect(jobs![0].personas_encontradas).toBeGreaterThanOrEqual(1)
+      expect(jobs![0].personas_notificadas).toBeGreaterThanOrEqual(1)
+      jobLogIds.push(jobs![0].id)
+
+    } finally {
+      for (const jid of jobLogIds) {
+        await supabase.from('com_envios').delete().eq('origen_entidad_id', jid)
+        await supabase.from('com_jobs_log').delete().eq('id', jid)
+      }
+      if (fixtureId) await supabase.from('personas_autorizaciones').delete().eq('id', fixtureId)
+      if (prefId) await supabase.from('personas_preferencias_comunicacion').delete().eq('id', prefId)
+      if (atributoId) await supabase.from('personas_atributos').delete().eq('id', atributoId)
+    }
+  })
+
+  test('preferencias: UI guarda y muestra preferencias en ficha persona', async ({ page }) => {
+    const TENANT = '11111111-1111-1111-1111-111111111111'
+    const PERSONA_E2E = '99999999-9999-9999-9999-999999999999'
+    const supabase = serviceRole()
+
+    try {
+      // Navigate to persona detail, comunicaciones tab
+      await page.goto(`/admin/personas/${PERSONA_E2E}?tab=comunicaciones`)
+      await expect(page.getByTestId('preferencias-comunicacion-form')).toBeVisible({ timeout: 15000 })
+
+      // Toggle marketing ON
+      await page.getByTestId('pref-opt-marketing').click()
+
+      // Save
+      await page.getByTestId('pref-btn-guardar').click()
+
+      // Wait for success toast
+      await expect(page.getByText('Preferencias guardadas')).toBeVisible({ timeout: 10000 })
+
+      // Verify in DB
+      const { data: pref } = await supabase
+        .from('personas_preferencias_comunicacion')
+        .select('opt_in_marketing')
+        .eq('tenant_id', TENANT)
+        .eq('persona_id', PERSONA_E2E)
+        .maybeSingle()
+
+      expect(pref).not.toBeNull()
+      expect(pref!.opt_in_marketing).toBe(true)
+
+    } finally {
+      // Cleanup
+      await supabase.from('personas_preferencias_comunicacion').delete().eq('persona_id', PERSONA_E2E)
+    }
+  })
 })
