@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { TENANT_ID } from '@/lib/tenant'
-import { obtenerInvitadosDeEvento, obtenerEventoParaAsistencia } from '@/modules/asistencias/lib/queries'
+import { obtenerInvitadosCompletoDeEvento, obtenerEventoParaAsistencia } from '@/modules/asistencias/lib/queries'
 import { verificarPermisoTomarAsistencia } from '@/modules/asistencias/lib/permisos'
 import { AsistenciaWrapper } from './asistencia-wrapper'
 
@@ -45,7 +45,7 @@ export default async function AsistenciaPage({ params }: Props) {
   // Cargar datos
   const [eventoInfo, invitados] = await Promise.all([
     obtenerEventoParaAsistencia(eventoId, tenant_id),
-    obtenerInvitadosDeEvento(eventoId, tenant_id),
+    obtenerInvitadosCompletoDeEvento(eventoId, tenant_id),
   ])
 
   return (

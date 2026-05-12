@@ -2,7 +2,14 @@
 
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { autoPoblarInvitadosDesdeEquipo } from './auto-poblar'
-import type { InvitadosPorCategoria, PersonaInvitada, CategoriaRolEquipo } from './types'
+import type {
+  InvitadosPorCategoria,
+  InvitadosCompleto,
+  PersonaInvitada,
+  EntidadInvitada,
+  EquipoInvitado,
+  CategoriaRolEquipo,
+} from './types'
 
 /**
  * Devuelve los invitados de un evento agrupados por categoría.
@@ -13,6 +20,21 @@ export async function obtenerInvitadosDeEvento(
   evento_id: string,
   tenant_id: string
 ): Promise<InvitadosPorCategoria> {
+  const completo = await obtenerInvitadosCompletoDeEvento(evento_id, tenant_id)
+  return {
+    deportivo: completo.deportivo,
+    cuerpo_tecnico: completo.cuerpo_tecnico,
+    comision_delegados: completo.comision_delegados,
+  }
+}
+
+/**
+ * Devuelve TODOS los invitados: personas (por categoría) + entidades + equipos.
+ */
+export async function obtenerInvitadosCompletoDeEvento(
+  evento_id: string,
+  tenant_id: string
+): Promise<InvitadosCompleto> {
   const supabase = createServiceRoleClient()
 
   // 1. Cargar evento
@@ -37,7 +59,7 @@ export async function obtenerInvitadosDeEvento(
     await autoPoblarInvitadosDesdeEquipo(evento_id, evento.equipo_id, tenant_id)
   }
 
-  // 3. Query via RPC
+  // 3. Query personas via RPC
   const { data: invitados, error } = await supabase.rpc(
     'obtener_invitados_evento_con_roles',
     { p_evento_id: evento_id, p_tenant_id: tenant_id }
@@ -45,7 +67,58 @@ export async function obtenerInvitadosDeEvento(
 
   if (error) throw new Error(`Error obteniendo invitados: ${error.message}`)
 
-  return agruparPorCategoria((invitados ?? []) as unknown as PersonaInvitada[])
+  const categorias = agruparPorCategoria((invitados ?? []) as unknown as PersonaInvitada[])
+
+  // 4. Query entidades via RPC
+  const { data: rawEntidades } = await supabase.rpc(
+    'obtener_entidades_invitadas_evento',
+    { p_evento_id: evento_id, p_tenant_id: tenant_id }
+  )
+
+  const entidades: EntidadInvitada[] = ((rawEntidades ?? []) as unknown as Array<{
+    entidad_id: string; nombre: string; tipo: string;
+    evento_invitado_id: string; marca_asistencia: boolean;
+    asistencia_id: string | null; asistencia_estado: string;
+    asistencia_nota: string | null; asistencia_respondido_at: string | null;
+  }>).map(e => ({
+    entidad_id: e.entidad_id,
+    nombre: e.nombre,
+    tipo: e.tipo,
+    evento_invitado_id: e.evento_invitado_id,
+    marca_asistencia: e.marca_asistencia,
+    asistencia: {
+      id: e.asistencia_id,
+      estado: (e.asistencia_estado as EntidadInvitada['asistencia']['estado']) ?? 'pendiente',
+      nota: e.asistencia_nota,
+      respondido_at: e.asistencia_respondido_at,
+    },
+  }))
+
+  // 5. Query equipos via RPC
+  const { data: rawEquipos } = await supabase.rpc(
+    'obtener_equipos_invitados_evento',
+    { p_evento_id: evento_id, p_tenant_id: tenant_id }
+  )
+
+  const equipos: EquipoInvitado[] = ((rawEquipos ?? []) as unknown as Array<{
+    equipo_id: string; nombre: string;
+    evento_invitado_id: string; marca_asistencia: boolean;
+    asistencia_id: string | null; asistencia_estado: string;
+    asistencia_nota: string | null; asistencia_respondido_at: string | null;
+  }>).map(e => ({
+    equipo_id: e.equipo_id,
+    nombre: e.nombre,
+    evento_invitado_id: e.evento_invitado_id,
+    marca_asistencia: e.marca_asistencia,
+    asistencia: {
+      id: e.asistencia_id,
+      estado: (e.asistencia_estado as EquipoInvitado['asistencia']['estado']) ?? 'pendiente',
+      nota: e.asistencia_nota,
+      respondido_at: e.asistencia_respondido_at,
+    },
+  }))
+
+  return { ...categorias, entidades, equipos }
 }
 
 function agruparPorCategoria(invitados: PersonaInvitada[]): InvitadosPorCategoria {
@@ -58,7 +131,6 @@ function agruparPorCategoria(invitados: PersonaInvitada[]): InvitadosPorCategori
   for (const persona of invitados) {
     const categoriasIncluidas = new Set<string>()
     if (!persona.roles || persona.roles.length === 0) {
-      // Sin rol en el equipo — default a deportivo
       result.deportivo.push(persona)
       continue
     }
@@ -95,7 +167,6 @@ export async function obtenerEventoParaAsistencia(
 
   if (error || !data) throw new Error('Evento no encontrado')
 
-  // Get equipo nombre if exists
   let equipoNombre: string | null = null
   if (data.equipo_id) {
     const { data: equipo } = await supabase

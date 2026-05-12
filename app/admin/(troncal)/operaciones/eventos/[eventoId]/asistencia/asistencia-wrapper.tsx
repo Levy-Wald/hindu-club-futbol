@@ -2,12 +2,12 @@
 
 import { QueryProvider } from '@/components/providers/query-provider'
 import { PantallaAsistencia } from '@/modules/asistencias/ui/pantalla-asistencia'
-import type { InvitadosPorCategoria } from '@/modules/asistencias/lib/types'
+import type { InvitadosCompleto } from '@/modules/asistencias/lib/types'
 
 type Props = {
   eventoId: string
   tenantId: string
-  initialData: InvitadosPorCategoria
+  initialData: InvitadosCompleto
   eventoInfo: {
     titulo: string | null
     fecha: string | null

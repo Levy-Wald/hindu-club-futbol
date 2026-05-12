@@ -1,8 +1,8 @@
 'use client'
 
-import type { InvitadosPorCategoria, PersonaInvitada } from '../lib/types'
+import type { InvitadosCompleto, PersonaInvitada } from '../lib/types'
 
-function contarEstados(invitados: InvitadosPorCategoria) {
+function contarEstados(invitados: InvitadosCompleto) {
   const todas: PersonaInvitada[] = [
     ...invitados.deportivo,
     ...invitados.cuerpo_tecnico,
@@ -13,18 +13,26 @@ function contarEstados(invitados: InvitadosPorCategoria) {
   for (const p of todas) unicos.set(p.persona_id, p)
 
   const lista = [...unicos.values()]
-  const presentes = lista.filter(p => p.asistencia.estado === 'presente').length
-  const ausentes = lista.filter(p => p.asistencia.estado === 'ausente').length
-  const tarde = lista.filter(p => p.asistencia.estado === 'tarde').length
-  const justificados = lista.filter(p => p.asistencia.estado === 'justificado').length
-  const lesionados = lista.filter(p => p.asistencia.estado === 'lesionado').length
-  const pendientes = lista.filter(p => p.asistencia.estado === 'pendiente').length
-  const total = lista.length
+
+  // Contar también entidades y equipos con marca_asistencia
+  const entidadesConAsistencia = (invitados.entidades ?? []).filter(e => e.marca_asistencia)
+  const equiposConAsistencia = (invitados.equipos ?? []).filter(e => e.marca_asistencia)
+
+  type Estadable = { asistencia: { estado: string } }
+  const todosContables: Estadable[] = [...lista, ...entidadesConAsistencia, ...equiposConAsistencia]
+
+  const presentes = todosContables.filter(p => p.asistencia.estado === 'presente').length
+  const ausentes = todosContables.filter(p => p.asistencia.estado === 'ausente').length
+  const tarde = todosContables.filter(p => p.asistencia.estado === 'tarde').length
+  const justificados = todosContables.filter(p => p.asistencia.estado === 'justificado').length
+  const lesionados = todosContables.filter(p => p.asistencia.estado === 'lesionado').length
+  const pendientes = todosContables.filter(p => p.asistencia.estado === 'pendiente').length
+  const total = todosContables.length
 
   return { presentes, ausentes, tarde, justificados, lesionados, pendientes, total }
 }
 
-export function SumarioAsistencia({ invitados }: { invitados: InvitadosPorCategoria }) {
+export function SumarioAsistencia({ invitados }: { invitados: InvitadosCompleto }) {
   const stats = contarEstados(invitados)
 
   return (

@@ -43,6 +43,38 @@ export type InvitadosPorCategoria = {
   comision_delegados: PersonaInvitada[]
 }
 
+export type EntidadInvitada = {
+  entidad_id: string
+  nombre: string
+  tipo: string
+  evento_invitado_id: string
+  marca_asistencia: boolean
+  asistencia: {
+    id: string | null
+    estado: EstadoAsistencia
+    nota: string | null
+    respondido_at: string | null
+  }
+}
+
+export type EquipoInvitado = {
+  equipo_id: string
+  nombre: string
+  evento_invitado_id: string
+  marca_asistencia: boolean
+  asistencia: {
+    id: string | null
+    estado: EstadoAsistencia
+    nota: string | null
+    respondido_at: string | null
+  }
+}
+
+export type InvitadosCompleto = InvitadosPorCategoria & {
+  entidades: EntidadInvitada[]
+  equipos: EquipoInvitado[]
+}
+
 export const ESTADOS_ASISTENCIA: {
   valor: EstadoAsistencia
   label: string
