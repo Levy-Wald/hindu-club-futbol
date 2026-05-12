@@ -157,7 +157,7 @@ test.describe('Planificadores', () => {
 
     try {
       // Use a known future date for the weekly view
-      const fecha = '2027-04-06' // Tuesday
+      const fecha = '2027-04-07' // Wednesday in week Apr 5-11
       const { data: evento } = await supabase
         .from('eventos')
         .insert({
@@ -174,7 +174,7 @@ test.describe('Planificadores', () => {
         .single()
       evento_id = evento?.id ?? null
 
-      await page.goto('/admin/planificadores/semanal?fecha=2027-04-05')
+      await page.goto('/admin/planificadores/semanal?fecha=2027-04-07')
       await page.waitForLoadState('networkidle')
 
       await expect(page.getByTestId('calendario-semanal')).toBeVisible()
@@ -193,7 +193,7 @@ test.describe('Planificadores', () => {
     let evento_id: string | null = null
 
     try {
-      const fecha = '2027-04-07' // Wednesday
+      const fecha = '2027-04-08' // Thursday in week Apr 6-12
       const { data: evento } = await supabase
         .from('eventos')
         .insert({
@@ -211,7 +211,7 @@ test.describe('Planificadores', () => {
         .single()
       evento_id = evento?.id ?? null
 
-      await page.goto('/admin/planificadores/semanal?fecha=2027-04-05')
+      await page.goto('/admin/planificadores/semanal?fecha=2027-04-08')
       await page.waitForLoadState('networkidle')
 
       const eventoEl = page.locator('.rbc-event', { hasText: 'E2E Semanal - Resize' })
@@ -253,7 +253,7 @@ test.describe('Planificadores', () => {
     let evento_id: string | null = null
 
     try {
-      const fecha = '2027-04-08' // Thursday
+      const fecha = '2027-04-09' // Friday in week Apr 6-12
       const { data: evento } = await supabase
         .from('eventos')
         .insert({
@@ -271,7 +271,7 @@ test.describe('Planificadores', () => {
         .single()
       evento_id = evento?.id ?? null
 
-      await page.goto('/admin/planificadores/semanal?fecha=2027-04-05')
+      await page.goto('/admin/planificadores/semanal?fecha=2027-04-09')
       await page.waitForLoadState('networkidle')
 
       const eventoEl = page.locator('.rbc-event', { hasText: 'E2E Semanal - MoverDia' })
