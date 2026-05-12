@@ -189,6 +189,7 @@ export function CalendarioMensual({
       <DnDCalendar
         localizer={localizer}
         events={eventos}
+        titleAccessor="titulo"
         startAccessor="start"
         endAccessor="end"
         defaultView="month"

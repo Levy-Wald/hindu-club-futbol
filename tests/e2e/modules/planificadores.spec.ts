@@ -41,8 +41,7 @@ test.describe('Planificadores', () => {
       await page.waitForLoadState('networkidle')
 
       await expect(page.getByTestId('calendario-mensual')).toBeVisible()
-      // react-big-calendar may truncate text in month view cells;
-      // use .rbc-event locator which contains the event title
+      // Verify the event appears in the calendar
       const eventEl = page.locator('.rbc-event', { hasText: 'E2E Planif' })
       await expect(eventEl.first()).toBeVisible({ timeout: 10000 })
     } finally {
