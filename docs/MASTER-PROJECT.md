@@ -273,9 +273,9 @@ Toda feature declara su capa antes de implementarse. Ver §2 — Regla de oro.
 
 ### D5 — Documentación viva única
 
-Los 7 docs en `/docs/` son la única fuente de verdad. Cualquier otro .md en
-el repo se borra o consolida. Code lee al inicio de cada sesión, actualiza al
-final.
+Los documentos vivos listados en §9 son la única fuente de verdad. Cualquier
+otro .md en el repo se borra o consolida. Code lee al inicio de cada sesión,
+actualiza al final.
 
 ### D6 — Modularidad por tenant
 

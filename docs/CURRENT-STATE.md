@@ -6,23 +6,25 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint FASE 2.5 completado.
-> Sprints 14d a 15c cerrados. FASE 1 oficialmente cerrada. FASE 2 completa.
-> Sprint FASE 2.5: Preferencias de comunicación por persona.
+> Última actualización: 12 de mayo de 2026 — Sprint DOCS-1 cerrado.
+> FASE 2 completada (Sprint FASE 2.5 cerrado con tag v0.8.0-fase2-completa).
+> Sistema documental sincronizado.
 
 ---
 
 ## 0. Snapshot ejecutivo
 
-**Estado general:** FASE 1 cerrada. Plataforma con base operativa completa
-para Hindu Club Futbol: suscripciones, cuotas, cobranza, centros de costo,
-salud, utileria, cuerpo tecnico, notificaciones in-app, concesiones.
+**Estado general:** FASE 1 cerrada. FASE 2 (Comunicación) completada al 100%.
+Plataforma con base operativa completa: suscripciones, cuotas, cobranza,
+centros de costo, salud, utileria, cuerpo tecnico, notificaciones in-app,
+concesiones, motor de comunicación mock-first con plantillas, envíos masivos,
+crons de vencimientos y preferencias por persona.
 
-**Ultimo sprint cerrado:** **FASE 2.5** — Preferencias de comunicación por persona.
-`personas_preferencias_comunicacion` wired al motor de envíos. `com_plantillas.categoria_contenido`
-(transaccional/eventos_club/marketing/partners/torneos). RPC `filtrar_personas_por_preferencias_comunicacion`
-para filtrado SQL-level. Transaccional ignora opt-in/out. UI en ficha persona (tab Comunicaciones).
-21 E2E tests comunicaciones (33 total passed, 1 skip). **FASE 2 completa.**
+**Ultimo sprint cerrado:** **DOCS-1** — Sincronización del sistema documental
++ canonización post-FASE 2. ADRs 036-038 canonizados. WORKFLOW.md eliminado.
+Métricas de DB sincronizadas con realidad (145 tablas, no 117).
+
+**Próximo sprint:** FASE 3.1 — Control de asistencias operativo mobile.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -35,11 +37,11 @@ para filtrado SQL-level. Transaccional ignora opt-in/out. UI en ficha persona (t
 
 | Métrica | Valor |
 |---|---|
-| Tablas en `public` | 117 |
-| Tablas con RLS habilitada | 116 (100%) |
-| RLS policies | 358 |
+| Tablas en `public` | 145 |
+| Tablas con RLS habilitada | 144 (99.3%) |
+| RLS policies | 359 |
 | Funciones custom (`pg_proc` en public) | 129 |
-| Triggers | 97 |
+| Triggers | 93 |
 | VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
@@ -286,7 +288,7 @@ GET+PATCH, `/api/v1/equipos` GET). Sin uso externo real.
 
 **Crons:** 4 (`dispatch-vencimientos` diario 9AM, `cleanup-api-logs`
 domingo 3AM, `cleanup-notificaciones` diario, `calcular-canon-mensual`
-dia 6 de cada mes 8AM). `CRON_SECRET` pendiente de configurar en Vercel.
+dia 6 de cada mes 8AM). `CRON_SECRET` configurada en Vercel (verificada Sprint 2.4-FIX).
 
 **Legacy a deprecar (Sprint 14d):**
 - `padron_syncs` (1 row)
@@ -402,7 +404,7 @@ inicializados en Hindu.
 | ~~10 VIEWs `fin_*` sin uso~~ | ~~Media~~ | ✅ Sprint 14d |
 | ~~3 atributos duplicados~~ | ~~Media~~ | ✅ Sprint 14d |
 | `RESEND_API_KEY` no configurada en Vercel | Alta | FASE 16 (ADR-035, mock-first) |
-| `CRON_SECRET` no configurada en Vercel (crons expuestos) | Alta | FASE 15 Hardening |
+| ~~`CRON_SECRET` no configurada en Vercel (crons expuestos)~~ | ~~Alta~~ | ✅ Sprint FASE 2.4-FIX (verificado via 401 en producción) |
 | `lib/imports/actions.ts` 530+ líneas monolíticas | Media | 17a |
 | 4 catálogos sin UI CRUD | Media | Backlog menor |
 | `padron_socios` pipeline no documentado en specs previos | Baja | 14d (consolidar) |
@@ -412,6 +414,12 @@ inicializados en Hindu.
 | `D6` `module_events` no implementado | Baja | Postergado |
 | ~~0 tests automatizados~~ | ~~Media~~ | ✅ Sprint 15c: 27 E2E specs (26 pass, 1 skip) |
 | 1 TODO en código (`comunicaciones/_actions.ts:216`) | Baja | FASE 2.2 (ResendAdapter) |
+| Permission slugs underscore en 3 módulos (salud, concesiones, utileria). Canonizado en ADR-036 | Media | FASE 15 (audit unificado) |
+| Naming inconsistente en com_jobs_log (finished_at vs ended_at, errores vs error_message, personas_encontradas vs total_personas_evaluadas) | Baja | FASE 15 |
+| Persona E2E aparece intermitentemente soft-deleted entre sprints. Causa raíz no identificada. Workaround: restore manual cuando ocurre | Baja | Investigar cuando reaparezca |
+| ~~Métricas de DB en CURRENT-STATE.md históricamente desincronizadas (anotaba 117 tablas, son 145)~~ | ~~Baja~~ | ✅ Sprint DOCS-1 (sincronizado a valores reales) |
+| com_jobs_log acumula rows de E2E sin cleanup. Cada ejecución de E2E del 2.4-FIX y 2.5 deja 1-3 rows que nunca se borran | Baja | FASE 15 (agregar DELETE de com_jobs_log al try/finally de los E2E) |
+| Dedup de 7 días en triggers puede colisionar con tests E2E en parallel workers. Mitigación actual: pre-cleanup (commit a3f00ed). Riesgo teórico en prod si E2E corre durante ventana de cron | Baja | FASE 15 (evaluar excluir envíos E2E del dedup por flag en metadata) |
 
 ---
 
@@ -506,20 +514,26 @@ Historial referenciado en commits del repo. Listado resumido:
   MockAdapter.enviarMasivo(), lotes agrupados por metadata.lote_id, tab
   "Envíos masivos" con historial, detalle de lote, API route preview-segmento,
   11 E2E tests comunicaciones.
-- **FASE 2.4** — Cron de Vencimientos + Recordatorios Automáticos: 3 cron jobs
-  (apto_vence_7d, cuota_vence_7d, cuota_vencida_7d) con service role client,
-  dedup 7d via origen_modulo_slug nativo, segmento personas_ids_directos,
-  com_jobs_log table. Tab "Automatizaciones" con historial y detalle por job.
-  Tag `v0.7.0-fase2-sprint4-cron`.
-- **FASE 2.4-FIX** — Fix 3 bugs semánticos: origen_modulo_slug corregido en
-  181 envíos, permission slugs dot-notation, crons pausados/reactivados.
-  Tag `v0.7.1-fase2-sprint4-fix`.
-- **FASE 2.5** — Preferencias de Comunicación por Persona:
-  `personas_preferencias_comunicacion` wired al motor, `com_plantillas.categoria_contenido`
-  (transaccional/eventos_club/marketing/partners/torneos), RPC
-  `filtrar_personas_por_preferencias_comunicacion`, transaccional ignora opt-in/out,
-  UI en ficha persona (tab Comunicaciones), 21 E2E tests comunicaciones.
-  **FASE 2 completa.** Tag `v0.8.0-fase2-completa`.
+- **Sprint FASE 2.4** — Cron de vencimientos + recordatorios automáticos.
+  3 cron jobs (apto_vence_7d, cuota_vence_7d, cuota_vencida_7d) con
+  service role, dedup 7d via columnas nativas origen_modulo_slug +
+  origen_entidad_id, segmento personas_ids_directos, tabla com_jobs_log,
+  tab "Automatizaciones". Tag v0.7.0. 30/1/0 E2E (interim).
+- **Sprint FASE 2.4-FIX** — Corrección semántica + canonización.
+  Default 'comunicaciones' eliminado en motor de envíos, dot-notation
+  en permission checks (módulo comunicaciones), E2E real con fixture +
+  cleanup. Tag v0.7.1. 31/1/0 E2E.
+- **Sprint FASE 2.5** — Preferencias de comunicación por persona.
+  Activación de tabla personas_preferencias_comunicacion existente +
+  categoria_contenido en com_plantillas (35 plantillas activas
+  categorizadas: 14 transaccional + 21 eventos_club) + función RPC
+  filtrar_personas_por_preferencias_comunicacion + UI admin
+  /personas/[id] tab Comunicaciones. Tag v0.8.0.
+  Cierra FASE 2 al 100%. 33/1/0 E2E.
+- **Sprint DOCS-1** — Sincronización del sistema documental +
+  canonización post-FASE 2. ADRs 036, 037, 038 canonizados. WORKFLOW.md
+  eliminado. Sistema documental alineado con realidad de DB + repo.
+  Tag v0.8.1.
 
 ---
 

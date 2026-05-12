@@ -2094,7 +2094,198 @@ Reglas:
 - El sistema puede operarse y demostrarse con cero dependencias externas activas.
 - Sprint 2.1 implementó el patrón de referencia: `ComunicacionAdapter` + `MockAdapter` + `resolveAdapter()`.
 
-Detalle completo en `docs/adrs/ADR-035-mock-first-universal.md`.
+---
+
+## ADR-036 — Permission slugs en dot-notation, no underscore
+
+**Fecha:** 2026-05-12
+**Estado:** Aceptado
+**Capa:** Sistema entero
+**Tomado por:** Arquitecto
+
+### Contexto
+
+Durante el Sprint FASE 2.4-FIX se detectó que `catalogo_atributos`
+usa convención dot-notation para slugs (`sistema.admin`, `tenant.admin`,
+`comunicaciones.admin`). Sin embargo, varios módulos hacen verificación
+de permisos usando underscore (`admin_sistema`, `admin_tenant`), lo
+que resulta en checks que retornan false para usuarios con los
+atributos correctos.
+
+Módulos afectados detectados (verificados en 2.4-FIX):
+- modules/salud/lib/permissions.ts
+- lib/permisos/concesiones.ts
+- lib/permisos/utileria.ts
+
+modules/comunicaciones/lib/actions.ts y plantillas/permisos.ts
+fueron corregidos en 2.4-FIX.
+
+### Decisión
+
+Convención canónica única: **dot-notation** (`scope.role`).
+
+Reglas:
+1. Todo slug en catalogo_atributos es dot-notation.
+2. Todo check de permisos en código consulta exactamente el slug
+   dot-notation, sin transformaciones.
+3. Auditoría de los 3 módulos pendientes se ejecuta en Sprint de
+   FASE 15 (Hardening) como tarea unificada "Permission checks audit".
+4. Tests E2E de cualquier módulo nuevo deben validar que el check
+   de permiso funciona con el atributo real, no solo con un mock.
+
+### Alternativas descartadas
+
+- Soportar ambas convenciones (underscore + dot-notation) en código:
+  duplicaría la complejidad de cada check sin valor real.
+- Migrar el catálogo a underscore: rompería múltiples consumidores
+  externos (frontend, server actions, tests E2E).
+
+### Consecuencias
+
+- Los 3 módulos con underscore quedan con permission checks rotos
+  hasta FASE 15. Impacto bajo porque esos módulos no están bajo
+  carga productiva intensiva.
+- Cualquier ADR futuro que introduzca atributos nuevos debe declarar
+  el slug en dot-notation explícitamente.
+
+---
+
+## ADR-037 — Columnas nativas indexables > metadata jsonb para data filtrable
+
+**Fecha:** 2026-05-12
+**Estado:** Aceptado
+**Capa:** Sistema entero
+**Tomado por:** Arquitecto
+
+### Contexto
+
+Sprint FASE 2.4 introdujo dedup de envíos por persona+trigger usando
+una clave que debía persistirse en `com_envios`. La implementación
+inicial la persistió en `metadata` jsonb (campo `trigger_tipo` dentro
+del objeto metadata). Durante la verificación post-deploy del 2.4
+se detectó que:
+
+1. El dedup usando `metadata->>'trigger_tipo'` requiere índice GIN
+   sobre jsonb, que es 10-100x más lento que un B-tree sobre columna
+   nativa para queries equality + range.
+2. Los defaults silenciosos sobre campos jsonb son difíciles de
+   detectar (el default `'comunicaciones'` quedó por bug y contaminó
+   181 filas antes de ser detectado).
+3. El schema de com_envios ya tenía `origen_modulo_slug` y
+   `origen_entidad_id` como columnas nativas sin uso, diseñadas
+   específicamente para este caso.
+
+### Decisión
+
+Regla canónica: **data que se filtra frecuentemente (dedup, queries
+de listado, joins) vive en columnas nativas indexables, no en
+metadata jsonb.**
+
+Reglas operativas:
+1. Antes de agregar un campo nuevo a metadata, evaluar si necesita:
+   - filtros frecuentes (WHERE clause)
+   - joins con otras tablas
+   - index para performance
+   Si SÍ a cualquiera → columna nativa.
+2. metadata jsonb queda exclusivamente para data específica del
+   registro que NO se filtra (variables renderizadas del template,
+   contexto puntual del evento, snapshots para auditoría).
+3. Cuando una tabla tiene columnas nativas pre-existentes con
+   semántica clara (caso `origen_modulo_slug` en com_envios), usarlas
+   en lugar de inventar campos nuevos en metadata.
+
+### Alternativas descartadas
+
+- Index GIN sobre metadata: funciona pero es más lento y menos
+  intuitivo de queryear.
+- Crear vistas materializadas para queries frecuentes: complejidad
+  innecesaria cuando la columna nativa existe.
+
+### Consecuencias
+
+- `com_envios.origen_modulo_slug` y `origen_entidad_id` quedaron
+  canonizadas como mecanismo de trazabilidad de envíos automatizados.
+- Sprint 2.4-FIX agregó `idx_com_envios_dedup_origen` que sirve a
+  todos los triggers futuros.
+- Tablas futuras con campos de trazabilidad/dedup deben seguir este
+  patrón desde el día 1.
+
+---
+
+## ADR-038 — E2E con fixture + cleanup obligatorio para sprints que tocan triggers/jobs
+
+**Fecha:** 2026-05-12
+**Estado:** Aceptado
+**Capa:** Sistema entero
+**Tomado por:** Arquitecto
+
+### Contexto
+
+ADR-033 estableció que los E2E tests son criterio obligatorio de
+cierre de sprint. Sprint FASE 2.4 reportó 30/1/0 verde pero la
+verificación MCP post-deploy reveló que 3 de los 4 E2E nuevos eran
+cosméticos (tab visibility, auth 401) y no validaban el flujo
+crítico de `trigger → job_log row → envíos con origen correcto`.
+
+Los bugs semánticos del 2.4 (default 'comunicaciones' en metadata,
+permission slugs incorrectos) no fueron detectados por los E2E
+porque ningún test ejecutaba el trigger end-to-end con asserts
+sobre data real en DB.
+
+Sprint 2.4-FIX introdujo el patrón correcto: 1 test con fixture
+real (insert personas_autorizaciones) + ejecución del trigger +
+asserts sobre com_jobs_log y com_envios con origen verificado +
+cleanup garantizado con try/finally.
+
+Sprint 2.5 amplió el patrón: pre-cleanup adicional para evitar
+collision entre workers paralelos de Playwright (commit a3f00ed).
+
+### Decisión
+
+Regla canónica: **todo sprint que introduzca o modifique triggers,
+cron jobs, server actions con efectos asincrónicos, o flujos de
+multi-paso, debe incluir al menos 1 E2E test que:**
+
+1. **Setup**: inserte fixture real via service role.
+2. **Pre-cleanup**: borre rows de tests previos que puedan colisionar
+   con dedups o constraints únicas (caso: dedup de 7 días en triggers).
+3. **Action**: ejecute el flujo completo a través de la UI (o
+   server action si la UI lo invoca).
+4. **Assert**: verifique data real en DB (no solo respuesta UI):
+   - Filas creadas en tablas afectadas
+   - Valores de columnas críticas (FK, origin, status, counters)
+   - Side effects en otras tablas si aplica
+5. **Cleanup post-test**: borre la fixture en `finally` block, incluso
+   si el test falla. Debe ser idempotente. Incluye TODAS las tablas
+   afectadas (no solo la fixture inicial — también com_jobs_log,
+   com_envios generados, etc.).
+
+Tests cosméticos (tab visibility, auth checks, presencia de
+elementos UI) son **insuficientes** como única validación. Sirven
+como E2E complementarios pero nunca como E2E primario de un flujo
+con efectos en DB.
+
+### Alternativas descartadas
+
+- Validar solo vía MCP post-deploy: funciona pero requiere
+  intervención manual del arquitecto, no es repetible en CI.
+- Tests unitarios con mocks de Supabase: validan código pero no
+  validan migrations, RLS, FK constraints, triggers en cascada.
+
+### Consecuencias
+
+- Los sprints siguientes que toquen triggers/jobs/async flows
+  consumen ~30-45 min más en armar el E2E real con fixture.
+- A cambio, bugs semánticos como los del 2.4 se detectan en el
+  propio CI antes del deploy en lugar de post-deploy vía MCP.
+- Sprint FASE 2.4-FIX queda como patrón de referencia. El test
+  `automatizaciones: trigger apto_vence_7d genera job log + envíos
+  correctos (end-to-end real)` en tests/e2e/modules/comunicaciones.spec.ts
+  es la implementación canónica.
+- Limitación conocida (deuda FASE 15): el dedup de triggers
+  productivos puede colisionar con E2E corriendo a la misma hora
+  que un cron. Mitigación actual: pre-cleanup en tests. Solución
+  ideal: excluir envíos de fixture E2E del dedup por flag explícito.
 
 ---
 

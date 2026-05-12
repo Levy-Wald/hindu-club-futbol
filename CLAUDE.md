@@ -2,15 +2,15 @@
 
 ## Estado actual
 
-- **Tag actual:** `v0.6.0-fase2-sprint3-envios-masivos` (2026-05-11)
-- **FASE 1 cerrada**, Foundation (15a-c) cerrada, FASE 2 sprints 2.1-2.3 cerrados
-- **Proximo sprint:** FASE 2.4 (Cron de vencimientos + recordatorios automaticos)
-- **DB:** 116 tablas, 358 RLS policies, 128 funciones, 28 vistas, 97 triggers
+- **Tag actual:** `v0.8.1-docs-1` (2026-05-12)
+- **FASE 1 cerrada**, Foundation (15a-c) cerrada, **FASE 2 cerrada** (sprints 2.1-2.5)
+- **Proximo sprint:** FASE 3.1 (Control de asistencias operativo mobile)
+- **DB:** 145 tablas, 359 RLS policies, 129 funciones, 28 vistas, 93 triggers
 - **UI:** 64 paginas, ~160 server actions, ~115 componentes custom
-- **Tests E2E:** 27 specs (26 pass, 1 skip, 0 fail)
+- **Tests E2E:** 34 specs (33 pass, 1 skip, 0 fail)
 - **Hindu:** 2,390 personas, 7 equipos, 61 com_envios, 18 plantillas sistema, 35+ modulos activos
 - **Arquitectura:** 3 capas — Troncal universal + 18 Modulos componibles + Verticales como presets (ADR-031)
-- **35 ADRs** documentados (001-035)
+- **38 ADRs** documentados (001-038)
 
 ## Bloqueos operativos vigentes
 
@@ -58,6 +58,22 @@ npm run lint            # ESLint (79 errores heredados, no incluido en validate:
 7. **Pre-mortem (R-PE9)** para sprints de alto riesgo
 8. **Aislamiento financiero (ADR-025):** ventas de concesionarios NO tocan movimientos_caja
 9. **Server actions para mutaciones, API routes solo query-only**
+
+## Aprendizajes canonizados (FASE 2)
+
+Errores recurrentes detectados durante FASE 2 que están ahora
+canonizados como ADRs. Code consulta antes de cada sprint:
+
+- **ADR-036** — Permission slugs SIEMPRE en dot-notation
+  (`tenant.admin`, no `admin_tenant`). Validar contra catalogo_atributos.
+- **ADR-037** — Data que se filtra frecuentemente vive en columnas
+  nativas, no en metadata jsonb. Antes de agregar a metadata,
+  evaluar si necesita filtros, joins o índice.
+- **ADR-038** — Sprints que tocan triggers/jobs/flujos asincrónicos
+  requieren al menos 1 E2E real con fixture + asserts en DB +
+  cleanup garantizado con try/finally. Tests cosméticos no alcanzan.
+
+Ver detalles completos en /docs/DECISIONS.md.
 
 ## Roles operativos
 

@@ -5,7 +5,7 @@
 >
 > Mantenido por el arquitecto.
 >
-> Ultima actualizacion: 11 de mayo de 2026.
+> Ultima actualizacion: 12 de mayo de 2026.
 
 ---
 
@@ -43,35 +43,36 @@ Tag: `v0.1.0-fase1-cierre`
 
 ---
 
-## FASE 2 — Comunicacion (2026-05-11)
+## FASE 2 — Comunicacion (completada 2026-05-12)
 
 | Sprint | Tema | Tag | Tests E2E | Estado |
 |---|---|---|---|---|
-| 2.1 | Motor de comunicacion core (mock-first): adapter pattern, MockAdapter, renderTemplate, enviarComunicacion, page con 2 tabs | `v0.4.0-fase2-sprint1-motor` | 16 pass, 1 skip | Cerrado |
-| 2.2 | Editor CRUD de plantillas: editor con preview, auto-deteccion variables, permisos por atributo, proteccion sistema, 7 E2E tests | `v0.5.0-fase2-sprint2-editor` | 23 pass, 1 skip | Cerrado |
-| 2.3 | Envios masivos con segmentacion MVP: wizard, segmentos (todos_activos, equipo), preview, bulk insert batches 500, lotes, historial, detalle lote, 11 E2E comunicaciones | `v0.6.0-fase2-sprint3-envios-masivos` | 26 pass, 1 skip | Cerrado |
-| 2.4 | Cron vencimientos + recordatorios: 3 triggers (apto_vence_7d, cuota_vence_7d, cuota_vencida_7d), service role client, dedup 7d nativo, segmento personas_ids_directos, com_jobs_log, tab Automatizaciones, 4 E2E nuevos | `v0.7.0-fase2-sprint4-cron` | 30 pass, 1 skip | Cerrado |
+| 2.1 | Motor de comunicacion core (mock-first): adapter pattern, MockAdapter, renderTemplate, enviarComunicacion, page con 2 tabs | `v0.4.0` | 16/1/0 | Cerrado |
+| 2.2 | Editor CRUD de plantillas: editor con preview, auto-deteccion variables, permisos por atributo, proteccion sistema | `v0.5.0` | 23/1/0 | Cerrado |
+| 2.3 | Envios masivos con segmentacion MVP: wizard, segmentos, preview, bulk insert, lotes, historial, detalle lote | `v0.6.0` | 26/1/0 | Cerrado |
+| 2.4 | Cron vencimientos + recordatorios: 3 triggers, service role, dedup 7d nativo, com_jobs_log, tab Automatizaciones | `v0.7.0` | 30/1/0 | Cerrado |
+| 2.4-FIX | Correccion semantica + E2E real con fixture: dot-notation permisos, origen_modulo_slug limpio | `v0.7.1` | 31/1/0 | Cerrado |
+| 2.5 | Preferencias de comunicacion por persona: categoria_contenido, RPC filtro, UI en ficha persona | `v0.8.0` | 33/1/0 | Cerrado |
+
+FASE 2 completada al 100% el 2026-05-12.
 
 ---
 
 ## Sprint actual
 
-### Sprint FASE 2.5 — Preferencias de canales por persona
-**Capa:** Modulo (Comunicaciones) - **Fase:** FASE 2
+### Sprint FASE 3.1 — Control de asistencias operativo (mobile)
+**Capa:** Modulo (Asistencias) - **Fase:** FASE 3
 
-**Objetivo.** Cada persona elige por que canal quiere recibir comunicaciones
-(email, in-app, futuro whatsapp). El sistema respeta la preferencia al enviar.
+**Objetivo.** Tomar asistencia en entrenamientos y partidos desde mobile.
 
-**Dependencias previas.** Sprint FASE 2.4 cerrado. Tag `v0.7.0-fase2-sprint4-cron`.
+**Dependencias previas.** FASE 2 cerrada. Tag `v0.8.0-fase2-completa`.
 
 ---
 
 ## Proximos en cola
 
-### Sprint FASE 3.1 — Control de asistencias operativo (mobile)
-**Capa:** Modulo (Asistencias) - **Fase:** FASE 3
-
-**Objetivo.** Tomar asistencia en entrenamientos y partidos desde mobile.
+### Sprint FASE 3.2 — (por definir)
+**Capa:** TBD - **Fase:** FASE 3
 
 ---
 
