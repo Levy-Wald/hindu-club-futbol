@@ -14,6 +14,8 @@ function serviceRole() {
 }
 
 test.describe('Acceso', () => {
+  test.describe.configure({ mode: 'serial' })
+
   test('socio activo → veredicto VERDE', async ({ page }) => {
     const supabase = serviceRole()
 
