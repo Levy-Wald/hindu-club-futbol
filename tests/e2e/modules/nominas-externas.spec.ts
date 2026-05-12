@@ -148,7 +148,7 @@ test.describe('Nóminas externas', () => {
       .update({
         procesada: true,
         procesada_at: new Date().toISOString(),
-        match_decision: item.persona_id_match ? 'auto_match' : 'crear_nueva',
+        match_decision: (item as Record<string, unknown>).persona_id_match ? 'auto_match' : 'crear_nueva',
       })
       .eq('id', item.id)
 

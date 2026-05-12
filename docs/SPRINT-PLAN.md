@@ -66,13 +66,15 @@ FASE 2 completada al 100% el 2026-05-12.
 | 3.2 | Asistencia extendida a entidades y equipos: modelo polimórfico evento_asistencias, marca_asistencia, expandir equipo, 6 actions, 4 UI components | `v0.10.0` | 38/1/0 | Cerrado |
 | 3.3 | Módulo acceso MVP: pantalla guardia mobile-first, veredicto verde/amarillo/rojo, RPC verificar_acceso_persona, acceso_logs audit trail, marcar presente desde acceso, 5 UI components | `v0.11.0` | 41/1/0 | Cerrado |
 | 3.4 | Nóminas externas (RFC-001): sistema visitantes externos, form público sin auth, matching fuzzy, niveles L0/L1, padrón temporal, rate limiting, token criptográfico, admin confirmar/rechazar | `v0.12.0` | 44/1/0 | Cerrado |
+| 3.5 | Integración acceso ↔ padrón temporal: RPC verificar_acceso_persona con visitante_temporal, CardVeredicto contexto visitante, 3 E2E tests | `v0.13.0` | 47/1/0 | Cerrado |
+
+FASE 3 completada al 100% el 2026-05-12.
 
 ---
 
 ## Sprint actual
 
-### Sprint FASE 3.5 — (por definir)
-**Capa:** TBD - **Fase:** FASE 3
+(por definir)
 
 ---
 

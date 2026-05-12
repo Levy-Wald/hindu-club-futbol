@@ -287,9 +287,16 @@ pantalla de asistencia de un evento con equipo asignado. Se carga desde
 `personas_equipos` activos del equipo. Idempotente (no duplica si ya existen).
 
 **Veredicto (acceso).** Resultado de la verificación de acceso al club:
-`verde` (socio activo o invitado a evento hoy), `amarillo` (invitado a
-evento cercano pero no hoy), `rojo` (sin membresía ni invitaciones). Se
-determina por RPC `verificar_acceso_persona` y se registra en `acceso_logs`.
+`verde` (socio activo, visitante temporal vigente, o invitado a evento hoy),
+`amarillo` (invitado a evento cercano pero no hoy), `rojo` (sin membresía,
+sin vigencia ni invitaciones). Se determina por RPC `verificar_acceso_persona`
+y se registra en `acceso_logs`.
+
+**Visitante temporal.** Persona registrada en un padrón de tipo
+`visitantes_temporales` con `fecha_vigencia_hasta` vigente. Creada
+por el módulo de nóminas externas al confirmar items. La RPC
+`verificar_acceso_persona` les otorga veredicto `verde` si la vigencia
+no expiró.
 
 **Acceso log.** Registro de cada consulta de DNI en la pantalla de guardia.
 Audit trail con veredicto, motivos, persona encontrada, guardia que consultó.

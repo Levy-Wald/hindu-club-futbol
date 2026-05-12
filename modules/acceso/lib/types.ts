@@ -1,7 +1,14 @@
 export type VeredictoAcceso = 'verde' | 'amarillo' | 'rojo'
 
+export type VisitanteInfo = {
+  padron_slug: string
+  padron_nombre: string
+  vigencia_hasta: string | null
+}
+
 export type MotivoAcceso =
   | { tipo: 'socio_activo'; descripcion: string }
+  | { tipo: 'visitante_temporal'; descripcion: string; detalle: VisitanteInfo }
   | { tipo: 'invitaciones_hoy'; eventos: EventoMinimal[] }
   | { tipo: 'invitaciones_otro_dia'; eventos: EventoMinimal[] }
   | { tipo: 'sin_acceso'; descripcion: string }
@@ -19,6 +26,8 @@ export type EventoMinimal = {
 export type ResultadoVerificacion = {
   veredicto: VeredictoAcceso
   es_socio: boolean
+  es_visitante_temporal: boolean
+  visitante_info: VisitanteInfo | null
   invitaciones_hoy: EventoMinimal[]
   invitaciones_otro_dia: EventoMinimal[]
   motivos: MotivoAcceso[]

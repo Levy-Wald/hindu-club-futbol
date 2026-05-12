@@ -193,6 +193,271 @@ test.describe('Acceso', () => {
     }
   })
 
+  test('visitante temporal vigente → VERDE', async ({ page }) => {
+    const supabase = serviceRole()
+    const DNI_VISITANTE = '55000001'
+    let persona_id: string | null = null
+    let padron_id: string | null = null
+    let membresia_id: string | null = null
+
+    try {
+      // Pre-cleanup
+      await supabase.from('acceso_logs').delete().eq('dni_consultado', DNI_VISITANTE).eq('tenant_id', TENANT)
+
+      // Desactivar membresías de persona E2E para no interferir
+      await supabase.from('personas_padrones')
+        .update({ activo: false })
+        .eq('persona_id', PERSONA_E2E)
+        .eq('tenant_id', TENANT)
+
+      // Fixture: crear persona visitante
+      const { data: persona } = await supabase
+        .from('personas')
+        .insert({
+          tenant_id: TENANT,
+          nombre: 'Visitante',
+          apellido: 'E2E Temporal',
+          tipo_documento: 'dni',
+          numero_documento: DNI_VISITANTE,
+        })
+        .select('id')
+        .single()
+      persona_id = persona!.id
+
+      // Fixture: crear padrón visitantes_temporales si no existe
+      const { data: existePadron } = await supabase
+        .from('padrones')
+        .select('id')
+        .eq('tenant_id', TENANT)
+        .eq('tipo', 'visitantes_temporales')
+        .maybeSingle()
+
+      if (existePadron) {
+        padron_id = existePadron.id
+      } else {
+        const { data: newPadron } = await supabase
+          .from('padrones')
+          .insert({
+            tenant_id: TENANT,
+            nombre: 'Visitantes Temporales E2E',
+            slug: 'visitantes_temporales_e2e',
+            tipo: 'visitantes_temporales',
+            activo: true,
+          })
+          .select('id')
+          .single()
+        padron_id = newPadron!.id
+      }
+
+      // Fixture: agregar persona al padrón con vigencia futura
+      const vigenciaHasta = new Date()
+      vigenciaHasta.setDate(vigenciaHasta.getDate() + 7)
+      const { data: mem } = await supabase
+        .from('personas_padrones')
+        .insert({
+          tenant_id: TENANT,
+          padron_id: padron_id,
+          persona_id: persona_id,
+          activo: true,
+          fecha_alta: new Date().toISOString().slice(0, 10),
+          fecha_vigencia_hasta: vigenciaHasta.toISOString().slice(0, 10),
+        })
+        .select('id')
+        .single()
+      membresia_id = mem!.id
+
+      // Action
+      await page.goto('/admin/acceso')
+      await page.waitForLoadState('networkidle')
+      await page.getByTestId('input-dni').fill(DNI_VISITANTE)
+      await page.getByTestId('btn-buscar-acceso').click()
+
+      // Assert: VERDE
+      await expect(page.getByTestId('card-veredicto')).toBeVisible({ timeout: 10000 })
+      await expect(page.getByTestId('veredicto-color-verde')).toBeVisible()
+
+      // Assert: visitante temporal info visible
+      await expect(page.getByTestId('visitante-temporal-info')).toBeVisible()
+
+      // Assert DB
+      const { data: log } = await supabase
+        .from('acceso_logs')
+        .select('veredicto, persona_id')
+        .eq('dni_consultado', DNI_VISITANTE)
+        .eq('tenant_id', TENANT)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+      expect(log!.veredicto).toBe('verde')
+      expect(log!.persona_id).toBe(persona_id)
+
+    } finally {
+      await supabase.from('acceso_logs').delete().eq('dni_consultado', DNI_VISITANTE).eq('tenant_id', TENANT)
+      if (membresia_id) await supabase.from('personas_padrones').delete().eq('id', membresia_id)
+      if (persona_id) {
+        await supabase.from('personas_padrones').delete().eq('persona_id', persona_id)
+        await supabase.from('personas').delete().eq('id', persona_id)
+      }
+      // Reactivar membresías de persona E2E
+      await supabase.from('personas_padrones')
+        .update({ activo: true })
+        .eq('persona_id', PERSONA_E2E)
+        .eq('tenant_id', TENANT)
+    }
+  })
+
+  test('visitante temporal vencido → ROJO', async ({ page }) => {
+    const supabase = serviceRole()
+    const DNI_VISITANTE_VENC = '55000002'
+    let persona_id: string | null = null
+    let padron_id: string | null = null
+    let membresia_id: string | null = null
+
+    try {
+      // Pre-cleanup
+      await supabase.from('acceso_logs').delete().eq('dni_consultado', DNI_VISITANTE_VENC).eq('tenant_id', TENANT)
+
+      // Fixture: crear persona visitante
+      const { data: persona } = await supabase
+        .from('personas')
+        .insert({
+          tenant_id: TENANT,
+          nombre: 'Visitante',
+          apellido: 'E2E Vencido',
+          tipo_documento: 'dni',
+          numero_documento: DNI_VISITANTE_VENC,
+        })
+        .select('id')
+        .single()
+      persona_id = persona!.id
+
+      // Fixture: obtener o crear padrón
+      const { data: existePadron } = await supabase
+        .from('padrones')
+        .select('id')
+        .eq('tenant_id', TENANT)
+        .eq('tipo', 'visitantes_temporales')
+        .maybeSingle()
+
+      if (existePadron) {
+        padron_id = existePadron.id
+      } else {
+        const { data: newPadron } = await supabase
+          .from('padrones')
+          .insert({
+            tenant_id: TENANT,
+            nombre: 'Visitantes Temporales E2E',
+            slug: 'visitantes_temporales_e2e_2',
+            tipo: 'visitantes_temporales',
+            activo: true,
+          })
+          .select('id')
+          .single()
+        padron_id = newPadron!.id
+      }
+
+      // Fixture: agregar persona al padrón con vigencia PASADA
+      const vigenciaHasta = new Date()
+      vigenciaHasta.setDate(vigenciaHasta.getDate() - 3)
+      const { data: mem } = await supabase
+        .from('personas_padrones')
+        .insert({
+          tenant_id: TENANT,
+          padron_id: padron_id,
+          persona_id: persona_id,
+          activo: true,
+          fecha_alta: new Date().toISOString().slice(0, 10),
+          fecha_vigencia_hasta: vigenciaHasta.toISOString().slice(0, 10),
+        })
+        .select('id')
+        .single()
+      membresia_id = mem!.id
+
+      // Action
+      await page.goto('/admin/acceso')
+      await page.waitForLoadState('networkidle')
+      await page.getByTestId('input-dni').fill(DNI_VISITANTE_VENC)
+      await page.getByTestId('btn-buscar-acceso').click()
+
+      // Assert: ROJO (visitante vencido no da acceso)
+      await expect(page.getByTestId('card-veredicto')).toBeVisible({ timeout: 10000 })
+      await expect(page.getByTestId('veredicto-color-rojo')).toBeVisible()
+
+      // Assert DB
+      const { data: log } = await supabase
+        .from('acceso_logs')
+        .select('veredicto')
+        .eq('dni_consultado', DNI_VISITANTE_VENC)
+        .eq('tenant_id', TENANT)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+      expect(log!.veredicto).toBe('rojo')
+
+    } finally {
+      await supabase.from('acceso_logs').delete().eq('dni_consultado', DNI_VISITANTE_VENC).eq('tenant_id', TENANT)
+      if (membresia_id) await supabase.from('personas_padrones').delete().eq('id', membresia_id)
+      if (persona_id) {
+        await supabase.from('personas_padrones').delete().eq('persona_id', persona_id)
+        await supabase.from('personas').delete().eq('id', persona_id)
+      }
+    }
+  })
+
+  test('persona sin membresía ni invitaciones → ROJO', async ({ page }) => {
+    const supabase = serviceRole()
+    const DNI_SIN_ACCESO = '55000003'
+    let persona_id: string | null = null
+
+    try {
+      // Pre-cleanup
+      await supabase.from('acceso_logs').delete().eq('dni_consultado', DNI_SIN_ACCESO).eq('tenant_id', TENANT)
+
+      // Fixture: crear persona sin membresía
+      const { data: persona } = await supabase
+        .from('personas')
+        .insert({
+          tenant_id: TENANT,
+          nombre: 'Sin',
+          apellido: 'Acceso E2E',
+          tipo_documento: 'dni',
+          numero_documento: DNI_SIN_ACCESO,
+        })
+        .select('id')
+        .single()
+      persona_id = persona!.id
+
+      // Action
+      await page.goto('/admin/acceso')
+      await page.waitForLoadState('networkidle')
+      await page.getByTestId('input-dni').fill(DNI_SIN_ACCESO)
+      await page.getByTestId('btn-buscar-acceso').click()
+
+      // Assert: ROJO
+      await expect(page.getByTestId('card-veredicto')).toBeVisible({ timeout: 10000 })
+      await expect(page.getByTestId('veredicto-color-rojo')).toBeVisible()
+
+      // Assert DB
+      const { data: log } = await supabase
+        .from('acceso_logs')
+        .select('veredicto, persona_id')
+        .eq('dni_consultado', DNI_SIN_ACCESO)
+        .eq('tenant_id', TENANT)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+      expect(log!.veredicto).toBe('rojo')
+      expect(log!.persona_id).toBe(persona_id)
+
+    } finally {
+      await supabase.from('acceso_logs').delete().eq('dni_consultado', DNI_SIN_ACCESO).eq('tenant_id', TENANT)
+      if (persona_id) {
+        await supabase.from('personas_padrones').delete().eq('persona_id', persona_id)
+        await supabase.from('personas').delete().eq('id', persona_id)
+      }
+    }
+  })
+
   test('DNI no encontrado → ROJO', async ({ page }) => {
     const supabase = serviceRole()
     const DNI_INEXISTENTE = '00000001'

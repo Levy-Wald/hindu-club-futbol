@@ -6,7 +6,7 @@ import { TENANT_ID } from '@/lib/tenant'
 import { canUsarPantallaAcceso } from './permisos'
 import { buscarPersonaPorDni } from './queries'
 import { normalizarDni, esDniValido } from './normalizar-dni'
-import type { ResultadoVerificacion, VeredictoAcceso, MotivoAcceso, EventoMinimal } from './types'
+import type { ResultadoVerificacion, VeredictoAcceso, MotivoAcceso, EventoMinimal, VisitanteInfo } from './types'
 
 type ActionResult<T = unknown> =
   | { ok: true; data: T }
@@ -99,6 +99,8 @@ export async function verificarAccesoAction(input: {
         ...persona,
         veredicto,
         es_socio: rpcResult.es_socio as boolean,
+        es_visitante_temporal: (rpcResult.es_visitante_temporal as boolean) ?? false,
+        visitante_info: (rpcResult.visitante_info as VisitanteInfo) ?? null,
         invitaciones_hoy: rpcResult.invitaciones_hoy as EventoMinimal[],
         invitaciones_otro_dia: rpcResult.invitaciones_otro_dia as EventoMinimal[],
         motivos: rpcResult.motivos as MotivoAcceso[],

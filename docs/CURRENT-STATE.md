@@ -6,29 +6,29 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint FASE 3.4 cerrado.
-> Módulo nominas_externas: sistema de visitantes externos con padrón temporal,
-> form público sin auth, matching fuzzy, niveles L0/L1, rate limiting,
-> token criptográfico, admin confirmar/rechazar, 4 E2E tests.
+> Última actualización: 12 de mayo de 2026 — Sprint FASE 3.5 cerrado.
+> Integración acceso ↔ padrón temporal: RPC verificar_acceso_persona
+> ampliada con lógica visitante_temporal, CardVeredicto con contexto
+> visitante, 3 nuevos E2E tests. FASE 3 cerrada.
 
 ---
 
 ## 0. Snapshot ejecutivo
 
 **Estado general:** FASE 1 cerrada. FASE 2 (Comunicación) completada al 100%.
-FASE 3 (Operación deportiva) avanzando: Sprints 3.1-3.4 cerrados.
+FASE 3 (Operación deportiva) completada al 100%: Sprints 3.1-3.5 cerrados.
 Plataforma con base operativa completa: suscripciones, cuotas, cobranza,
 centros de costo, salud, utileria, cuerpo tecnico, notificaciones in-app,
 concesiones, motor de comunicación mock-first, asistencias mobile-first,
-control de acceso con veredicto, nóminas externas con padrón temporal.
+control de acceso con veredicto + visitantes temporales, nóminas externas
+con padrón temporal.
 
-**Ultimo sprint cerrado:** **FASE 3.4** — Módulo nominas_externas:
-sistema completo de visitantes externos con form público sin auth,
-matching fuzzy via RPC, niveles de validación L0/L1, token criptográfico,
-padrón temporal con vigencia, rate limiting en middleware, admin
-confirmar/rechazar items, 4 E2E tests.
+**Ultimo sprint cerrado:** **FASE 3.5** — Integración acceso ↔ padrón temporal:
+RPC verificar_acceso_persona ampliada con lógica visitante_temporal vigente,
+CardVeredicto muestra contexto visitante, tipos TypeScript actualizados,
+3 nuevos E2E tests (vigente→VERDE, vencido→ROJO, sin acceso→ROJO).
 
-**Próximo sprint:** FASE 3.5 — (por definir, operación deportiva).
+**Próximo sprint:** (por definir).
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -53,7 +53,7 @@ confirmar/rechazar items, 4 E2E tests.
 | API routes | 17 (5 endpoints v1 + 5 internos + 7 crons) |
 | Server actions | ~168 en 29 archivos |
 | Componentes custom (no shadcn) | ~131 |
-| Tests E2E (Playwright) | 46 specs (44 pass, 1 skip, 1 flaky) |
+| Tests E2E (Playwright) | 49 specs (47 pass, 1 skip, 1 flaky) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |

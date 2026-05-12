@@ -24,11 +24,13 @@ export function CardVeredicto({ resultado }: Props) {
 
   const razon = resultado.es_socio
     ? 'Socio activo del club'
-    : resultado.invitaciones_hoy.length > 0
-      ? `Invitado a ${resultado.invitaciones_hoy.length} evento(s) de hoy`
-      : resultado.invitaciones_otro_dia.length > 0
-        ? 'Invitación a evento de otra fecha'
-        : 'No es socio ni tiene invitaciones'
+    : resultado.es_visitante_temporal
+      ? 'Visitante temporal con acceso vigente'
+      : resultado.invitaciones_hoy.length > 0
+        ? `Invitado a ${resultado.invitaciones_hoy.length} evento(s) de hoy`
+        : resultado.invitaciones_otro_dia.length > 0
+          ? 'Invitación a evento de otra fecha'
+          : 'No es socio ni tiene invitaciones'
 
   return (
     <div
@@ -69,6 +71,20 @@ export function CardVeredicto({ resultado }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Visitante temporal info */}
+      {resultado.es_visitante_temporal && resultado.visitante_info && (
+        <div className="bg-blue-50 px-6 py-3 border-b border-blue-100" data-testid="visitante-temporal-info">
+          <p className="text-sm font-medium text-blue-800">
+            Visitante temporal — {resultado.visitante_info.padron_nombre}
+          </p>
+          {resultado.visitante_info.vigencia_hasta && (
+            <p className="text-xs text-blue-600 mt-0.5">
+              Vigencia hasta: {new Date(resultado.visitante_info.vigencia_hasta).toLocaleDateString('es-AR')}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
