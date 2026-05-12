@@ -6,9 +6,9 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 11 de mayo de 2026 — Sprint FASE 2.4 completado.
-> Sprints 14d a 15c cerrados. FASE 1 oficialmente cerrada.
-> Sprint FASE 2.4: Cron de vencimientos + recordatorios automáticos.
+> Última actualización: 12 de mayo de 2026 — Sprint FASE 2.5 completado.
+> Sprints 14d a 15c cerrados. FASE 1 oficialmente cerrada. FASE 2 completa.
+> Sprint FASE 2.5: Preferencias de comunicación por persona.
 
 ---
 
@@ -18,12 +18,11 @@
 para Hindu Club Futbol: suscripciones, cuotas, cobranza, centros de costo,
 salud, utileria, cuerpo tecnico, notificaciones in-app, concesiones.
 
-**Ultimo sprint cerrado:** **FASE 2.4** — Cron de vencimientos + recordatorios
-automáticos. 3 cron jobs (apto_vence_7d, cuota_vence_7d, cuota_vencida_7d) con
-service role client, dedup 7d via origen_modulo_slug nativo, segmento
-personas_ids_directos, com_jobs_log table. Tab "Automatizaciones" con historial
-de ejecuciones y detalle por job. 15 E2E tests comunicaciones (30 total passed,
-1 skip).
+**Ultimo sprint cerrado:** **FASE 2.5** — Preferencias de comunicación por persona.
+`personas_preferencias_comunicacion` wired al motor de envíos. `com_plantillas.categoria_contenido`
+(transaccional/eventos_club/marketing/partners/torneos). RPC `filtrar_personas_por_preferencias_comunicacion`
+para filtrado SQL-level. Transaccional ignora opt-in/out. UI en ficha persona (tab Comunicaciones).
+21 E2E tests comunicaciones (33 total passed, 1 skip). **FASE 2 completa.**
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -39,7 +38,7 @@ de ejecuciones y detalle por job. 15 E2E tests comunicaciones (30 total passed,
 | Tablas en `public` | 117 |
 | Tablas con RLS habilitada | 116 (100%) |
 | RLS policies | 358 |
-| Funciones custom (`pg_proc` en public) | 128 |
+| Funciones custom (`pg_proc` en public) | 129 |
 | Triggers | 97 |
 | VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
@@ -48,7 +47,7 @@ de ejecuciones y detalle por job. 15 E2E tests comunicaciones (30 total passed,
 | API routes | 15 (5 endpoints v1 + 3 internos + 7 crons) |
 | Server actions | ~160 en 26 archivos |
 | Componentes custom (no shadcn) | ~115 |
-| Tests E2E (Playwright) | 31 specs (30 pass, 1 skip) |
+| Tests E2E (Playwright) | 34 specs (33 pass, 1 skip) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |
@@ -507,6 +506,20 @@ Historial referenciado en commits del repo. Listado resumido:
   MockAdapter.enviarMasivo(), lotes agrupados por metadata.lote_id, tab
   "Envíos masivos" con historial, detalle de lote, API route preview-segmento,
   11 E2E tests comunicaciones.
+- **FASE 2.4** — Cron de Vencimientos + Recordatorios Automáticos: 3 cron jobs
+  (apto_vence_7d, cuota_vence_7d, cuota_vencida_7d) con service role client,
+  dedup 7d via origen_modulo_slug nativo, segmento personas_ids_directos,
+  com_jobs_log table. Tab "Automatizaciones" con historial y detalle por job.
+  Tag `v0.7.0-fase2-sprint4-cron`.
+- **FASE 2.4-FIX** — Fix 3 bugs semánticos: origen_modulo_slug corregido en
+  181 envíos, permission slugs dot-notation, crons pausados/reactivados.
+  Tag `v0.7.1-fase2-sprint4-fix`.
+- **FASE 2.5** — Preferencias de Comunicación por Persona:
+  `personas_preferencias_comunicacion` wired al motor, `com_plantillas.categoria_contenido`
+  (transaccional/eventos_club/marketing/partners/torneos), RPC
+  `filtrar_personas_por_preferencias_comunicacion`, transaccional ignora opt-in/out,
+  UI en ficha persona (tab Comunicaciones), 21 E2E tests comunicaciones.
+  **FASE 2 completa.** Tag `v0.8.0-fase2-completa`.
 
 ---
 
