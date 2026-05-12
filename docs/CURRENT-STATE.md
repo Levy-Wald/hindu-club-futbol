@@ -6,11 +6,9 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint DOCS-6 cerrado.
-> Día completo: FASE 2 al 100%, FASE 3.1 al 100% validado contra prod,
-> serie DOCS-1 a DOCS-6 cerrada, 4 ADRs nuevos (036/037/038/039),
-> 2 bugs reales agarrados por E2E antes de Hindu (canonizados como
-> AP-001 y AP-002 en RUNBOOK).
+> Última actualización: 12 de mayo de 2026 — Sprint FASE 3.2 cerrado.
+> Asistencia extendida a entidades y equipos: modelo polimórfico en
+> evento_asistencias, 6 server actions, 4 UI components, 5 E2E tests.
 
 ---
 
@@ -22,11 +20,12 @@ Plataforma con base operativa completa: suscripciones, cuotas, cobranza,
 centros de costo, salud, utileria, cuerpo tecnico, notificaciones in-app,
 concesiones, motor de comunicación mock-first, asistencias mobile-first.
 
-**Ultimo sprint cerrado:** **FASE 3.1** — Control de asistencias operativo
-mobile con React Query optimistic mutations, auto-poblado lazy de invitados
-desde plantel, 6 estados, permisos por rol, 2 E2E tests.
+**Ultimo sprint cerrado:** **FASE 3.2** — Asistencia extendida a entidades
+y equipos: modelo polimórfico en evento_asistencias (persona|entidad|equipo),
+marca_asistencia configurable, expandir equipo a personas individuales,
+5 E2E tests.
 
-**Próximo sprint:** FASE 3.2 — (por definir, operación deportiva).
+**Próximo sprint:** FASE 3.3 — (por definir, operación deportiva).
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -42,7 +41,7 @@ desde plantel, 6 estados, permisos por rol, 2 E2E tests.
 | Tablas en `public` | 146 |
 | Tablas con RLS habilitada | 145 (99.3%) |
 | RLS policies | 361 |
-| Funciones custom (`pg_proc` en public) | 130 |
+| Funciones custom (`pg_proc` en public) | 132 |
 | Triggers | 94 |
 | VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
@@ -51,7 +50,7 @@ desde plantel, 6 estados, permisos por rol, 2 E2E tests.
 | API routes | 15 (5 endpoints v1 + 3 internos + 7 crons) |
 | Server actions | ~162 en 27 archivos |
 | Componentes custom (no shadcn) | ~121 |
-| Tests E2E (Playwright) | 36 specs (35 pass, 1 skip) |
+| Tests E2E (Playwright) | 39 specs (38 pass, 1 skip) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |

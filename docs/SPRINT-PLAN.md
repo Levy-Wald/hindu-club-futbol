@@ -63,12 +63,13 @@ FASE 2 completada al 100% el 2026-05-12.
 | Sprint | Tema | Tag | Tests E2E | Estado |
 |---|---|---|---|---|
 | 3.1 | Control de asistencias operativo (mobile): evento_invitados, auto-poblado lazy, 6 estados, React Query optimistic, permisos CT/admin | `v0.9.0` | 35/1/0 | Cerrado |
+| 3.2 | Asistencia extendida a entidades y equipos: modelo polimórfico evento_asistencias, marca_asistencia, expandir equipo, 6 actions, 4 UI components | `v0.10.0` | 38/1/0 | Cerrado |
 
 ---
 
 ## Sprint actual
 
-### Sprint FASE 3.2 — (por definir)
+### Sprint FASE 3.3 — (por definir)
 **Capa:** TBD - **Fase:** FASE 3
 
 ---
