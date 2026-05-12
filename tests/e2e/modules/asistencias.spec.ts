@@ -180,11 +180,11 @@ test.describe('Asistencias', () => {
 
       // Marcar presente
       await page.getByTestId(`btn-estado-${PERSONA_E2E}-presente`).click()
-      await page.waitForTimeout(1500)
+      await page.waitForTimeout(2500)
 
       // Cambiar a tarde
       await page.getByTestId(`btn-estado-${PERSONA_E2E}-tarde`).click()
-      await page.waitForTimeout(1500)
+      await page.waitForTimeout(2500)
 
       // Assert: solo 1 fila de asistencia
       const { data: asistencias, error } = await supabase
@@ -222,6 +222,7 @@ test.describe('Asistencias', () => {
           tenant_id: TENANT,
           nombre: 'E2E Sponsor Test',
           tipo: 'sponsor',
+          slug: 'e2e-sponsor-test-' + Date.now(),
         })
         .select()
         .single()
