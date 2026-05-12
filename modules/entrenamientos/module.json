@@ -1,0 +1,27 @@
+{
+  "slug": "entrenamientos",
+  "name": "Organizador de entrenamientos",
+  "version": "1.0.0",
+  "category": "operaciones",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas", "eventos"],
+  "depends_on_modules": ["asistencias"],
+  "soft_depends_on_modules": ["planificadores"],
+  "owns_tables": [
+    "catalogo_ejercicios",
+    "entrenamiento_planes",
+    "entrenamiento_plan_bloques"
+  ],
+  "owns_catalogs": [],
+  "permissions_required": ["tenant.admin", "entrenamientos.editor"],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": ["/admin/operaciones/eventos/[eventoId]/plan"],
+  "public_routes": [],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null,
+  "sidebar_exception": "Módulo accesible solo desde detalle de evento tipo entrenamiento. AP-006 excepción documentada."
+}
