@@ -12,7 +12,7 @@ const INTENSIDADES: { value: Intensidad; label: string }[] = [
 ]
 
 export function PlanHeader({
-  plan,
+  plan: initialPlan,
   eventoId,
   duracionCalculada,
   puedeEditar,
@@ -25,10 +25,17 @@ export function PlanHeader({
   onPlanCreated?: (planId: string) => void
 }) {
   const [editando, setEditando] = useState(false)
-  const [objetivo, setObjetivo] = useState(plan?.objetivo ?? '')
-  const [intensidad, setIntensidad] = useState<Intensidad | ''>(plan?.nivel_intensidad ?? '')
-  const [notas, setNotas] = useState(plan?.notas_dt ?? '')
+  const [planCreado, setPlanCreado] = useState(false)
+  const [objetivo, setObjetivo] = useState(initialPlan?.objetivo ?? '')
+  const [intensidad, setIntensidad] = useState<Intensidad | ''>(initialPlan?.nivel_intensidad ?? '')
+  const [notas, setNotas] = useState(initialPlan?.notas_dt ?? '')
   const [guardando, setGuardando] = useState(false)
+
+  const plan = initialPlan || (planCreado ? {
+    objetivo: objetivo || null,
+    nivel_intensidad: (intensidad as Intensidad) || null,
+    notas_dt: notas || null,
+  } as PlanEntrenamiento : null)
 
   const handleGuardar = async () => {
     setGuardando(true)
@@ -40,6 +47,7 @@ export function PlanHeader({
     })
     setGuardando(false)
     if (result.ok) {
+      setPlanCreado(true)
       setEditando(false)
       onPlanCreated?.(result.plan_id)
     }
