@@ -292,7 +292,7 @@ export async function confirmarItemAction(input: {
           nombre: pInput.nombre,
           apellido: pInput.apellido,
           numero_documento: pInput.dni || null,
-          tipo_documento: 'DNI',
+          tipo_documento: 'dni',
         })
         .select('id')
         .single()
