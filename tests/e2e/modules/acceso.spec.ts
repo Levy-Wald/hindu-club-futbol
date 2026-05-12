@@ -34,7 +34,7 @@ test.describe('Acceso', () => {
       if (padron) {
         // Check-then-insert (AP-002)
         const { data: existente } = await supabase
-          .from('padrones_personas')
+          .from('personas_padrones')
           .select('id')
           .eq('padron_id', padron.id)
           .eq('persona_id', PERSONA_E2E)
@@ -44,7 +44,7 @@ test.describe('Acceso', () => {
 
         if (!existente) {
           const { data: mem } = await supabase
-            .from('padrones_personas')
+            .from('personas_padrones')
             .insert({
               tenant_id: TENANT,
               padron_id: padron.id,
@@ -88,7 +88,7 @@ test.describe('Acceso', () => {
 
     } finally {
       await supabase.from('acceso_logs').delete().eq('dni_consultado', DNI_E2E).eq('tenant_id', TENANT)
-      if (padron_membresia_id) await supabase.from('padrones_personas').delete().eq('id', padron_membresia_id)
+      if (padron_membresia_id) await supabase.from('personas_padrones').delete().eq('id', padron_membresia_id)
     }
   })
 
@@ -102,7 +102,7 @@ test.describe('Acceso', () => {
       // Pre-cleanup
       await supabase.from('acceso_logs').delete().eq('dni_consultado', DNI_E2E).eq('tenant_id', TENANT)
       // Asegurarse de que no sea socio activo (para que el VERDE venga por invitación)
-      await supabase.from('padrones_personas')
+      await supabase.from('personas_padrones')
         .update({ activo: false })
         .eq('persona_id', PERSONA_E2E)
         .eq('tenant_id', TENANT)
@@ -184,7 +184,7 @@ test.describe('Acceso', () => {
       }
       await supabase.from('acceso_logs').delete().eq('dni_consultado', DNI_E2E).eq('tenant_id', TENANT)
       // Reactivar membresías
-      await supabase.from('padrones_personas')
+      await supabase.from('personas_padrones')
         .update({ activo: true })
         .eq('persona_id', PERSONA_E2E)
         .eq('tenant_id', TENANT)
