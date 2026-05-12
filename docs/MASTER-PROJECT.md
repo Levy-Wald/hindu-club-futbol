@@ -366,3 +366,4 @@ ajustamos el modelo.
 | 13 | POST-MORTEM-TEMPLATE.md | Template para análisis post-incidente | Arquitecto |
 | 14 | RFC-TEMPLATE.md | Template para Request For Comments antes de decisiones grandes | Arquitecto |
 | 15 | SYSTEM-PROMPTS.md | Specs formales de agentes IA del sistema (Opus, Code, FASE 9 futuros) + reglas de seguridad inviolables | Arquitecto |
+| 16 | SYSTEM-DESIGN.md | Vista unificada del sistema: componentes, flujos críticos, multi-tenancy, dependencias externas, escalabilidad, deuda arquitectónica | Arquitecto |

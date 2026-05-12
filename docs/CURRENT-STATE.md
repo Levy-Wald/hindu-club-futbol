@@ -6,7 +6,7 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint DOCS-3 cerrado.
+> Última actualización: 12 de mayo de 2026 — Sprint DOCS-4 cerrado.
 > FASE 2 completada (Sprint FASE 2.5 cerrado con tag v0.8.0-fase2-completa).
 > Sistema documental sincronizado + manual operativo + templates + system prompts.
 
@@ -20,9 +20,9 @@ centros de costo, salud, utileria, cuerpo tecnico, notificaciones in-app,
 concesiones, motor de comunicación mock-first con plantillas, envíos masivos,
 crons de vencimientos y preferencias por persona.
 
-**Ultimo sprint cerrado:** **DOCS-1** — Sincronización del sistema documental
-+ canonización post-FASE 2. ADRs 036-038 canonizados. WORKFLOW.md eliminado.
-Métricas de DB sincronizadas con realidad (145 tablas, no 117).
+**Ultimo sprint cerrado:** **DOCS-4** — System Design unificado con vista
+completa del sistema, 8 diagramas Mermaid, 14 secciones cubriendo componentes,
+flujos críticos, multi-tenancy, dependencias externas, escalabilidad y deuda.
 
 **Próximo sprint:** FASE 3.1 — Control de asistencias operativo mobile.
 
@@ -545,6 +545,12 @@ Historial referenciado en commits del repo. Listado resumido:
   con template canónico de role spec, protocolo de testeo y regresión
   de system prompts. Lista de docs vivos actualizada de 14 a 15.
   Tag v0.8.3.
+- **Sprint DOCS-4** — System Design unificado.
+  Creado docs/SYSTEM-DESIGN.md con vista completa del sistema: 14 secciones,
+  8 diagramas Mermaid (componentes, capas, auth, envío masivo, cron, import,
+  cobranza), multi-tenancy, dependencias externas, seguridad, performance,
+  escalabilidad y deuda arquitectónica. Lista de docs vivos de 15 a 16.
+  Tag v0.8.4.
 
 ---
 
