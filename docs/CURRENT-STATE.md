@@ -6,9 +6,9 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint DOCS-2 cerrado.
+> Última actualización: 12 de mayo de 2026 — Sprint DOCS-3 cerrado.
 > FASE 2 completada (Sprint FASE 2.5 cerrado con tag v0.8.0-fase2-completa).
-> Sistema documental sincronizado + manual operativo + templates.
+> Sistema documental sincronizado + manual operativo + templates + system prompts.
 
 ---
 
@@ -538,6 +538,13 @@ Historial referenciado en commits del repo. Listado resumido:
   Creados docs/RUNBOOK.md (20 escenarios), docs/POST-MORTEM-TEMPLATE.md
   y docs/RFC-TEMPLATE.md. Lista de docs vivos actualizada de 11 a 14.
   Tag v0.8.2.
+- **Sprint DOCS-3** — System Prompt Specs unificados.
+  Creado docs/SYSTEM-PROMPTS.md con specs formales de Opus (Arquitecto)
+  y Code (Implementador), reglas de seguridad inviolables S-1 a S-7
+  aplicables a todo agente IA, roadmap de 8 agentes futuros de FASE 9
+  con template canónico de role spec, protocolo de testeo y regresión
+  de system prompts. Lista de docs vivos actualizada de 14 a 15.
+  Tag v0.8.3.
 
 ---
 
