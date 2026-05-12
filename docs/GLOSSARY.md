@@ -315,6 +315,14 @@ planificador, el usuario elige si mueve solo esa fecha (crea evento huérfano
 hijo, no modifica el padre) o toda la serie (actualiza el evento padre y
 recalcula recurrencia).
 
+**Planificador semanal.** Vista de calendario con grilla horaria de 6 AM a
+11 PM, drag-and-drop para mover eventos entre días y resize para cambiar
+duración arrastrando bordes. Sprint 4.2.
+
+**Resize de evento.** Arrastrar borde superior o inferior de un evento en la
+vista semanal para cambiar su hora de inicio o fin sin moverlo de día.
+Reutiliza `moverEventoAction` (misma action que para mover).
+
 **Suscriptor.** Persona (jugador o no) que aporta económicamente a un fondo
 específico (ej: Fondo Fútbol). Modelado como atributo `suscriptor` +
 suscripción al plan correspondiente.

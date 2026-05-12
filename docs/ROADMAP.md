@@ -189,7 +189,7 @@ amistosos, tacticas, reservas de canchas.
 | # | Modulo | Estado |
 |---|---|---|
 | 4.1 | Planificador mensual (calendario) | Done |
-| 4.2 | Planificador semanal (grilla drag & drop) | Yellow |
+| 4.2 | Planificador semanal (grilla drag & drop + resize) | Done |
 | 4.3 | Organizador de entrenamientos | Red |
 | 4.4 | Organizador de partido amistoso | Red |
 | 4.5 | Organizador tactico (esquemas drag & drop) | Yellow |

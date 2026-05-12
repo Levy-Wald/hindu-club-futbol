@@ -6,8 +6,8 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint FASE 4.1 cerrado.
-> Planificador mensual con drag-and-drop. Primer sprint de FASE 4.
+> Última actualización: 12 de mayo de 2026 — Sprint FASE 4.2 cerrado.
+> Planificador semanal con grilla + drag-and-drop + resize.
 
 ---
 
@@ -15,14 +15,14 @@
 
 **Estado general:** FASE 1 cerrada. FASE 2 (Comunicación) completada al 100%.
 FASE 3 (Operación deportiva) completada al 100%. FASE 4 (Planificadores)
-en progreso: Sprint 4.1 cerrado (planificador mensual con drag-and-drop).
+en progreso: Sprint 4.1 y 4.2 cerrados.
 
-**Ultimo sprint cerrado:** **FASE 4.1** — Planificador mensual con
-react-big-calendar, drag-and-drop para reprogramar eventos, modal de
-detalle, modal de scope para recurrentes, warning de overlap de cancha.
+**Ultimo sprint cerrado:** **FASE 4.2** — Planificador semanal con grilla
+horaria 6AM-11PM, drag-and-drop para mover eventos entre días, resize para
+cambiar duración. Toggle Mes/Semana en ambas vistas.
 
-**Próximo sprint:** Sprint 4.2 (FASE 4 — Planificador semanal con
-grilla drag-and-drop).
+**Próximo sprint:** Sprint 4.3 (FASE 4 — Organizador de entrenamientos)
+o 4.6 (Reservas de canchas) — a decidir por el Arquitecto.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -43,11 +43,11 @@ grilla drag-and-drop).
 | VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 69 (8 públicas + 61 admin) |
+| Páginas Next.js | 70 (8 públicas + 62 admin) |
 | API routes | 17 (5 endpoints v1 + 5 internos + 7 crons) |
 | Server actions | ~172 en 30 archivos |
 | Componentes custom (no shadcn) | ~135 |
-| Tests E2E (Playwright) | 53 specs (52 pass, 1 skip, 0 fail) |
+| Tests E2E (Playwright) | 56 specs (55 pass, 1 skip, 0 fail) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |
@@ -220,6 +220,16 @@ actions, auto-poblar, permisos, categorias), ui/ (pantalla-asistencia,
 seccion-categoria, fila-persona, sumario-asistencia, label-rol). Page en
 `app/admin/(troncal)/operaciones/eventos/[eventoId]/asistencia/`. React Query
 con optimistic mutations. RPC `fn_obtener_invitados_evento`.
+
+**Módulo Planificadores (Sprint FASE 4.1 + 4.2):**
+Módulo en `modules/planificadores/` con module.json, lib/ (actions, queries,
+types, permisos, overlap-detector), ui/ (calendario-mensual, calendario-semanal,
+toggle-planificador, modal-detalle-evento, modal-mover-recurrente, warning-overlap).
+Dos vistas: mensual (react-big-calendar month + drag-and-drop) y semanal
+(week con grilla 6AM-11PM + drag-and-drop + resize). Toggle Mes/Semana en
+ambas pantallas. Reutiliza `moverEventoAction` para mover y redimensionar.
+Permisos: tenant.admin, planificadores.editor, o roles CT del equipo.
+Pages: `/admin/planificadores/mensual`, `/admin/planificadores/semanal`.
 
 **Gaps:** scouting con uso real (postergado), partidos cargados (postergado).
 
