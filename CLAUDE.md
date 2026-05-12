@@ -134,3 +134,56 @@ persona (no usuario), atributo (no rol), tenant (no cliente), emision
 (comision mensual), plantel snapshot (captura al momento), mock-first
 (ADR-035, todo en mock hasta demo), lote (grupo de envios masivos),
 segmento (filtro de personas para envio masivo).
+
+## Modelo operativo Yair / Arquitecto
+
+Canonizado el 12-may-2026. Define quién decide qué en el proyecto.
+
+### Roles
+
+- **Yair Levy Wald:** dueño de producto. Decide visión, scope,
+  modelo de negocio, aprobación de RFCs, cambios estructurales,
+  decisiones legales/comerciales.
+- **Arquitecto (Claude Opus en chat web):** orquestador técnico.
+  Decide orden de sprints, alcance, modelo de datos, patrones de
+  código, naming, tests, anti-patrones, renumeraciones internas,
+  ADRs menores. Verifica producción vía MCP en cada cierre.
+- **Implementador (Claude Code en CLI):** ejecuta los prompts que
+  arma el arquitecto. Reporta cierre con formato canonizado
+  (R-PE10). NUNCA afirma estado de producción sin verificar vía
+  MCP (ADR-039, AP-001, AP-002).
+
+### Qué decide el Arquitecto sin consultar
+
+- Orden de sprints (respetando dependencias del RFC vigente)
+- Tamaño y alcance de cada sprint
+- Modelo de datos (tablas, columnas, índices, RLS)
+- Patrones de código y naming
+- Cómo testear (E2E vs unit, con o sin fixture)
+- Si requiere pre-mortem (R-PE9)
+- Renumeración cuando hay desincronización docs
+- Anti-patrones (AP-NNN) y ADRs menores
+- Cuándo cortar el día y cuándo seguir
+
+### Qué requiere validación de Yair
+
+- Visión de producto / scope macro
+- Modelo de negocio
+- Roadmap a alto nivel (fases nuevas, repriorización)
+- Aprobación de RFCs antes del sprint asociado
+- Decisiones legales / comerciales / contractuales
+- Cuando hay 2+ opciones con tradeoff serio
+- Reasignaciones de roles / responsabilidades
+
+### Disciplinas operativas no opcionales
+
+1. Envelope canónico (R-PE1 a R-PE10) en cada prompt
+2. Verificación vía MCP antes/después de cada sprint
+3. Pre-mortem si sprint grande/riesgoso (R-PE9)
+4. Docs vivos actualizados en CADA sprint
+5. ADRs para decisiones que el equipo debe conocer
+6. Anti-patrones AP-NNN cuando bug en prod enseña algo
+7. RFCs antes de sprints grandes o sistemas nuevos
+8. Cierre ejecutivo al Drive en días significativos
+
+Detalles operativos en `docs/RUNBOOK.md` sección "Modelo operativo".

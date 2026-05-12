@@ -58,7 +58,7 @@ FASE 2 completada al 100% el 2026-05-12.
 
 ---
 
-## FASE 3 — Operacion deportiva (en curso)
+## FASE 3 — Operacion deportiva (completada 2026-05-12)
 
 | Sprint | Tema | Tag | Tests E2E | Estado |
 |---|---|---|---|---|
@@ -72,15 +72,26 @@ FASE 3 completada al 100% el 2026-05-12.
 
 ---
 
+## Documentacion (2026-05-12)
+
+| Sprint | Tema | Tag | Tests E2E | Estado |
+|---|---|---|---|---|
+| DOCS-7+UX-FIX | RFC-001 en repo, pre-mortem 3.4, modelo operativo canonizado, AP-003 a AP-006, sidebar con Acceso y Nóminas externas | `v0.13.1` | 49/1/0 | Cerrado |
+
+---
+
 ## Sprint actual
 
-(por definir)
+### Sprint 4.1 — (por definir)
+**Capa:** TBD — **Fase:** FASE 4
+
+Bloqueado hasta que Yair defina scope de Planificadores (RFC-002 pendiente).
 
 ---
 
 ## Proximos en cola
 
-(por definir)
+(por definir — depende de RFC-002)
 
 ---
 

@@ -6,10 +6,10 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint FASE 3.5 cerrado.
-> Integración acceso ↔ padrón temporal: RPC verificar_acceso_persona
-> ampliada con lógica visitante_temporal, CardVeredicto con contexto
-> visitante, 3 nuevos E2E tests. FASE 3 cerrada.
+> Última actualización: 12 de mayo de 2026 — Sprint DOCS-7+UX-FIX cerrado.
+> RFC-001 en repo, pre-mortem 3.4 canonizado, modelo operativo escrito,
+> 4 anti-patrones nuevos (AP-003 a AP-006), sidebar con Acceso y
+> Nóminas externas. FASE 3 cerrada al 100%.
 
 ---
 
@@ -23,12 +23,13 @@ concesiones, motor de comunicación mock-first, asistencias mobile-first,
 control de acceso con veredicto + visitantes temporales, nóminas externas
 con padrón temporal.
 
-**Ultimo sprint cerrado:** **FASE 3.5** — Integración acceso ↔ padrón temporal:
-RPC verificar_acceso_persona ampliada con lógica visitante_temporal vigente,
-CardVeredicto muestra contexto visitante, tipos TypeScript actualizados,
-3 nuevos E2E tests (vigente→VERDE, vencido→ROJO, sin acceso→ROJO).
+**Ultimo sprint cerrado:** **DOCS-7+UX-FIX** — RFC-001 en repo,
+pre-mortem 3.4 canonizado, modelo operativo Yair/Arquitecto escrito
+en CLAUDE.md y RUNBOOK, 4 anti-patrones nuevos (AP-003 a AP-006),
+sidebar con entradas Acceso y Nóminas externas en sección Operaciones.
 
-**Próximo sprint:** (por definir).
+**Próximo sprint:** Sprint 4.1 (FASE 4 — Planificadores, bloqueado
+hasta que Yair defina scope vía RFC-002).
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).

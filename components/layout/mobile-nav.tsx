@@ -36,6 +36,8 @@ import {
   Send,
   FileEdit,
   Plug,
+  KeyRound,
+  FileSpreadsheet,
 } from 'lucide-react'
 
 const bottomNavItems = [
@@ -53,6 +55,8 @@ interface NavItemDef {
 
 const operacionesSubItems: NavItemDef[] = [
   { label: 'Esta semana', href: '/admin/operaciones', icon: Calendar },
+  { label: 'Acceso', href: '/admin/acceso', icon: KeyRound },
+  { label: 'Nóminas externas', href: '/admin/nominas-externas', icon: FileSpreadsheet },
   { label: 'Scouting', href: '/admin/operaciones/scouting', icon: Search },
 ]
 
@@ -153,7 +157,7 @@ function MobileCollapsible({
 export function MobileNav() {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [operacionesOpen, setOperacionesOpen] = useState(pathname.startsWith('/admin/operaciones'))
+  const [operacionesOpen, setOperacionesOpen] = useState(pathname.startsWith('/admin/operaciones') || pathname.startsWith('/admin/acceso') || pathname.startsWith('/admin/nominas-externas'))
   const [finanzasOpen, setFinanzasOpen] = useState(pathname.startsWith('/admin/finanzas'))
   const [rrhhOpen, setRRHHOpen] = useState(pathname.startsWith('/admin/rrhh'))
   const [comunicacionesOpen, setComunicacionesOpen] = useState(pathname.startsWith('/admin/comunicaciones'))
@@ -285,7 +289,7 @@ export function MobileNav() {
             <MobileCollapsible
               label="Operaciones"
               icon={CalendarDays}
-              isActive={pathname.startsWith('/admin/operaciones')}
+              isActive={pathname.startsWith('/admin/operaciones') || pathname.startsWith('/admin/acceso') || pathname.startsWith('/admin/nominas-externas')}
               isOpen={operacionesOpen}
               onToggle={() => setOperacionesOpen(!operacionesOpen)}
               subItems={operacionesSubItems}

@@ -1064,8 +1064,263 @@ tiene unique index parcial? Si sí, NO usar upsert."
 
 ---
 
-(Las próximas entradas AP-003, AP-004, etc. se agregarán cuando los
-E2E detecten nuevos anti-patrones reales en producción.)
+### Escenario: AP-003 — PostgREST FK joins no confiables
+
+**Detectado:** Sprint 3.4 (12-may-2026), commit `090c30b`.
+
+**Síntoma:** un `select('*, padron:padrones(*)')` via PostgREST
+puede devolver `null` inesperado o data inconsistente, especialmente
+cuando hay constraints de RLS o FK complejos. Esto provoca
+`TypeError: Cannot read property 'X' of null` en runtime, sin
+detección en build.
+
+**Causa raíz:** el comportamiento del FK embedding en PostgREST
+depende del estado de la conexión, RLS policies, y el orden de
+evaluación interno. No es completamente predecible.
+
+**Anti-patrón:** confiar en joins via PostgREST para data crítica
+de runtime.
+
+**Patrón correcto:** para datos críticos (no opcionales, no
+analíticos), hacer queries separadas y joinear en TypeScript.
+
+```typescript
+// ❌ NO confiable:
+const { data } = await supabase
+  .from('nominas_externas')
+  .select('*, padron:padrones(*)')
+  .eq('id', nominaId)
+  .single()
+
+// ✅ Confiable:
+const { data: nomina } = await supabase
+  .from('nominas_externas').select('*').eq('id', nominaId).single()
+const { data: padron } = await supabase
+  .from('padrones').select('*').eq('id', nomina.padron_id).single()
+```
+
+**Cuándo es OK usar joins via PostgREST:** dashboards de solo
+lectura, agregaciones donde un null se maneja explícitamente, datos
+no críticos para el flujo.
+
+---
+
+### Escenario: AP-004 — Slugs case-sensitive en catálogos
+
+**Detectado:** Sprint 3.4 (12-may-2026), commit `8f9350e`.
+
+**Síntoma:** un insert con `tipo_documento='DNI'` falla con error
+de FK constraint cuando el catálogo tiene el slug en lowercase
+(`'dni'`). El error es difícil de debuggear porque parece un
+problema de FK pero es de case-sensitivity de strings.
+
+**Causa raíz:** Postgres compara strings con case-sensitivity en
+FK constraints. `'DNI' != 'dni'` aunque visualmente parecen iguales.
+
+**Anti-patrón:** hardcodear valores de catálogo sin verificar el
+case exacto.
+
+**Patrón correcto:** antes de hardcodear cualquier valor que vaya a
+FK contra un catálogo, verificar vía MCP:
+
+```sql
+SELECT slug FROM catalogo_tipos_documento ORDER BY slug;
+```
+
+O mejor: importar los slugs desde un archivo TS compartido que
+sirva como source of truth en código.
+
+**Catálogos del proyecto con convención lowercase:** todos los
+`catalogo_*` del schema usan lowercase para `slug`. Mantener esta
+convención.
+
+---
+
+### Escenario: AP-005 — CHECK constraints no se auto-actualizan al agregar valores a catálogos
+
+**Detectado:** Sprint 3.5 (12-may-2026), migration in-sprint.
+
+**Síntoma:** insertar fila en `padrones` con `tipo='visitantes_temporales'`
+falla con violación de CHECK constraint `padrones_tipo_check`,
+aunque el valor existe lógicamente en el catálogo.
+
+**Causa raíz:** algunas tablas usan CHECK constraint con lista
+hardcoded de valores permitidos (en lugar de FK a un catálogo).
+Cuando se introduce un valor nuevo, hay que UPDATEAR el CHECK
+también — no se actualiza solo.
+
+**Anti-patrón:** agregar valor nuevo a un catálogo controlado por
+CHECK constraint sin actualizar el CHECK.
+
+**Patrón correcto:** cuando se introduce un nuevo valor en cualquier
+catálogo, en la MISMA migration:
+
+1. Verificar si hay CHECK constraint que limite los valores:
+   ```sql
+   SELECT conname, pg_get_constraintdef(oid)
+   FROM pg_constraint
+   WHERE conrelid='<tabla>'::regclass
+     AND contype='c';
+   ```
+2. Si existe, hacer DROP + recreate con el nuevo valor incluido.
+
+**Mejor patrón a futuro:** migrar de CHECK constraint a FK contra
+una tabla catálogo. Esto se hará gradualmente en FASE 15 (Hardening).
+
+---
+
+### Escenario: AP-006 — Sprint que crea módulo nuevo debe agregar entrada al sidebar
+
+**Detectado:** validación post-Sprint 3.5 (12-may-2026, hora 19:00).
+
+**Síntoma:** módulos creados en Sprints 3.3 (acceso) y 3.4
+(nóminas externas) tienen rutas funcionales y deployadas, pero
+no hay link de descubrimiento en el sidebar. El usuario que no
+sabe la URL no puede llegar a la pantalla.
+
+**Causa raíz:** el envelope canónico de los sprints describe
+detalle de DB, server actions, UI, tests, pero NO menciona
+explícitamente la integración con el sidebar troncal.
+
+**Anti-patrón:** cerrar un sprint que creó un módulo activable por
+tenant sin agregar entrada al sidebar (o sin canonizar el motivo
+de por qué no debería estar).
+
+**Patrón correcto:** todo sprint que crea o activa un módulo en
+`tenant_modulos` para Hindu debe, como parte de su PARTE de UI:
+
+1. Agregar entrada al sidebar (`components/layout/sidebar.tsx`).
+2. Decidir en qué sección va (CRM, ERP, Club Deportivo, Plataforma).
+3. Si va como sub-item de una sección existente (ej: Operaciones),
+   agregarlo al array correspondiente.
+
+**Excepciones documentadas:** módulos accesibles solo por API o
+solo por roles específicos no admin (ej: pantallas dedicadas a
+guardia que viven en `/admin/acceso` pero deberían tener su propio
+layout simplificado en el futuro) pueden quedar fuera del sidebar
+con justificación escrita.
+
+---
+
+## Modelo operativo Yair / Arquitecto
+
+Canonizado el 12-may-2026 en respuesta a la delegación explícita
+del rol arquitectónico operativo de Yair al Arquitecto (Claude
+Opus en chat web). Este modelo aplica desde Sprint DOCS-7
+en adelante.
+
+### Por qué existe este modelo
+
+A partir del 12-may-2026, el proyecto entra en una fase de
+ejecución sostenida (FASES 4 a 17). Pedirle a Yair que valide
+cada decisión operativa (orden, alcance, tests, naming) genera
+fricción innecesaria y lentifica el avance.
+
+El modelo divide responsabilidad: Yair decide el QUÉ; el
+Arquitecto decide el CÓMO; Code ejecuta.
+
+### Yair Levy Wald — Dueño de producto
+
+**Decide:**
+- Visión: qué hace el sistema, para quién, con qué objetivo
+- Scope macro: qué fases entran al MVP, cuáles se postergan
+- Modelo de negocio: pricing, contratos, ofertas
+- Aprobación de RFCs antes de su sprint asociado
+- Cambios estructurales: arquitectura mayor, stack, plan
+- Decisiones legales / comerciales / contractuales
+- Reasignación de roles
+
+**No decide:**
+- Orden interno de sprints dentro de fase aprobada
+- Modelos de datos específicos
+- Patrones de código
+- Naming, testing, anti-patrones internos
+
+### Arquitecto — Claude Opus en chat web
+
+**Decide:**
+- Orden de sprints respetando dependencias técnicas
+- Alcance y tamaño de cada sprint
+- Modelo de datos: tablas, columnas, FK, índices, RLS, CHECK
+- Patrones de código: server actions, hooks, queries, validación
+- Estructura modular: cómo dividir módulos, qué va en troncal
+- Cómo testear: E2E vs integración vs unit, fixture vs mock
+- Si requiere pre-mortem (R-PE9): scoring del riesgo
+- Renumeración cuando hay desincronización docs
+- Anti-patrones (AP-NNN) cuando bug en prod enseña algo
+- ADRs para decisiones técnicas que requieren preservar contexto
+- Cuándo cortar el día / cuándo seguir
+- Cuándo solicitar input estructural a Yair (preguntas tappables)
+
+**Responsabilidades operativas (no negociables):**
+- Verificación vía MCP en cada cierre de sprint (R-PE10, ADR-039)
+- Aplicación del envelope canónico en cada prompt
+- Mantenimiento de docs vivos al día (CURRENT-STATE, SPRINT-PLAN,
+  GLOSSARY, DECISIONS, RUNBOOK)
+- Canonización de anti-patrones cuando aparecen
+- Cierre ejecutivo al Drive en días significativos
+
+### Implementador — Claude Code en CLI
+
+**Ejecuta:**
+- Los prompts canónicos que arma el Arquitecto
+- Verificaciones iniciales declaradas en PARTE 1 de cada prompt
+- Reporte de cierre usando el FOOTER canonizado (R-PE10)
+
+**Restricciones inviolables:**
+- NO afirmar estado de producción sin verificar vía MCP (ADR-039)
+- NO usar `.is('deleted_at', null)` en tablas sin verificar (AP-001)
+- NO usar `upsert + onConflict` contra unique indexes parciales
+  (AP-002)
+- NO confiar en PostgREST FK joins para data crítica (AP-003)
+- Verificar case-sensitivity de slugs en catálogos (AP-004)
+- Actualizar CHECK constraints cuando se agrega valor a catálogo
+  (AP-005)
+- Agregar entrada al sidebar cuando se crea módulo nuevo (AP-006)
+
+### Cómo se manifiesta en la práctica
+
+#### Cuando llega un input de Yair
+
+El Arquitecto evalúa:
+- ¿Es decisión de producto / scope / negocio? → toma como brief
+  y diseña sprint(s)
+- ¿Es decisión técnica? → la toma el Arquitecto
+- ¿Es ambigua? → pide clarificación vía `ask_user_input_v0`
+  (max 3 preguntas tappables)
+
+#### Cuando hay 2+ opciones técnicas con tradeoff serio
+
+El Arquitecto:
+1. Presenta las opciones con sus tradeoffs
+2. Da su voto técnico con razones
+3. Pide validación de Yair (`ask_user_input_v0`)
+4. Procede con la elegida
+
+#### Cuando aparece un bug o error inesperado
+
+El Arquitecto:
+1. Verifica vía MCP la realidad (no confía en el reporte de Code)
+2. Decide si el problema requiere fix, nuevo ADR, nuevo AP, o nada
+3. Canoniza el aprendizaje en RUNBOOK si tiene valor preventivo
+4. Avisa a Yair solo si requiere decisión estructural
+
+#### Cuando el día termina
+
+El Arquitecto:
+1. Verifica que todos los sprints del día estén cerrados con tag
+2. Verifica vía MCP el estado final de producción
+3. Arma el cierre ejecutivo del día (estructurado)
+4. Le pasa el archivo a Yair para que lo suba al Drive
+
+### Cuando el modelo se actualiza
+
+Cambios menores (clarificaciones, ejemplos): el Arquitecto los
+agrega al RUNBOOK sin consultar.
+
+Cambios estructurales (qué decide quién): requieren confirmación
+explícita de Yair en el chat. Quedan canonizados en una nueva
+sección de este RUNBOOK + actualización de CLAUDE.md.
 
 ---
 
@@ -1075,3 +1330,4 @@ E2E detecten nuevos anti-patrones reales en producción.)
 |---|---|---|
 | 2026-05-12 | DOCS-2 | Versión inicial con 20 escenarios |
 | 2026-05-12 | DOCS-6 | Sección "Niveles de verificación" + sección "Anti-patrones" con AP-001 y AP-002 |
+| 2026-05-12 | DOCS-7 | AP-003 a AP-006 + sección "Modelo operativo Yair / Arquitecto" |

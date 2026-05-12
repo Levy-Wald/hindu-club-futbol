@@ -39,6 +39,8 @@ import {
   HeartPulse,
   Shirt,
   Store,
+  KeyRound,
+  FileSpreadsheet,
 } from 'lucide-react'
 
 interface NavItemDef {
@@ -109,6 +111,8 @@ const utileriaSubItems: NavItemDef[] = [
 
 const operacionesSubItems: NavItemDef[] = [
   { label: 'Esta semana', href: '/admin/operaciones', icon: Calendar },
+  { label: 'Acceso', href: '/admin/acceso', icon: KeyRound },
+  { label: 'Nóminas externas', href: '/admin/nominas-externas', icon: FileSpreadsheet },
   { label: 'Scouting', href: '/admin/operaciones/scouting', icon: Search },
 ]
 
@@ -220,7 +224,7 @@ function CollapsibleSection({
 
 export function Sidebar() {
   const pathname = usePathname()
-  const isOperacionesActive = pathname.startsWith('/admin/operaciones')
+  const isOperacionesActive = pathname.startsWith('/admin/operaciones') || pathname.startsWith('/admin/acceso') || pathname.startsWith('/admin/nominas-externas')
   const isFinanzasActive = pathname.startsWith('/admin/finanzas')
   const isRRHHActive = pathname.startsWith('/admin/rrhh')
   const isComunicacionesActive = pathname.startsWith('/admin/comunicaciones')
