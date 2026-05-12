@@ -2,27 +2,25 @@
   "slug": "acceso",
   "name": "Acceso",
   "version": "1.0.0",
-  "category": "operativo",
+  "category": "acceso",
   "portable": true,
   "owner": "clubcore-team",
   "license": "proprietary",
-  "depends_on_troncal": ["personas"],
-  "depends_on_modules": [],
+  "depends_on_troncal": ["personas", "eventos"],
+  "depends_on_modules": ["asistencias"],
   "soft_depends_on_modules": [],
   "owns_tables": [
-    "personas_credenciales_acceso",
-    "personas_vehiculos"
+    "acceso_logs"
   ],
-  "owns_catalogs": [
-    "catalogo_tipos_vehiculo"
-  ],
+  "owns_catalogs": [],
   "permissions_required": [
-    "acceso.puede_gestionar"
+    "acceso.guardia",
+    "tenant.admin"
   ],
-  "events_emits": ["acceso.credencial_creada", "acceso.vehiculo_registrado"],
+  "events_emits": ["acceso.verificacion_realizada"],
   "events_consumes": [],
-  "ui_routes": ["/admin/personas/[id] (tab acceso)"],
+  "ui_routes": ["/admin/acceso"],
   "api_endpoints": [],
-  "replaceable_by_external": true,
-  "external_adapter_interface": "IAccesoProvider"
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
 }
