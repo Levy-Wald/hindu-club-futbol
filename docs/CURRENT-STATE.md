@@ -6,30 +6,23 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint DOCS-7+UX-FIX cerrado.
-> RFC-001 en repo, pre-mortem 3.4 canonizado, modelo operativo escrito,
-> 4 anti-patrones nuevos (AP-003 a AP-006), sidebar con Acceso y
-> Nóminas externas. FASE 3 cerrada al 100%.
+> Última actualización: 12 de mayo de 2026 — Sprint FASE 4.1 cerrado.
+> Planificador mensual con drag-and-drop. Primer sprint de FASE 4.
 
 ---
 
 ## 0. Snapshot ejecutivo
 
 **Estado general:** FASE 1 cerrada. FASE 2 (Comunicación) completada al 100%.
-FASE 3 (Operación deportiva) completada al 100%: Sprints 3.1-3.5 cerrados.
-Plataforma con base operativa completa: suscripciones, cuotas, cobranza,
-centros de costo, salud, utileria, cuerpo tecnico, notificaciones in-app,
-concesiones, motor de comunicación mock-first, asistencias mobile-first,
-control de acceso con veredicto + visitantes temporales, nóminas externas
-con padrón temporal.
+FASE 3 (Operación deportiva) completada al 100%. FASE 4 (Planificadores)
+en progreso: Sprint 4.1 cerrado (planificador mensual con drag-and-drop).
 
-**Ultimo sprint cerrado:** **DOCS-7+UX-FIX** — RFC-001 en repo,
-pre-mortem 3.4 canonizado, modelo operativo Yair/Arquitecto escrito
-en CLAUDE.md y RUNBOOK, 4 anti-patrones nuevos (AP-003 a AP-006),
-sidebar con entradas Acceso y Nóminas externas en sección Operaciones.
+**Ultimo sprint cerrado:** **FASE 4.1** — Planificador mensual con
+react-big-calendar, drag-and-drop para reprogramar eventos, modal de
+detalle, modal de scope para recurrentes, warning de overlap de cancha.
 
-**Próximo sprint:** Sprint 4.1 (FASE 4 — Planificadores, bloqueado
-hasta que Yair defina scope vía RFC-002).
+**Próximo sprint:** Sprint 4.2 (FASE 4 — Planificador semanal con
+grilla drag-and-drop).
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -50,19 +43,19 @@ hasta que Yair defina scope vía RFC-002).
 | VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 68 (8 públicas + 60 admin) |
+| Páginas Next.js | 69 (8 públicas + 61 admin) |
 | API routes | 17 (5 endpoints v1 + 5 internos + 7 crons) |
-| Server actions | ~168 en 29 archivos |
-| Componentes custom (no shadcn) | ~131 |
-| Tests E2E (Playwright) | 49 specs (47 pass, 1 skip, 1 flaky) |
+| Server actions | ~172 en 30 archivos |
+| Componentes custom (no shadcn) | ~135 |
+| Tests E2E (Playwright) | 53 specs (52 pass, 1 skip, 0 fail) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |
-| Atributos en catálogo | 65 (con columna `capa` clasificatoria) |
+| Atributos en catálogo | 66 (con planificadores.editor) |
 | Tipos de notificación catalogados | 23 |
-| Módulos catalogados | 51 (36 + 11 nuevos + 1 vertical + 1 asistencias + 1 acceso + 1 nominas_externas) |
-| Módulos activos en Hindu | 38+ |
-| Manifiestos module.json | 20 |
+| Módulos catalogados | 52 (+planificadores) |
+| Módulos activos en Hindu | 39+ |
+| Manifiestos module.json | 21 |
 | Verticales en catálogo | 4 (club_deportivo, country_deportivo, federacion_hub, polo_educativo) |
 
 ---

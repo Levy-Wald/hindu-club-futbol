@@ -78,20 +78,29 @@ FASE 3 completada al 100% el 2026-05-12.
 |---|---|---|---|---|
 | DOCS-7+UX-FIX | RFC-001 en repo, pre-mortem 3.4, modelo operativo canonizado, AP-003 a AP-006, sidebar con Acceso y Nóminas externas | `v0.13.1` | 49/1/0 | Cerrado |
 
+## FASE 4 — Planificadores (2026-05-12)
+
+| Sprint | Tema | Tag | Tests E2E | Estado |
+|---|---|---|---|---|
+| 4.1 | Planificador mensual con drag-and-drop: react-big-calendar, mover eventos, modal recurrentes, overlap warning, sidebar | `v0.14.0` | 53/1/0 | Cerrado |
+
 ---
 
 ## Sprint actual
 
-### Sprint 4.1 — (por definir)
-**Capa:** TBD — **Fase:** FASE 4
+### Sprint 4.2 — Planificador semanal
+**Capa:** Módulo paralelo — **Fase:** FASE 4
 
-Bloqueado hasta que Yair defina scope de Planificadores (RFC-002 pendiente).
+Vista semanal con grilla de horas, drag-and-drop entre días, resize de eventos.
 
 ---
 
 ## Proximos en cola
 
-(por definir — depende de RFC-002)
+- Sprint 4.3: Organizador de entrenamientos
+- Sprint 4.4: Organizador de amistosos
+- Sprint 4.5: Planificador táctico
+- Sprint 4.6: Reservas de cancha
 
 ---
 

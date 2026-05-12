@@ -5,7 +5,7 @@
 >
 > Mantenido por el arquitecto.
 >
-> Última actualización: 11 de mayo de 2026.
+> Última actualización: 12 de mayo de 2026.
 
 ---
 
@@ -305,6 +305,15 @@ Vive en `acceso_logs`.
 **Guardia (acceso).** Persona con atributo `acceso.guardia` que opera la
 pantalla de control de acceso. Puede buscar por DNI y marcar presente en
 eventos.
+
+**Planificador mensual.** Vista de calendario mensual de eventos del club con
+drag-and-drop para reprogramar. Usa react-big-calendar con localización en
+español. Sprint 4.1.
+
+**Mover ocurrencia vs serie.** Al arrastrar un evento recurrente en el
+planificador, el usuario elige si mueve solo esa fecha (crea evento huérfano
+hijo, no modifica el padre) o toda la serie (actualiza el evento padre y
+recalcula recurrencia).
 
 **Suscriptor.** Persona (jugador o no) que aporta económicamente a un fondo
 específico (ej: Fondo Fútbol). Modelado como atributo `suscriptor` +

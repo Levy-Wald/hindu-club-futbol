@@ -7,7 +7,7 @@
 >
 > Mantenido por el arquitecto. Cambios estructurales requieren aprobacion.
 >
-> Ultima actualizacion: 11 de mayo de 2026.
+> Ultima actualizacion: 12 de mayo de 2026.
 
 ---
 
@@ -133,7 +133,7 @@ salud, utileria, concesiones operativas.
 
 ---
 
-## FASE 2 — Comunicacion (5 sprints, mock-first universal por ADR-035)
+## FASE 2 — Comunicacion (CERRADA 2026-05-12)
 
 **Objetivo.** Motor de comunicacion completo: plantillas, envios masivos,
 recordatorios automaticos, preferencias por persona. Todo en modo mock
@@ -141,7 +141,7 @@ hasta FASE 16 (ADR-035).
 
 **Depende de.** FASE 1.
 
-**Tag:** `v0.7.0-fase2-sprint4-cron` (Sprints 2.1-2.4 completados)
+**Tag:** `v0.8.0` (5 sprints completados)
 
 ### Modulos
 
@@ -151,25 +151,28 @@ hasta FASE 16 (ADR-035).
 | 2.2 | Editor de plantillas + variables | Done | v0.5.0 |
 | 2.3 | Envios masivos con segmentacion | Done | v0.6.0 |
 | 2.4 | Cron de vencimientos + recordatorios automaticos | Done | v0.7.0 |
-| 2.5 | Preferencias de canales por persona | Orange | — |
+| 2.5 | Preferencias de canales por persona | Done | v0.8.0 |
 
 ---
 
-## FASE 3 — Asistencias + Acceso (~4 sprints)
+## FASE 3 — Operacion deportiva (CERRADA 2026-05-12)
 
 **Objetivo.** Operacion diaria del club: tomar asistencia en entrenamientos
-y partidos, controlar quien entra al club.
+y partidos, controlar quien entra al club, nóminas externas.
 
 **Depende de.** FASE 2 (alertas por ausencias), FASE 1 (validacion pago).
+
+**Tag:** `v0.13.0` (5 sprints completados)
 
 ### Modulos
 
 | # | Modulo | Estado |
 |---|---|---|
-| 3.1 | Control de asistencias operativo (mobile) | Yellow |
-| 3.2 | Control de acceso al club (porteria) | Yellow |
-| 3.3 | Credenciales digitales (QR) | Red |
-| 3.4 | Autorizaciones digitales con firma | Yellow |
+| 3.1 | Control de asistencias operativo (mobile) | Done |
+| 3.2 | Asistencia extendida a entidades y equipos | Done |
+| 3.3 | Módulo acceso MVP (guardia mobile-first) | Done |
+| 3.4 | Nóminas externas (RFC-001) | Done |
+| 3.5 | Integración acceso ↔ padrón temporal | Done |
 
 ---
 
@@ -185,7 +188,7 @@ amistosos, tacticas, reservas de canchas.
 
 | # | Modulo | Estado |
 |---|---|---|
-| 4.1 | Planificador mensual (calendario) | Yellow |
+| 4.1 | Planificador mensual (calendario) | Done |
 | 4.2 | Planificador semanal (grilla drag & drop) | Yellow |
 | 4.3 | Organizador de entrenamientos | Red |
 | 4.4 | Organizador de partido amistoso | Red |
