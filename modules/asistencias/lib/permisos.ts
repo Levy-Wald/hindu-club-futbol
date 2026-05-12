@@ -23,7 +23,6 @@ export async function verificarPermisoTomarAsistencia(
     .eq('persona_id', persona_id)
     .eq('atributo_slug', 'tenant.admin')
     .eq('activo', true)
-    .is('deleted_at', null)
     .maybeSingle()
 
   if (esAdmin) return true
