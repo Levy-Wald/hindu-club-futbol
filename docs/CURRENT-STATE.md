@@ -6,28 +6,29 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint FASE 3.3 cerrado.
-> Módulo acceso MVP: pantalla guardia mobile-first con veredicto
-> verde/amarillo/rojo, RPC verificar_acceso_persona, acceso_logs audit trail,
-> integración con asistencias, 3 E2E tests.
+> Última actualización: 12 de mayo de 2026 — Sprint FASE 3.4 cerrado.
+> Módulo nominas_externas: sistema de visitantes externos con padrón temporal,
+> form público sin auth, matching fuzzy, niveles L0/L1, rate limiting,
+> token criptográfico, admin confirmar/rechazar, 4 E2E tests.
 
 ---
 
 ## 0. Snapshot ejecutivo
 
 **Estado general:** FASE 1 cerrada. FASE 2 (Comunicación) completada al 100%.
-FASE 3 (Operación deportiva) avanzando: Sprints 3.1-3.3 cerrados.
+FASE 3 (Operación deportiva) avanzando: Sprints 3.1-3.4 cerrados.
 Plataforma con base operativa completa: suscripciones, cuotas, cobranza,
 centros de costo, salud, utileria, cuerpo tecnico, notificaciones in-app,
 concesiones, motor de comunicación mock-first, asistencias mobile-first,
-control de acceso con veredicto.
+control de acceso con veredicto, nóminas externas con padrón temporal.
 
-**Ultimo sprint cerrado:** **FASE 3.3** — Módulo acceso MVP: pantalla guardia
-con búsqueda por DNI, veredicto verde/amarillo/rojo basado en membresía
-padrón + invitaciones a eventos, marcar presente desde acceso, acceso_logs
-audit trail, 3 E2E tests.
+**Ultimo sprint cerrado:** **FASE 3.4** — Módulo nominas_externas:
+sistema completo de visitantes externos con form público sin auth,
+matching fuzzy via RPC, niveles de validación L0/L1, token criptográfico,
+padrón temporal con vigencia, rate limiting en middleware, admin
+confirmar/rechazar items, 4 E2E tests.
 
-**Próximo sprint:** FASE 3.4 — (por definir, operación deportiva).
+**Próximo sprint:** FASE 3.5 — (por definir, operación deportiva).
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -40,27 +41,27 @@ audit trail, 3 E2E tests.
 
 | Métrica | Valor |
 |---|---|
-| Tablas en `public` | 147 |
-| Tablas con RLS habilitada | 146 (99.3%) |
-| RLS policies | 363 |
-| Funciones custom (`pg_proc` en public) | 133 |
-| Triggers | 94 |
+| Tablas en `public` | 150 |
+| Tablas con RLS habilitada | 149 (99.3%) |
+| RLS policies | 369 |
+| Funciones custom (`pg_proc` en public) | 134 |
+| Triggers | 95 |
 | VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 66 (7 públicas + 59 admin) |
-| API routes | 15 (5 endpoints v1 + 3 internos + 7 crons) |
-| Server actions | ~164 en 28 archivos |
-| Componentes custom (no shadcn) | ~126 |
-| Tests E2E (Playwright) | 42 specs (41 pass, 1 skip) |
+| Páginas Next.js | 68 (8 públicas + 60 admin) |
+| API routes | 17 (5 endpoints v1 + 5 internos + 7 crons) |
+| Server actions | ~168 en 29 archivos |
+| Componentes custom (no shadcn) | ~131 |
+| Tests E2E (Playwright) | 46 specs (44 pass, 1 skip, 1 flaky) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |
-| Atributos en catálogo | 64 (con columna `capa` clasificatoria) |
+| Atributos en catálogo | 65 (con columna `capa` clasificatoria) |
 | Tipos de notificación catalogados | 23 |
-| Módulos catalogados | 50 (36 + 11 nuevos + 1 vertical + 1 asistencias + 1 acceso) |
-| Módulos activos en Hindu | 37+ |
-| Manifiestos module.json | 19 |
+| Módulos catalogados | 51 (36 + 11 nuevos + 1 vertical + 1 asistencias + 1 acceso + 1 nominas_externas) |
+| Módulos activos en Hindu | 38+ |
+| Manifiestos module.json | 20 |
 | Verticales en catálogo | 4 (club_deportivo, country_deportivo, federacion_hub, polo_educativo) |
 
 ---

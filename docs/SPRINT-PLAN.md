@@ -65,12 +65,13 @@ FASE 2 completada al 100% el 2026-05-12.
 | 3.1 | Control de asistencias operativo (mobile): evento_invitados, auto-poblado lazy, 6 estados, React Query optimistic, permisos CT/admin | `v0.9.0` | 35/1/0 | Cerrado |
 | 3.2 | Asistencia extendida a entidades y equipos: modelo polimórfico evento_asistencias, marca_asistencia, expandir equipo, 6 actions, 4 UI components | `v0.10.0` | 38/1/0 | Cerrado |
 | 3.3 | Módulo acceso MVP: pantalla guardia mobile-first, veredicto verde/amarillo/rojo, RPC verificar_acceso_persona, acceso_logs audit trail, marcar presente desde acceso, 5 UI components | `v0.11.0` | 41/1/0 | Cerrado |
+| 3.4 | Nóminas externas (RFC-001): sistema visitantes externos, form público sin auth, matching fuzzy, niveles L0/L1, padrón temporal, rate limiting, token criptográfico, admin confirmar/rechazar | `v0.12.0` | 44/1/0 | Cerrado |
 
 ---
 
 ## Sprint actual
 
-### Sprint FASE 3.4 — (por definir)
+### Sprint FASE 3.5 — (por definir)
 **Capa:** TBD - **Fase:** FASE 3
 
 ---
