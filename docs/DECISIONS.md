@@ -2289,6 +2289,107 @@ con efectos en DB.
 
 ---
 
+## ADR-039 — Code reporta el estado de produccion via MCP real, nunca via CLI local
+
+**Fecha:** 2026-05-12
+**Estado:** Aceptado
+**Sprint origen:** DOCS-5
+
+### Contexto
+
+En 2 sprints consecutivos (Sprint 2.4-FIX el 24/abr y Sprint 3.1 el
+12/may), Code reporto al arquitecto que el deploy de Vercel estaba
+en estado ERROR con el mensaje literal "TypeError: Invalid URL
+porque NEXT_PUBLIC_SUPABASE_URL no esta configurada". La realidad,
+verificada via el MCP oficial de Vercel, era que los 3 deployments
+mas recientes estaban en estado READY.
+
+Analisis del patron: Code probablemente esta consultando el estado
+del deploy mediante:
+
+- `vercel deploy` ejecutado en su CLI local (que falla por env vars
+  locales, distintas de las de Vercel produccion).
+- `npm run build` local (que es exitoso pero no implica deploy).
+- `curl http://localhost:3000` (que no responde porque el dev server
+  no esta corriendo o tiene mock keys).
+
+Ninguno de estos metodos refleja el estado real de produccion. El
+unico metodo confiable es consultar la API oficial de Vercel, que
+esta disponible via el MCP `claude.ai Vercel: https://mcp.vercel.com`.
+Mismo problema aplica para Supabase: queries via MCP, no via `psql`
+local.
+
+Sin verificacion independiente del arquitecto, este patron habria
+llevado a:
+- Perdida de tiempo intentando "arreglar" deploys que no estaban rotos.
+- Posibles rollbacks innecesarios de deploys READY.
+- Erosion de la confianza en los reportes de cierre de sprint.
+- Riesgo de que un futuro Code asuma como verdadero un estado falso
+  y tome decisiones destructivas.
+
+### Decision
+
+Al cerrar un sprint, Code verifica el estado de produccion
+exclusivamente via los MCPs oficiales (Vercel, Supabase, y cualquier
+servicio externo que tenga MCP disponible). Esto se canoniza en 4
+docs vivos:
+
+1. CLAUDE.md (lectura obligatoria al arrancar)
+2. PROMPT-ENVELOPE.md (regla R-PE10 + FOOTER actualizado)
+3. SYSTEM-PROMPTS.md §3.2 (spec del Implementador)
+4. Este ADR (DECISIONS.md)
+
+Reglas especificas:
+
+- **Vercel deploy state** se verifica con la tool `list_deployments`
+  del MCP de Vercel. No con `vercel deploy` CLI ni con `curl`.
+- **Supabase schema/data** se verifica con la tool `execute_sql` del
+  MCP de Supabase. No con `psql` local ni con la SDK del cliente
+  apuntada a localhost.
+- **El build/test local es complementario, no sustituto.** `npm run
+  build` exitoso confirma que el codigo compila; no confirma que el
+  deploy productivo este funcionando.
+- **Si el MCP no esta disponible o falla**, Code DEBE declarar
+  "estado de X no verificado via MCP" en lugar de inferir el estado
+  a partir de su CLI local. La transparencia honesta es preferible
+  a un reporte aparentemente completo pero incorrecto.
+
+### Consecuencias
+
+Positivas:
+
+- Reportes de cierre confiables. El arquitecto no necesita re-verificar.
+- Trazabilidad: el reporte cita el resultado del MCP, no una afirmacion.
+- Prevencion de decisiones reactivas a falsos errores.
+
+Negativas (aceptadas):
+
+- El cierre de sprint requiere 2 llamadas adicionales al MCP (Vercel +
+  Supabase). Costo minimo: ~5 segundos.
+- Si los MCPs estan temporalmente caidos, el sprint queda con
+  "verificacion pendiente" hasta que se restablezcan. Esto es
+  preferible a reportar un estado inventado.
+
+### Casos historicos canonizados
+
+| Sprint | Fecha | Reporte de Code | Realidad MCP | Costo deteccion |
+|---|---|---|---|---|
+| 2.4-FIX | 2026-04-24 | Vercel ERROR | Vercel READY | Arquitecto verifica via MCP |
+| 3.1 | 2026-05-12 | Vercel ERROR (idem) | Vercel READY | Arquitecto verifica via MCP |
+
+Si este patron aparece una 3a vez post-canonizacion (post-DOCS-5),
+es senal de que la regla no se esta aplicando y requiere intervencion
+manual del arquitecto en el system prompt de Code.
+
+### Referencias cruzadas
+
+- PROMPT-ENVELOPE.md regla R-PE10
+- SYSTEM-PROMPTS.md §3.2 (restriccion inviolable nueva)
+- CLAUDE.md seccion "Verificacion de produccion"
+- ADR-038 (E2E con fixture + cleanup, otro patron de verificacion real)
+
+---
+
 ## Convenciones de este documento
 
 - Los ADRs son **inmutables** una vez publicados. Si una decisión cambia,

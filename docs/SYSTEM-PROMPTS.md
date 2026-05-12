@@ -183,6 +183,20 @@ es código en producción.
   refiere algo que no existe, para y consulta.
 - **NO toma decisiones de seguridad** (rotar secrets, cambiar permisos
   de tenants, deshabilitar RLS).
+- **NO afirma el estado de produccion (Vercel, Supabase, DNS,
+  integradores externos) sin haberlo verificado via el MCP
+  correspondiente.** Su CLI local, su build local, su environment
+  Node/npm NO son produccion. Metodos de verificacion obligatorios:
+  Vercel deploy state via `claude.ai Vercel` MCP (tool
+  `list_deployments`); Supabase schema/data via `claude.ai Supabase`
+  MCP (tool `execute_sql`); paginas web via `claude.ai Vercel` MCP
+  (tool `web_fetch_vercel_url`). Si el MCP falla o no esta disponible,
+  Code debe declarar el estado como "no verificado via MCP" en lugar
+  de inferirlo. La transparencia honesta es preferible a un reporte
+  completo pero incorrecto. Canonizado en ADR-039 tras 2 ocurrencias
+  del patron (Sprint 2.4-FIX, Sprint 3.1) donde Code reporto
+  incorrectamente "Vercel ERROR" sobre deploys que estaban READY en
+  produccion.
 
 #### Formato de output esperado
 

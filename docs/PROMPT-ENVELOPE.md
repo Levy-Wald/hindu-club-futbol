@@ -6,7 +6,7 @@
 >
 > Mantenido por el arquitecto.
 >
-> Última actualización: 10 de mayo de 2026.
+> Última actualización: 12 de mayo de 2026.
 
 ---
 
@@ -154,29 +154,41 @@ secciones:
     Respondé en el chat con esta estructura:
 
     ─────────────────────────────────────────
-    Sprint <N> — <nombre>: COMPLETADO
+    Sprint <nombre> — <título>: COMPLETADO
 
-    COMMIT: <hash>
-    DEPLOY: <deployment_id> READY
+    COMMIT: <hash principal>
+    TAG: <tag aplicado>
+
+    VERIFICACIÓN POST-DEPLOY (vía MCP, NO vía CLI local):
+    - Vercel: state del último deploy de production, obtenido vía MCP
+      `list_deployments`. Formato: "dpl_XXXX state=READY commit=YYYY".
+      Si no se pudo verificar via MCP, decir explícitamente
+      "no verificado vía MCP — razón: <explicación>".
+    - Supabase: resultado de SQL real ejecutado vía MCP `execute_sql`
+      que confirme los cambios del sprint (ej: nuevas tablas, RLS,
+      funciones, datos esperados). Formato: snippet del resultado.
+      Si no se pudo verificar via MCP, decir "no verificado vía MCP —
+      razón: <explicación>".
+    - Build local: `npm run validate:all` resultado. Esto es complementario,
+      NO sustituto de la verificación MCP.
 
     CAMBIOS APLICADOS:
-    - DB: [migrations aplicadas, en líneas]
-    - Código: [archivos creados/modificados/eliminados, agrupados por capa]
-    - Docs: [archivos actualizados en /docs/]
+    - DB: <lista de migrations / cambios de schema>
+    - Código: <archivos nuevos/modificados>
+    - Docs: <docs vivos actualizados>
 
-    PARA VALIDAR VISUALMENTE:
-    - [Pantalla 1: URL + qué chequear]
-    - [Pantalla 2: ...]
-
-    PARA VALIDAR POR SQL (sugeridas):
-    - <query 1>
-    - <query 2>
+    VERIFICACIONES ADICIONALES:
+    - Tests E2E: <X passed, Y skipped, Z failed>
+    - Otras checks específicas del sprint
 
     NOTAS / DECISIONES TOMADAS:
-    - [Si tomaste alguna decisión técnica que no estaba en el spec, decirlo]
+    - <si tomaste alguna decisión que no estaba en el spec>
 
     PENDIENTES O RIESGOS DETECTADOS:
-    - [Cosas que dejaste para sprint siguiente, o riesgos que viste]
+    - <si hay algo que dejaste para sprint siguiente>
+
+    CIERRE:
+    <una línea con qué se logró y qué viene>
     ─────────────────────────────────────────
 
     ═══════════════════════════════════════════════════════════════════
@@ -254,6 +266,36 @@ crítica) el pre-mortem se omite.
 
 Code no puede arrancar un sprint que requiere pre-mortem si el
 pre-mortem no está publicado.
+
+### R-PE10 — Verificacion de produccion via MCP, nunca via CLI local
+
+Al cerrar un sprint, el estado de produccion se verifica
+exclusivamente via MCPs oficiales (Vercel, Supabase, y cualquier
+otro servicio que tenga MCP disponible via claude.ai).
+
+**Metodos PROHIBIDOS para verificar produccion:**
+- `vercel deploy` o `vercel ls` en CLI local
+- `curl http://localhost:3000` o variantes locales
+- `npm run build` ejecutado localmente
+- `psql` apuntado a una DB local o a un fixture
+- Output de tu propio environment Node.js / npm
+
+**Metodos OBLIGATORIOS para verificar produccion:**
+- `mcp__vercel__list_deployments` (o equivalente) -> estado de deploy
+- `mcp__supabase__execute_sql` (o equivalente) -> schema/data de DB
+- `mcp__vercel__web_fetch_vercel_url` -> respuesta de paginas en prod
+
+Si un MCP no esta disponible o falla en tiempo de ejecucion, el
+campo correspondiente en el reporte de cierre debe decir
+explicitamente "no verificado via MCP -- razon: <explicacion>" en
+lugar de inferir el estado desde otra fuente.
+
+Patron observado y prohibido (2 ocurrencias en 2026):
+> Code reporta "Vercel deploy en ERROR" porque su `vercel deploy`
+> local fallo por env vars locales que no son las de produccion.
+> La realidad, verificada via MCP, es que el deploy esta READY.
+
+Ver ADR-039 para contexto historico completo y casos canonizados.
 
 ---
 
@@ -456,4 +498,4 @@ HEADER se aplica siempre.
 Si en algún momento hay que cambiar la estructura del envelope, se actualiza
 este documento con bump de versión + nota en DECISIONS.md.
 
-Versión actual: **1.0** (10 may 2026)
+Versión actual: **1.1** (12 may 2026) — R-PE10 + FOOTER actualizado (DOCS-5)

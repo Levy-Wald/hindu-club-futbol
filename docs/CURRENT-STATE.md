@@ -6,9 +6,8 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint FASE 3.1 cerrado.
-> FASE 2 completada. FASE 3 iniciada (Sprint 3.1 cerrado con tag v0.9.0-fase3-sprint1).
-> Módulo Asistencias operativo mobile-first con React Query optimistic mutations.
+> Última actualización: 12 de mayo de 2026 — Sprint DOCS-5 cerrado.
+> Regla R-PE10 + ADR-039 canonizados (verificacion produccion via MCP).
 
 ---
 
@@ -546,6 +545,13 @@ Historial referenciado en commits del repo. Listado resumido:
   UI mobile-first (sumario 6 chips + secciones colapsables + botones touch),
   módulo activado en catálogo + tenant Hindu. 2 E2E tests.
   Tag v0.9.0. 35/1/0 E2E.
+- **Sprint DOCS-5** — Blindar envelope contra falsos reportes de
+  produccion. Canonizacion en 4 docs vivos (CLAUDE.md, PROMPT-ENVELOPE.md,
+  SYSTEM-PROMPTS.md, DECISIONS.md) de la regla "verificacion de
+  produccion via MCP real, nunca via CLI local". Origen: patron observado
+  2 veces (Sprint 2.4-FIX y Sprint 3.1) donde Code reporto "Vercel
+  ERROR" sobre deploys que estaban READY. Nueva regla R-PE10 + ADR-039
+  formalizan la solucion estructural.
 - **Sprint DOCS-1** — Sincronización del sistema documental +
   canonización post-FASE 2. ADRs 036, 037, 038 canonizados. WORKFLOW.md
   eliminado. Sistema documental alineado con realidad de DB + repo.

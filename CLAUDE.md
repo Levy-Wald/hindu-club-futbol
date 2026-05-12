@@ -2,15 +2,15 @@
 
 ## Estado actual
 
-- **Tag actual:** `v0.8.1-docs-1` (2026-05-12)
-- **FASE 1 cerrada**, Foundation (15a-c) cerrada, **FASE 2 cerrada** (sprints 2.1-2.5)
-- **Proximo sprint:** FASE 3.1 (Control de asistencias operativo mobile)
-- **DB:** 145 tablas, 359 RLS policies, 129 funciones, 28 vistas, 93 triggers
-- **UI:** 64 paginas, ~160 server actions, ~115 componentes custom
-- **Tests E2E:** 34 specs (33 pass, 1 skip, 0 fail)
-- **Hindu:** 2,390 personas, 7 equipos, 61 com_envios, 18 plantillas sistema, 35+ modulos activos
-- **Arquitectura:** 3 capas — Troncal universal + 18 Modulos componibles + Verticales como presets (ADR-031)
-- **38 ADRs** documentados (001-038)
+- **Tag actual:** `v0.9.0-fase3-sprint1` (2026-05-12)
+- **FASE 1 cerrada**, Foundation (15a-c) cerrada, **FASE 2 cerrada**, FASE 3 iniciada (Sprint 3.1 cerrado)
+- **Proximo sprint:** FASE 3.2 (por definir)
+- **DB:** 146 tablas, 361 RLS policies, 130 funciones, 28 vistas, 94 triggers
+- **UI:** 65 paginas, ~162 server actions, ~121 componentes custom
+- **Tests E2E:** 36 specs (35 pass, 1 skip, 0 fail)
+- **Hindu:** 2,390 personas, 7 equipos, 61 com_envios, 18 plantillas sistema, 36+ modulos activos
+- **Arquitectura:** 3 capas — Troncal universal + 19 Modulos componibles + Verticales como presets (ADR-031)
+- **39 ADRs** documentados (001-039)
 
 ## Bloqueos operativos vigentes
 
@@ -31,7 +31,7 @@ El switch a produccion real se centraliza en FASE 16 (post-demo).
 2. `/docs/CURRENT-STATE.md` — Inventario real del proyecto
 3. `/docs/ARCHITECTURE.md` — Convenciones tecnicas, patrones, anti-patrones
 4. `/docs/SPRINT-PLAN.md` — Sprint actual y cola
-5. `/docs/PROMPT-ENVELOPE.md` — Reglas del prompt (R-PE1 a R-PE9)
+5. `/docs/PROMPT-ENVELOPE.md` — Reglas del prompt (R-PE1 a R-PE10)
 6. `/docs/ROADMAP.md` — 17 fases ordenadas por dependencias
 7. `/docs/GLOSSARY.md` — Definiciones canonicas
 
@@ -102,6 +102,29 @@ Ver detalles completos en /docs/DECISIONS.md.
 - Auth: usar `getUser()` no `getSession()` en layouts/pages (migrado en Sprint 14k.8)
 - Trigger: `trg_set_updated_at()` (NO `set_updated_at()`)
 - `catalogo_modulos.activo_global` (NO `.activo`)
+
+## Verificacion de produccion
+
+**NUNCA afirmar el estado de un servicio en produccion sin haberlo
+verificado via el MCP correspondiente.**
+
+Tu build local, tu `vercel deploy` CLI, tu `npm run build`, tu `curl
+localhost` NO son produccion. Son tu entorno local.
+
+Para verificar produccion, usar:
+- **Vercel deploys** -> MCP `claude.ai Vercel` (tool `list_deployments`)
+- **Supabase DB** -> MCP `claude.ai Supabase` (tool `execute_sql`)
+- **Paginas web de Vercel** -> MCP `claude.ai Vercel` (tool
+  `web_fetch_vercel_url`)
+
+Si un MCP no responde o no esta disponible, declarar explicitamente
+"estado de X no verificado via MCP" en el reporte de cierre. No
+inferir el estado a partir de tu CLI local. Esto se canoniza en
+ADR-039.
+
+Patron observado 2 veces (Sprint 2.4-FIX y Sprint 3.1) y prohibido
+desde DOCS-5: reportar "Vercel deploy ERROR" cuando via MCP el deploy
+esta READY. Cero tolerancia.
 
 ## Glosario rapido
 
