@@ -49,6 +49,64 @@ export async function obtenerEventosPorMes(
   const equiposMap = new Map((equiposRes.data ?? []).map(e => [e.id, e.nombre]))
   const canchasMap = new Map((canchasRes.data ?? []).map(c => [c.id, c.nombre]))
 
+  return mapEventos(eventos, equiposMap, canchasMap)
+}
+
+/**
+ * Obtiene eventos de una semana para vista semanal.
+ * AP-001: eventos no tiene deleted_at, usa .eq('activo', true)
+ * AP-003: queries separadas para equipos y canchas (no FK joins)
+ */
+export async function obtenerEventosPorSemana(
+  fechaInicio: Date,
+  tenant_id: string
+): Promise<EventoCalendar[]> {
+  const supabase = createServiceRoleClient()
+
+  const fechaFin = new Date(fechaInicio)
+  fechaFin.setDate(fechaFin.getDate() + 6)
+
+  const { data: eventos } = await supabase
+    .from('eventos')
+    .select('id, titulo, fecha, hora_inicio, hora_fin, tipo_evento_slug, equipo_id, cancha_id, color, es_recurrente, evento_padre_id, serie_uuid, estado')
+    .eq('tenant_id', tenant_id)
+    .eq('activo', true)
+    .not('fecha', 'is', null)
+    .gte('fecha', fechaInicio.toISOString().slice(0, 10))
+    .lte('fecha', fechaFin.toISOString().slice(0, 10))
+    .order('fecha', { ascending: true })
+    .order('hora_inicio', { ascending: true })
+
+  if (!eventos || eventos.length === 0) return []
+
+  const equipoIds = [...new Set(eventos.map(e => e.equipo_id).filter(Boolean))] as string[]
+  const canchaIds = [...new Set(eventos.map(e => e.cancha_id).filter(Boolean))] as string[]
+
+  const [equiposRes, canchasRes] = await Promise.all([
+    equipoIds.length > 0
+      ? supabase.from('equipos').select('id, nombre').in('id', equipoIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; nombre: string }> }),
+    canchaIds.length > 0
+      ? supabase.from('canchas').select('id, nombre').in('id', canchaIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; nombre: string }> }),
+  ])
+
+  const equiposMap = new Map((equiposRes.data ?? []).map(e => [e.id, e.nombre]))
+  const canchasMap = new Map((canchasRes.data ?? []).map(c => [c.id, c.nombre]))
+
+  return mapEventos(eventos, equiposMap, canchasMap)
+}
+
+function mapEventos(
+  eventos: Array<{
+    id: string; titulo: string | null; fecha: string; hora_inicio: string | null;
+    hora_fin: string | null; tipo_evento_slug: string; equipo_id: string | null;
+    cancha_id: string | null; color: string | null; es_recurrente: boolean | null;
+    evento_padre_id: string | null; serie_uuid: string | null; estado: string;
+  }>,
+  equiposMap: Map<string, string>,
+  canchasMap: Map<string, string>,
+): EventoCalendar[] {
   return eventos.map(e => {
     const horaInicio = e.hora_inicio ?? '00:00:00'
     const horaFin = e.hora_fin ?? horaInicio

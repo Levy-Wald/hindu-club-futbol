@@ -14,7 +14,7 @@
   "permissions_required": ["tenant.admin", "planificadores.editor"],
   "events_emits": ["planificadores.evento_movido"],
   "events_consumes": [],
-  "ui_routes": ["/admin/planificadores/mensual"],
+  "ui_routes": ["/admin/planificadores/mensual", "/admin/planificadores/semanal"],
   "api_endpoints": [],
   "replaceable_by_external": false,
   "external_adapter_interface": null

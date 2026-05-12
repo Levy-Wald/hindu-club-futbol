@@ -119,6 +119,7 @@ const operacionesSubItems: NavItemDef[] = [
 
 const planificadoresSubItems: NavItemDef[] = [
   { label: 'Mensual', href: '/admin/planificadores/mensual', icon: CalendarRange },
+  { label: 'Semanal', href: '/admin/planificadores/semanal', icon: CalendarDays },
 ]
 
 const plataformaItems: NavItemDef[] = [

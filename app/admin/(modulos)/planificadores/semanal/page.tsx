@@ -1,12 +1,13 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { canVerPlanificador } from '@/modules/planificadores/lib/permisos'
-import { obtenerEventosPorMes } from '@/modules/planificadores/lib/queries'
-import { CalendarioMensual } from '@/modules/planificadores/ui/calendario-mensual'
+import { obtenerEventosPorSemana } from '@/modules/planificadores/lib/queries'
+import { CalendarioSemanal } from '@/modules/planificadores/ui/calendario-semanal'
 import { TogglePlanificador } from '@/modules/planificadores/ui/toggle-planificador'
+import { startOfWeek } from 'date-fns'
 
-export default async function PlanificadorMensualPage(props: {
-  searchParams: Promise<{ year?: string; month?: string }>
+export default async function PlanificadorSemanalPage(props: {
+  searchParams: Promise<{ fecha?: string }>
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -29,22 +30,21 @@ export default async function PlanificadorMensualPage(props: {
   }
 
   const searchParams = await props.searchParams
-  const now = new Date()
-  const year = parseInt(searchParams.year ?? String(now.getFullYear()))
-  const month = parseInt(searchParams.month ?? String(now.getMonth() + 1))
+  const fechaInicio = searchParams.fecha
+    ? startOfWeek(new Date(searchParams.fecha + 'T00:00:00'), { weekStartsOn: 1 })
+    : startOfWeek(new Date(), { weekStartsOn: 1 })
 
-  const eventos = await obtenerEventosPorMes(year, month, persona.tenant_id)
+  const eventos = await obtenerEventosPorSemana(fechaInicio, persona.tenant_id)
 
   return (
     <div className="container mx-auto p-4">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Planificador mensual</h1>
-        <TogglePlanificador vistaActual="mensual" />
+        <h1 className="text-2xl font-bold">Planificador semanal</h1>
+        <TogglePlanificador vistaActual="semanal" />
       </div>
-      <CalendarioMensual
+      <CalendarioSemanal
         eventos={eventos}
-        year={year}
-        month={month}
+        fechaInicio={fechaInicio}
         personaId={persona.id}
         tenantId={persona.tenant_id}
       />
