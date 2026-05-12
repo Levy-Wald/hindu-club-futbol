@@ -238,6 +238,7 @@ export async function confirmarItemAction(input: {
   decision: 'crear_nueva' | 'usar_match' | 'rechazar'
   notas_admin?: string
 }): Promise<ActionResult<{ persona_id?: string; entidad_id?: string }>> {
+  try {
   const persona = await getGuardia()
   if (!persona) return { ok: false, error: 'No autenticado' }
 
@@ -250,7 +251,7 @@ export async function confirmarItemAction(input: {
   // S10: check item exists and not already processed
   const { data: item } = await serviceClient
     .from('nomina_externa_items')
-    .select('*, nomina:nominas_externas!inner(evento_id, tenant_id)')
+    .select('*')
     .eq('id', input.item_id)
     .eq('tenant_id', tenant_id)
     .is('deleted_at', null) // AP-001 ✓
@@ -259,7 +260,14 @@ export async function confirmarItemAction(input: {
   if (!item) return { ok: false, error: 'Item no encontrado' }
   if (item.procesada) return { ok: false, error: 'Item ya procesado' }
 
-  const nominaData = Array.isArray(item.nomina) ? item.nomina[0] : item.nomina
+  // Obtener nomina parent
+  const { data: nominaData } = await serviceClient
+    .from('nominas_externas')
+    .select('evento_id, tenant_id')
+    .eq('id', item.nomina_externa_id)
+    .single()
+
+  if (!nominaData) return { ok: false, error: 'Nómina no encontrada' }
 
   if (input.decision === 'rechazar') {
     await serviceClient
@@ -315,7 +323,7 @@ export async function confirmarItemAction(input: {
     if (padronTemp) {
       padron_id = padronTemp.id
     } else {
-      const { data: newPadron } = await serviceClient
+      const { data: newPadron, error: padronErr } = await serviceClient
         .from('padrones')
         .insert({
           tenant_id,
@@ -326,7 +334,20 @@ export async function confirmarItemAction(input: {
         })
         .select('id')
         .single()
-      padron_id = newPadron!.id
+
+      if (padronErr || !newPadron) {
+        // Retry: maybe it was just created by a concurrent request
+        const { data: retry } = await serviceClient
+          .from('padrones')
+          .select('id')
+          .eq('tenant_id', tenant_id)
+          .eq('slug', 'visitantes-temporales')
+          .maybeSingle()
+        if (!retry) return { ok: false, error: padronErr?.message ?? 'Error creando padrón temporal' }
+        padron_id = retry.id
+      } else {
+        padron_id = newPadron.id
+      }
     }
 
     // Obtener fecha evento para vigencia
@@ -421,6 +442,10 @@ export async function confirmarItemAction(input: {
   }
 
   return { ok: false, error: 'Tipo de item no soportado' }
+  } catch (err) {
+    console.error('[confirmarItemAction] Error:', err)
+    return { ok: false, error: err instanceof Error ? err.message : 'Error interno' }
+  }
 }
 
 /**

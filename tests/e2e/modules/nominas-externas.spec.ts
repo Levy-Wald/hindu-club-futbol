@@ -146,8 +146,8 @@ test.describe('Nóminas externas', () => {
     await expect(btnConfirmar).toBeVisible({ timeout: 5000 })
     await btnConfirmar.click()
 
-    // Esperar confirmación
-    await page.waitForTimeout(3000)
+    // Esperar que el toast de confirmación aparezca o que el item se mueva a procesados
+    await expect(page.getByText('Confirmado')).toBeVisible({ timeout: 15000 })
 
     // 7. Verificar item procesado en DB
     const { data: itemPost } = await supabase
