@@ -60,13 +60,22 @@ export async function autoPoblarInvitadosDesdeEquipo(
 
   if (rows.length === 0) return { insertados: 0 }
 
-  // 4. Insert con ignoreDuplicates (idempotente via partial unique index)
+  // 4. Insert idempotente — filtrar IDs ya existentes y luego insertar solo nuevos
+  const { data: existentes } = await supabase
+    .from('evento_invitados')
+    .select('persona_id')
+    .eq('evento_id', evento_id)
+    .eq('tenant_id', tenant_id)
+    .is('deleted_at', null)
+
+  const existenteSet = new Set((existentes ?? []).map(e => e.persona_id))
+  const nuevos = rows.filter(r => !existenteSet.has(r.persona_id))
+
+  if (nuevos.length === 0) return { insertados: 0 }
+
   const { data, error } = await supabase
     .from('evento_invitados')
-    .upsert(rows, {
-      onConflict: 'evento_id,persona_id',
-      ignoreDuplicates: true,
-    })
+    .insert(nuevos)
     .select('id')
 
   if (error) throw new Error(`Error auto-poblando: ${error.message}`)
