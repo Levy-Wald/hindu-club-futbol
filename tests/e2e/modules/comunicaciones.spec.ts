@@ -213,6 +213,9 @@ test.describe('Comunicaciones', () => {
     const jobLogIds: string[] = []
 
     try {
+      // PRE-CLEANUP: remove any leftover dedup envíos from parallel test runs
+      await supabase.from('com_envios').delete().eq('persona_id', PERSONA_E2E).eq('origen_modulo_slug', 'apto_vence_7d')
+
       // SETUP: dar permiso comunicaciones.admin temporal al E2E user
       const { data: attr } = await supabase
         .from('personas_atributos')
@@ -311,6 +314,9 @@ test.describe('Comunicaciones', () => {
     const jobLogIds: string[] = []
 
     try {
+      // PRE-CLEANUP: remove any leftover dedup envíos from parallel test runs
+      await supabase.from('com_envios').delete().eq('persona_id', PERSONA_E2E).eq('origen_modulo_slug', 'apto_vence_7d')
+
       // SETUP: permiso comunicaciones.admin
       const { data: attr } = await supabase
         .from('personas_atributos')
