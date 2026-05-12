@@ -1,0 +1,28 @@
+{
+  "slug": "nominas_externas",
+  "name": "Nóminas externas",
+  "version": "1.0.0",
+  "category": "operaciones",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas", "eventos", "entidades"],
+  "depends_on_modules": ["asistencias"],
+  "soft_depends_on_modules": [],
+  "owns_tables": [
+    "nominas_externas",
+    "nomina_externa_items",
+    "abuse_blocks",
+    "catalogo_niveles_validacion",
+    "tipos_evento_validacion_default"
+  ],
+  "owns_catalogs": ["catalogo_niveles_validacion"],
+  "permissions_required": ["nominas.admin", "tenant.admin"],
+  "events_emits": ["nomina.submission_recibida", "nomina.item_confirmado"],
+  "events_consumes": [],
+  "ui_routes": ["/admin/nominas-externas", "/admin/nominas-externas/[id]"],
+  "public_routes": ["/nomina/[token]"],
+  "api_endpoints": ["/api/nomina/[token]/info", "/api/nomina/[token]/submit"],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}
