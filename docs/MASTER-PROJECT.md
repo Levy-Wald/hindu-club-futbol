@@ -362,3 +362,6 @@ ajustamos el modelo.
 | 9 | UI-UX.md | Estándares de diseño y UX | Arquitecto |
 | 10 | PERFORMANCE.md | Objetivos y patrones de performance | Arquitecto |
 | 11 | SECURITY.md | Políticas y controles de seguridad | Arquitecto |
+| 12 | RUNBOOK.md | Manual operativo: qué hacer si algo falla en producción | Arquitecto |
+| 13 | POST-MORTEM-TEMPLATE.md | Template para análisis post-incidente | Arquitecto |
+| 14 | RFC-TEMPLATE.md | Template para Request For Comments antes de decisiones grandes | Arquitecto |

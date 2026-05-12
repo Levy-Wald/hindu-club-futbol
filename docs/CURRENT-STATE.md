@@ -6,9 +6,9 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint DOCS-1 cerrado.
+> Última actualización: 12 de mayo de 2026 — Sprint DOCS-2 cerrado.
 > FASE 2 completada (Sprint FASE 2.5 cerrado con tag v0.8.0-fase2-completa).
-> Sistema documental sincronizado.
+> Sistema documental sincronizado + manual operativo + templates.
 
 ---
 
@@ -534,6 +534,10 @@ Historial referenciado en commits del repo. Listado resumido:
   canonización post-FASE 2. ADRs 036, 037, 038 canonizados. WORKFLOW.md
   eliminado. Sistema documental alineado con realidad de DB + repo.
   Tag v0.8.1.
+- **Sprint DOCS-2** — Manual operativo + templates de post-mortem y RFC.
+  Creados docs/RUNBOOK.md (20 escenarios), docs/POST-MORTEM-TEMPLATE.md
+  y docs/RFC-TEMPLATE.md. Lista de docs vivos actualizada de 11 a 14.
+  Tag v0.8.2.
 
 ---
 
