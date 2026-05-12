@@ -44,13 +44,14 @@ type PendienteDrop = {
 
 export function CalendarioSemanal({
   eventos: eventosIniciales,
-  fechaInicio,
+  fechaInicioStr,
 }: {
   eventos: EventoCalendar[]
-  fechaInicio: Date
+  fechaInicioStr: string // 'yyyy-MM-dd' — constructed to Date on client to avoid timezone shift
   personaId: string
   tenantId: string
 }) {
+  const fechaInicio = useMemo(() => new Date(`${fechaInicioStr}T12:00:00`), [fechaInicioStr])
   const router = useRouter()
   const [eventos, setEventos] = useState(eventosIniciales)
   const [seleccionado, setSeleccionado] = useState<EventoCalendar | null>(null)

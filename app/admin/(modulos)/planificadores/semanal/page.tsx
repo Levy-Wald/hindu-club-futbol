@@ -4,7 +4,7 @@ import { canVerPlanificador } from '@/modules/planificadores/lib/permisos'
 import { obtenerEventosPorSemana } from '@/modules/planificadores/lib/queries'
 import { CalendarioSemanal } from '@/modules/planificadores/ui/calendario-semanal'
 import { TogglePlanificador } from '@/modules/planificadores/ui/toggle-planificador'
-import { startOfWeek } from 'date-fns'
+import { startOfWeek, format } from 'date-fns'
 
 export default async function PlanificadorSemanalPage(props: {
   searchParams: Promise<{ fecha?: string }>
@@ -31,9 +31,10 @@ export default async function PlanificadorSemanalPage(props: {
 
   const searchParams = await props.searchParams
   const fechaInicio = searchParams.fecha
-    ? startOfWeek(new Date(searchParams.fecha + 'T00:00:00'), { weekStartsOn: 1 })
+    ? startOfWeek(new Date(searchParams.fecha + 'T12:00:00'), { weekStartsOn: 1 })
     : startOfWeek(new Date(), { weekStartsOn: 1 })
 
+  const fechaInicioStr = format(fechaInicio, 'yyyy-MM-dd')
   const eventos = await obtenerEventosPorSemana(fechaInicio, persona.tenant_id)
 
   return (
@@ -44,7 +45,7 @@ export default async function PlanificadorSemanalPage(props: {
       </div>
       <CalendarioSemanal
         eventos={eventos}
-        fechaInicio={fechaInicio}
+        fechaInicioStr={fechaInicioStr}
         personaId={persona.id}
         tenantId={persona.tenant_id}
       />
