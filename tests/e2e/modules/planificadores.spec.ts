@@ -41,7 +41,10 @@ test.describe('Planificadores', () => {
       await page.waitForLoadState('networkidle')
 
       await expect(page.getByTestId('calendario-mensual')).toBeVisible()
-      await expect(page.getByText('E2E Planif - Ver Cal')).toBeVisible({ timeout: 10000 })
+      // react-big-calendar may truncate text in month view cells;
+      // use .rbc-event locator which contains the event title
+      const eventEl = page.locator('.rbc-event', { hasText: 'E2E Planif' })
+      await expect(eventEl.first()).toBeVisible({ timeout: 10000 })
     } finally {
       if (evento_id) await supabase.from('eventos').delete().eq('id', evento_id)
     }
@@ -72,12 +75,12 @@ test.describe('Planificadores', () => {
       await page.goto('/admin/planificadores/mensual?year=2027&month=3')
       await page.waitForLoadState('networkidle')
 
-      const eventoEl = page.getByText('E2E Planif - Modal')
-      await expect(eventoEl).toBeVisible({ timeout: 10000 })
-      await eventoEl.click()
+      const eventoEl = page.locator('.rbc-event', { hasText: 'E2E Planif - Modal' })
+      await expect(eventoEl.first()).toBeVisible({ timeout: 10000 })
+      await eventoEl.first().click()
 
       await expect(page.getByTestId('modal-detalle-evento')).toBeVisible()
-      await expect(page.getByText('Partido')).toBeVisible()
+      await expect(page.getByText('partido')).toBeVisible()
       await expect(page.getByTestId('btn-detalle-completo')).toBeVisible()
 
       // Close modal
@@ -115,10 +118,10 @@ test.describe('Planificadores', () => {
       await page.goto('/admin/planificadores/mensual?year=2027&month=3')
       await page.waitForLoadState('networkidle')
 
-      const eventoEl = page.getByText('E2E Planif - Mover')
-      await expect(eventoEl).toBeVisible({ timeout: 10000 })
+      const eventoEl = page.locator('.rbc-event', { hasText: 'E2E Planif - Mover' })
+      await expect(eventoEl.first()).toBeVisible({ timeout: 10000 })
 
-      const eventBox = await eventoEl.boundingBox()
+      const eventBox = await eventoEl.first().boundingBox()
       if (!eventBox) throw new Error('No se encontró el evento en el calendario')
 
       const startX = eventBox.x + eventBox.width / 2
@@ -176,10 +179,10 @@ test.describe('Planificadores', () => {
       await page.goto('/admin/planificadores/mensual?year=2027&month=3')
       await page.waitForLoadState('networkidle')
 
-      const eventoEl = page.getByText('E2E Planif - Recurrente')
-      await expect(eventoEl).toBeVisible({ timeout: 10000 })
+      const eventoEl = page.locator('.rbc-event', { hasText: 'E2E Planif - Recurrente' })
+      await expect(eventoEl.first()).toBeVisible({ timeout: 10000 })
 
-      const eventBox = await eventoEl.boundingBox()
+      const eventBox = await eventoEl.first().boundingBox()
       if (!eventBox) throw new Error('No se encontró el evento recurrente')
 
       const startX = eventBox.x + eventBox.width / 2
