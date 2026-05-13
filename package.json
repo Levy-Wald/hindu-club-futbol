@@ -11,6 +11,7 @@
     "validate:manifests": "npx tsx scripts/validate-module-manifests.ts",
     "validate:all": "npm run validate:manifests && npm run test:e2e && npm run build",
     "validate:strict": "npm run lint && npm run validate:manifests && npm run audit:schema && npm run test:e2e && npm run build",
+    "test:unit": "vitest run tests/unit/",
     "test:e2e": "node --env-file=.env.local -e \"require('child_process').execSync('npx playwright test', {stdio:'inherit'})\"",
     "test:e2e:ui": "node --env-file=.env.local -e \"require('child_process').execSync('npx playwright test --ui', {stdio:'inherit'})\""
   },
@@ -59,6 +60,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.6"
   }
 }

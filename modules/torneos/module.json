@@ -18,6 +18,7 @@
     "/admin/competencias/torneos",
     "/admin/competencias/torneos/[id]",
     "/admin/competencias/torneos/[id]/import",
+    "/admin/competencias/torneos/[id]/fixture",
     "/admin/competencias/inscripciones"
   ],
   "public_routes": [],

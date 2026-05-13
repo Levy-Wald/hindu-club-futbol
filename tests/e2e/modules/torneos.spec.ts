@@ -20,9 +20,16 @@ test.describe('Torneos', () => {
   const equipoInscriptoIds: string[] = []
   const inscripcionIds: string[] = []
   const csvEventoIds: string[] = []
+  const fixtureEventoIds: string[] = []
 
   test.afterAll(async () => {
     const supabase = serviceRole()
+
+    // Clean fixture-generated partidos_detalle + eventos
+    for (const eventoId of fixtureEventoIds) {
+      await supabase.from('partidos_detalle').delete().eq('evento_id', eventoId)
+      await supabase.from('eventos').delete().eq('id', eventoId)
+    }
 
     // Clean CSV-imported partidos_detalle + eventos
     for (const eventoId of csvEventoIds) {
@@ -413,6 +420,112 @@ test.describe('Torneos', () => {
     for (const p of resultados) {
       csvEventoIds.push(p.evento_id)
     }
+  })
+
+  // Sprint 5.3 tests — Fixture auto-generador
+
+  test('admin navega a pantalla fixture desde detalle torneo', async ({ page }) => {
+    expect(torneoInternoId).not.toBeNull()
+
+    await page.goto(`/admin/competencias/torneos/${torneoInternoId}`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('pantalla-detalle-torneo')).toBeVisible({ timeout: 15000 })
+
+    // Click "Generar fixture" button
+    await page.getByTestId('btn-generar-fixture').click()
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.getByTestId('pantalla-fixture')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('panel-opciones')).toBeVisible()
+    await expect(page.getByTestId('btn-generar-preview')).toBeVisible()
+  })
+
+  test('admin genera preview de fixture liga con 4 equipos', async ({ page }) => {
+    expect(torneoInternoId).not.toBeNull()
+    expect(categoriaId).not.toBeNull()
+
+    await page.goto(`/admin/competencias/torneos/${torneoInternoId}/fixture`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('pantalla-fixture')).toBeVisible({ timeout: 15000 })
+
+    // Select categoria Sub-15
+    if (await page.getByTestId('select-categoria-fixture').isVisible()) {
+      await page.getByTestId('select-categoria-fixture').click()
+      await page.getByRole('option', { name: 'Sub-15' }).click()
+    }
+
+    // Generate preview
+    await page.getByTestId('btn-generar-preview').click()
+
+    // Wait for preview to appear
+    await expect(page.getByTestId('preview-fixture')).toBeVisible({ timeout: 15000 })
+
+    // 4 equipos liga = 6 partidos, 3 fechas
+    await expect(page.getByText('6 partidos en 3 fecha(s)')).toBeVisible({ timeout: 5000 })
+
+    // Should show partido preview cards
+    const partidos = page.getByTestId('partido-preview')
+    await expect(partidos.first()).toBeVisible()
+    const count = await partidos.count()
+    expect(count).toBe(6)
+  })
+
+  test('admin confirma fixture y crea 6 partidos', async ({ page }) => {
+    expect(torneoInternoId).not.toBeNull()
+    expect(categoriaId).not.toBeNull()
+
+    await page.goto(`/admin/competencias/torneos/${torneoInternoId}/fixture`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('pantalla-fixture')).toBeVisible({ timeout: 15000 })
+
+    // Select categoria
+    if (await page.getByTestId('select-categoria-fixture').isVisible()) {
+      await page.getByTestId('select-categoria-fixture').click()
+      await page.getByRole('option', { name: 'Sub-15' }).click()
+    }
+
+    // Set fecha inicio
+    await page.getByTestId('input-fecha-inicio').fill('2026-08-01')
+
+    // Generate preview
+    await page.getByTestId('btn-generar-preview').click()
+    await expect(page.getByTestId('preview-fixture')).toBeVisible({ timeout: 15000 })
+
+    // Confirm
+    await page.getByTestId('btn-confirmar-fixture').click()
+    await expect(page.getByTestId('fixture-confirmado')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText('6 partido(s) programado(s)')).toBeVisible()
+
+    // Verify in DB
+    const supabase = serviceRole()
+    const { data: partidos } = await supabase
+      .from('partidos_detalle')
+      .select('evento_id, fase, fecha_numero, torneo_id, categoria_id')
+      .eq('tenant_id', TENANT)
+      .eq('torneo_id', torneoInternoId!)
+      .eq('categoria_id', categoriaId!)
+      .not('fase', 'is', null)
+
+    // Should have 6 fixture-generated partidos
+    expect(partidos!.length).toBeGreaterThanOrEqual(6)
+
+    // Track for cleanup
+    for (const p of partidos!) {
+      fixtureEventoIds.push(p.evento_id)
+    }
+  })
+
+  test('admin ve warnings en fixture con equipos insuficientes', async ({ page }) => {
+    expect(torneoExternoId).not.toBeNull()
+
+    // External torneo has 0-1 equipos inscriptos — should show error
+    await page.goto(`/admin/competencias/torneos/${torneoExternoId}/fixture`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('pantalla-fixture')).toBeVisible({ timeout: 15000 })
+
+    await page.getByTestId('btn-generar-preview').click()
+
+    await expect(page.getByTestId('error-fixture')).toBeVisible({ timeout: 10000 })
   })
 
   test('persona sin permiso torneos.admin no puede crear torneo via RLS', async () => {
