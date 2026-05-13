@@ -101,18 +101,18 @@ FASE 4 completada al 100% el 2026-05-13.
 | 5.2 | Inscripciones externas + CSV import: equipos_competencias torneo_id FK, papaparse, validación por fila | `v0.21.0` | 76/1/0 | Cerrado |
 | 5.3 | Fixture auto-generador: 6 algoritmos TS puros, preview + confirm, migration fase+fecha_numero, 21 unit tests (vitest) | `v0.22.0` | 80/1/3 flaky | Cerrado |
 | 5.4 | Tabla de posiciones: SQL function calcular_tabla_posiciones, server action, UI con selector categoría + highlight equipo propio, fix flaky E2E | `v0.23.0` | 83/1/4 flaky | Cerrado |
+| 5.5 | Carga resultado detallada: 2 tablas (torneo_partidos_eventos + partido_stats_jugador), wizard 3 pasos, stats idempotentes, atributo cargador_resultado | `v0.24.0` | 87/1/3 flaky | Cerrado |
 
 ---
 
 ## Sprint actual
 
-Sprint FASE 5.4 cerrado. Próximo: FASE 5.5 (Carga de resultados).
+Sprint FASE 5.5 cerrado. Próximo: FASE 5.6 (Stats por jugador y equipo).
 
 ---
 
 ## Proximos en cola
 
-- FASE 5.5: Resultados detallados
 - FASE 5.6: Stats por jugador y equipo
 
 ---

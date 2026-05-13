@@ -338,6 +338,17 @@ Agrega stats de `partidos_detalle` (local + visitante CTEs). Ordena por puntos
 DESC, diferencia de goles DESC, goles a favor DESC. Criterios desempate
 configurables por torneo (jsonb). UI en `/admin/competencias/torneos/[id]/posiciones`.
 
+**Evento de partido.** Acción granular durante un partido (gol, asistencia,
+tarjeta amarilla/roja, cambio, penal, autogol) con minuto exacto. Vive en
+`torneo_partidos_eventos`. Sin UNIQUE en (partido, persona, tipo) — un jugador
+puede meter múltiples goles. Cambio: persona_id=entra, persona_relacionada_id=sale.
+Gol con asistencia: persona_id=goleador, persona_relacionada_id=asistente.
+
+**Stats agregadas por jugador.** Resumen de métricas para un jugador en un partido.
+Vive en `partido_stats_jugador` con UNIQUE(partido_evento_id, persona_id). Calculadas
+por `recalcularStatsPartido` que es idempotente (DELETE+INSERT). Columnas avanzadas
+(tiros, pases, xG) en mock-first para Sprint 5.6+.
+
 **Scouting.** Ficha de evaluación de un jugador (propio o externo). Vive en
 `scouting_fichas`.
 
