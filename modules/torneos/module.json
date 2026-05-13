@@ -1,0 +1,25 @@
+{
+  "slug": "torneos",
+  "name": "Competencias y torneos",
+  "version": "1.0.0",
+  "category": "club_deportivo",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": ["asistencias"],
+  "soft_depends_on_modules": [],
+  "owns_tables": ["torneos", "torneo_categorias", "torneo_equipos"],
+  "owns_catalogs": [],
+  "permissions_required": ["tenant.admin", "torneos.admin", "torneos.cargador"],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": [
+    "/admin/competencias/torneos",
+    "/admin/competencias/torneos/[id]"
+  ],
+  "public_routes": [],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

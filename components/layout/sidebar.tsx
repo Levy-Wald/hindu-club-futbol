@@ -119,6 +119,10 @@ const operacionesSubItems: NavItemDef[] = [
   { label: 'Scouting', href: '/admin/operaciones/scouting', icon: Search },
 ]
 
+const competenciasSubItems: NavItemDef[] = [
+  { label: 'Torneos', href: '/admin/competencias/torneos', icon: Trophy },
+]
+
 const planificadoresSubItems: NavItemDef[] = [
   { label: 'Mensual', href: '/admin/planificadores/mensual', icon: CalendarRange },
   { label: 'Semanal', href: '/admin/planificadores/semanal', icon: CalendarDays },
@@ -238,6 +242,7 @@ export function Sidebar() {
   const isComunicacionesActive = pathname.startsWith('/admin/comunicaciones')
   const isUtileriaActive = pathname.startsWith('/admin/utileria')
   const isConcesionesActive = pathname.startsWith('/admin/concesiones')
+  const isCompetenciasActive = pathname.startsWith('/admin/competencias')
   const isPlanificadoresActive = pathname.startsWith('/admin/planificadores')
   const [operacionesOpen, setOperacionesOpen] = useState(isOperacionesActive)
   const [finanzasOpen, setFinanzasOpen] = useState(isFinanzasActive)
@@ -245,6 +250,7 @@ export function Sidebar() {
   const [comunicacionesOpen, setComunicacionesOpen] = useState(isComunicacionesActive)
   const [utileriaOpen, setUtileriaOpen] = useState(isUtileriaActive)
   const [concesionesOpen, setConcesionesOpen] = useState(isConcesionesActive)
+  const [competenciasOpen, setCompetenciasOpen] = useState(isCompetenciasActive)
   const [planificadoresOpen, setPlanificadoresOpen] = useState(isPlanificadoresActive)
 
   return (
@@ -332,6 +338,15 @@ export function Sidebar() {
           isOpen={operacionesOpen}
           onToggle={() => setOperacionesOpen(!operacionesOpen)}
           subItems={operacionesSubItems}
+          pathname={pathname}
+        />
+        <CollapsibleSection
+          label="Competencias"
+          icon={Trophy}
+          isActive={isCompetenciasActive}
+          isOpen={competenciasOpen}
+          onToggle={() => setCompetenciasOpen(!competenciasOpen)}
+          subItems={competenciasSubItems}
           pathname={pathname}
         />
         <CollapsibleSection

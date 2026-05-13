@@ -84,6 +84,10 @@ const comunicacionesSubItems: NavItemDef[] = [
   { label: 'Envíos', href: '/admin/comunicaciones/envios', icon: Send },
 ]
 
+const competenciasSubItems: NavItemDef[] = [
+  { label: 'Torneos', href: '/admin/competencias/torneos', icon: Trophy },
+]
+
 const planificadoresSubItems: NavItemDef[] = [
   { label: 'Mensual', href: '/admin/planificadores/mensual', icon: CalendarRange },
   { label: 'Semanal', href: '/admin/planificadores/semanal', icon: CalendarDays },
@@ -169,6 +173,7 @@ export function MobileNav() {
   const [finanzasOpen, setFinanzasOpen] = useState(pathname.startsWith('/admin/finanzas'))
   const [rrhhOpen, setRRHHOpen] = useState(pathname.startsWith('/admin/rrhh'))
   const [comunicacionesOpen, setComunicacionesOpen] = useState(pathname.startsWith('/admin/comunicaciones'))
+  const [competenciasOpen, setCompetenciasOpen] = useState(pathname.startsWith('/admin/competencias'))
   const [planificadoresOpen, setPlanificadoresOpen] = useState(pathname.startsWith('/admin/planificadores'))
 
   const closeMenu = () => setMenuOpen(false)
@@ -302,6 +307,16 @@ export function MobileNav() {
               isOpen={operacionesOpen}
               onToggle={() => setOperacionesOpen(!operacionesOpen)}
               subItems={operacionesSubItems}
+              pathname={pathname}
+              onClose={closeMenu}
+            />
+            <MobileCollapsible
+              label="Competencias"
+              icon={Trophy}
+              isActive={pathname.startsWith('/admin/competencias')}
+              isOpen={competenciasOpen}
+              onToggle={() => setCompetenciasOpen(!competenciasOpen)}
+              subItems={competenciasSubItems}
               pathname={pathname}
               onClose={closeMenu}
             />
