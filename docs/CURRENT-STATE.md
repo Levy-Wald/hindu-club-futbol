@@ -6,8 +6,8 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 13 de mayo de 2026 — Sprint FASE 5.3 cerrado.
-> Fixture auto-generador con 6 algoritmos. FASE 5 en curso.
+> Última actualización: 13 de mayo de 2026 — Sprint FASE 5.4 cerrado.
+> Tabla de posiciones con selector de categoría. FASE 5 en curso.
 
 ---
 
@@ -15,14 +15,15 @@
 
 **Estado general:** FASE 1 cerrada. FASE 2 (Comunicación) completada al 100%.
 FASE 3 (Operación deportiva) completada al 100%. FASE 4 (Planificadores)
-completada al 100%. **FASE 5 (Competencias) iniciada:** Sprint 5.1–5.3 cerrados.
+completada al 100%. **FASE 5 (Competencias) iniciada:** Sprint 5.1–5.4 cerrados.
 
-**Ultimo sprint cerrado:** **FASE 5.3** — Fixture auto-generador con 6 algoritmos TS puros.
-6 formatos (liga round-robin, eliminación bracket, grupos+playoff, suizo, triangular,
-cuadrangular). Server actions preview + confirm. UI en /admin/competencias/torneos/[id]/fixture.
-Migration: fase + fecha_numero en partidos_detalle. 21 unit tests (vitest). 4 E2E tests.
+**Ultimo sprint cerrado:** **FASE 5.4** — Tabla de posiciones con selector de categoría.
+SQL function `calcular_tabla_posiciones` (STABLE, 2 CTEs local/visitante). Server action
+`obtenerTablaPosicionesAction`. UI en /admin/competencias/torneos/[id]/posiciones con
+selector categoría, refresh, highlight equipo propio, empty state. Botón "Posiciones"
+en detalle torneo. 3 E2E tests. Fix flaky test "admin agrega 4 equipos".
 
-**Próximo sprint:** FASE 5.4 — Tabla de posiciones.
+**Próximo sprint:** FASE 5.5 — Carga de resultados.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -38,16 +39,16 @@ Migration: fase + fecha_numero en partidos_detalle. 21 unit tests (vitest). 4 E2
 | Tablas en `public` | 159 |
 | Tablas con RLS habilitada | 153 (96.2%) |
 | RLS policies | 376 |
-| Funciones custom (`pg_proc` en public) | 134 |
+| Funciones custom (`pg_proc` en public) | 135 |
 | Triggers | 96 |
 | VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 77 (8 públicas + 69 admin) |
+| Páginas Next.js | 78 (8 públicas + 70 admin) |
 | API routes | 17 (5 endpoints v1 + 5 internos + 7 crons) |
-| Server actions | ~190 en 34 archivos |
-| Componentes custom (no shadcn) | ~165 |
-| Tests E2E (Playwright) | 80 specs (75 pass, 1 skip, 3 flaky pre-existing, 1 skip cascade) |
+| Server actions | ~191 en 35 archivos |
+| Componentes custom (no shadcn) | ~166 |
+| Tests E2E (Playwright) | 83 specs (74 pass, 1 skip, 4 flaky pre-existing acceso+comunicaciones, 4 skip cascade acceso) |
 | Tests unitarios (vitest) | 21 specs (21 pass) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
@@ -310,10 +311,17 @@ cuadrangular). Server actions preview + confirm. UI pantalla fixture con opcione
 (ida/vuelta, tercer puesto, equipos/grupo, fecha inicio). Migration: columnas
 `fase` y `fecha_numero` en partidos_detalle. 21 unit tests (vitest). Botón
 "Generar fixture" en detalle torneo.
-11 E2E tests (4 Sprint 5.1 + 3 Sprint 5.2 + 4 Sprint 5.3).
+Sprint 5.4: Tabla de posiciones. SQL function `calcular_tabla_posiciones` (STABLE,
+2 CTEs local/visitante stats, join con torneo_equipos). Server action
+`obtenerTablaPosicionesAction`. UI `/admin/competencias/torneos/[id]/posiciones`
+con selector categoría, botón refresh, tabla (Pos/Equipo/PJ/G/E/P/GF/GC/DG/Pts),
+highlight equipo propio (bg-primary/5), empty state. Botón "Posiciones" en detalle
+torneo. Fix: flaky E2E "admin agrega 4 equipos" (strict mode violation por equipos
+duplicados).
+14 E2E tests (4 Sprint 5.1 + 3 Sprint 5.2 + 4 Sprint 5.3 + 3 Sprint 5.4).
 
-**Gaps:** scouting con uso real (postergado), tabla de posiciones (Sprint 5.4),
-carga de resultados (Sprint 5.5), stats (Sprint 5.6).
+**Gaps:** scouting con uso real (postergado), carga de resultados (Sprint 5.5),
+stats (Sprint 5.6).
 
 ---
 

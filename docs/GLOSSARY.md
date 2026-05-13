@@ -332,6 +332,12 @@ Sprint FASE 5.3.
 `fecha_numero` en `partidos_detalle`. Al confirmar fixture, cada fecha se
 programa con 7 días de diferencia a partir de la fecha inicio.
 
+**Tabla de posiciones.** Ranking de equipos en un torneo calculado dinámicamente
+por la SQL function `calcular_tabla_posiciones(p_torneo_id, p_categoria_id)`.
+Agrega stats de `partidos_detalle` (local + visitante CTEs). Ordena por puntos
+DESC, diferencia de goles DESC, goles a favor DESC. Criterios desempate
+configurables por torneo (jsonb). UI en `/admin/competencias/torneos/[id]/posiciones`.
+
 **Scouting.** Ficha de evaluación de un jugador (propio o externo). Vive en
 `scouting_fichas`.
 
