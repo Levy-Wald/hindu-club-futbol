@@ -1,789 +1,226 @@
-# ClubCore — Current State
-
-> Inventario real del proyecto al cierre del último sprint. Source of truth
-> para saber qué existe, qué está operativo, qué está roto, qué falta.
->
-> **Code mantiene este documento.** Lo actualiza al final de cada sprint
-> según R-PE6 de `PROMPT-ENVELOPE.md`.
->
-> Última actualización: 13 de mayo de 2026 — Sprint FASE 5.6 cerrado.
-> Stats jugador/equipo dashboards. FASE 5 COMPLETA.
-
----
-
-## 0. Snapshot ejecutivo
-
-**Estado general:** FASE 1 cerrada. FASE 2 (Comunicación) completada al 100%.
-FASE 3 (Operación deportiva) completada al 100%. FASE 4 (Planificadores)
-completada al 100%. **FASE 5 (Competencias) completada al 100%** (6 sprints cerrados).
-
-**Ultimo sprint cerrado:** **FASE 5.6** — Stats jugador/equipo dashboards.
-3 server actions de agregación (ranking jugadores, stats jugador, stats equipos).
-3 UI dashboards: ranking goleadores/asistidores, perfil jugador con stats totales,
-stats por equipo. Stats avanzadas (xG, pases, duelos) en mock con badge
-"Próximamente — FASE 16". Sidebar "Estadísticas" under Competencias. 3 E2E tests.
-
-**Próximo sprint:** FASE 6 (por definir).
-
-**Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
-(full operativo + demo-ready).
-
-**Bloqueantes:** ninguno crítico hoy.
-
----
-
-## 1. Métricas globales
-
-| Métrica | Valor |
-|---|---|
-| Tablas en `public` | 161 |
-| Tablas con RLS habilitada | 155 (96.3%) |
-| RLS policies | 378 |
-| Funciones custom (`pg_proc` en public) | 135 |
-| Triggers | 97 |
-| VIEWs | 28 |
-| Storage buckets | 6 (incl. private-utileria-fotos) |
-| Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 82 (8 públicas + 74 admin) |
-| API routes | 17 (5 endpoints v1 + 5 internos + 7 crons) |
-| Server actions | ~199 en 38 archivos |
-| Componentes custom (no shadcn) | ~174 |
-| Tests E2E (Playwright) | 90 specs (86 pass, 1 skip, 3 flaky pre-existing comunicaciones) |
-| Tests unitarios (vitest) | 21 specs (21 pass) |
-| Tenants registrados | 1 (Hindu Club) |
-| Personas (Hindu) | 2,390 |
-| Equipos (Hindu) | 7 |
-| Atributos en catálogo | 72 (con torneos.admin, torneos.cargador, torneos.cargador_resultado, torneos.inscriptor) |
-| Tipos de notificación catalogados | 23 |
-| Tipos de evento catalogados | 24 (+amistoso) |
-| Módulos catalogados | 57 (+torneos) |
-| Módulos activos en Hindu | 42+ |
-| Manifiestos module.json | 26 |
-| Verticales en catálogo | 4 (club_deportivo, country_deportivo, federacion_hub, polo_educativo) |
-
----
-
-## 2. Estado por capa
-
-### 2.1 Troncal — CRM
-
-**Estado general:** Operativo. Núcleo del sistema, sin datos faltantes
-significativos.
-
-**Tablas (datos en Hindu):**
-
-| Tabla | Rows | Notas |
-|---|---|---|
-| `personas` | 2,390 | 103 columnas (3 columnas de disciplina migradas a `personas_disciplinas` en Sprint 14k.6) |
-| `personas_atributos` | ~2,620 | 9 atributos activos en uso (incl. suscriptor x51) |
-| `personas_padrones` | 2,561 | 4 padrones |
-| `personas_vinculos` | 4 | Familiares/tutores cargados manualmente |
-| `personas_documentos_identidad` | 2 | Sub-uso |
-| `personas_preferencias_comunicacion` | 0 | Esqueleto |
-| `entidades` | 3 | Cargadas manualmente (FACCMA, AIF, etc.) |
-| `entidades_representantes` | 0 | Esqueleto |
-| `pre_inscripciones` | 0 | UI funcional, sin uso real |
-| `solicitudes` | 0 | UI funcional, sin uso real |
-| `com_plantillas` | 18 | 18 plantillas sistema (seed protegidas) |
-| `com_envios` | 61 | Envíos mock (Sprint FASE 2.3, lotes masivos) |
-| `com_mensajes` | 0 | Sin envíos reales |
-
-**Rutas UI operativas:** `/admin/personas/*` (listado, ficha, importar,
-historial), `/admin/externos/*`, `/admin/comunicaciones/*`,
-`/admin/pre-inscripciones`.
-
-**Server actions:** 13 personas + 6 entidades + 14 comunicaciones + 3
-pre-inscripciones.
-
-**Gaps:** envíos reales con Resend (postergado a FASE 16 por ADR-035),
-pre-inscripciones públicas (postergado).
-
----
-
-### 2.2 Troncal — ERP
-
-**Estado general:** **Esqueleto cargado completo, sin operación real.**
-
-**Tablas de configuración (cargadas en Hindu):**
-
-| Tabla | Rows | Notas |
-|---|---|---|
-| `plan_cuentas` | 104 | Árbol completo (activo 23, pasivo 14, patrimonio 6, ingreso 21, egreso 40) hasta nivel 4 |
-| `tipos_comprobante` | 12 | AFIP compatibles |
-| `medios_pago` | 7 | Efectivo, Transferencia, Débito, Crédito, MercadoPago, Cheque, Débito Automático |
-| `cajas` | 3 | Caja General, Caja Chica, Banco CC |
-| `periodos_contables` | 1 | Período actual abierto |
-| `config_financiera` | 1 | Mora 5% / 10 días gracia, moneda ARS |
-| `centros_costo` | 7 | General, Fútbol, Administración, Mantenimiento, Eventos, Sponsors, Cuotas Sociales (Sprint 14h) |
-| `catalogo_categorias_movimiento` | 21 | Cargado |
-| `cotizaciones` | 1 | Tipo de cambio cargado |
-
-**Tablas transaccionales:**
-
-| Tabla | Rows | Estado |
-|---|---|---|
-| `movimientos_caja` | 4+ | Generados por fn_cobrar_cuota y fn_anular_pago (Sprint 14g) |
-| `cuotas_planes` | 1 | Fondo Fútbol 2026 (Sprint 14e) |
-| `cuotas_emitidas` | 51 | Emitidas via `fn_emitir_cuotas_masivas` (Sprint 14f) |
-| `cuotas_bonificaciones` | 0 | Sin uso |
-| `cuotas_pagos` | 2+ | Pagos registrados via fn_cobrar_cuota (Sprint 14g) |
-| `emisiones_cuota` | 2 | 1 activa (51 cuotas, 2026-05) + 1 anulada (Sprint 14f) |
-| `convenios_pago` | 0 | Sin uso |
-| `cuentas_corrientes` | 0 | Sin uso |
-| `productos_servicios` | 1 | Fondo Fútbol 2026 (Sprint 14e) |
-| `producto_proveedor` | 0 | Sin uso |
-| `suscripciones` | 51 | 51 activas del padrón Suscriptores (Sprint 14e) |
-
-**Rutas UI operativas:** `/admin/finanzas/*` (dashboard, cajas, movimientos,
-cuotas, productos, suscripciones, centros-costo, plan-cuentas, productos/importar).
-
-**Server actions:** 41 (cajas, movimientos, productos, planes, cuotas,
-suscripciones, convenios, períodos, cotizaciones, config).
-
-**Gaps:**
-- Centros de costo: CRUD completo (Sprint 14h) ✅
-- Reportes financieros: inexistentes (15b)
-- Cobranza vía MercadoPago (15d)
-
----
-
-### 2.3 Troncal — PIM
-
-**Estado general:** **Embrionario. Decisión explícita (ADR-014):** no
-construir PIM completo en 2026.
-
-**Tablas:** `productos_servicios` (36 columnas, vacía).
-
-**Plan hasta 1 jul:** productos como filas planas (cuotas, fondos, ventas
-puntuales). Sin atributos, categorías, variantes ni canales.
-
-**Gaps (postergados a 2027+):**
-- `producto_categorias` (árbol)
-- `producto_atributos` (clave-valor)
-- `producto_variantes`
-- `producto_imagenes`
-- `producto_canales`
-- `producto_combos`
-
----
-
-### 2.4 Módulos deportivos (preset Club Deportivo)
-
-**Estado general:** Núcleo operativo en Hindu. Componente más desarrollado
-del producto. A partir de ADR-031, estos son módulos componibles al mismo
-nivel que los demás (no una "capa vertical" separada).
-
-**Tablas (datos en Hindu):**
-
-| Tabla | Rows | Notas |
-|---|---|---|
-| `equipos` | 7 | FACCMA-Primera, FACCMA-Open28 Open, FACCMA-Open28 Junior, AIF-Selección, AIF-Juveniles, AIF-Senior, AIF-Super Maxi |
-| `personas_equipos` | 211 | Planteles completos cargados via Sprint 14c.1 |
-| `personas_disciplinas` | 2,111 | 2,081 principales + 30 secundarias (Sprint 14k.6, ADR-026) |
-| `padrones` | 4 | Hindu Global + Jugadores 2026 + Suscriptores 2026 + uno inactivo |
-| `categorias_equipo` | 0 | Esqueleto |
-| `canchas` | 0 | Esqueleto |
-| `equipos_competencias` | 0 | Esqueleto |
-| `esquemas_tacticos` | 0 | Operativo — módulo táctico (Sprint FASE 4.5) |
-| `esquema_posiciones` | 0 | Operativo — posiciones por esquema (Sprint FASE 4.5) |
-| `partidos_detalle` | 98 | Extendida con torneo_id + categoria_id (Sprint FASE 5.1) + fase + fecha_numero (Sprint FASE 5.3). torneo_slug deprecated (dual-read) |
-| `torneos` | 0 | 6 formatos, 5 estados, CHECK constraints (Sprint FASE 5.1) |
-| `torneo_categorias` | 0 | Categorías por torneo (Sprint FASE 5.1) |
-| `torneo_equipos` | 0 | Equipos inscriptos, polimórfico propio/externo (Sprint FASE 5.1) |
-| `scouting_fichas` | 0 | UI funcional, sin uso |
-| `eventos` | 0 | Esqueleto |
-| `evento_invitados` | 0 | Polymorphic (persona/entidad/equipo), auto-poblado lazy desde plantel (Sprint FASE 3.1) |
-| `evento_asistencias` | 0 | 6 estados (pendiente/presente/ausente/tarde/justificado/lesionado), upsert idempotente (Sprint FASE 3.1) |
-| `catalogo_ejercicios` | 20 | 20 globales (tenant_id NULL), 7 categorías. UNIQUE(tenant_id, slug) (Sprint FASE 4.3) |
-| `entrenamiento_planes` | 0 | 1:1 con evento. UNIQUE(evento_id). Objetivo, intensidad, notas DT (Sprint FASE 4.3) |
-| `entrenamiento_plan_bloques` | 0 | Bloques ordenados. CHECK ejercicio_id OR nombre_personalizado. CASCADE delete (Sprint FASE 4.3) |
-| `personas_historial_categoria_deportiva` | 0 | Esqueleto |
-| `personas_historial_padron` | 0 | Esqueleto |
-| `personas_lesiones` | 0 | Esqueleto |
-| `personas_clubes_anteriores` | 0 | Esqueleto |
-| `personas_premios_logros` | 0 | Esqueleto |
-| `personas_selecciones` | 0 | Esqueleto |
-
-**Rutas UI operativas:** `/admin/equipos/*` (lista, detalle, importar,
-capitanes), `/admin/padrones/*` (lista, detalle, sync nuevo + legacy),
-`/admin/operaciones/scouting/*`.
-
-**Módulo migrado a `modules/equipos/`:** lib/actions.ts, lib/actions/cuerpo-tecnico.ts,
-lib/actions/importar.ts, lib/queries.ts, ui/components/ (15 componentes).
-Pages permanecen en `app/admin/(modulos)/equipos/` como thin wrappers.
-
-**Server actions:** 16 equipos + 9 padrones + 3 padrones/importar + 2
-operaciones + 3 scouting.
-
-**Padrones detalle (Hindu):**
-
-| Padrón | Pipeline | Personas |
-|---|---|---|
-| Hindu Global | (legacy, sin pipeline) | 2,361 |
-| Hindu Futbol Jugadores 2026 | `jugadores_por_equipo` | 162 únicas / 211 asignaciones |
-| Hindu Futbol Suscriptores 2026 | `suscriptores_por_equipo` | 51 (Sprint 14e) |
-
-**Módulo Asistencias (Sprint FASE 3.1):**
-Módulo migrado a `modules/asistencias/` con module.json, lib/ (types, queries,
-actions, auto-poblar, permisos, categorias), ui/ (pantalla-asistencia,
-seccion-categoria, fila-persona, sumario-asistencia, label-rol). Page en
-`app/admin/(troncal)/operaciones/eventos/[eventoId]/asistencia/`. React Query
-con optimistic mutations. RPC `fn_obtener_invitados_evento`.
-
-**Módulo Planificadores (Sprint FASE 4.1 + 4.2):**
-Módulo en `modules/planificadores/` con module.json, lib/ (actions, queries,
-types, permisos, overlap-detector), ui/ (calendario-mensual, calendario-semanal,
-toggle-planificador, modal-detalle-evento, modal-mover-recurrente, warning-overlap).
-Dos vistas: mensual (react-big-calendar month + drag-and-drop) y semanal
-(week con grilla 6AM-11PM + drag-and-drop + resize). Toggle Mes/Semana en
-ambas pantallas. Reutiliza `moverEventoAction` para mover y redimensionar.
-Permisos: tenant.admin, planificadores.editor, o roles CT del equipo.
-Pages: `/admin/planificadores/mensual`, `/admin/planificadores/semanal`.
-
-**Módulo Entrenamientos (Sprint FASE 4.3):**
-Módulo en `modules/entrenamientos/` con module.json, lib/ (types, queries,
-actions, permisos), ui/ (pantalla-plan, plan-header, lista-bloques-wrapper,
-lista-bloques, bloque-card, modal-agregar-bloque). Plan 1:1 con evento tipo
-entrenamiento (UNIQUE on evento_id). Bloques ordenados con drag-and-drop
-(@dnd-kit). Catálogo de 20 ejercicios globales (tenant_id NULL) + ejercicios
-custom por tenant. Permisos: tenant.admin, entrenamientos.editor, o CT del
-equipo (dt, asistente_dt, preparador_fisico). Excepción AP-006: sin entrada
-en sidebar, acceso solo desde detalle de evento. Page en
-`app/admin/(troncal)/operaciones/eventos/[eventoId]/plan/`. 4 E2E tests.
-
-**Módulo Amistosos (Sprint FASE 4.4):**
-Módulo en `modules/amistosos/` con module.json, lib/ (types, queries,
-actions, permisos), ui/ (pantalla-amistoso, header-amistoso, seccion-logistica,
-seccion-nomina-rival, seccion-plantel-propio). Sin tablas nuevas — logística
-en `eventos.metadata.logistica_amistoso` jsonb. Slug 'amistoso' agregado a
-`catalogo_tipos_evento`. No CHECK constraint (AP-005 clear). Integra con
-módulo nominas_externas para generar link de nómina del rival. Permisos:
-tenant.admin o CT del equipo. Excepción AP-006: sin sidebar. Page en
-`app/admin/(troncal)/operaciones/eventos/[eventoId]/amistoso/`. 3 E2E tests.
-
-**Módulo Táctico (Sprint FASE 4.5):**
-Módulo en `modules/tactica/` con module.json, lib/ (types, formaciones, queries,
-actions, permisos), ui/ (pantalla-tactica, editor-tactico, selector-formacion,
-cancha-visual, slot-jugador, panel-plantel, modal-asignar-jugador). SVG cancha
-vertical con slots posicionados por línea (arquero=amarillo, defensa=azul,
-mediocampo=verde, ataque=rojo). 5 formaciones hardcoded (4-4-2, 4-3-3, 4-2-3-1,
-3-5-2, 5-3-2). Click-to-assign vía modal. Panel plantel lateral con
-disponibles/asignados. Reusa tablas `esquemas_tacticos` y `esquema_posiciones`
-existentes — sin tablas nuevas. Solo para eventos tipo partido/amistoso.
-Permisos: tenant.admin o CT del equipo. Excepción AP-006: sin sidebar. Page en
-`app/admin/(troncal)/operaciones/eventos/[eventoId]/tactica/`. 3 E2E tests.
-
-**Módulo Reservas (Sprint FASE 4.6):**
-Módulo en `modules/reservas/` con module.json, lib/ (types, helpers, queries,
-actions, permisos), ui/ (pantalla-reservas, tabla-reservas, modal-nueva-reserva,
-modal-detalle-reserva, badge-estado). 1 tabla nueva `reservas_canchas` con
-UNIQUE(evento_id). Reserva = evento tipo='reserva' + fila en reservas_canchas.
-Tarifa calculada al crear: precio_alquiler_hora * duracion_horas (D51). 5 estados
-con CHECK constraint. Cliente polimórfico (persona/entidad/externo). Pantalla
-/admin/reservas con tabla + filtros cancha/estado + modal crear + modal detalle
-con acciones por estado. Sidebar: "Reservas" en sección Operaciones (AP-006 SÍ).
-Permisos: tenant.admin o reservas.gestor. 3 E2E tests.
-
-**Módulo Torneos (Sprint FASE 5.1):**
-Módulo en `modules/torneos/` con module.json, lib/ (types, formatos,
-criterios-desempate, queries, actions, permisos), ui/ (pantalla-listado,
-tabla-torneos, filtros-torneos, badge-estado-torneo, modal-nuevo-torneo,
-pantalla-detalle, detalle-torneo-client, tab-datos-generales, tab-categorias,
-tab-equipos-inscriptos, modal-agregar-categoria, modal-agregar-equipo).
-3 tablas nuevas (torneos, torneo_categorias, torneo_equipos) con RLS.
-6 formatos (liga, eliminacion, grupos_playoff, suizo, triangular, cuadrangular).
-5 estados (planificado, inscripcion, en_curso, finalizado, cancelado).
-Equipos polimórficos (propio con equipo_id o externo con nombre libre).
-Wizard 3 pasos para crear torneo. Detalle con 3 tabs (datos/categorías/equipos).
-partidos_detalle extendida con torneo_id + categoria_id (dual-read, torneo_slug
-deprecated). Migration retroactiva no-op (todos 98 partidos con slug NULL).
-Sidebar: nueva sección "Competencias > Torneos" en Club Deportivo.
-Atributos torneos.admin, torneos.cargador, torneos.inscriptor. RFC-002.
-Pages: `/admin/competencias/torneos`, `/admin/competencias/torneos/[id]`,
-`/admin/competencias/torneos/[id]/import`, `/admin/competencias/inscripciones`.
-Sprint 5.2: Inscripciones CRUD para torneos externos. CSV importer (papaparse)
-para fixture y resultados con validación por fila. equipos_competencias extendida
-con torneo_id FK. Sidebar: Competencias > Inscripciones.
-Sprint 5.3: Fixture auto-generador con 6 algoritmos TS puros en
-`modules/torneos/lib/fixture-generators/` (liga round-robin circle algorithm,
-eliminación bracket con byes, grupos+playoff, suizo primera ronda, triangular,
-cuadrangular). Server actions preview + confirm. UI pantalla fixture con opciones
-(ida/vuelta, tercer puesto, equipos/grupo, fecha inicio). Migration: columnas
-`fase` y `fecha_numero` en partidos_detalle. 21 unit tests (vitest). Botón
-"Generar fixture" en detalle torneo.
-Sprint 5.4: Tabla de posiciones. SQL function `calcular_tabla_posiciones` (STABLE,
-2 CTEs local/visitante stats, join con torneo_equipos). Server action
-`obtenerTablaPosicionesAction`. UI `/admin/competencias/torneos/[id]/posiciones`
-con selector categoría, botón refresh, tabla (Pos/Equipo/PJ/G/E/P/GF/GC/DG/Pts),
-highlight equipo propio (bg-primary/5), empty state. Botón "Posiciones" en detalle
-torneo. Fix: flaky E2E "admin agrega 4 equipos" (strict mode violation por equipos
-duplicados).
-Sprint 5.5: Carga de resultado detallada. 2 tablas nuevas: `torneo_partidos_eventos`
-(eventos granulares: gol, asistencia, tarjeta, cambio, autogol, penal con minuto exacto)
-y `partido_stats_jugador` (stats agregadas por jugador por partido, UNIQUE on
-partido_evento_id+persona_id). Atributo `torneos.cargador_resultado`. Server actions
-CRUD eventos + confirmar resultado (setea convocatoria_cerrada=true, recalcula stats).
-Stats calculator idempotente (DELETE+INSERT, S2 mitigated). UI wizard 3 pasos en
-`/admin/competencias/partidos/[id]/resultado`: marcador+plantel, eventos por equipo
-con modal agregar, revision con warning si goles≠marcador + preview stats.
-18 E2E tests (4 Sprint 5.1 + 3 Sprint 5.2 + 4 Sprint 5.3 + 3 Sprint 5.4 + 4 Sprint 5.5).
-
-**Gaps:** scouting con uso real (postergado), stats avanzadas (Sprint 5.6).
-
----
-
-### 2.5 Módulos transversales
-
-**RRHH:**
-
-| Tabla | Rows | Estado |
-|---|---|---|
-| `rrhh_contratos` | 0 | UI esqueleto, Sprint 15c |
-| `rrhh_liquidaciones` | 0 | UI esqueleto, Sprint 15c |
-| `personas_datos_laborales` | 0 | Tab en ficha persona |
-
-Rutas: `/admin/rrhh/contratos`, `/admin/rrhh/liquidaciones`.
-
-**Salud / Datos sensibles personales:**
-
-| Tabla | Rows | Estado |
-|---|---|---|
-| `personas_datos_medicos` | 0 | Esqueleto, módulo activado en Hindu |
-| `personas_obra_social` | 0 | Esqueleto |
-| `personas_documentos_medicos` | 0 | Esqueleto |
-| `personas_datos_alimentarios` | 0 | Esqueleto |
-| `personas_contactos_emergencia` | 0 | Módulo activado |
-| `personas_autorizaciones` | 0 | Módulo activado |
-| `personas_credenciales_acceso` | 0 | Módulo activado (acceso) |
-| `personas_idiomas` | 0 | Esqueleto |
-| `personas_talles` | 0 | Esqueleto |
-| `personas_vehiculos` | 0 | Módulo activado (vehículos) |
-| `personas_datos_economicos` | 0 | Esqueleto |
-| `personas_documentos_identidad` | 2 | Documentos cargados manualmente |
-
----
-
-### 2.6 Plataforma
-
-**Multi-tenant + auth:**
-
-| Tabla | Rows | Estado |
-|---|---|---|
-| `tenants` | 1 | Hindu |
-| `tenant_modulos` | 35+ | Módulos activados en Hindu |
-| `tenant_config_publica` | 1 | Branding Hindu |
-| `catalogo_modulos` | 49 | Catálogo completo (incl. torneos) |
-| `sedes` | 2 | Hindu tiene 2 sedes |
-| `api_keys` | 0 | Sin keys generadas |
-| `api_logs` | 0 | Sin uso de API externa |
-| `user_vistas` | 0 | Sin uso |
-| `audit_log` | 46,175 | Activamente registrando |
-
-**Importadores (mecanismo genérico):**
-
-| Tabla | Rows | Estado |
-|---|---|---|
-| `import_pipelines` | 3 | `jugadores_por_equipo`, `suscriptores_por_equipo`, `padron_socios` |
-| `import_runs` | 2 | Runs aplicados |
-| `import_rows` | 281 | Filas procesadas históricamente |
-| `import_field_conflicts` | 0 | Sin conflictos pendientes |
-
-**Funciones SQL custom críticas:**
-- `match_persona_fuzzy(tenant_id, apellido, nombre, threshold)` — matching por tokens
-- `normalize_name(text)` — normalización (lowercase, unaccent, sin apóstrofes)
-- `resolver_o_crear_equipo(tenant_id, nombre, disciplina_slug)`
-- Funciones de audit log
-- Funciones de validación de RLS
-
-**API REST v1:** 5 endpoints (`/api/v1/personas` GET+POST, `/api/v1/personas/[id]`
-GET+PATCH, `/api/v1/equipos` GET). Sin uso externo real.
-
-**Crons:** 4 (`dispatch-vencimientos` diario 9AM, `cleanup-api-logs`
-domingo 3AM, `cleanup-notificaciones` diario, `calcular-canon-mensual`
-dia 6 de cada mes 8AM). `CRON_SECRET` configurada en Vercel (verificada Sprint 2.4-FIX).
-
-**Legacy a deprecar (Sprint 14d):**
-- `padron_syncs` (1 row)
-- `padron_sync_diffs` (2,361 rows)
-- `/app/admin/padrones/sincronizar/*`
-- `/lib/padron-sync/*`
-- 10 VIEWs `fin_*`
-
----
-
-## 3. Datos cargados en Hindu Club (tenant piloto)
-
-**Tenant ID:** `11111111-1111-1111-1111-111111111111`
-
-**Estructura:**
-- 2 sedes
-- 35+ módulos activados
-- Branding básico configurado
-
-**Personas:** 2,390
-- Atributos activos en uso: jugador (211), socio (alta cantidad), suscriptor (51),
-  tenant.staff, tenant.admin_padron, sistema.admin
-
-**Padrones:**
-- Hindu Global: 2,361
-- Hindu Futbol Jugadores 2026: 162 únicas / 211 asignaciones a equipos
-- Hindu Futbol Suscriptores 2026: 51 (Sprint 14e aplicado)
-- 1 padrón inactivo (residual)
-
-**Equipos:** 7 (fútbol) con 211 jugadores cargados
-- FACCMA-PRIMERA (38)
-- FACCMA-OPEN 28 OPEN (24)
-- FACCMA-OPEN 28 JUNIOR (30)
-- AIF-SELECCION (31)
-- AIF-JUVENILES (30)
-- AIF-SENIOR (28, fusion)
-- AIF-SUPER MAXI (30, fusion)
-
-**Finanzas Hindu:**
-- Plan de cuentas: 104 cuentas (template estándar)
-- Período contable abierto
-- 3 cajas configuradas
-- Config financiera completa
-- 1 producto (Fondo Fútbol 2026), 1 plan, 51 suscripciones activas
-- 51 cuotas vencidas por $510.000 (período 2026-05)
-- 7 centros de costo, 3 entidades (FACCMA, AIF, +1)
-
-**Entidades:** 3 (FACCMA, AIF, una más residual)
-
----
-
-## 4. Catálogos
-
-### Globales (compartidos por todos los tenants)
-
-| Catálogo | Items | Editable desde UI |
-|---|---|---|
-| `catalogo_modulos` | 48 | No (solo admin sistema) |
-| `catalogo_atributos` | 61 | Sí |
-| `catalogo_disciplinas` | 17 | Sí |
-| `catalogo_tipos_documento` | 8 | Sí |
-| `catalogo_tipos_vinculo` | 23 | Sí |
-| `catalogo_motivos_baja` | 10 | Sí |
-| `catalogo_estados_persona` | 8 | Sí |
-| `catalogo_estados_padron` | 4 | Sí |
-| `catalogo_tipos_socio` | 7 | Sí |
-| `catalogo_roles_equipo` | 13 | Sí |
-| `catalogo_roles_laborales` | 6 | Sí |
-| `catalogo_niveles_competencia` | 6 | Sí |
-| `catalogo_areas_trabajo` | 10 | Sí |
-| `catalogo_puestos` | 10 | Sí |
-| `catalogo_obras_sociales` | 16 | Sí |
-| `catalogo_tipos_evento` | 23 | Indirecto |
-| `catalogo_tipos_estudio` | 14 | Sí |
-| `catalogo_tipos_autorizacion` | 11 | Indirecto |
-| `catalogo_companias_seguro` | 11 | Indirecto |
-| `catalogo_tipos_vehiculo` | 10 | Indirecto |
-| `catalogo_tipos_talle` | 20 | Indirecto |
-| `catalogo_categorias_movimiento` | 21 | Indirecto |
-| `catalogo_ejercicios` | 20 | No (global seed, tenant custom via code) |
-| `catalogo_planes_comerciales` | 3 | Sí |
-
-**Sin UI CRUD (gaps detectados):** `tipos_vehiculo`, `companias_seguro`,
-`tipos_evento_personal`, `indumentaria` (referenciado pero sin tabla).
-
-### Por tenant
-
-`plan_cuentas`, `centros_costo`, `medios_pago`, `tipos_comprobante`, `cajas`,
-`config_financiera`, `periodos_contables`, `cotizaciones` — todos
-inicializados en Hindu.
-
----
-
-## 5. Integraciones
-
-| Integración | Estado | Próximo sprint |
-|---|---|---|
-| API REST v1 | Operativa, sin uso externo real | — |
-| Resend (email) | Mock-first (ADR-035). `RESEND_API_KEY` no configurada | FASE 16 |
-| MercadoPago | Mock-first (ADR-035). Sin credenciales empresa | FASE 16 |
-| Zoho CRM | Catalogada (`conector_zoho_crm`), no construida | Q3+ |
-| MCP Server | Catalogado (`mcp_server`), no construido | Q3+ |
-| Webhooks salientes | No construidos | Q3+ |
-| Kontrol.ar | Futuro hub de agencia | 2027+ |
-
----
-
-## 6. Deuda técnica activa
-
-| Item | Severidad | Sprint planeado |
-|---|---|---|
-| ~~Documentación viva no existe~~ | ~~Alta~~ | ✅ Sprint 14d |
-| ~~Legacy `padron_syncs` activo~~ | ~~Alta~~ | ✅ Sprint 14d |
-| ~~10 VIEWs `fin_*` sin uso~~ | ~~Media~~ | ✅ Sprint 14d |
-| ~~3 atributos duplicados~~ | ~~Media~~ | ✅ Sprint 14d |
-| `RESEND_API_KEY` no configurada en Vercel | Alta | FASE 16 (ADR-035, mock-first) |
-| ~~`CRON_SECRET` no configurada en Vercel (crons expuestos)~~ | ~~Alta~~ | ✅ Sprint FASE 2.4-FIX (verificado via 401 en producción) |
-| `lib/imports/actions.ts` 530+ líneas monolíticas | Media | 17a |
-| 4 catálogos sin UI CRUD | Media | Backlog menor |
-| `padron_socios` pipeline no documentado en specs previos | Baja | 14d (consolidar) |
-| 53 atributos en catálogo sin uso real | Baja | Q3 — cleanup |
-| `personas` 103 columnas (mezcla CRM/salud/deportivo, 3 migradas en 14k.6) | Media | 2027 (al separar troncal) |
-| `D3` capa de servicios pura no implementada | Baja | Postergado |
-| `D6` `module_events` no implementado | Baja | Postergado |
-| ~~0 tests automatizados~~ | ~~Media~~ | ✅ Sprint 15c: 27 E2E specs (26 pass, 1 skip) |
-| 1 TODO en código (`comunicaciones/_actions.ts:216`) | Baja | FASE 2.2 (ResendAdapter) |
-| Permission slugs underscore en 3 módulos (salud, concesiones, utileria). Canonizado en ADR-036 | Media | FASE 15 (audit unificado) |
-| Naming inconsistente en com_jobs_log (finished_at vs ended_at, errores vs error_message, personas_encontradas vs total_personas_evaluadas) | Baja | FASE 15 |
-| Persona E2E aparece intermitentemente soft-deleted entre sprints. Causa raíz no identificada. Workaround: restore manual cuando ocurre | Baja | Investigar cuando reaparezca |
-| ~~Métricas de DB en CURRENT-STATE.md históricamente desincronizadas (anotaba 117 tablas, son 145)~~ | ~~Baja~~ | ✅ Sprint DOCS-1 (sincronizado a valores reales) |
-| com_jobs_log acumula rows de E2E sin cleanup. Cada ejecución de E2E del 2.4-FIX y 2.5 deja 1-3 rows que nunca se borran | Baja | FASE 15 (agregar DELETE de com_jobs_log al try/finally de los E2E) |
-| Dedup de 7 días en triggers puede colisionar con tests E2E en parallel workers. Mitigación actual: pre-cleanup (commit a3f00ed). Riesgo teórico en prod si E2E corre durante ventana de cron | Baja | FASE 15 (evaluar excluir envíos E2E del dedup por flag en metadata) |
-
----
-
-## 7. Sprints completados (cronológico)
-
-Historial referenciado en commits del repo. Listado resumido:
-
-- **Sprints anteriores a 14a** (consolidados): infraestructura base,
-  multi-tenant, RLS, módulos, personas, equipos, finanzas esqueleto, UI base.
-- **14a.7, 14a.8, 14a.9** — Padrones (cleanup, fusión, errores).
-- **14c.0** — Plataforma de imports declarativa (tablas, parsers,
-  match fuzzy).
-- **14c.0.1** — Fix matching: tokenización + apóstrofes.
-- **14c.1** — Pipeline `jugadores_por_equipo`.
-- **14c.1.1** — Bug: DNI nullable.
-- **14c.1.2** — Bug: split apellido compuesto.
-- **14c.1.3** — Bug B: equipos pendientes en cadena.
-- **14c.2** — Pipeline `suscriptores_por_equipo` (setup; E2E pendiente).
-- **14d** — Living docs system (12 docs actualizados/creados).
-- **14d.5** — Design Tokens System: `/styles/tokens.css` como fuente
-  única de tokens, refactor de ~80 archivos para eliminar hex codes y
-  color names hardcodeados, branding runtime via CSS vars (ADR-018).
-- **14e** — Suscripciones: tabla `suscripciones` con RLS + sync trigger
-  `sync_atributo_suscriptor`, producto + plan "Fondo Fútbol 2026",
-  acción executor `crear_suscripcion`, 51 suscripciones activas,
-  tab "Suscripciones" en ficha persona, página global
-  `/admin/finanzas/suscripciones` (ADR-019).
-- **14f** — Emisión de cuotas: `fn_emitir_cuotas_masivas`, 51 cuotas
-  emitidas periodo 2026-05, UI emisión masiva + anulación (ADR-020).
-- **14g** — Cobranza manual: `fn_cobrar_cuota`, `fn_anular_pago`,
-  tabla `cuotas_pagos`, UI de cobro + anulación (ADR-021).
-- **14h** — Centros de costo: CRUD completo, 7 centros cargados en Hindu,
-  vista stats, asignación a movimientos.
-- **14i** — Vista Global de Salud: 7 tabs read-only (lesiones, datos
-  médicos, obra social, autorizaciones, emergencia, documentos médicos,
-  alimentación), permisos por atributo, audit log (ADR-022).
-- **14j** — Utilería del club: inventario, kits, solicitudes con flujo
-  aprobación, cargos de reposición prorrateados, plantel snapshot,
-  storage privado (ADR-023).
-- **14k.5** — Cuerpo Técnico: refactor permisos, roles desde
-  `personas_equipos.rol_equipo_slug` como fuente única (ADR-024).
-- **14k** — Notificaciones in-app: tabla `notificaciones`, bell icon
-  con badge, dropdown, pantalla completa, helper `crearNotificacion`,
-  23 tipos, dedup 24h, cron limpieza, hooks en cuotas y suscripciones.
-- **14j.2** — Concesiones genéricas: 6 tablas, 4 funciones SQL, 2 vistas,
-  4 pantallas (listado, detalle 6 tabs, POS tablet, reportes), cron
-  canon mensual, 4 tipos notificación, aislamiento financiero (ADR-025).
-- **14k.6** — Limpieza arquitectónica pre-FASE 2: ADR-026 disciplinas como
-  tabla dedicada `personas_disciplinas` (2,111 filas migradas), columna `capa`
-  en `catalogo_atributos` (7 capas, 64 atributos clasificados), DROP de 3
-  columnas legacy de `personas`, vista `v_personas_disciplinas_vigentes`,
-  nuevo componente `SeccionDisciplinas` en ficha persona, refactor de ~12
-  archivos para eliminar referencias a columnas viejas.
-- **14k.7** — Hotfixes FASE 1 + UI completion: ErrorBoundary en bell icon
-  (degradación graceful), concesiones crear con fecha inicio, cuerpo técnico
-  CRUD global (asociar persona a equipo + desvincular), vista salud con
-  links a personas y acción "Levantar caso", ARCHITECTURE.md §10 principio
-  migraciones destructivas, ADR-027 cuerpo técnico ligado a competencia
-  (postergado FASE 5).
-- **14k.8** — Estabilización: fix utileria 'use server' export, concesiones
-  silent submit, salud persona search, migración getSession→getUser (25
-  ocurrencias en 17 archivos), ADRs 028-030, E2E checklist template.
-- **14k.9** — Cierre real FASE 1: fix concesiones hydration, fix utilería
-  hydration (ClientOnly wrapper), fix salud completo (columnas incorrectas
-  en 7 tabs), ADR-034 (descripcion en lesiones).
-- **15a** — Foundation Declarativa: ADRs 031-033 (arquitectura 3 capas,
-  visión plataforma, E2E tests obligatorios), 18 manifiestos module.json,
-  catalogo_modulos extendido con incluye_modulos/portable/replaceable,
-  11 módulos nuevos catalogados, vertical club_deportivo (17 módulos),
-  schema audit automatizado, ESLint rule no-cross-module-imports,
-  todos los MDs actualizados. Tag `v0.2.0-foundation-declared`.
-- **15b** — Migración física de módulos: 18 módulos movidos a
-  `modules/` con estructura canónica (module.json, lib/, ui/),
-  exports unificados, sub-rutas migradas. Tag `v0.3.0-modules-physical`.
-- **15c** — E2E Tests Verdes: fix playwright.config.ts (sin webServer),
-  usuario E2E dedicado (e2e-test@levywald.com), 16 tests pasan + 1 skip,
-  test:e2e devuelto a validate:all, docs/E2E-TESTING.md.
-  Tag `v0.3.1-e2e-greenlit`.
-- **FASE 2.1** — Motor de Comunicación (Mock-First): adapter pattern
-  (ComunicacionAdapter + MockAdapter + factory), renderTemplate() mustache,
-  enviarComunicacion() public API, page con 2 tabs (Plantillas + Envios),
-  probarPlantilla() wired to adapter, fix envios sub-page FK columns,
-  module.json v2 con exports_api.
-- **FASE 2.2** — Editor CRUD de Plantillas: PlantillaEditorForm con preview
-  en tiempo real, auto-detección de variables {{mustache}}, permisos por
-  atributo (comunicaciones.admin/editor), protección plantillas del sistema,
-  server actions (crear, actualizar, softDelete, duplicar, toggleActiva),
-  parser de variables con sincronización automática, 7 E2E tests.
-- **FASE 2.3** — Envíos Masivos con Segmentación MVP: wizard de envío masivo
-  (plantilla + canal + segmento), segmentos todos_activos y equipo, preview
-  con conteo de destinatarios, bulk insert en batches de 500 vía
-  MockAdapter.enviarMasivo(), lotes agrupados por metadata.lote_id, tab
-  "Envíos masivos" con historial, detalle de lote, API route preview-segmento,
-  11 E2E tests comunicaciones.
-- **Sprint FASE 2.4** — Cron de vencimientos + recordatorios automáticos.
-  3 cron jobs (apto_vence_7d, cuota_vence_7d, cuota_vencida_7d) con
-  service role, dedup 7d via columnas nativas origen_modulo_slug +
-  origen_entidad_id, segmento personas_ids_directos, tabla com_jobs_log,
-  tab "Automatizaciones". Tag v0.7.0. 30/1/0 E2E (interim).
-- **Sprint FASE 2.4-FIX** — Corrección semántica + canonización.
-  Default 'comunicaciones' eliminado en motor de envíos, dot-notation
-  en permission checks (módulo comunicaciones), E2E real con fixture +
-  cleanup. Tag v0.7.1. 31/1/0 E2E.
-- **Sprint FASE 2.5** — Preferencias de comunicación por persona.
-  Activación de tabla personas_preferencias_comunicacion existente +
-  categoria_contenido en com_plantillas (35 plantillas activas
-  categorizadas: 14 transaccional + 21 eventos_club) + función RPC
-  filtrar_personas_por_preferencias_comunicacion + UI admin
-  /personas/[id] tab Comunicaciones. Tag v0.8.0.
-  Cierra FASE 2 al 100%. 33/1/0 E2E.
-- **Sprint FASE 3.1** — Control de asistencias operativo (mobile).
-  Tabla `evento_invitados` polymorphic con CHECK exactly_one_not_null,
-  reclasificación de 10 roles staff → cuerpo_tecnico(6) + comision_delegados(4),
-  `evento_asistencias` extendida a 6 estados + FK a evento_invitados,
-  RPC `fn_obtener_invitados_evento`, auto-poblado lazy desde plantel,
-  verificación permisos (admin/CT), React Query con optimistic mutations,
-  UI mobile-first (sumario 6 chips + secciones colapsables + botones touch),
-  módulo activado en catálogo + tenant Hindu. 2 E2E tests.
-  Tag v0.9.0. 35/1/0 E2E.
-- **Sprint DOCS-5** — Blindar envelope contra falsos reportes de
-  produccion. Canonizacion en 4 docs vivos (CLAUDE.md, PROMPT-ENVELOPE.md,
-  SYSTEM-PROMPTS.md, DECISIONS.md) de la regla "verificacion de
-  produccion via MCP real, nunca via CLI local". Origen: patron observado
-  2 veces (Sprint 2.4-FIX y Sprint 3.1) donde Code reporto "Vercel
-  ERROR" sobre deploys que estaban READY. Nueva regla R-PE10 + ADR-039
-  formalizan la solucion estructural.
-- **Sprint 3.1 — fixes post-E2E (commits 917476e + b2d8147):** durante
-  validación E2E contra producción se detectaron 2 bugs reales: filtro
-  `deleted_at` en `personas_atributos` (columna inexistente — bug de
-  permisos silencioso) y `upsert + onConflict` con partial unique index
-  (500 server error en auto-poblado). Ambos fixes aplicados, E2E
-  re-corridos contra prod, 3 tests passed. Canonizados como AP-001 y
-  AP-002 en RUNBOOK.
-- **Sprint DOCS-6** — Canonización aprendizajes Sprint 3.1. Agregado al
-  RUNBOOK: sección "Niveles de verificación de un sprint" (4 niveles
-  acumulativos: build → deploy → funcional MCP → E2E real). Sección
-  "Anti-patrones detectados en producción" iniciada con AP-001 (asumir
-  deleted_at) y AP-002 (upsert con partial unique index). Catálogo
-  acumulativo para sprints futuros.
-- **Sprint DOCS-1** — Sincronización del sistema documental +
-  canonización post-FASE 2. ADRs 036, 037, 038 canonizados. WORKFLOW.md
-  eliminado. Sistema documental alineado con realidad de DB + repo.
-  Tag v0.8.1.
-- **Sprint DOCS-2** — Manual operativo + templates de post-mortem y RFC.
-  Creados docs/RUNBOOK.md (20 escenarios), docs/POST-MORTEM-TEMPLATE.md
-  y docs/RFC-TEMPLATE.md. Lista de docs vivos actualizada de 11 a 14.
-  Tag v0.8.2.
-- **Sprint DOCS-3** — System Prompt Specs unificados.
-  Creado docs/SYSTEM-PROMPTS.md con specs formales de Opus (Arquitecto)
-  y Code (Implementador), reglas de seguridad inviolables S-1 a S-7
-  aplicables a todo agente IA, roadmap de 8 agentes futuros de FASE 9
-  con template canónico de role spec, protocolo de testeo y regresión
-  de system prompts. Lista de docs vivos actualizada de 14 a 15.
-  Tag v0.8.3.
-- **Sprint DOCS-4** — System Design unificado.
-  Creado docs/SYSTEM-DESIGN.md con vista completa del sistema: 14 secciones,
-  8 diagramas Mermaid (componentes, capas, auth, envío masivo, cron, import,
-  cobranza), multi-tenancy, dependencias externas, seguridad, performance,
-  escalabilidad y deuda arquitectónica. Lista de docs vivos de 15 a 16.
-  Tag v0.8.4.
-
-- **Sprint FASE 4.3** — Organizador de entrenamientos.
-  Módulo `entrenamientos` con 3 tablas (catalogo_ejercicios, entrenamiento_planes,
-  entrenamiento_plan_bloques), 20 ejercicios globales seed, plan 1:1 con evento,
-  bloques ordenados con @dnd-kit drag-and-drop, catálogo + libre, permisos CT.
-  Excepción AP-006: sin sidebar, acceso desde detalle de evento.
-  Tag v0.16.0. 59/1/0 E2E.
-- **Sprint FASE 4.4** — Organizador de amistosos.
-  Módulo `amistosos` sin tablas nuevas. Logística en eventos.metadata jsonb.
-  Slug 'amistoso' en catalogo_tipos_evento. Integración con nominas_externas
-  para nómina del rival. 4 secciones: header, logística, nómina rival, plantel.
-  AP-005 clear (no CHECK constraint). AP-006 excepción documentada.
-  Tag v0.17.0. 63 E2E (58 pass, 1 skip, 4 flaky pre-existing).
-- **Sprint FASE 4.5** — Organizador táctico.
-  Módulo `tactica` sin tablas nuevas. SVG cancha visual con 5 formaciones
-  hardcoded (4-4-2, 4-3-3, 4-2-3-1, 3-5-2, 5-3-2), slots por línea con
-  colores, selector de formación, modal de asignación click-to-assign, panel
-  plantel lateral. Reusa esquemas_tacticos + esquema_posiciones existentes.
-  Solo para eventos tipo partido/amistoso. AP-006 excepción documentada.
-  Tag v0.18.0. 66 E2E (61 pass, 1 skip, 4 flaky pre-existing).
-- **Sprint FASE 4.6** — Reservas de canchas. **FASE 4 CERRADA.**
-  Módulo `reservas` con 1 tabla nueva (reservas_canchas). Reserva = evento
-  tipo='reserva' + fila con tarifa calculada (D51). 5 estados con CHECK.
-  Cliente polimórfico (persona/entidad/externo). Pantalla /admin/reservas
-  con tabla + filtros + modales crear/detalle. Sidebar con "Reservas" en
-  Operaciones (AP-006 SÍ, tiene pantalla propia). Atributo reservas.gestor.
-  Tag v0.19.0. 69 E2E (65 pass, 1 skip, 3 flaky pre-existing).
-- **Sprint FASE 5.1** — Modelo de torneos + creador interno.
-  Módulo `torneos` con 3 tablas nuevas (torneos, torneo_categorias,
-  torneo_equipos) + extensión partidos_detalle (torneo_id, categoria_id).
-  6 formatos con CHECK. 5 estados. Equipos polimórficos (propio/externo).
-  Migration retroactiva no-op (98 partidos con torneo_slug NULL).
-  Wizard 3 pasos, detalle 3 tabs. Sidebar "Competencias > Torneos".
-  Atributos torneos.admin + torneos.cargador. RFC-002.
-  Tag v0.20.0. 73 E2E (69 pass, 1 skip, 3 flaky pre-existing).
-- **Sprint FASE 5.2** — Inscripciones en torneos externos + CSV import.
-  equipos_competencias extendida con torneo_id FK. Atributo torneos.inscriptor.
-  Inscripciones CRUD (/admin/competencias/inscripciones). CSV importer
-  (papaparse) para fixture y resultados con validación por fila y error
-  reporting. Pantalla import en /admin/competencias/torneos/[id]/import.
-  Sidebar: Inscripciones bajo Competencias.
-  Tag v0.21.0. 76 E2E (72 pass, 1 skip, 3 flaky pre-existing).
-- **Sprint FASE 5.3** — Fixture auto-generador con 6 formatos.
-  6 algoritmos TS puros en `modules/torneos/lib/fixture-generators/`:
-  liga (round-robin circle algorithm, ida/vuelta), eliminación (bracket con
-  byes para non-power-of-2, tercer puesto), grupos+playoff (round-robin por
-  grupo + bracket clasificados), suizo (primera ronda random, siguientes
-  dinámicas), triangular (3 equipos, 3 partidos), cuadrangular (4 equipos,
-  6 partidos + opcionales semis/final). Server actions: generarFixturePreviewAction
-  (hydrata equipos, genera preview sin DB) + confirmarFixtureAction (crea
-  eventos + partidos_detalle con fechas auto-calculadas +7d por jornada).
-  UI: pantalla /admin/competencias/torneos/[id]/fixture con panel opciones
-  (categoria, ida/vuelta, tercer puesto, equipos/grupo, fecha inicio),
-  preview agrupado por fecha, confirmación con feedback. Migration: columnas
-  `fase` (text) y `fecha_numero` (int) en partidos_detalle. 21 unit tests
-  (vitest) para los 6 algoritmos + dispatcher. Botón "Generar fixture" en
-  detalle torneo header. vitest instalado, script test:unit agregado.
-  Tag v0.22.0. 80 E2E (75 pass, 1 skip, 3 flaky pre-existing, 1 skip cascade).
-
----
-
-## 8. Cómo Code actualiza este documento
-
-Al cerrar cada sprint, Code:
-
-1. Agrega/modifica filas en las tablas relevantes según los cambios:
-   - Si creó tabla → agregarla en su capa con row count, estado.
-   - Si modificó datos significativos en Hindu → actualizar §3.
-   - Si resolvió deuda técnica → mover el item de §6 a §7 con sprint cerrado.
-   - Si descubrió deuda nueva → agregar en §6.
-2. Actualiza §0 Snapshot ejecutivo: sprint completado, próximo sprint,
-   estado general.
-3. Actualiza §1 Métricas globales si los números cambiaron.
-4. Actualiza §7 Sprints completados con entrada del sprint cerrado.
-5. Actualiza la fecha de "Última actualización" al inicio del doc.
-
-**Code NO modifica §8 (esta sección) ni introduce nuevas secciones top-level
-sin aprobación del arquitecto.**
-
-Cualquier inconsistencia que detecte entre la realidad y este documento debe
-ser corregida o reportada al arquitecto antes de cerrar sprint.
-
----
-
-## 9. Convenciones de este documento
-
-- **Capa:** siempre etiquetada (Troncal CRM/ERP/PIM, Módulo, Plataforma).
-  ADR-031: 3 capas (Troncal, Módulos, Verticales como presets).
-- **Estado de tabla:** rows reales en DB del tenant Hindu (no estimaciones).
-- **Estado de UI:** "operativa" (funciona y se usa), "funcional sin uso real"
-  (existe pero no se ejercita), "esqueleto" (placeholder, sin lógica
-  completa), "pendiente" (no existe).
-- **Decimales en counts:** usar números enteros exactos, no aproximaciones.
-- **Verificación:** Code valida por SQL antes de escribir números acá.
+CURRENT-STATE — Estado actual de la plataforma  
+\====================================================
+
+Versión: 2.0 (re-escrito post RFC-004, inicio de FASE A)  
+Fecha: 13 de mayo de 2026  
+Status: Accepted  
+Supersedes: CURRENT-STATE.md v1 (estado al cierre FASE 5 del modelo viejo)  
+Path esperado en repo: docs/CURRENT-STATE.md
+
+PROPÓSITO  
+\=========
+
+Documento de "source of truth" del estado real del proyecto. Cualquier persona, IA o empresa que entra al proyecto lee este doc primero después del RFC-004 para saber dónde estamos parados HOY.
+
+Se actualiza al cierre de CADA sprint con métricas verificables (no estimaciones).
+
+METADATA DEL PROYECTO  
+\======================
+
+Nombre del producto raíz: Plataforma SaaS Multimodal (provisorio, decisión H1 pendiente)  
+Nombre del bundle del vertical CCBP: ClubCore  
+Cliente piloto: Hindu Club Fútbol (tenant\_id 11111111-1111-1111-1111-111111111111)
+
+Owner: Yair Levy Wald (Levy Wald CMO SRL)  
+Stakeholders: Kate (socia 20%), Juan Marco Lavagno (padrón operator de Hindu)
+
+Stack:  
+\- Frontend: Next.js 14 (App Router), React 18, TypeScript, Tailwind v3, shadcn/ui v4  
+\- Backend: Supabase (PostgreSQL \+ Auth \+ Storage \+ Realtime \+ Edge Functions)  
+\- Hosting: Vercel  
+\- Repo: github.com/yamiro12/hindu-club-futbol  
+\- Local: /Users/yamirolw/hindu-v2  
+\- Supabase project\_id: hkoizqbptwhnepzbmjql  
+\- Vercel project\_id: prj\_sH5WIGNfNGo5tXxyTVvQaEfBDyBk  
+\- App prod: https://hindu-club.vercel.app
+
+ESTADO AL 13 DE MAYO DE 2026 (PRE-FASE-A)  
+\==========================================
+
+FASE CONCLUIDAS (modelo viejo):  
+\- FASE 1-5: cerradas en producción  
+\- Hindu en producción con 2.395 personas, 8 equipos, 280 eventos, 98 partidos, 102 cuotas, 1.381 envíos
+
+FASE EN PLANIFICACIÓN:  
+\- FASE A (Cerrar troncal mínimo): planificación completa, sprints A1-A6 documentados  
+\- Próximo a ejecutar: Sprint A1 (Fix Base Operativa \+ Espacios)
+
+FASES SIGUIENTES:  
+\- FASE B (Cerrar vertical CCBP): planificada, RFC-003 vigente, B1 con prompt detallado preparado  
+\- FASE C (Demo a Hindu): planificada  
+\- FASE D (Cross-vertical extra): planificada  
+\- FASE E (Otros verticales): planificada
+
+MÉTRICAS DE BASE DE DATOS (verificadas vía Supabase MCP el 13 de mayo de 2026\)  
+\==============================================================================
+
+Tablas: \~161 (incluyendo torneo\_partidos\_eventos y partido\_stats\_jugador del Sprint 5.5)  
+Funciones SQL: 134  
+Triggers: 539  
+RLS policies: 383  
+Catálogos seedeados: 17+  
+Migrations consolidadas: 1 (20260504220000\_clubcore\_init)
+
+Datos productivos (tenant Hindu):  
+\- personas: 2.395  
+\- equipos: 8  
+\- personas\_equipos: 212  
+\- sedes: 2  
+\- canchas: 0 (a crear en Sprint A1)  
+\- eventos: 280 (182 entrenamientos \+ 98 partidos)  
+\- partidos\_detalle: 98  
+\- partido\_stats\_jugador: 0 (creada en 5.5, pendiente datos)  
+\- cuotas\_emitidas: 102  
+\- fin\_cuotas\_emitidas: 102 (duplicación pendiente resolver en A3)  
+\- com\_envios: 1.381  
+\- com\_plantillas: 148  
+\- com\_mensajes: \~3.000+  
+\- reservas\_canchas: 0  
+\- pre\_inscripciones: variado  
+\- utileria\_items: \~variado  
+\- concesion\_productos: \~variado
+
+ESTADO DEL CÓDIGO  
+\==================
+
+Repo: limpio, branch main al día. Último commit relevante: 19cc5dd (restructure docs RFC-004).
+
+Módulos en \`modules/\` (17 con código):  
+\- ✅ Productivos: personas, equipos, comunicaciones, finanzas (parcial), cuotas, suscripciones, competencias, partidos, asistencias, reservas, acceso, pre\_inscripciones, entrenamientos, tactica, amistosos, utileria, planificadores  
+\- 🟠 Huérfanos: socios, disciplinas, eventos\_calendario, proveedores, talles  
+\- 🆕 A crear (FASE A): pim, proyectos, espacios
+
+Páginas con 404 conocidos (a resolver en FASE A):  
+\- /admin/operaciones/eventos/\[eventoId\] (Sprint A1)  
+\- /admin/competencias/partidos/\[id\] (Sprint A1, hub falta)  
+\- /admin/comunicaciones/plantillas/\[id\] (Sprint A5)  
+\- /admin/concesiones/\[id\]/punto-venta/\[pdv\] (Sprint A1 o A3)  
+\- /admin/entidades (Sprint A1, link existe, ruta es /externos)  
+\- /admin/finanzas/cuotas/emitir (Sprint A3)  
+\- /admin/finanzas/movimientos/nuevo (Sprint A3)  
+\- /admin/finanzas/transferencias/nueva (Sprint A3)
+
+Bugs UX confirmados (a resolver en FASE A):  
+\- Planificador no permite creación de eventos (selectable \+ onSelectSlot faltan, Sprint A1)  
+\- Sidebar mezcla técnico/operativo (Sprint A1)  
+\- Scouting visible en sidebar pero no construido (Sprint A1: ocultar hasta B3)
+
+ESTADO DE LA DOCUMENTACIÓN  
+\============================
+
+Repo /docs/ (al cierre del commit 19cc5dd):
+
+Vigente (productivo):  
+\- /docs/rfcs/RFC-001 a RFC-004 (4 RFCs)  
+\- /docs/DECISIONS.md (ADR-001 a ADR-046, 46 ADRs)  
+\- /docs/PROMPT-TEMPLATE.md (formato canónico, 18 bloques)  
+\- /docs/MODULE-CATALOG.md (mapa de \~30 módulos por capa)  
+\- /docs/ROADMAP.md (v2, FASE A→E)  
+\- /docs/SPRINT-PLAN.md (v2, A1-A6, B1-B6, C, D, E)  
+\- /docs/MASTER-MODEL-CCBP.md (renombrado, D1-D60 reglas de negocio)  
+\- /docs/ARCHITECTURE.md (vigente, pendiente expansión con 4 capas)  
+\- /docs/GLOSSARY.md (vigente, pendiente expansión con términos nuevos)  
+\- /docs/DATA-MODEL.md (vigente, pendiente actualización con tablas nuevas)  
+\- /docs/UI-UX.md (vigente, complementado por UI-UX-PATTERNS.md futuro)  
+\- /docs/DESIGN-SYSTEM.md (vigente, expandido en Tanda 2 a aplicar)  
+\- /docs/RUNBOOK.md (vigente, pendiente addendum protocolo cierre)  
+\- /docs/SYSTEM-DESIGN.md (vigente, pendiente actualización con 4 capas)  
+\- /docs/API.md, PERFORMANCE.md, SECURITY.md, POSTGRES.md, E2E-TESTING.md (vigentes intactos)  
+\- /docs/MENORES-TUTORES.md, POST-MORTEM-TEMPLATE.md, RFC-TEMPLATE.md, SKILL-CHALLENGE.md, SYSTEM-PROMPTS.md (vigentes)  
+\- /docs/E2E-CHECKLIST-TEMPLATE.md (vigente)  
+\- /docs/pre-mortems/PM-SPRINT-3.4.md (histórico)  
+\- /docs/verticales/ccbp/BRAND-CCBP-HINDU.md (movido, vigente)
+
+Archivado en /docs/archive/ (no eliminado):  
+\- PROPUESTA-ARQUITECTONICA.md  
+\- REPORTE-CLEANUP-POST-SPRINT11.md  
+\- PROMPT-ENVELOPE-v1.md (reemplazado por PROMPT-TEMPLATE.md)  
+\- ROADMAP-v1.md (reemplazado por v2)  
+\- SPRINT-PLAN-v1.md (reemplazado por v2)
+
+Pendiente de incorporar (Tandas 2-4 del plan de re-documentación):  
+\- BRAND-PLATFORM.md (Tanda 2\)  
+\- DESIGN-SYSTEM.md v2 (Tanda 2\)  
+\- VISUAL-GALLERY.md (Tanda 2\)  
+\- UI-UX-PATTERNS.md (Tanda 2\)  
+\- ARCHITECTURE-ADDENDUM (Tanda 3, append a ARCHITECTURE.md)  
+\- GLOSSARY-ADDENDUM (Tanda 3, append a GLOSSARY.md)  
+\- RUNBOOK-ADDENDUM (Tanda 3, append a RUNBOOK.md)  
+\- SYSTEM-DESIGN.md v2 (Tanda 3, reemplazo)  
+\- SPRINT-A1 a SPRINT-A6 prompts (Tanda 4\)
+
+ESTADO DEL DRIVE (Plataforma SaaS Multimodal)  
+\==============================================
+
+Carpeta raíz: 6\_SaaS\_Troncal\_Multimodal  
+Estructura:  
+\- 00 \- MASTER INDEX (entrada general)  
+\- \_Arquitectura/ (RFCs, ARCHITECTURE, DATA-MODEL, MODULE-CATALOG, BRAND, DESIGN, UI/UX, VISUAL)  
+\- \_Roadmap/ (ROADMAP-MASTER, SPRINT-PLAN)  
+\- \_Decisiones/ (ADRs bundle)  
+\- \_Sprints/ (prompts ejecutables sprint por sprint)  
+\- \_Cierre Ejecutivo/ (cierres post-sprint, futuro)  
+\- \_Verticales/ (linkers a docs por vertical, futuro)
+
+Drive carpeta vieja ClubCore (vertical CCBP histórico): vigente, mantiene cierres de FASES 1-5 y RFCs vigentes.
+
+ESTADO DEL DEPLOY  
+\==================
+
+Vercel:  
+\- Project ID: prj\_sH5WIGNfNGo5tXxyTVvQaEfBDyBk  
+\- Team ID: team\_clOmQCObDDN8okRHBc4wRhZ9  
+\- Último deploy READY: \~confirmar vía MCP en Sprint A1 PARTE 1  
+\- URL prod: https://hindu-club.vercel.app  
+\- Estado: operativo
+
+Supabase:  
+\- Project ID: hkoizqbptwhnepzbmjql  
+\- Estado: operativo  
+\- DB activa, RLS aplicado, mock-first vigente
+
+PROTOCOLO MOCK-FIRST (ADR-035, vigente hasta FASE C)  
+\======================================================
+
+Servicios externos pagos NO contratados aún:  
+\- Resend (email): mocked  
+\- BAPI (WhatsApp): mocked  
+\- MercadoPago: mocked  
+\- AFIP: mocked  
+\- Cualquier conector del marketplace: mocked
+
+Yair NO tiene credenciales operativas de:  
+\- CUIT / datos fiscales de Hindu Club Fútbol  
+\- Dominios propios de Hindu  
+\- Emails oficiales de Hindu
+
+Cualquier sprint que requiera credenciales externas está bloqueado o se mockea.
+
+REGLAS OPERATIVAS VIGENTES  
+\============================
+
+1\. Mock-first universal (ADR-035) hasta FASE C aprobada.  
+2\. Reportar vía MCP, no CLI local (ADR-039). Code reporta vía Supabase MCP, GitHub MCP, Vercel MCP.  
+3\. Soft-delete vía deleted\_at (ADR-030). No DELETE real.  
+4\. Permission slugs en dot-notation (ADR-036). Match exacto contra catálogo.  
+5\. Columnas nativas indexables \> metadata jsonb (ADR-037).  
+6\. E2E con fixture \+ cleanup obligatorio try/finally (ADR-038).  
+7\. No cargar más data productiva de Hindu hasta FASE C.  
+8\. No tests masivos contra personas reales de Hindu.
+
+PRÓXIMOS PASOS INMEDIATOS  
+\==========================
+
+1\. Cerrar el commit grande de re-documentación (Tandas 1 a 4 \+ addendums).  
+2\. Ejecutar Sprint A1 — Fix Base Operativa \+ Espacios.  
+3\. Continuar FASE A sprint por sprint hasta cerrarla.  
+4\. Cerrar FASE B.  
+5\. FASE C — Demo a Hindu.
+
+ÚLTIMA ACTUALIZACIÓN  
+\=====================
+
+13 de mayo de 2026\. Versión 2.0.  
+Próxima revisión: al cierre del Sprint A1.
+
+Quien actualiza este doc: Claude Code en el cierre de cada sprint (PROMPT-TEMPLATE PARTE 10.1). El arquitecto verifica vía MCP.  

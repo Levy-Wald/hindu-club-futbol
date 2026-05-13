@@ -1331,3 +1331,245 @@ sección de este RUNBOOK + actualización de CLAUDE.md.
 | 2026-05-12 | DOCS-2 | Versión inicial con 20 escenarios |
 | 2026-05-12 | DOCS-6 | Sección "Niveles de verificación" + sección "Anti-patrones" con AP-001 y AP-002 |
 | 2026-05-12 | DOCS-7 | AP-003 a AP-006 + sección "Modelo operativo Yair / Arquitecto" |
+
+
+=====================================================================
+INICIO ADDENDUM — agregado el 2026-05-13
+=====================================================================
+
+RUNBOOK-ADDENDUM — Protocolos de cierre de sprint y fase  
+\=============================================================
+
+Versión: 1.0 (addendum, no reemplaza RUNBOOK.md vigente)  
+Fecha: 13 de mayo de 2026  
+Status: Accepted  
+Aplicación: append al final de docs/RUNBOOK.md (separado por sección clara)
+
+PROPÓSITO DEL ADDENDUM  
+\=======================
+
+Este addendum extiende RUNBOOK.md (vigente, \~42K) con los protocolos canonizados de cierre de sprint y cierre de fase derivados del nuevo PROMPT-TEMPLATE.md.
+
+Los procedimientos operativos vigentes del RUNBOOK (modelo Yair/Arquitecto/Code, workflows de deploy, verificación MCP, escalamiento) se mantienen sin cambios.
+
+PROTOCOLO DE CIERRE DE SPRINT (referencia PROMPT-TEMPLATE PARTE 10\)  
+\=====================================================================
+
+Al cerrar CADA sprint, Code ejecuta este protocolo en ORDEN. Cualquier desviación se reporta al arquitecto.
+
+PASO 10.1 — Actualizar docs vivos del repo  
+\- /docs/CURRENT-STATE.md → sprint \[ID\] cerrado, métricas DB actualizadas, tag nuevo  
+\- /docs/SPRINT-PLAN.md → sprint \[ID\] marcado DONE, próximo señalado  
+\- /docs/GLOSSARY.md → términos nuevos agregados (si los hay)  
+\- /docs/ROADMAP.md → sprint \[ID\] en estado DONE  
+\- /docs/DATA-MODEL.md → tablas/columnas/funciones/triggers/RLS nuevas  
+\- /docs/MODULE-CATALOG.md → módulo nuevo o cambio de estado  
+\- /docs/VISUAL-GALLERY.md → screenshots de pantallas nuevas con paths
+
+PASO 10.2 — Commit principal del feature  
+git add \[paths del feature\]  
+git commit \-m "feat(\[modulo\]): \[descripción corta\] (Sprint \[ID\])"
+
+PASO 10.3 — Commit separado de docs  
+git add docs/  
+git commit \-m "docs: update \[docs tocados\] for Sprint \[ID\]"
+
+PASO 10.4 — Tag explícito  
+git tag v\[X.Y.Z\]-\[fase\]-sprint\[N\]  
+git push origin main \--tags
+
+PASO 10.5 — Cierre ejecutivo en Drive  
+\- Crear documento "CIERRE-SPRINT-\[ID\]" en Drive \`\_Cierre Ejecutivo/\`  
+\- Contenido: métricas del sprint, lo construido, decisiones tomadas, deuda generada, links a commit y deploy  
+\- Aplicar R-DOC1: contenido textual del repo o linker, nunca paráfrasis
+
+PASO 10.6 — Screenshots de pantallas nuevas (PROMPT-TEMPLATE PARTE 7\)  
+\- Capturar pantallas nuevas o modificadas vía Playwright (page.screenshot())  
+\- Subir a Drive en \`\_Cierre Ejecutivo/sprint-\[ID\]/screenshots/\` o \`\_Verticales/\[vertical\]/galeria/sprint-\[ID\]/\`  
+\- Actualizar VISUAL-GALLERY.md con los paths
+
+PASO 10.7 — Reporte al arquitecto
+
+Devolver al arquitecto con este formato fijo:
+
+\`\`\`  
+Sprint \[ID\] cerrado.
+
+Commits:  
+\- feat: \[hash\] — \[mensaje\]  
+\- docs: \[hash\] — \[mensaje\]  
+\- tag: v\[X.Y.Z\]-\[fase\]-sprint\[N\]
+
+Deploy:  
+\- Vercel deploy ID: \[dpl\_xxx\]  
+\- URL: \[url\]  
+\- Estado: READY
+
+Pre-mortem:  
+\- Riesgos materializados: \[ninguno | Sn mitigado, Sn materializado y resuelto\]  
+\- Riesgos nuevos identificados: \[si los hay\]
+
+Verificación PARTE 1:  
+\- \[resumen 1 línea de cada query\]
+
+Tests:  
+\- Inicio: N specs  
+\- Cierre: N+M specs  
+\- Pasando: N+M / N+M  
+\- Skipped: 0  
+\- Failed: 0
+
+Migration:  
+\- Tablas creadas: \[lista\]  
+\- Funciones creadas: \[lista\]  
+\- Triggers creados: \[lista\]  
+\- RLS policies: \[lista\]  
+\- Catalogos seedeados: \[lista\]
+
+Desviaciones de scope:  
+\- Ninguna | \[Lista con justificación\]
+
+Cierre ejecutivo en Drive:  
+\- URL: \[Drive doc\]
+
+Próximo sprint:  
+\- \[ID\] \[Nombre\]  
+\`\`\`
+
+PROTOCOLO DE VERIFICACIÓN POR EL ARQUITECTO  
+\=============================================
+
+Cuando Code reporta el cierre, el arquitecto verifica vía MCP (no toma palabra de Code).
+
+PASO V.1 — Verificar commits  
+\- Vía GitHub MCP: confirmar hash de feat y docs commits \+ tag aplicado  
+\- Confirmar push a main exitoso
+
+PASO V.2 — Verificar Supabase  
+\- Vía Supabase MCP: confirmar tablas, columnas, funciones, triggers nuevos  
+\- Ejecutar queries de smoke test para validar data integrity
+
+PASO V.3 — Verificar Vercel  
+\- Vía Vercel MCP: confirmar deploy ID en estado READY  
+\- Smoke test al URL del deploy (200 OK, render correcto)
+
+PASO V.4 — Verificar tests E2E  
+\- Confirmar que el test count subió de N a N+M  
+\- Confirmar 0 failures, 0 skipped
+
+PASO V.5 — Verificar Drive  
+\- Confirmar que CIERRE-SPRINT-\[ID\] existe en \`\_Cierre Ejecutivo/\`  
+\- Confirmar que VISUAL-GALLERY tiene los paths nuevos
+
+PASO V.6 — Decisión binaria  
+\- Si todos los checks pasan: sprint OFICIALMENTE cerrado. Pasar al siguiente.  
+\- Si alguno falla: marcar el sprint como REOPENED, identificar la falla y mandar de vuelta a Code con instrucciones.
+
+PROTOCOLO DE CIERRE DE FASE  
+\=============================
+
+Cuando todos los sprints de una FASE están cerrados, se ejecuta el protocolo de cierre de fase. Este NO lo ejecuta Code; lo ejecuta el arquitecto con Yair.
+
+PASO F.1 — Revisión integral de la fase  
+\- Leer todos los CIERRE-SPRINT-\[ID\] de la fase  
+\- Identificar deuda generada (no resuelta en sprints individuales)  
+\- Identificar decisiones arquitectónicas que ameriten ADR retroactivo  
+\- Identificar términos nuevos para GLOSSARY
+
+PASO F.2 — Actualización de docs estratégicos  
+\- /docs/ARCHITECTURE.md → revisar si hay cambios arquitectónicos derivados  
+\- /docs/DATA-MODEL.md → asegurar que refleja el modelo completo de la fase  
+\- /docs/ROADMAP.md → marcar FASE como DONE  
+\- /docs/SPRINT-PLAN.md → preparar lista de sprints de la siguiente fase
+
+PASO F.3 — ADRs nuevos (si hay)  
+\- Cualquier decisión arquitectónica tomada durante la fase que no esté ya en un ADR, se canoniza ahora  
+\- Append a /docs/DECISIONS.md  
+\- Asignar números correlativos (ADR-04N+)
+
+PASO F.4 — Cierre ejecutivo de fase  
+\- Crear documento "CIERRE-FASE-\[A/B/C/D/E\]" en Drive \`\_Cierre Ejecutivo/\`  
+\- Métricas finales de la fase: número de sprints, costo total Code, tablas creadas, tests agregados, features deliverables  
+\- Lista de decisiones tomadas  
+\- Lista de deuda generada para fases futuras  
+\- Lista de aprendizajes y mejoras al proceso
+
+PASO F.5 — Tag de fase  
+\- git tag v\[X.Y.Z\]-fase-\[A/B/C/D/E\]-completa  
+\- git push origin main \--tags
+
+PASO F.6 — Decisión binaria de avance  
+\- Si la fase está aprobada: pasar a la siguiente fase  
+\- Si hay deuda crítica: crear una "FASE \[X\]'" (sprint correctivo) antes de pasar
+
+PROTOCOLO ESPECIAL — FASE C (DEMO A HINDU)  
+\============================================
+
+FASE C es distinta a las otras: no hay sprints técnicos sino actividades de validación.
+
+C.1 — Reset DB  
+\- Backup completo de la DB actual  
+\- Reset del tenant Hindu en Supabase (mantener schema, vaciar datos productivos)
+
+C.2 — Carga inicial por Yair  
+\- Yair descarga templates de importación (CSV/Excel) vía la UI de admin  
+\- Carga datos reales de Hindu vía importadores universales (Sprint A4)  
+\- Verifica que cargas críticas funcionen (personas, equipos, eventos, cuotas)
+
+C.3 — Operación durante 5-7 días  
+\- Staff de Hindu (Yair \+ Juan Marco \+ admins designados) usa el sistema en operación real  
+\- Diariamente recopilar feedback (Yair anota incidentes)
+
+C.4 — Recopilación de feedback  
+\- Lista de bugs encontrados  
+\- Lista de features que faltaron  
+\- Lista de mejoras de UX
+
+C.5 — Decisión binaria  
+\- Producto APROBADO: avanzar a FASE D  
+\- Producto REQUIERE FASE B': crear sprints correctivos antes de FASE D
+
+C.6 — Documento de validación  
+\- Crear "VALIDACION-FASE-C" en Drive \`\_Cierre Ejecutivo/\`  
+\- Firmas (formales o no) de Yair y stakeholders de Hindu  
+\- Decisión escrita  
+\- Próximo paso
+
+CHECKLIST OPERATIVO RÁPIDO POR SPRINT  
+\========================================
+
+Para cualquier persona, IA o empresa que ejecuta un sprint usando PROMPT-TEMPLATE:
+
+Antes de codear:  
+\[ \] Leer todos los docs listados en BLOQUE A del prompt  
+\[ \] Declarar capas tocadas (BLOQUE B)  
+\[ \] Reportar pre-mortem (PARTE 0\) con mínimo 5 riesgos  
+\[ \] Ejecutar verificación inicial (PARTE 1\) y reportar resultados
+
+Durante el sprint:  
+\[ \] Aplicar migration en transacción BEGIN/COMMIT (PARTE 2\)  
+\[ \] Crear estructura modules/ según PARTE 3  
+\[ \] Implementar integraciones según PARTE 4  
+\[ \] Construir UI según PARTE 5 con data-testids declarados  
+\[ \] Aplicar tokens de diseño según PARTE 6  
+\[ \] Capturar mockups/screenshots según PARTE 7  
+\[ \] Actualizar sidebar según PARTE 8  
+\[ \] Construir tests E2E según PARTE 9 con cleanup try/finally
+
+Al cerrar:  
+\[ \] Actualizar docs vivos (PARTE 10.1)  
+\[ \] Commit feature (PARTE 10.2)  
+\[ \] Commit docs separado (PARTE 10.3)  
+\[ \] Aplicar tag (PARTE 10.4)  
+\[ \] Crear cierre ejecutivo en Drive (PARTE 10.5)  
+\[ \] Subir screenshots (PARTE 10.6)  
+\[ \] Reportar al arquitecto (PARTE 10.7)
+
+CIERRE DEL ADDENDUM  
+\====================
+
+Este addendum se considera vigente. Los protocolos aquí definidos son obligatorios.
+
+Cualquier sprint que se cierre sin cumplir el protocolo es un sprint INCOMPLETO y debe reabrirse.
+
+Fin del addendum.  

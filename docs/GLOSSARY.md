@@ -682,3 +682,150 @@ arquitecto:
 4. Lo difunde en el próximo `PROMPT-ENVELOPE` de Code
 
 Code NO crea términos nuevos. Si necesita uno, para y consulta.
+
+
+=====================================================================
+INICIO ADDENDUM — agregado el 2026-05-13
+=====================================================================
+
+GLOSSARY-ADDENDUM — Términos nuevos de plataforma multi-vertical  
+\====================================================================
+
+Versión: 1.0 (addendum, no reemplaza GLOSSARY.md vigente)  
+Fecha: 13 de mayo de 2026  
+Status: Accepted  
+Aplicación: append al final de docs/GLOSSARY.md (separado por sección clara)
+
+PROPÓSITO DEL ADDENDUM  
+\=======================
+
+Este addendum extiende GLOSSARY.md (vigente, \~29K) con los términos nuevos introducidos por la arquitectura multi-vertical (RFC-004) y los docs canonizados de la re-documentación.
+
+Los \~100 términos vigentes del GLOSSARY se mantienen sin cambios.
+
+TÉRMINOS NUEVOS  
+\================
+
+Capa (architecture layer)  
+Una de las 4 capas en las que se organiza la plataforma según RFC-004 y ADR-040: troncal (Capa 0), cross-vertical (Capa 1), vertical (Capa 2), conector / integración (Capa 3). Cada módulo del sistema pertenece a UNA capa, declarada en catalogo\_modulos.capa.
+
+Troncal (universal)  
+Capa 0 de la plataforma. Conjunto de bloques que CUALQUIER negocio del mundo necesita el día 1\. Definido en ADR-041 como los 9 bloques: Configuración, CRM, Finanzas básico, PIM Nivel 1, Cobranza recurrente, Comunicaciones, Eventos & Calendario, Proyectos & Tareas, Auditoría & Seguridad.
+
+Cross-vertical  
+Capa 1 de la plataforma. Módulo reutilizable entre múltiples verticales pero que no es universal (un freelance puede no necesitarlo). Se activa por tenant según necesidad. Ejemplos: Reservas, POS, Inventario, RRHH, Documentos/Firma.
+
+Vertical  
+Capa 2 de la plataforma. Paquete específico por industria. Cada vertical tiene un mini-troncal propio y submódulos. Verticales canonizados: CCBP (Clubes, Countries, Barrios Privados), Estudios de Arquitectura, Estudios de Abogacía, Agencias de Publicidad, Retailers PyME.
+
+Vertical CCBP  
+El primer y único vertical productivo a la fecha. Agrupa Clubes, Countries y Barrios Privados como un solo vertical comercial. Hindu Club Fútbol es el cliente piloto.
+
+Mini-troncal de vertical  
+Conjunto de tablas y módulos específicos del vertical (no del troncal universal). Por ejemplo, en CCBP el mini-troncal incluye equipos, plantel, cuerpo técnico, disciplinas.
+
+Conector  
+Capa 3 de la plataforma. Integración con sistema externo (Resend, MercadoPago, AFIP, Tiendanube, etc.). Vendible como add-on individual vía marketplace. En desarrollo todos los conectores están mockeados (ADR-035, mock-first).
+
+Marketplace de módulos  
+Pantalla \`/admin/marketplace\` (a crear) donde el cliente ve todos los módulos disponibles para activar. Implementa el patrón de "apagados visibles" del ADR-043: módulos no contratados se renderizan con candado y CTA para activación.
+
+Apagado visible  
+Patrón comercial canonizado en ADR-043. Un módulo no contratado por el tenant aparece en la UI con icono de candado y badge "Activar", click abre modal con descripción \+ precio \+ CTA. NO se ocultan los módulos no contratados.
+
+PIM (Product Information Management)  
+Bloque 4 del troncal. Sistema de gestión del catálogo de productos y servicios. Implementado en 3 niveles (ADR-042).
+
+PIM Nivel 1  
+Catálogo básico: identidad del producto/servicio \+ variantes \+ categorías jerárquicas \+ precio base único \+ stock simple. Pertenece al troncal universal. Construido en Sprint A2.
+
+PIM Nivel 2 (Pricing avanzado)  
+Módulo cross-vertical opcional. Listas de precios múltiples con segmento, vigencia, prioridad. Resolución contextual de precio por canal/persona/fecha/horario. Construido en Sprint D3.
+
+PIM Nivel 3 (Stock & Movimientos)  
+Módulo cross-vertical opcional. Motor central de movimientos de stock (entrada/salida/transferencia/ajuste/reserva). Ubicaciones físicas, lotes, series. Construido en Sprint D4.
+
+Bloque del troncal  
+Una de las 9 unidades funcionales del troncal universal (ver troncal). Cada bloque tiene un sprint de cierre específico en FASE A.
+
+Bundle de vertical  
+Paquete comercial que combina el troncal \+ un vertical \+ algunos cross-verticals \+ conectores básicos. Ejemplo: ClubCore es el bundle del vertical CCBP. Otros bundles futuros: paquete Arq, paquete Abog, etc.
+
+ClubCore (renombre conceptual)  
+Nombre comercial del bundle del vertical CCBP sobre la plataforma. NO es el nombre del producto raíz. El producto raíz es la "Plataforma SaaS Multimodal" (decisión H1 pendiente).
+
+Producto raíz  
+La plataforma multi-vertical en sí misma. Nombre pendiente de decisión comercial (hito H1 del ROADMAP). Provisorio: "Plataforma SaaS Multimodal" o "LWCMO".
+
+Variante (de producto)  
+Instancia específica de un producto con atributos diferenciales (color, talle, modelo). Tiene SKU/EAN propio y stock independiente. Tabla: productos\_variantes (nueva en Sprint A2).
+
+Lista de precios  
+Conjunto de precios aplicables a productos según segmento (canal, tipo de cliente, fecha, horario). Pertenece a PIM Nivel 2 (cross-vertical opcional).
+
+Movimiento de stock  
+Registro histórico de entrada, salida, transferencia, ajuste, reserva o daño de un producto. Pertenece a PIM Nivel 3 (cross-vertical opcional).
+
+Ubicación de stock  
+Lugar físico donde se almacena inventario (depósito, vestuario, sucursal, sala). Tabla stock\_ubicaciones del PIM Nivel 3\.
+
+Espacio (físico)  
+Entidad genérica del troncal (tabla espacios, a crear en Sprint A1). Representa cualquier lugar dentro de una sede (cancha, vestuario, oficina, aula, sala, kiosko, bar, vidriera). Reemplaza el modelo limitado de "canchas".
+
+Diagramación de Club / Mapa visual del local  
+Submódulo que representa visualmente el layout físico de las sedes con sus espacios. Versión CCBP-específica en Sprint B6, generalización cross-vertical en Sprint D6.
+
+Proyecto (en Proyectos & Tareas)  
+Contenedor de trabajo agrupado, con responsable, cliente (opcional, persona o entidad), fechas, presupuesto. Bloque 8 del troncal. Tabla proyectos, construida en Sprint A6.
+
+Tarea (en Proyectos & Tareas)  
+Unidad de trabajo dentro de un proyecto, asignable a una persona, con estado configurable (backlog/en curso/review/hecho), prioridad, fecha límite. Tabla proyecto\_tareas.
+
+Sprint  
+Unidad de trabajo del desarrollo. En el nuevo modelo: A1-A6 (FASE A), B1-B6 (FASE B), D1-D6 (FASE D), E\[N\].M (FASE E, sprints por vertical).
+
+Tag (de sprint)  
+Identificador de git aplicado al cierre de cada sprint. Formato: v\[X.Y.Z\]-\[fase\]-sprint\[N\]. Ejemplo: v0.27.0-fase-a-sprint-1.
+
+Cierre ejecutivo  
+Documento de cierre post-sprint o post-fase que recoge métricas, decisiones tomadas y deuda generada. Vive en Drive \`\_Cierre Ejecutivo/\`.
+
+PROMPT-TEMPLATE  
+Formato canónico de prompts para Claude Code, definido en docs/PROMPT-TEMPLATE.md. 18 bloques (A-R) incluyendo contexto obligatorio, declaración de capa, pre-mortem, verificación inicial, capas BD/Código/UI/UX/Estilos/Galería, sidebar, tests, protocolo de cierre, criterios de aceptación y reglas duras.
+
+R-DOC1  
+Regla de documentación canonizada: Drive es copia textual del repo o linker, nunca paráfrasis de memoria. Cualquier actualización debe hacerse primero en el repo (vía commit) y después reflejarse en Drive.
+
+H1, H2, H3 (hitos comerciales)  
+Hitos comerciales del ROADMAP independientes del orden de fases técnicas:  
+\- H1: Nombre del producto raíz (pendiente)  
+\- H2: Pricing del marketplace de módulos (pendiente)  
+\- H3: Materiales de venta por vertical (pendiente)
+
+FASE A, B, C, D, E  
+Las 5 fases macro del plan de ejecución según ADR-044:  
+\- FASE A: Cerrar troncal mínimo (Sprints A1-A6)  
+\- FASE B: Cerrar vertical CCBP (Sprints B1-B6)  
+\- FASE C: Demo a Hindu (validación end-to-end)  
+\- FASE D: Cross-vertical extra (Sprints D1-D6)  
+\- FASE E: Abrir otros verticales (E1 a E4 con sus sub-sprints)
+
+TÉRMINOS PROHIBIDOS (recordatorio de BRAND-PLATFORM)  
+\=====================================================
+
+Nunca usar en UI, copy o documentación pública:  
+\- "potenciar", "escalar", "robusto", "innovador", "sinergia"  
+\- "ecosistema digital", "estrategia", "potente"  
+\- "¡Vamos\!", "¡Lo lográs\!", "¡Felicitaciones\!"  
+\- "Absolutamente", "Con gusto", "Claro que sí", "Gran pregunta"  
+\- "Estimado/a", "Cordialmente" (en español)  
+\- Adjetivos decorativos sin impacto operativo
+
+CIERRE DEL ADDENDUM  
+\====================
+
+Este addendum se considera vigente. Los términos aquí definidos son canónicos.
+
+Si un sprint introduce un término nuevo no documentado, se debe agregar a este addendum al cierre del sprint (PROMPT-TEMPLATE PARTE 10.1).
+
+Fin del addendum.  

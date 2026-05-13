@@ -936,3 +936,224 @@ no tocados por la migración modular.
 
 **Cuando se retoma:** FASE 15 Hardening (sprint dedicado de cleanup). Cuando
 queden 0 errors, hacer validate:all = validate:strict.
+
+
+=====================================================================
+INICIO ADDENDUM — agregado el 2026-05-13
+=====================================================================
+
+ARCHITECTURE-ADDENDUM — Arquitectura de plataforma multi-vertical  
+\======================================================================
+
+Versión: 1.0 (addendum, no reemplaza ARCHITECTURE.md vigente)  
+Fecha: 13 de mayo de 2026  
+Status: Accepted  
+Aplicación: append al final de docs/ARCHITECTURE.md (separado por sección clara)  
+Referencias: RFC-004, ADR-040 (taxonomía 4 capas), ADR-041 (troncal mínimo)
+
+PROPÓSITO DEL ADDENDUM  
+\=======================
+
+Este addendum extiende ARCHITECTURE.md (vigente, \~33K) con la arquitectura de plataforma multi-vertical canonizada en RFC-004. El contenido original de ARCHITECTURE.md (convenciones técnicas, patrones, anti-patrones, naming, recipes para módulos/tablas/server actions/tests) se mantiene íntegramente vigente.
+
+Este addendum agrega:  
+\- Taxonomía de 4 capas de la plataforma  
+\- Definición de troncal mínimo (9 bloques)  
+\- Reglas de clasificación de módulos por capa  
+\- Reglas de dependencias entre capas  
+\- Mapeo de la arquitectura a la estructura del repo
+
+SECCIÓN NUEVA — ARQUITECTURA DE PLATAFORMA MULTI-VERTICAL  
+\==========================================================
+
+Hasta el RFC-004, la arquitectura del sistema asumía un único vertical (Club Deportivo). A partir del RFC-004, la plataforma se reorganiza para soportar múltiples verticales sobre una base común.
+
+CAPAS DE LA PLATAFORMA (ADR-040)  
+\=================================
+
+La plataforma se organiza en 4 capas:
+
+Capa 0 — Troncal universal  
+Capa 1 — Módulos cross-vertical  
+Capa 2 — Verticales  
+Capa 3 — Conectores (marketplace)
+
+Cada módulo del sistema debe declarar a qué capa pertenece. La tabla catalogo\_modulos incluye una columna \`capa\` (enum: troncal / cross\_vertical / vertical / integracion).
+
+CAPA 0 — TRONCAL UNIVERSAL  
+\===========================
+
+Lo que necesita CUALQUIER negocio del mundo el día 1\. Universal, no depende del vertical.
+
+Bloques (ADR-041):  
+1\. Configuración del negocio (tenants, sedes, módulos activos, plan de cuentas)  
+2\. CRM (personas, entidades, vínculos, atributos)  
+3\. ERP Finanzas básico (productos/servicios, cajas, movimientos, comprobantes)  
+4\. PIM Nivel 1 (catálogo \+ variantes \+ categorías jerárquicas)  
+5\. Cobranza recurrente (cuotas, suscripciones, convenios de pago)  
+6\. Motor de Comunicaciones (plantillas, envíos, mensajes in-app)  
+7\. Eventos & Calendario (eventos genéricos, invitados, asistencias básicas)  
+8\. Proyectos & Tareas (mini-Trello)  
+9\. Auditoría & Seguridad
+
+Reglas del troncal:  
+\- Cualquier vertical depende de TODOS los bloques troncales para operar.  
+\- Una pantalla del troncal no puede importar lógica de un vertical.  
+\- El troncal es agnóstico de industria: el modelo Persona/Entidad funciona igual para un club, un estudio jurídico, una agencia.
+
+CAPA 1 — MÓDULOS CROSS-VERTICAL  
+\=================================
+
+Capacidades reutilizables entre múltiples verticales. Se activan por tenant según necesidad.
+
+Módulos canonizados:  
+\- Asistencias  
+\- Reservas de espacios  
+\- POS / Concesiones  
+\- Inventario / Stock simple  
+\- Acceso físico  
+\- Pre-inscripciones / Captación digital  
+\- Documentos / Firma digital  
+\- Tickets / Solicitudes  
+\- RRHH  
+\- Espacios físicos (mapa visual del local)  
+\- Suscripciones de membresía (renombre conceptual de Socios)  
+\- Pricing avanzado (Nivel 2 del PIM)  
+\- Stock & Movimientos (Nivel 3 del PIM)
+
+Reglas cross-vertical:  
+\- Cada cross-vertical debe poder ser activado/desactivado por tenant SIN romper el troncal.  
+\- Una pantalla cross-vertical puede importar del troncal pero NO de un vertical específico.  
+\- Cross-verticals pueden depender entre sí (ej. Reservas usa Espacios), siempre que se documente la dependencia en MODULE-CATALOG.
+
+CAPA 2 — VERTICALES  
+\====================
+
+Paquetes específicos por industria. Cada vertical tiene su propio mini-troncal y submódulos propios.
+
+Verticales canonizados (orden comercial):  
+1\. CCBP (Clubes, Countries y Barrios Privados) — único vertical productivo hoy  
+2\. Estudios de Arquitectura — futuro FASE E1  
+3\. Estudios de Abogacía — futuro FASE E2  
+4\. Agencias de Publicidad — futuro FASE E3  
+5\. Retailers PyME — futuro FASE E4
+
+Estructura interna de un vertical:  
+\- Mini-troncal: tablas y módulos específicos del vertical (ej. equipos para CCBP, casos para Abog)  
+\- Submódulos: funcionalidad específica por vertical (ej. lesiones para CCBP, audiencias para Abog)  
+\- Configuración: cómo se activan los cross-verticals relevantes
+
+Reglas verticales:  
+\- Un vertical declara explícitamente qué cross-verticals usa.  
+\- Un vertical NO puede importar de otro vertical. Si dos verticales necesitan algo en común, ese algo se promueve a cross-vertical.  
+\- Cada vertical tiene su propio BRAND-\[VERTICAL\].md (variantes visuales y de tono).
+
+CAPA 3 — CONECTORES (MARKETPLACE)  
+\===================================
+
+Integraciones con sistemas externos, vendibles como add-ons.
+
+Categorías:  
+\- Comunicación (Resend, BAPI, Twilio, etc.)  
+\- Pago (MercadoPago, Stripe, Modo)  
+\- Fiscal (AFIP, DIAN, SII, SAT según país)  
+\- eCommerce (Tiendanube, Shopify, WooCommerce)  
+\- Apps deportivas (Catapult, Polar, Strava, FACCMA, AIF)  
+\- Acceso físico (lectores QR, biométricos)  
+\- Genéricos (Webhooks, API REST, MCP, Playwright, n8n/Zapier)
+
+Reglas de conectores:  
+\- Cada conector se vende activable por tenant.  
+\- Mock-first universal vigente hasta FASE C (ADR-035): los conectores se mockean en desarrollo, se activan reales solo post-validación con cliente.  
+\- Un conector NO puede ser dependencia hard de un módulo troncal. Siempre debe haber un fallback mockeado.
+
+REGLAS DE DEPENDENCIA ENTRE CAPAS  
+\====================================
+
+Dirección permitida (flujo descendente):  
+\- Capa 1 (cross-vertical) PUEDE depender de Capa 0 (troncal)  
+\- Capa 2 (vertical) PUEDE depender de Capa 0 y Capa 1  
+\- Capa 3 (conector) PUEDE ser usado por cualquier capa superior
+
+Dirección NO permitida (flujo ascendente):  
+\- Capa 0 (troncal) NO depende de ninguna otra capa  
+\- Capa 1 NO depende de Capa 2 (cross-vertical no sabe de verticales específicos)  
+\- Capa 2 NO depende de otra Capa 2 (un vertical no sabe de otros verticales)
+
+Si una dependencia ascendente es necesaria (ej. un troncal necesita lógica de un cross-vertical), se promueve el código necesario a la capa inferior antes de usarlo.
+
+MAPEO REPO ↔ ARQUITECTURA  
+\==========================
+
+Estructura del repo (Next.js App Router):
+
+\`\`\`  
+app/  
+  admin/  
+    configuracion/       ← Troncal: configuración del negocio  
+    personas/            ← Troncal: CRM  
+    entidades/           ← Troncal: CRM  
+    productos/           ← Troncal: PIM (a crear en A2)  
+    finanzas/            ← Troncal: ERP  
+    cobranza/            ← Troncal: cobranza recurrente  
+    comunicaciones/      ← Troncal: motor comunicaciones  
+    operaciones/         ← Troncal: eventos \+ calendario \+ planificador  
+    proyectos/           ← Troncal: proyectos & tareas (a crear en A6)  
+      
+    asistencias/         ← Cross-vertical  
+    reservas/            ← Cross-vertical  
+    pos/                 ← Cross-vertical (hoy concesiones, rename en D5)  
+    inventario/          ← Cross-vertical (hoy utileria, rename en D5)  
+    acceso/              ← Cross-vertical  
+    pre-inscripciones/   ← Cross-vertical  
+    documentos/          ← Cross-vertical (a crear en D1)  
+    tickets/             ← Cross-vertical (a crear en D2)  
+    rrhh/                ← Cross-vertical  
+      
+    equipos/             ← Vertical CCBP  
+    planificadores/      ← Vertical CCBP (usa eventos troncal)  
+    entrenamientos/      ← Vertical CCBP  
+    tactica/             ← Vertical CCBP  
+    competencias/        ← Vertical CCBP  
+    salud/               ← Vertical CCBP (a crear en B1)  
+    scouting/            ← Vertical CCBP (a crear en B3)  
+      
+    marketplace/         ← Plataforma (administración de módulos)  
+    settings/            ← Plataforma
+
+modules/                 ← Lógica por módulo (lib/ \+ ui/)  
+  \[nombre del módulo\]/  
+    module.json  
+    lib/  
+    ui/  
+\`\`\`
+
+Reglas de imports:  
+\- Imports cross-módulo solo entre la misma capa o desde una capa inferior.  
+\- Componentes UI reutilizables van a \`components/\`, no a \`modules/\`.  
+\- Helpers genéricos van a \`lib/\`, no a \`modules/\`.
+
+CICLO DE VIDA DE UN MÓDULO  
+\============================
+
+Estados (definidos en MODULE-CATALOG):  
+\- ✅ Productivo: construido, en operación con datos reales  
+\- 🟡 Parcial: construido parcialmente, falta UI o features  
+\- 🟠 Huérfano: existe en \`modules/\` pero sin UI ni referencia en \`app/admin/\`  
+\- ⏳ Planificado: por construir en sprint futuro  
+\- 🆕 A crear: aparece en RFC pero no existe físicamente
+
+Transiciones permitidas:  
+\- 🆕 → 🟡 → ✅ (camino estándar)  
+\- ✅ → 🟡 cuando se descubre deuda  
+\- 🟠 → ✅ cuando se activa un módulo previamente abandonado  
+\- ✅ → archivado: NO se borran módulos productivos sin RFC explícito
+
+CIERRE DEL ADDENDUM  
+\====================
+
+Este addendum se considera vigente hasta que un futuro RFC modifique la taxonomía de 4 capas o la definición de troncal mínimo.
+
+Cualquier sprint que toque módulos debe verificar coherencia con esta arquitectura antes de codear (PROMPT-TEMPLATE BLOQUE B "Declaración de capa").
+
+Fin del addendum.  
