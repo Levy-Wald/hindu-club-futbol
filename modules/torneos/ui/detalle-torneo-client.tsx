@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Calendar, Upload } from 'lucide-react'
+import { ArrowLeft, Calendar, Trophy, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type {
@@ -51,6 +51,12 @@ export function DetalleTorneoClient({
             <BadgeEstadoTorneo estado={torneo.estado} />
             {puedeAdmin && (
               <>
+                <Link href={`/admin/competencias/torneos/${torneo.id}/posiciones`}>
+                  <Button variant="outline" size="sm" data-testid="btn-ver-posiciones">
+                    <Trophy className="h-4 w-4 mr-2" />
+                    Posiciones
+                  </Button>
+                </Link>
                 <Link href={`/admin/competencias/torneos/${torneo.id}/fixture`}>
                   <Button variant="outline" size="sm" data-testid="btn-generar-fixture">
                     <Calendar className="h-4 w-4 mr-2" />

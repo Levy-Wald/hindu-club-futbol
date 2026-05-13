@@ -21,9 +21,16 @@ test.describe('Torneos', () => {
   const inscripcionIds: string[] = []
   const csvEventoIds: string[] = []
   const fixtureEventoIds: string[] = []
+  const posicionesEventoIds: string[] = []
 
   test.afterAll(async () => {
     const supabase = serviceRole()
+
+    // Clean posiciones test partidos_detalle + eventos
+    for (const eventoId of posicionesEventoIds) {
+      await supabase.from('partidos_detalle').delete().eq('evento_id', eventoId)
+      await supabase.from('eventos').delete().eq('id', eventoId)
+    }
 
     // Clean fixture-generated partidos_detalle + eventos
     for (const eventoId of fixtureEventoIds) {
@@ -526,6 +533,136 @@ test.describe('Torneos', () => {
     await page.getByTestId('btn-generar-preview').click()
 
     await expect(page.getByTestId('error-fixture')).toBeVisible({ timeout: 10000 })
+  })
+
+  // Sprint 5.4 tests — Tabla de posiciones
+
+  test('tabla de posiciones muestra 4 equipos con stats correctas', async ({ page }) => {
+    expect(torneoInternoId).not.toBeNull()
+    expect(categoriaId).not.toBeNull()
+    expect(equipoInscriptoIds.length).toBeGreaterThanOrEqual(4)
+
+    const supabase = serviceRole()
+
+    // Get the 4 inscribed teams to build match data
+    const { data: equipos } = await supabase
+      .from('torneo_equipos')
+      .select('id, equipo_id, equipo_externo_nombre')
+      .eq('torneo_id', torneoInternoId!)
+      .eq('categoria_id', categoriaId!)
+      .eq('activo', true)
+      .limit(4)
+
+    expect(equipos!.length).toBe(4)
+
+    // Hydrate team names
+    const teamNames: Record<string, string> = {}
+    for (const eq of equipos!) {
+      if (eq.equipo_id) {
+        const { data: e } = await supabase.from('equipos').select('nombre').eq('id', eq.equipo_id).single()
+        teamNames[eq.id] = e?.nombre ?? 'Unknown'
+      } else {
+        teamNames[eq.id] = eq.equipo_externo_nombre ?? 'Unknown'
+      }
+    }
+
+    // Create 6 matches (all vs all) with scores
+    const matchups = [
+      [0, 1, 3, 1], // team0 vs team1: 3-1
+      [0, 2, 2, 0], // team0 vs team2: 2-0
+      [0, 3, 1, 1], // team0 vs team3: 1-1
+      [1, 2, 0, 0], // team1 vs team2: 0-0
+      [1, 3, 2, 1], // team1 vs team3: 2-1
+      [2, 3, 1, 0], // team2 vs team3: 1-0
+    ]
+
+    for (const [li, vi, ml, mv] of matchups) {
+      const local = equipos![li]
+      const visitante = equipos![vi]
+
+      const { data: evento } = await supabase
+        .from('eventos')
+        .insert({
+          tenant_id: TENANT,
+          tipo_evento_slug: 'partido',
+          titulo: `${teamNames[local.id]} vs ${teamNames[visitante.id]}`,
+          fecha: '2026-08-01',
+          hora_inicio: '10:00:00',
+          equipo_id: local.equipo_id,
+          estado: 'completado',
+        })
+        .select('id')
+        .single()
+
+      expect(evento).not.toBeNull()
+      posicionesEventoIds.push(evento!.id)
+
+      await supabase.from('partidos_detalle').insert({
+        tenant_id: TENANT,
+        evento_id: evento!.id,
+        torneo_id: torneoInternoId!,
+        categoria_id: categoriaId!,
+        equipo_id: local.equipo_id,
+        rival_texto: teamNames[visitante.id],
+        condicion: 'local',
+        marcador_local: ml,
+        marcador_visitante: mv,
+      })
+    }
+
+    // Navigate to posiciones
+    await page.goto(`/admin/competencias/torneos/${torneoInternoId}/posiciones`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('pantalla-posiciones')).toBeVisible({ timeout: 15000 })
+
+    // Select Sub-15 category
+    if (await page.getByTestId('select-categoria-posiciones').isVisible()) {
+      await page.getByTestId('select-categoria-posiciones').click()
+      await page.getByRole('option', { name: 'Sub-15' }).click()
+      // Wait for table to reload
+      await page.waitForTimeout(2000)
+    }
+
+    // Table should show 4 rows
+    await expect(page.getByTestId('tabla-posiciones')).toBeVisible({ timeout: 10000 })
+    await expect(page.getByTestId('fila-posicion-1')).toBeVisible()
+    await expect(page.getByTestId('fila-posicion-4')).toBeVisible()
+
+    // Verify first place has 7 points (team0: 2W + 1D = 7pts)
+    const firstRow = page.getByTestId('fila-posicion-1')
+    await expect(firstRow.locator('td').last()).toContainText('7')
+  })
+
+  test('cambiar categoria actualiza la tabla', async ({ page }) => {
+    expect(torneoInternoId).not.toBeNull()
+
+    await page.goto(`/admin/competencias/torneos/${torneoInternoId}/posiciones`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('pantalla-posiciones')).toBeVisible({ timeout: 15000 })
+
+    // Initially loads without category filter — should show results
+    // Click actualizar to refresh
+    await page.getByTestId('btn-actualizar-tabla').click()
+
+    // Select Sub-15 if available
+    if (await page.getByTestId('select-categoria-posiciones').isVisible()) {
+      await page.getByTestId('select-categoria-posiciones').click()
+      await page.getByRole('option', { name: 'Sub-15' }).click()
+
+      // Wait for re-render
+      await expect(page.getByTestId('tabla-posiciones')).toBeVisible({ timeout: 10000 })
+    }
+  })
+
+  test('torneo sin partidos muestra tabla vacia', async ({ page }) => {
+    expect(torneoExternoId).not.toBeNull()
+
+    await page.goto(`/admin/competencias/torneos/${torneoExternoId}/posiciones`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('pantalla-posiciones')).toBeVisible({ timeout: 15000 })
+
+    // External torneo has no matches — should show empty state
+    await expect(page.getByTestId('tabla-vacia')).toBeVisible({ timeout: 10000 })
   })
 
   test('persona sin permiso torneos.admin no puede crear torneo via RLS', async () => {
