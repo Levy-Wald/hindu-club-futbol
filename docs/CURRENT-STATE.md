@@ -6,23 +6,24 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint FASE 4.5 cerrado.
-> Organizador táctico visual con SVG cancha y asignación de jugadores.
+> Última actualización: 13 de mayo de 2026 — Sprint FASE 4.6 cerrado.
+> Reservas de canchas. FASE 4 (Planificadores) CERRADA al 100%.
 
 ---
 
 ## 0. Snapshot ejecutivo
 
 **Estado general:** FASE 1 cerrada. FASE 2 (Comunicación) completada al 100%.
-FASE 3 (Operación deportiva) completada al 100%. FASE 4 (Planificadores)
-en progreso: Sprints 4.1, 4.2, 4.3, 4.4 y 4.5 cerrados.
+FASE 3 (Operación deportiva) completada al 100%. **FASE 4 (Planificadores)
+completada al 100%:** Sprints 4.1, 4.2, 4.3, 4.4, 4.5 y 4.6 cerrados.
 
-**Ultimo sprint cerrado:** **FASE 4.5** — Organizador táctico.
-SVG cancha visual con 5 formaciones hardcoded, slots por línea con colores,
-selector de formación, modal de asignación, panel plantel lateral. Reusa
-esquemas_tacticos + esquema_posiciones existentes. Sin tablas nuevas.
+**Ultimo sprint cerrado:** **FASE 4.6** — Reservas de canchas.
+1 tabla nueva (reservas_canchas). Reserva = evento + fila con tarifa calculada.
+5 estados (pendiente/confirmada/pagada/cancelada/completada). Cliente
+polimórfico. Pantalla /admin/reservas con tabla + filtros + modales.
+Sidebar actualizado con "Reservas" en Operaciones.
 
-**Próximo sprint:** Sprint 4.6 (reservas de cancha) — a decidir.
+**Próximo sprint:** FASE 5 (Competencias/Torneos) — a decidir.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -35,28 +36,28 @@ esquemas_tacticos + esquema_posiciones existentes. Sin tablas nuevas.
 
 | Métrica | Valor |
 |---|---|
-| Tablas en `public` | 155 |
-| Tablas con RLS habilitada | 149 (99.3%) |
-| RLS policies | 369 |
+| Tablas en `public` | 156 |
+| Tablas con RLS habilitada | 150 (99.3%) |
+| RLS policies | 373 |
 | Funciones custom (`pg_proc` en public) | 134 |
-| Triggers | 95 |
+| Triggers | 96 |
 | VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 71 (8 públicas + 63 admin) |
+| Páginas Next.js | 72 (8 públicas + 64 admin) |
 | API routes | 17 (5 endpoints v1 + 5 internos + 7 crons) |
-| Server actions | ~175 en 31 archivos |
-| Componentes custom (no shadcn) | ~143 |
-| Tests E2E (Playwright) | 66 specs (61 pass, 1 skip, 4 flaky pre-existing) |
+| Server actions | ~178 en 32 archivos |
+| Componentes custom (no shadcn) | ~148 |
+| Tests E2E (Playwright) | 69 specs (65 pass, 1 skip, 3 flaky pre-existing) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |
-| Atributos en catálogo | 67 (con entrenamientos.editor) |
+| Atributos en catálogo | 68 (con reservas.gestor) |
 | Tipos de notificación catalogados | 23 |
 | Tipos de evento catalogados | 24 (+amistoso) |
-| Módulos catalogados | 55 (+tactica) |
+| Módulos catalogados | 56 (+reservas) |
 | Módulos activos en Hindu | 40+ |
-| Manifiestos module.json | 24 |
+| Manifiestos module.json | 25 |
 | Verticales en catálogo | 4 (club_deportivo, country_deportivo, federacion_hub, polo_educativo) |
 
 ---
@@ -267,6 +268,17 @@ disponibles/asignados. Reusa tablas `esquemas_tacticos` y `esquema_posiciones`
 existentes — sin tablas nuevas. Solo para eventos tipo partido/amistoso.
 Permisos: tenant.admin o CT del equipo. Excepción AP-006: sin sidebar. Page en
 `app/admin/(troncal)/operaciones/eventos/[eventoId]/tactica/`. 3 E2E tests.
+
+**Módulo Reservas (Sprint FASE 4.6):**
+Módulo en `modules/reservas/` con module.json, lib/ (types, helpers, queries,
+actions, permisos), ui/ (pantalla-reservas, tabla-reservas, modal-nueva-reserva,
+modal-detalle-reserva, badge-estado). 1 tabla nueva `reservas_canchas` con
+UNIQUE(evento_id). Reserva = evento tipo='reserva' + fila en reservas_canchas.
+Tarifa calculada al crear: precio_alquiler_hora * duracion_horas (D51). 5 estados
+con CHECK constraint. Cliente polimórfico (persona/entidad/externo). Pantalla
+/admin/reservas con tabla + filtros cancha/estado + modal crear + modal detalle
+con acciones por estado. Sidebar: "Reservas" en sección Operaciones (AP-006 SÍ).
+Permisos: tenant.admin o reservas.gestor. 3 E2E tests.
 
 **Gaps:** scouting con uso real (postergado), partidos cargados (postergado).
 
@@ -653,6 +665,13 @@ Historial referenciado en commits del repo. Listado resumido:
   plantel lateral. Reusa esquemas_tacticos + esquema_posiciones existentes.
   Solo para eventos tipo partido/amistoso. AP-006 excepción documentada.
   Tag v0.18.0. 66 E2E (61 pass, 1 skip, 4 flaky pre-existing).
+- **Sprint FASE 4.6** — Reservas de canchas. **FASE 4 CERRADA.**
+  Módulo `reservas` con 1 tabla nueva (reservas_canchas). Reserva = evento
+  tipo='reserva' + fila con tarifa calculada (D51). 5 estados con CHECK.
+  Cliente polimórfico (persona/entidad/externo). Pantalla /admin/reservas
+  con tabla + filtros + modales crear/detalle. Sidebar con "Reservas" en
+  Operaciones (AP-006 SÍ, tiene pantalla propia). Atributo reservas.gestor.
+  Tag v0.19.0. 69 E2E (65 pass, 1 skip, 3 flaky pre-existing).
 
 ---
 

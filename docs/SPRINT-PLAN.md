@@ -78,7 +78,7 @@ FASE 3 completada al 100% el 2026-05-12.
 |---|---|---|---|---|
 | DOCS-7+UX-FIX | RFC-001 en repo, pre-mortem 3.4, modelo operativo canonizado, AP-003 a AP-006, sidebar con Acceso y Nóminas externas | `v0.13.1` | 49/1/0 | Cerrado |
 
-## FASE 4 — Planificadores (2026-05-12)
+## FASE 4 — Planificadores (completada 2026-05-13)
 
 | Sprint | Tema | Tag | Tests E2E | Estado |
 |---|---|---|---|---|
@@ -87,6 +87,9 @@ FASE 3 completada al 100% el 2026-05-12.
 | 4.3 | Organizador de entrenamientos: módulo entrenamientos, 3 tablas, 20 ejercicios globales, plan 1:1 evento, bloques DnD, permisos CT | `v0.16.0` | 60/1/0 | Cerrado |
 | 4.4 | Organizador de amistosos: logística en metadata jsonb, integración nominas_externas, slug 'amistoso', sin tablas nuevas | `v0.17.0` | 63/1/0 | Cerrado |
 | 4.5 | Organizador táctico: SVG cancha visual, 5 formaciones, click-to-assign, panel plantel, reusa esquemas_tacticos, sin tablas nuevas | `v0.18.0` | 66/1/0 | Cerrado |
+| 4.6 | Reservas de canchas: 1 tabla nueva, tarifa calculada, 5 estados, cliente polimórfico, pantalla /admin/reservas, sidebar | `v0.19.0` | 69/1/0 | Cerrado |
+
+FASE 4 completada al 100% el 2026-05-13.
 
 ---
 
@@ -98,7 +101,7 @@ Pendiente de asignación por el Arquitecto.
 
 ## Proximos en cola
 
-- Sprint 4.6: Reservas de cancha
+- FASE 5: Competencias/Torneos
 
 ---
 

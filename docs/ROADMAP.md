@@ -193,7 +193,7 @@ amistosos, tacticas, reservas de canchas.
 | 4.3 | Organizador de entrenamientos | Done |
 | 4.4 | Organizador de partido amistoso | Done |
 | 4.5 | Organizador tactico (SVG cancha, click-to-assign, 5 formaciones) | Done |
-| 4.6 | Reservas de canchas | Red |
+| 4.6 | Reservas de canchas (tabla nueva, tarifa calculada, 5 estados, sidebar) | Done |
 
 ---
 

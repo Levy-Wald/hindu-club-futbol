@@ -260,6 +260,17 @@ externas. FASE 5 del roadmap.
 `catalogo_roles_equipo`.
 
 **Cancha.** Espacio físico donde se entrena o juega. Vive en `canchas`.
+Campos relevantes para reservas: `disponible_para_alquiler` (boolean),
+`precio_alquiler_hora` (numeric).
+
+**Reserva de cancha.** Alquiler de una cancha para un horario específico.
+Vive en `reservas_canchas` + un `evento` tipo='reserva'. Tarifa calculada
+al crear (precio_hora * duración, D51). 5 estados: pendiente, confirmada,
+pagada, cancelada, completada. Cliente polimórfico: persona_id, entidad_id,
+o cliente_nombre_externo. Sprint FASE 4.6.
+
+**Estado de reserva.** Ciclo de vida: pendiente → confirmada → pagada →
+completada. Cancelable desde pendiente o confirmada.
 
 **Esquema táctico.** Formación deportiva (4-4-2, 4-3-3, etc.) con asignación
 de jugadores a posiciones (slots). Vive en `esquemas_tacticos` (esquema) +
