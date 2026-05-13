@@ -5,7 +5,7 @@
 >
 > Mantenido por el arquitecto.
 >
-> Última actualización: 12 de mayo de 2026.
+> Última actualización: 13 de mayo de 2026.
 
 ---
 
@@ -316,6 +316,21 @@ federación, categoría externa, número de afiliación). Sprint FASE 5.2.
 **Import CSV.** Carga masiva de fixture y/o resultados desde archivo CSV.
 Valida por fila y reporta errores individuales. Crea eventos + partidos_detalle
 asociados al torneo. Sprint FASE 5.2.
+
+**Fixture (auto-generador).** Sistema que genera automáticamente los partidos de
+un torneo según su formato. 6 algoritmos TS puros en
+`modules/torneos/lib/fixture-generators/`: liga (round-robin circle algorithm),
+eliminación (bracket con byes), grupos+playoff, suizo, triangular, cuadrangular.
+Flujo: preview (sin persistir) → confirmar (crea eventos + partidos_detalle).
+Sprint FASE 5.3.
+
+**Fase (de fixture).** Etapa del torneo a la que pertenece un partido: `ida`,
+`vuelta`, `grupo_A`, `cuartos`, `semifinal`, `final`, `tercer_puesto`,
+`regular`, `ronda_1`, `playoff_*`. Columna `fase` en `partidos_detalle`.
+
+**Fecha (número).** Jornada o ronda del torneo (1-indexed). Columna
+`fecha_numero` en `partidos_detalle`. Al confirmar fixture, cada fecha se
+programa con 7 días de diferencia a partir de la fecha inicio.
 
 **Scouting.** Ficha de evaluación de un jugador (propio o externo). Vive en
 `scouting_fichas`.

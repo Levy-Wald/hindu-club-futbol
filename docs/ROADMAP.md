@@ -7,7 +7,7 @@
 >
 > Mantenido por el arquitecto. Cambios estructurales requieren aprobacion.
 >
-> Ultima actualizacion: 12 de mayo de 2026.
+> Ultima actualizacion: 13 de mayo de 2026.
 
 ---
 
@@ -211,7 +211,7 @@ internos organizados por el club, participacion en ligas externas
 |---|---|---|
 | 5.1 | Torneos internos (creador con formatos: liga, eliminacion, grupos+playoff, suizo, triangular, cuadrangular) | Done |
 | 5.2 | Inscripciones externas + CSV import | Done |
-| 5.3 | Fixture auto-generador | Red |
+| 5.3 | Fixture auto-generador (6 algoritmos TS, preview + confirm, 21 unit tests vitest) | Done |
 | 5.4 | Tabla de posiciones en tiempo real | Red |
 | 5.5 | Carga de resultados pos-partido (goles, tarjetas, cambios) | Yellow |
 | 5.6 | Stats por jugador y equipo | Red |

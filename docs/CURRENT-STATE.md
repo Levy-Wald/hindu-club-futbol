@@ -6,8 +6,8 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 13 de mayo de 2026 — Sprint FASE 5.2 cerrado.
-> Inscripciones en torneos externos + CSV import. FASE 5 en curso.
+> Última actualización: 13 de mayo de 2026 — Sprint FASE 5.3 cerrado.
+> Fixture auto-generador con 6 algoritmos. FASE 5 en curso.
 
 ---
 
@@ -15,14 +15,14 @@
 
 **Estado general:** FASE 1 cerrada. FASE 2 (Comunicación) completada al 100%.
 FASE 3 (Operación deportiva) completada al 100%. FASE 4 (Planificadores)
-completada al 100%. **FASE 5 (Competencias) iniciada:** Sprint 5.1 cerrado.
+completada al 100%. **FASE 5 (Competencias) iniciada:** Sprint 5.1–5.3 cerrados.
 
-**Ultimo sprint cerrado:** **FASE 5.2** — Inscripciones en torneos externos + CSV import.
-Extensión de equipos_competencias con torneo_id FK. Atributo torneos.inscriptor.
-Inscripciones CRUD en /admin/competencias/inscripciones. CSV importer para
-fixture y resultados (papaparse). Pantalla import en /admin/competencias/torneos/[id]/import.
+**Ultimo sprint cerrado:** **FASE 5.3** — Fixture auto-generador con 6 algoritmos TS puros.
+6 formatos (liga round-robin, eliminación bracket, grupos+playoff, suizo, triangular,
+cuadrangular). Server actions preview + confirm. UI en /admin/competencias/torneos/[id]/fixture.
+Migration: fase + fecha_numero en partidos_detalle. 21 unit tests (vitest). 4 E2E tests.
 
-**Próximo sprint:** FASE 5.3 — Fixture auto-generador.
+**Próximo sprint:** FASE 5.4 — Tabla de posiciones.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -43,11 +43,12 @@ fixture y resultados (papaparse). Pantalla import en /admin/competencias/torneos
 | VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 76 (8 públicas + 68 admin) |
+| Páginas Next.js | 77 (8 públicas + 69 admin) |
 | API routes | 17 (5 endpoints v1 + 5 internos + 7 crons) |
-| Server actions | ~186 en 33 archivos |
-| Componentes custom (no shadcn) | ~160 |
-| Tests E2E (Playwright) | 76 specs (72 pass, 1 skip, 3 flaky pre-existing) |
+| Server actions | ~190 en 34 archivos |
+| Componentes custom (no shadcn) | ~165 |
+| Tests E2E (Playwright) | 80 specs (75 pass, 1 skip, 3 flaky pre-existing, 1 skip cascade) |
+| Tests unitarios (vitest) | 21 specs (21 pass) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |
@@ -184,7 +185,7 @@ nivel que los demás (no una "capa vertical" separada).
 | `equipos_competencias` | 0 | Esqueleto |
 | `esquemas_tacticos` | 0 | Operativo — módulo táctico (Sprint FASE 4.5) |
 | `esquema_posiciones` | 0 | Operativo — posiciones por esquema (Sprint FASE 4.5) |
-| `partidos_detalle` | 98 | Extendida con torneo_id + categoria_id (Sprint FASE 5.1). torneo_slug deprecated (dual-read) |
+| `partidos_detalle` | 98 | Extendida con torneo_id + categoria_id (Sprint FASE 5.1) + fase + fecha_numero (Sprint FASE 5.3). torneo_slug deprecated (dual-read) |
 | `torneos` | 0 | 6 formatos, 5 estados, CHECK constraints (Sprint FASE 5.1) |
 | `torneo_categorias` | 0 | Categorías por torneo (Sprint FASE 5.1) |
 | `torneo_equipos` | 0 | Equipos inscriptos, polimórfico propio/externo (Sprint FASE 5.1) |
@@ -302,10 +303,17 @@ Pages: `/admin/competencias/torneos`, `/admin/competencias/torneos/[id]`,
 Sprint 5.2: Inscripciones CRUD para torneos externos. CSV importer (papaparse)
 para fixture y resultados con validación por fila. equipos_competencias extendida
 con torneo_id FK. Sidebar: Competencias > Inscripciones.
-7 E2E tests (4 Sprint 5.1 + 3 Sprint 5.2).
+Sprint 5.3: Fixture auto-generador con 6 algoritmos TS puros en
+`modules/torneos/lib/fixture-generators/` (liga round-robin circle algorithm,
+eliminación bracket con byes, grupos+playoff, suizo primera ronda, triangular,
+cuadrangular). Server actions preview + confirm. UI pantalla fixture con opciones
+(ida/vuelta, tercer puesto, equipos/grupo, fecha inicio). Migration: columnas
+`fase` y `fecha_numero` en partidos_detalle. 21 unit tests (vitest). Botón
+"Generar fixture" en detalle torneo.
+11 E2E tests (4 Sprint 5.1 + 3 Sprint 5.2 + 4 Sprint 5.3).
 
-**Gaps:** scouting con uso real (postergado), fixture automático (Sprint 5.3),
-tabla de posiciones (Sprint 5.4), carga de resultados (Sprint 5.5).
+**Gaps:** scouting con uso real (postergado), tabla de posiciones (Sprint 5.4),
+carga de resultados (Sprint 5.5), stats (Sprint 5.6).
 
 ---
 
@@ -712,6 +720,22 @@ Historial referenciado en commits del repo. Listado resumido:
   reporting. Pantalla import en /admin/competencias/torneos/[id]/import.
   Sidebar: Inscripciones bajo Competencias.
   Tag v0.21.0. 76 E2E (72 pass, 1 skip, 3 flaky pre-existing).
+- **Sprint FASE 5.3** — Fixture auto-generador con 6 formatos.
+  6 algoritmos TS puros en `modules/torneos/lib/fixture-generators/`:
+  liga (round-robin circle algorithm, ida/vuelta), eliminación (bracket con
+  byes para non-power-of-2, tercer puesto), grupos+playoff (round-robin por
+  grupo + bracket clasificados), suizo (primera ronda random, siguientes
+  dinámicas), triangular (3 equipos, 3 partidos), cuadrangular (4 equipos,
+  6 partidos + opcionales semis/final). Server actions: generarFixturePreviewAction
+  (hydrata equipos, genera preview sin DB) + confirmarFixtureAction (crea
+  eventos + partidos_detalle con fechas auto-calculadas +7d por jornada).
+  UI: pantalla /admin/competencias/torneos/[id]/fixture con panel opciones
+  (categoria, ida/vuelta, tercer puesto, equipos/grupo, fecha inicio),
+  preview agrupado por fecha, confirmación con feedback. Migration: columnas
+  `fase` (text) y `fecha_numero` (int) en partidos_detalle. 21 unit tests
+  (vitest) para los 6 algoritmos + dispatcher. Botón "Generar fixture" en
+  detalle torneo header. vitest instalado, script test:unit agregado.
+  Tag v0.22.0. 80 E2E (75 pass, 1 skip, 3 flaky pre-existing, 1 skip cascade).
 
 ---
 

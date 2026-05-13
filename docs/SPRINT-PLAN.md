@@ -5,7 +5,7 @@
 >
 > Mantenido por el arquitecto.
 >
-> Ultima actualizacion: 12 de mayo de 2026.
+> Ultima actualizacion: 13 de mayo de 2026.
 
 ---
 
@@ -93,15 +93,24 @@ FASE 4 completada al 100% el 2026-05-13.
 
 ---
 
+## FASE 5 — Competencias (en curso)
+
+| Sprint | Tema | Tag | Tests E2E | Estado |
+|---|---|---|---|---|
+| 5.1 | Modelo torneos + creador interno: 3 tablas, 6 formatos, wizard 3 pasos, detalle 3 tabs | `v0.20.0` | 73/1/0 | Cerrado |
+| 5.2 | Inscripciones externas + CSV import: equipos_competencias torneo_id FK, papaparse, validación por fila | `v0.21.0` | 76/1/0 | Cerrado |
+| 5.3 | Fixture auto-generador: 6 algoritmos TS puros, preview + confirm, migration fase+fecha_numero, 21 unit tests (vitest) | `v0.22.0` | 80/1/3 flaky | Cerrado |
+
+---
+
 ## Sprint actual
 
-Sprint FASE 5.2 cerrado. Próximo: FASE 5.3 (Fixture auto-generador).
+Sprint FASE 5.3 cerrado. Próximo: FASE 5.4 (Tabla de posiciones).
 
 ---
 
 ## Proximos en cola
 
-- FASE 5.3: Fixture auto-generador
 - FASE 5.4: Tabla de posiciones
 - FASE 5.5: Resultados detallados
 - FASE 5.6: Stats por jugador y equipo
