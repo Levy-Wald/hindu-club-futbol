@@ -54,16 +54,19 @@ test.describe('Reservas', () => {
     const supabase = serviceRole()
 
     // Fixture: sede + cancha con precio
-    const { data: sede } = await supabase
+    const sedeSlug = `e2e-reservas-${Date.now()}`
+    const { data: sede, error: errSede } = await supabase
       .from('sedes')
       .insert({
         tenant_id: TENANT,
+        slug: sedeSlug,
         nombre: 'Sede E2E Reservas',
         direccion: { calle: 'Test', numero: '123' },
         activa: true,
       })
       .select('id')
       .single()
+    if (errSede) throw new Error(`Sede insert failed: ${errSede.message}`)
     sedeId = sede!.id
 
     const { data: cancha } = await supabase
