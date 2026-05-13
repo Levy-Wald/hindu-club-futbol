@@ -21,6 +21,9 @@
     "/admin/competencias/torneos/[id]/fixture",
     "/admin/competencias/torneos/[id]/posiciones",
     "/admin/competencias/partidos/[id]/resultado",
+    "/admin/competencias/stats/jugadores",
+    "/admin/competencias/stats/jugadores/[persona_id]",
+    "/admin/competencias/stats/equipos",
     "/admin/competencias/inscripciones"
   ],
   "public_routes": [],

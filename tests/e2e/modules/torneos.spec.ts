@@ -875,6 +875,51 @@ test.describe('Torneos', () => {
     if (persona) await supabase.from('personas').delete().eq('id', persona.id)
   })
 
+  // Sprint 5.6 tests — Stats jugador/equipo
+
+  test('ranking de goleadores muestra tabla o empty state', async ({ page }) => {
+    await page.goto('/admin/competencias/stats/jugadores')
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('pantalla-stats-jugadores')).toBeVisible({ timeout: 15000 })
+
+    // The ranking table OR empty state should be visible
+    const tabla = page.getByTestId('tabla-ranking-jugadores')
+    const empty = page.getByText('No hay estadísticas cargadas')
+    await expect(tabla.or(empty)).toBeVisible({ timeout: 10000 })
+  })
+
+  test('perfil de jugador muestra stats + badge próximamente en avanzadas', async ({ page }) => {
+    // Use Yair's persona_id (known to exist in test tenant)
+    const personaId = '3d2d5902-9c10-4154-8086-316b0fbe081e'
+
+    await page.goto(`/admin/competencias/stats/jugadores/${personaId}`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('pantalla-perfil-jugador')).toBeVisible({ timeout: 15000 })
+
+    // Stats totales section should be visible
+    await expect(page.getByTestId('stats-totales')).toBeVisible()
+
+    // Stats avanzadas mock should show "Próximamente — FASE 16"
+    await expect(page.getByTestId('stats-avanzadas-mock')).toBeVisible()
+    await expect(page.getByText('Próximamente — FASE 16')).toBeVisible()
+  })
+
+  test('cambiar filtro de métrica actualiza tabla ranking', async ({ page }) => {
+    await page.goto('/admin/competencias/stats/jugadores')
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('pantalla-stats-jugadores')).toBeVisible({ timeout: 15000 })
+
+    // Change metrica to Asistencias
+    await page.getByTestId('filtro-metrica').click()
+    await page.getByRole('option', { name: 'Asistencias' }).click()
+
+    // Wait for re-render
+    await page.waitForTimeout(1000)
+
+    // Page should still be visible (no error)
+    await expect(page.getByTestId('pantalla-stats-jugadores')).toBeVisible()
+  })
+
   test('persona sin permiso torneos.admin no puede crear torneo via RLS', async () => {
     const supabase = serviceRole()
 

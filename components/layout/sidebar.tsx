@@ -123,6 +123,7 @@ const operacionesSubItems: NavItemDef[] = [
 const competenciasSubItems: NavItemDef[] = [
   { label: 'Torneos', href: '/admin/competencias/torneos', icon: Trophy },
   { label: 'Inscripciones', href: '/admin/competencias/inscripciones', icon: ClipboardCheck },
+  { label: 'Estadísticas', href: '/admin/competencias/stats/jugadores', icon: BarChart3 },
 ]
 
 const planificadoresSubItems: NavItemDef[] = [
