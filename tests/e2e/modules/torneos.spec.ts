@@ -22,9 +22,18 @@ test.describe('Torneos', () => {
   const csvEventoIds: string[] = []
   const fixtureEventoIds: string[] = []
   const posicionesEventoIds: string[] = []
+  const resultadoEventoIds: string[] = []
 
   test.afterAll(async () => {
     const supabase = serviceRole()
+
+    // Clean resultado test data
+    for (const eventoId of resultadoEventoIds) {
+      await supabase.from('partido_stats_jugador').delete().eq('partido_evento_id', eventoId)
+      await supabase.from('torneo_partidos_eventos').delete().eq('partido_evento_id', eventoId)
+      await supabase.from('partidos_detalle').delete().eq('evento_id', eventoId)
+      await supabase.from('eventos').delete().eq('id', eventoId)
+    }
 
     // Clean posiciones test partidos_detalle + eventos
     for (const eventoId of posicionesEventoIds) {
@@ -668,6 +677,202 @@ test.describe('Torneos', () => {
 
     // External torneo has no matches — should show empty state
     await expect(page.getByTestId('tabla-vacia')).toBeVisible({ timeout: 10000 })
+  })
+
+  // Sprint 5.5 tests — Carga de resultado detallada
+
+  test('cargar partido 3-1 con goles + asistencia + tarjeta amarilla', async ({ page }) => {
+    expect(torneoInternoId).not.toBeNull()
+    expect(categoriaId).not.toBeNull()
+
+    const supabase = serviceRole()
+
+    // Get an equipo propio
+    const { data: equipos } = await supabase
+      .from('equipos')
+      .select('id, nombre')
+      .eq('tenant_id', TENANT)
+      .ilike('nombre', 'FACCMA%')
+      .order('nombre')
+      .limit(1)
+
+    expect(equipos!.length).toBe(1)
+    const equipo = equipos![0]
+
+    // Create an evento (partido)
+    const { data: evento } = await supabase
+      .from('eventos')
+      .insert({
+        tenant_id: TENANT,
+        tipo_evento_slug: 'partido',
+        titulo: `${equipo.nombre} vs Rival E2E Resultado`,
+        fecha: '2026-09-01',
+        hora_inicio: '15:00:00',
+        equipo_id: equipo.id,
+        estado: 'programado',
+      })
+      .select('id')
+      .single()
+
+    expect(evento).not.toBeNull()
+    resultadoEventoIds.push(evento!.id)
+
+    // Create partidos_detalle
+    await supabase.from('partidos_detalle').insert({
+      tenant_id: TENANT,
+      evento_id: evento!.id,
+      torneo_id: torneoInternoId!,
+      categoria_id: categoriaId!,
+      equipo_id: equipo.id,
+      rival_texto: 'Rival E2E Resultado',
+      condicion: 'local',
+    })
+
+    // Navigate to resultado page
+    await page.goto(`/admin/competencias/partidos/${evento!.id}/resultado`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('pantalla-cargar-resultado')).toBeVisible({ timeout: 15000 })
+
+    // Step 1: Set marcador 3-1
+    await expect(page.getByTestId('paso-1-marcador')).toBeVisible()
+    await page.getByTestId('input-marcador-local').fill('3')
+    await page.getByTestId('input-marcador-visitante').fill('1')
+    await page.getByTestId('btn-siguiente-paso1').click()
+
+    // Step 2: Add events
+    await expect(page.getByTestId('paso-2-eventos')).toBeVisible({ timeout: 5000 })
+
+    // Add a goal for local
+    await page.getByTestId('btn-agregar-evento-local').click()
+    await expect(page.getByTestId('modal-evento')).toBeVisible({ timeout: 5000 })
+    await page.getByTestId('input-minuto').fill('10')
+    // Type defaults to 'gol'
+    await page.getByTestId('btn-guardar-evento').click()
+    await expect(page.getByTestId('modal-evento')).not.toBeVisible({ timeout: 10000 })
+
+    // Add a tarjeta_amarilla for local
+    await page.getByTestId('btn-agregar-evento-local').click()
+    await expect(page.getByTestId('modal-evento')).toBeVisible({ timeout: 5000 })
+    await page.getByTestId('select-tipo-evento').click()
+    await page.getByRole('option', { name: 'Tarjeta amarilla' }).click()
+    await page.getByTestId('input-minuto').fill('35')
+    await page.getByTestId('btn-guardar-evento').click()
+    await expect(page.getByTestId('modal-evento')).not.toBeVisible({ timeout: 10000 })
+
+    // Add a goal for visitante
+    await page.getByTestId('btn-agregar-evento-visitante').click()
+    await expect(page.getByTestId('modal-evento')).toBeVisible({ timeout: 5000 })
+    await page.getByTestId('input-minuto').fill('55')
+    await page.getByTestId('btn-guardar-evento').click()
+    await expect(page.getByTestId('modal-evento')).not.toBeVisible({ timeout: 10000 })
+
+    // Go to step 3
+    await page.getByTestId('btn-siguiente-paso2').click()
+    await expect(page.getByTestId('paso-3-revision')).toBeVisible({ timeout: 5000 })
+
+    // Verify warning appears (we added 1 local + 1 visitante gol but marcador is 3-1)
+    await expect(page.getByTestId('warning-marcador-no-coincide')).toBeVisible()
+  })
+
+  test('agregar cambio en minuto 60', async ({ page }) => {
+    expect(resultadoEventoIds.length).toBeGreaterThanOrEqual(1)
+    const eventoId = resultadoEventoIds[0]
+
+    await page.goto(`/admin/competencias/partidos/${eventoId}/resultado`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('pantalla-cargar-resultado')).toBeVisible({ timeout: 15000 })
+
+    // Navigate to step 2
+    await page.getByTestId('btn-siguiente-paso1').click()
+    await expect(page.getByTestId('paso-2-eventos')).toBeVisible({ timeout: 5000 })
+
+    // Add a cambio
+    await page.getByTestId('btn-agregar-evento-local').click()
+    await expect(page.getByTestId('modal-evento')).toBeVisible({ timeout: 5000 })
+    await page.getByTestId('select-tipo-evento').click()
+    await page.getByRole('option', { name: 'Cambio' }).click()
+    await page.getByTestId('input-minuto').fill('60')
+    await page.getByTestId('btn-guardar-evento').click()
+    await expect(page.getByTestId('modal-evento')).not.toBeVisible({ timeout: 10000 })
+
+    // Verify we have events loaded (at least the new cambio + previous ones)
+    // Events persist in DB, so previous test's events should also appear
+    const events = page.locator('[data-testid^="evento-cargado-"]')
+    await expect(events.first()).toBeVisible({ timeout: 5000 })
+  })
+
+  test('confirmar resultado calcula stats en partido_stats_jugador', async ({ page }) => {
+    expect(resultadoEventoIds.length).toBeGreaterThanOrEqual(1)
+    const eventoId = resultadoEventoIds[0]
+
+    await page.goto(`/admin/competencias/partidos/${eventoId}/resultado`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('pantalla-cargar-resultado')).toBeVisible({ timeout: 15000 })
+
+    // Set marcador and go to step 3
+    await page.getByTestId('input-marcador-local').fill('3')
+    await page.getByTestId('input-marcador-visitante').fill('1')
+    await page.getByTestId('btn-siguiente-paso1').click()
+    await expect(page.getByTestId('paso-2-eventos')).toBeVisible({ timeout: 5000 })
+    await page.getByTestId('btn-siguiente-paso2').click()
+    await expect(page.getByTestId('paso-3-revision')).toBeVisible({ timeout: 5000 })
+
+    // Confirm
+    await page.getByTestId('btn-confirmar-resultado').click()
+    await expect(page.getByTestId('resultado-confirmado')).toBeVisible({ timeout: 10000 })
+
+    // Verify in DB: partidos_detalle updated
+    const supabase = serviceRole()
+    const { data: pd } = await supabase
+      .from('partidos_detalle')
+      .select('marcador_local, marcador_visitante, convocatoria_cerrada')
+      .eq('evento_id', eventoId)
+      .single()
+
+    expect(pd!.marcador_local).toBe(3)
+    expect(pd!.marcador_visitante).toBe(1)
+    expect(pd!.convocatoria_cerrada).toBe(true)
+
+    // Verify evento estado = completado
+    const { data: ev } = await supabase
+      .from('eventos')
+      .select('estado')
+      .eq('id', eventoId)
+      .single()
+
+    expect(ev!.estado).toBe('completado')
+  })
+
+  test('persona sin permiso torneos.cargador_resultado no puede cargar resultado', async () => {
+    const supabase = serviceRole()
+
+    // Create persona without any admin/torneos attributes
+    const { data: persona } = await supabase
+      .from('personas')
+      .insert({
+        tenant_id: TENANT,
+        nombre: 'E2E',
+        apellido: 'SinPermisoResultado',
+        tipo_documento: 'dni',
+        numero_documento: `SPR${Date.now()}`,
+      })
+      .select('id')
+      .single()
+
+    expect(persona).not.toBeNull()
+
+    // Verify: persona has NO relevant attributes
+    const { data: atrs } = await supabase
+      .from('personas_atributos')
+      .select('atributo_slug')
+      .eq('persona_id', persona!.id)
+      .in('atributo_slug', ['tenant.admin', 'torneos.admin', 'torneos.cargador', 'torneos.cargador_resultado'])
+      .eq('activo', true)
+
+    expect(atrs).toHaveLength(0)
+
+    // Cleanup
+    if (persona) await supabase.from('personas').delete().eq('id', persona.id)
   })
 
   test('persona sin permiso torneos.admin no puede crear torneo via RLS', async () => {

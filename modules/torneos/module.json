@@ -9,9 +9,9 @@
   "depends_on_troncal": ["personas"],
   "depends_on_modules": ["asistencias"],
   "soft_depends_on_modules": [],
-  "owns_tables": ["torneos", "torneo_categorias", "torneo_equipos"],
+  "owns_tables": ["torneos", "torneo_categorias", "torneo_equipos", "torneo_partidos_eventos", "partido_stats_jugador"],
   "owns_catalogs": [],
-  "permissions_required": ["tenant.admin", "torneos.admin", "torneos.cargador", "torneos.inscriptor"],
+  "permissions_required": ["tenant.admin", "torneos.admin", "torneos.cargador", "torneos.cargador_resultado", "torneos.inscriptor"],
   "events_emits": [],
   "events_consumes": [],
   "ui_routes": [
@@ -20,6 +20,7 @@
     "/admin/competencias/torneos/[id]/import",
     "/admin/competencias/torneos/[id]/fixture",
     "/admin/competencias/torneos/[id]/posiciones",
+    "/admin/competencias/partidos/[id]/resultado",
     "/admin/competencias/inscripciones"
   ],
   "public_routes": [],

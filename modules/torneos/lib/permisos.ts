@@ -26,7 +26,7 @@ export async function canCargarResultados(
     .from('personas_atributos')
     .select('atributo_slug')
     .eq('persona_id', persona_id)
-    .in('atributo_slug', ['tenant.admin', 'torneos.admin', 'torneos.cargador'])
+    .in('atributo_slug', ['tenant.admin', 'torneos.admin', 'torneos.cargador', 'torneos.cargador_resultado'])
     .eq('activo', true)
 
   return (atrs && atrs.length > 0) ?? false
