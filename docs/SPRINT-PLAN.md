@@ -1,130 +1,203 @@
-# ClubCore — Sprint Plan
+SPRINT-PLAN — Lista operativa de sprints  
+\=============================================
 
-> Historial de sprints completados + sprint actual + proximos en cola.
-> Para el roadmap completo por fases, ver `ROADMAP.md`.
->
-> Mantenido por el arquitecto.
->
-> Ultima actualizacion: 13 de mayo de 2026.
+Versión: 2.0 (re-escrito post RFC-004)  
+Fecha: 13 de mayo de 2026  
+Status: Accepted  
+Path esperado en repo: docs/SPRINT-PLAN.md  
+Referencias: ROADMAP-MASTER, RFC-004, MODULE-CATALOG
 
----
+PROPÓSITO  
+\=========
 
-## FASE 1 — Cierre (2026-05-11)
+Lista operativa de todos los sprints del proyecto, con su estado, dependencias, tag esperado, costo y tema.
 
-| Sprint | Tema | Commit SHA | Deploy | Estado |
-|---|---|---|---|---|
-| 14d | Cleanup + docs base | b2a8337 | OK | Cerrado |
-| 14d.5 | Design Tokens | 8eZHmU6 | OK | Cerrado |
-| 14e | Suscripciones | 73beeb5 | OK | Cerrado |
-| 14f | Emision cuotas | 73beeb5 | OK | Cerrado |
-| 14g | Cobranza manual | 73beeb5 | OK | Cerrado |
-| 14h | Centros de costo | f82a405 | OK | Cerrado |
-| 14i | Vista global salud | 3a6f06d | OK | Cerrado |
-| 14j | Utileria del club | 95c879e | OK | Cerrado |
-| 14k.5 | Cuerpo tecnico + refactor permisos | df28d28 | OK | Cerrado |
-| 14k | Notificaciones in-app | 10af608 | OK | Cerrado |
-| 14j.2 | Concesiones genericas | 10af608 | OK | Cerrado |
-| 14k.6 | Limpieza arquitectonica pre-FASE 2 | — | OK | Cerrado |
-| 14k.7 | Hotfixes FASE 1 + UI completion | — | OK | Cerrado |
-| 14k.8 | Estabilizacion | — | OK | Cerrado |
-| 14k.9 | Cierre real FASE 1 | — | OK | Cerrado |
+Sirve como tablero único para saber qué sprint corre ahora, qué viene después, qué está cerrado y dónde está la deuda.
 
-Tag: `v0.1.0-fase1-cierre`
+CONVENCIONES  
+\=============
 
----
+ESTADO:  
+\- ✅ DONE: cerrado, en producción  
+\- 🔄 IN PROGRESS: en ejecución actual  
+\- ⏳ NEXT: próximo a arrancar  
+\- 📋 PLANNED: planificado, documentado  
+\- 🚧 BLOCKED: bloqueado por dependencia  
+\- 🗑️ CANCELLED: descartado o absorbido por otro sprint
 
-## Foundation (2026-05-11)
+COSTO: estimación en horas Code (rango)
 
-| Sprint | Tema | Tag | Tests E2E | Estado |
-|---|---|---|---|---|
-| 15a | Foundation Declarativa: ADRs 031-033, 18 manifiestos, catalogo modulos extendido, ESLint rules, schema audit | `v0.2.0-foundation-declared` | — | Cerrado |
-| 15b | Migracion fisica de modulos: 18 modulos a `modules/` con estructura canonica | `v0.3.0-modules-physical` | — | Cerrado |
-| 15c | E2E Tests Verdes: Playwright config, usuario E2E, 16 pass + 1 skip | `v0.3.1-e2e-greenlit` | 16 pass, 1 skip | Cerrado |
+TAG: tag de Git aplicado al cierre del sprint
 
----
+HISTORIAL — FASES 1 A 5 (DEL MODELO ANTERIOR)  
+\===============================================
 
-## FASE 2 — Comunicacion (completada 2026-05-12)
+Cerradas en producción. Reubicadas en la nueva taxonomía (RFC-004) según corresponda.
 
-| Sprint | Tema | Tag | Tests E2E | Estado |
-|---|---|---|---|---|
-| 2.1 | Motor de comunicacion core (mock-first): adapter pattern, MockAdapter, renderTemplate, enviarComunicacion, page con 2 tabs | `v0.4.0` | 16/1/0 | Cerrado |
-| 2.2 | Editor CRUD de plantillas: editor con preview, auto-deteccion variables, permisos por atributo, proteccion sistema | `v0.5.0` | 23/1/0 | Cerrado |
-| 2.3 | Envios masivos con segmentacion MVP: wizard, segmentos, preview, bulk insert, lotes, historial, detalle lote | `v0.6.0` | 26/1/0 | Cerrado |
-| 2.4 | Cron vencimientos + recordatorios: 3 triggers, service role, dedup 7d nativo, com_jobs_log, tab Automatizaciones | `v0.7.0` | 30/1/0 | Cerrado |
-| 2.4-FIX | Correccion semantica + E2E real con fixture: dot-notation permisos, origen_modulo_slug limpio | `v0.7.1` | 31/1/0 | Cerrado |
-| 2.5 | Preferencias de comunicacion por persona: categoria_contenido, RPC filtro, UI en ficha persona | `v0.8.0` | 33/1/0 | Cerrado |
+| Sprint | Tema                                            | Estado | Tag                          | Capa actual          |  
+| \------ | \----------------------------------------------- | \------ | \---------------------------- | \-------------------- |  
+| 1.x    | Init \+ personas \+ tenants                       | ✅      | varios                       | Troncal              |  
+| 2.x    | Comunicaciones \+ plantillas                     | ✅      | varios                       | Troncal              |  
+| 3.x    | Asistencias \+ pre-inscripciones                 | ✅      | varios                       | Cross-vertical       |  
+| 3.4    | Visitantes externos (RFC-001)                   | ✅      | varios                       | Cross-vertical       |  
+| 4.x    | Planificadores \+ entrenamientos \+ táctica       | ✅      | varios                       | Vertical CCBP        |  
+| 4.5    | Acceso físico                                   | ✅      | varios                       | Cross-vertical       |  
+| 4.6    | Reservas                                        | ✅      | varios                       | Cross-vertical       |  
+| 5.1-5.6| Competencias y torneos (RFC-002)                | ✅      | v0.25.0-fase5-sprint6        | Vertical CCBP        |
 
-FASE 2 completada al 100% el 2026-05-12.
+Para detalles: ver historial git \+ cierres ejecutivos en Drive (carpeta ClubCore antigua).
 
----
+FASE A — CERRAR TRONCAL MÍNIMO  
+\================================
 
-## FASE 3 — Operacion deportiva (completada 2026-05-12)
+| ID    | Tema                                            | Estado    | Tag esperado                  | Costo  | Depende de  |  
+| \----- | \----------------------------------------------- | \--------- | \----------------------------- | \------ | \----------- |  
+| A1    | Fix Base Operativa \+ Espacios                   | ⏳ NEXT    | v0.27.0-fase-a-sprint-1       | 12-15h | FASE 5      |  
+| A2    | PIM Nivel 1                                     | 📋 PLANNED | v0.27.0-fase-a-sprint-2       | 7-8h   | A1          |  
+| A3    | Finanzas completa (resolver dup \+ 404s)         | 📋 PLANNED | v0.27.0-fase-a-sprint-3       | 8-10h  | A1          |  
+| A4    | CRM avanzado (padrones \+ importadores)          | 📋 PLANNED | v0.27.0-fase-a-sprint-4       | 10h    | A1          |  
+| A5    | Comunicaciones cierre (fix 404 \+ automatiz.)    | 📋 PLANNED | v0.27.0-fase-a-sprint-5       | 5h     | \-           |  
+| A6    | Proyectos & Tareas (nuevo módulo troncal)       | 📋 PLANNED | v0.27.0-fase-a-sprint-6       | 12-15h | A1, A4      |
 
-| Sprint | Tema | Tag | Tests E2E | Estado |
-|---|---|---|---|---|
-| 3.1 | Control de asistencias operativo (mobile): evento_invitados, auto-poblado lazy, 6 estados, React Query optimistic, permisos CT/admin | `v0.9.0` | 35/1/0 | Cerrado |
-| 3.2 | Asistencia extendida a entidades y equipos: modelo polimórfico evento_asistencias, marca_asistencia, expandir equipo, 6 actions, 4 UI components | `v0.10.0` | 38/1/0 | Cerrado |
-| 3.3 | Módulo acceso MVP: pantalla guardia mobile-first, veredicto verde/amarillo/rojo, RPC verificar_acceso_persona, acceso_logs audit trail, marcar presente desde acceso, 5 UI components | `v0.11.0` | 41/1/0 | Cerrado |
-| 3.4 | Nóminas externas (RFC-001): sistema visitantes externos, form público sin auth, matching fuzzy, niveles L0/L1, padrón temporal, rate limiting, token criptográfico, admin confirmar/rechazar | `v0.12.0` | 44/1/0 | Cerrado |
-| 3.5 | Integración acceso ↔ padrón temporal: RPC verificar_acceso_persona con visitante_temporal, CardVeredicto contexto visitante, 3 E2E tests | `v0.13.0` | 47/1/0 | Cerrado |
+Total FASE A: \~55-62h Code.
 
-FASE 3 completada al 100% el 2026-05-12.
+Cierre de FASE A: tag v0.27.0-fase-a-completa \+ ARCHITECTURE.md revisado.
 
----
+FASE B — CERRAR VERTICAL CCBP  
+\================================
 
-## Documentacion (2026-05-12)
+| ID    | Tema                                            | Estado    | Tag esperado                  | Costo  | Depende de  | RFC      |  
+| \----- | \----------------------------------------------- | \--------- | \----------------------------- | \------ | \----------- | \-------- |  
+| B1    | Salud / Lesiones operativas                     | 📋 PLANNED | v0.28.0-fase-b-sprint-1       | 5h     | FASE A      | RFC-003  |  
+| B2    | Historial / Trayectoria deportiva               | 📋 PLANNED | v0.28.0-fase-b-sprint-2       | 4h     | B1          | RFC-003  |  
+| B3    | Scouting \+ 11 dimensiones                       | 📋 PLANNED | v0.28.0-fase-b-sprint-3       | 8h     | B1, B2      | RFC-003  |  
+| B4    | Reportes deportivos                             | 📋 PLANNED | v0.28.0-fase-b-sprint-4       | 6h     | B3          | RFC-003  |  
+| B5    | Activar Socios (suscripciones\_membresia)        | 📋 PLANNED | v0.29.0-fase-b-sprint-5       | 5h     | A6          | \-        |  
+| B6    | Cuerpo Técnico \+ Diagramación visual            | 📋 PLANNED | v0.30.0-fase-b-sprint-6       | 6h     | A1, B5      | \-        |
 
-| Sprint | Tema | Tag | Tests E2E | Estado |
-|---|---|---|---|---|
-| DOCS-7+UX-FIX | RFC-001 en repo, pre-mortem 3.4, modelo operativo canonizado, AP-003 a AP-006, sidebar con Acceso y Nóminas externas | `v0.13.1` | 49/1/0 | Cerrado |
+Total FASE B: \~30h Code.
 
-## FASE 4 — Planificadores (completada 2026-05-13)
+Nota: Sprint B1 ya tiene prompt detallado armado (originalmente FASE 6.1).
 
-| Sprint | Tema | Tag | Tests E2E | Estado |
-|---|---|---|---|---|
-| 4.1 | Planificador mensual con drag-and-drop: react-big-calendar, mover eventos, modal recurrentes, overlap warning, sidebar | `v0.14.0` | 53/1/0 | Cerrado |
-| 4.2 | Planificador semanal con grilla + resize: grilla 6AM-11PM, drag move + resize, toggle Mes/Semana, sidebar Semanal | `v0.15.0` | 56/1/0 | Cerrado |
-| 4.3 | Organizador de entrenamientos: módulo entrenamientos, 3 tablas, 20 ejercicios globales, plan 1:1 evento, bloques DnD, permisos CT | `v0.16.0` | 60/1/0 | Cerrado |
-| 4.4 | Organizador de amistosos: logística en metadata jsonb, integración nominas_externas, slug 'amistoso', sin tablas nuevas | `v0.17.0` | 63/1/0 | Cerrado |
-| 4.5 | Organizador táctico: SVG cancha visual, 5 formaciones, click-to-assign, panel plantel, reusa esquemas_tacticos, sin tablas nuevas | `v0.18.0` | 66/1/0 | Cerrado |
-| 4.6 | Reservas de canchas: 1 tabla nueva, tarifa calculada, 5 estados, cliente polimórfico, pantalla /admin/reservas, sidebar | `v0.19.0` | 69/1/0 | Cerrado |
+Cierre de FASE B: tag v0.30.0-fase-b-completa \+ ARCHITECTURE revisado.
 
-FASE 4 completada al 100% el 2026-05-13.
+FASE C — DEMO A HINDU  
+\========================
 
----
+| ID    | Tema                                            | Estado    | Duración   |  
+| \----- | \----------------------------------------------- | \--------- | \---------- |  
+| C1    | Reset DB de Hindu                               | 📋 PLANNED | 1 día      |  
+| C2    | Carga inicial vía importadores (por Yair)       | 📋 PLANNED | 2-3 días   |  
+| C3    | Operación real del staff de Hindu               | 📋 PLANNED | 5-7 días   |  
+| C4    | Recopilación de feedback \+ priorización         | 📋 PLANNED | 1-2 días   |  
+| C5    | Decisión binaria: aprobado o requiere B'        | 📋 PLANNED | 1 día      |
 
-## FASE 5 — Competencias (en curso)
+Total FASE C: \~10-14 días calendarios (no horas Code, es validación).
 
-| Sprint | Tema | Tag | Tests E2E | Estado |
-|---|---|---|---|---|
-| 5.1 | Modelo torneos + creador interno: 3 tablas, 6 formatos, wizard 3 pasos, detalle 3 tabs | `v0.20.0` | 73/1/0 | Cerrado |
-| 5.2 | Inscripciones externas + CSV import: equipos_competencias torneo_id FK, papaparse, validación por fila | `v0.21.0` | 76/1/0 | Cerrado |
-| 5.3 | Fixture auto-generador: 6 algoritmos TS puros, preview + confirm, migration fase+fecha_numero, 21 unit tests (vitest) | `v0.22.0` | 80/1/3 flaky | Cerrado |
-| 5.4 | Tabla de posiciones: SQL function calcular_tabla_posiciones, server action, UI con selector categoría + highlight equipo propio, fix flaky E2E | `v0.23.0` | 83/1/4 flaky | Cerrado |
-| 5.5 | Carga resultado detallada: 2 tablas (torneo_partidos_eventos + partido_stats_jugador), wizard 3 pasos, stats idempotentes, atributo cargador_resultado | `v0.24.0` | 87/1/3 flaky | Cerrado |
-| 5.6 | Stats jugador/equipo: 3 dashboards (ranking, perfil, equipos), stats avanzadas mock, sidebar Estadísticas | `v0.25.0` | 90/1/3 flaky | Cerrado |
+Cierre de FASE C: documento de validación \+ decisión escrita.
 
-FASE 5 completada al 100% el 2026-05-13.
+FASE D — CROSS-VERTICAL EXTRA  
+\================================
 
----
+| ID    | Tema                                            | Estado    | Tag esperado                  | Costo  | Depende de  |  
+| \----- | \----------------------------------------------- | \--------- | \----------------------------- | \------ | \----------- |  
+| D1    | Documentos / Firma digital                      | 📋 PLANNED | v0.31.0-fase-d-sprint-1       | 8h     | FASE C      |  
+| D2    | Tickets / Solicitudes universalizado            | 📋 PLANNED | v0.32.0-fase-d-sprint-2       | 6h     | D1          |  
+| D3    | Pricing avanzado (PIM Nivel 2\)                  | 📋 PLANNED | v0.33.0-fase-d-sprint-3       | 6h     | A2          |  
+| D4    | Stock & Movimientos (PIM Nivel 3\)               | 📋 PLANNED | v0.34.0-fase-d-sprint-4       | 10h    | A2, D3      |  
+| D5    | Consolidación de tablas paralelas               | 📋 PLANNED | v0.35.0-fase-d-sprint-5       | 8-10h  | D4          |  
+| D6    | Espacios físicos (mapa visual generalizado)     | 📋 PLANNED | v0.36.0-fase-d-sprint-6       | 8h     | B6, A1      |
 
-## Sprint actual
+Total FASE D: \~46-48h Code.
 
-FASE 5 cerrada. Próximo: FASE 6 (por definir).
+Cierre de FASE D: tag v0.40.0-fase-d-completa.
 
----
+FASE E — ABRIR OTROS VERTICALES  
+\=================================
 
-## Proximos en cola
+VERTICAL E1 — Estudios de Arquitectura
 
-- FASE 6: Operación deportiva extendida (por definir)
+| ID    | Tema                                            | Estado    | Tag esperado                  | Costo  |  
+| \----- | \----------------------------------------------- | \--------- | \----------------------------- | \------ |  
+| E1.1  | Mini-troncal proyectos\_obra \+ etapas            | 📋 PLANNED | v0.41.0-fase-e1-sprint-1      | 8h     |  
+| E1.2  | Cronograma de obra \+ avances con fotos          | 📋 PLANNED | v0.42.0-fase-e1-sprint-2      | 6h     |  
+| E1.3  | Subcontratistas \+ planos                        | 📋 PLANNED | v0.43.0-fase-e1-sprint-3      | 6h     |  
+| E1.4  | Pedidos de materiales                           | 📋 PLANNED | v0.44.0-fase-e1-sprint-4      | 5h     |
 
----
+Cierre vertical E1: tag v0.45.0-fase-e1-completa. Costo \~25h.
 
-## Reglas
+VERTICAL E2 — Estudios de Abogacía
 
-- Toda solicitud sigue `PROMPT-ENVELOPE.md`.
-- Toda implementacion respeta `ARCHITECTURE.md`.
-- Capa explicita declarada al inicio de cada sprint.
-- `CURRENT-STATE.md` actualizado al cerrar.
-- Sprints de alto riesgo requieren pre-mortem (R-PE9).
-- Code NO modifica este doc. Solo lo consulta.
+| ID    | Tema                                            | Estado    | Tag esperado                  | Costo  |  
+| \----- | \----------------------------------------------- | \--------- | \----------------------------- | \------ |  
+| E2.1  | Mini-troncal casos / expedientes                | 📋 PLANNED | v0.46.0-fase-e2-sprint-1      | 6h     |  
+| E2.2  | Audiencias \+ plazos procesales                  | 📋 PLANNED | v0.47.0-fase-e2-sprint-2      | 6h     |  
+| E2.3  | Honorarios / cuota litis                        | 📋 PLANNED | v0.48.0-fase-e2-sprint-3      | 5h     |  
+| E2.4  | Documentación procesal \+ poderes                | 📋 PLANNED | v0.49.0-fase-e2-sprint-4      | 6h     |
+
+Cierre vertical E2: tag v0.50.0-fase-e2-completa. Costo \~23h.
+
+VERTICAL E3 — Agencias de Publicidad
+
+| ID    | Tema                                            | Estado    | Tag esperado                  | Costo  |  
+| \----- | \----------------------------------------------- | \--------- | \----------------------------- | \------ |  
+| E3.1  | Mini-troncal cuentas / campañas                 | 📋 PLANNED | v0.51.0-fase-e3-sprint-1      | 6h     |  
+| E3.2  | Briefings                                       | 📋 PLANNED | v0.52.0-fase-e3-sprint-2      | 5h     |  
+| E3.3  | Calendarios editoriales                         | 📋 PLANNED | v0.53.0-fase-e3-sprint-3      | 5h     |  
+| E3.4  | Reportes de performance                         | 📋 PLANNED | v0.54.0-fase-e3-sprint-4      | 5h     |
+
+Cierre vertical E3: tag v0.55.0-fase-e3-completa. Costo \~21h.
+
+VERTICAL E4 — Retailers PyME
+
+| ID    | Tema                                            | Estado    | Tag esperado                  | Costo  |  
+| \----- | \----------------------------------------------- | \--------- | \----------------------------- | \------ |  
+| E4.1  | Mini-troncal sucursales \+ empleados             | 📋 PLANNED | v0.56.0-fase-e4-sprint-1      | 6h     |  
+| E4.2  | Promociones \+ listas de precios                 | 📋 PLANNED | v0.57.0-fase-e4-sprint-2      | 8h     |  
+| E4.3  | Vidriera digital / catálogo público             | 📋 PLANNED | v0.58.0-fase-e4-sprint-3      | 6h     |  
+| E4.4  | eCommerce sync (Tiendanube/Shopify)             | 📋 PLANNED | v0.59.0-fase-e4-sprint-4      | 10h    |  
+| E4.5  | Programa de fidelidad                           | 📋 PLANNED | v0.60.0-fase-e4-sprint-5      | 5h     |
+
+Cierre vertical E4: tag v0.61.0-fase-e4-completa. Costo \~35h.
+
+RESUMEN DE COSTOS POR FASE  
+\============================
+
+| Fase   | Sprints | Costo Code estimado | Calendario aprox. |  
+| \------ | \------- | \------------------- | \----------------- |  
+| FASE A | 6       | 55-62h              | \-                 |  
+| FASE B | 6       | 30h                 | \-                 |  
+| FASE C | 5 (no técnicos) | 0h Code     | 10-14 días        |  
+| FASE D | 6       | 46-48h              | \-                 |  
+| FASE E | 17 (4 verticales) | 100-110h  | \-                 |  
+| TOTAL  | 35-40 sprints | 230-250h Code | \-                 |
+
+SPRINT EN CURSO  
+\=================
+
+Sprint actual: NINGUNO. Próximo a arrancar: A1 (Fix Base Operativa \+ Espacios).
+
+Bloqueantes para arrancar A1: ninguno. Solo armar el prompt SPRINT-A1-PROMPT.
+
+DEUDA REGISTRADA  
+\==================
+
+Cosas planificadas pero no urgentes ahora:
+
+| Deuda                                              | Sprint donde se resuelve |  
+| \-------------------------------------------------- | \------------------------ |  
+| Renombre físico modules/utileria → inventario      | D5                       |  
+| Renombre físico modules/concesiones → pos          | D5                       |  
+| Renombre físico modules/reservas → reservas\_espacios| D5                      |  
+| Consolidación cuotas\_\* vs fin\_cuotas\_\*             | A3                       |  
+| Consolidación 3 tablas paralelas de productos      | D5                       |  
+| Módulo huérfano: disciplinas                       | TBD                      |  
+| Módulo huérfano: proveedores (¿absorber en entidades?) | TBD                  |  
+| Módulo huérfano: talles (¿es necesario?)           | TBD                      |  
+| Nombre del producto raíz (no "ClubCore")           | post FASE C              |
+
+ÚLTIMA ACTUALIZACIÓN  
+\=====================
+
+13 de mayo de 2026\. Versión 2.0.  
+Próxima revisión: al cierre de cada sprint (Code actualiza Tag \+ Estado).  

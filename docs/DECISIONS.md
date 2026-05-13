@@ -2398,3 +2398,439 @@ manual del arquitecto en el system prompt de Code.
 - Code agrega ADRs técnicos al final del sprint (formato R-PE6 de
   PROMPT-ENVELOPE.md).
 - Arquitecto revisa ADRs de Code antes de cerrar sprint.
+ADRs 040 a 046 — Decisiones derivadas del RFC-004  
+\======================================================
+
+Fecha: 13 de mayo de 2026  
+Status: Accepted  
+Autor: Claude (con Yair Levy Wald)  
+Aplicación: docs/DECISIONS.md del repo, append al final del archivo  
+Referencia base: docs/rfcs/RFC-004-arquitectura-multi-vertical.md
+
+Este bundle contiene 7 ADRs nuevos que canonizan las decisiones derivadas del RFC-004. Se aplican como append al final del DECISIONS.md existente, manteniendo los ADR-001 a ADR-039 vigentes.
+
+───────────────────────────────────────────────────────────────────  
+ADR-040 — Taxonomía de 4 capas para la plataforma multi-vertical  
+───────────────────────────────────────────────────────────────────
+
+Status: Accepted  
+Date: 2026-05-13  
+Supersedes: parcialmente ADR-002 (en la parte donde se asumía un único vertical)
+
+Context  
+\=======
+
+El sistema fue concebido como ClubCore v2, una solución vertical para Hindu Club Fútbol. Al avanzar hacia FASE 6 se identificó la oportunidad de servir múltiples verticales de PyMEs (CCBP, estudios de arquitectura, estudios de abogacía, agencias de publicidad, retailers PyME) con la misma base técnica. Falta una taxonomía clara que separe qué es plataforma universal, qué es reutilizable entre verticales, qué es específico de cada vertical y qué son integraciones externas.
+
+Decision  
+\========
+
+Se canoniza una taxonomía de 4 capas:
+
+Capa 0 — Troncal universal: lo que necesita cualquier negocio del mundo el día 1\. Es universal y no depende del vertical.
+
+Capa 1 — Módulos cross-vertical: capacidades reutilizables entre múltiples verticales. Se activan por tenant según necesidad.
+
+Capa 2 — Verticales: paquetes específicos por industria, cada uno con su mini-troncal y submódulos propios. Cada vertical consume módulos cross-vertical de Capa 1\.
+
+Capa 3 — Conectores: integraciones con sistemas externos, vendibles como add-ons individuales vía marketplace.
+
+Cada módulo del sistema debe declarar a qué capa pertenece. La tabla catalogo\_modulos incluye una columna capa (enum: troncal, cross\_vertical, vertical, integracion).
+
+Alternatives considered  
+\=======================
+
+Modelo de 3 capas (troncal \+ verticales \+ integraciones): se descartó porque no separa los módulos cross-vertical (Eventos, Comunicaciones, RRHH, etc.) que se usan en múltiples verticales pero no son universales. Llevarlos a "troncal" complicaría la oferta comercial; llevarlos a "vertical" forzaría duplicación.
+
+Modelo monolítico (todo es un único producto vertical): el modelo actual ClubCore. Se descartó porque limita la expansión comercial a un solo segmento de mercado.
+
+Consequences  
+\============
+
+Positivas:  
+\- Cada vertical nuevo se construye sobre el troncal \+ cross-vertical existentes sin reescribir lo común.  
+\- La oferta comercial puede ser modular: el cliente compra troncal y activa cross-vertical y vertical según necesite.  
+\- Los conectores se venden separados como marketplace, generando upsell continuo.
+
+Negativas:  
+\- Requiere reclasificar módulos hoy clasificados como "deportivos" (asistencias, reservas, acceso, etc.) a cross-vertical.  
+\- Necesita disciplina arquitectónica: cada PR debe declarar capa explícitamente para evitar acoplamientos cruzados.  
+\- Hay deuda técnica heredada (3 tablas paralelas de productos) que se difiere a FASE D.
+
+References  
+\==========
+
+\- RFC-004 — Arquitectura Multi-Vertical (decisión D1)  
+\- ADR-041 a ADR-046 (decisiones derivadas)
+
+───────────────────────────────────────────────────────────────────  
+ADR-041 — Troncal mínimo definido como 9 bloques universales  
+───────────────────────────────────────────────────────────────────
+
+Status: Accepted  
+Date: 2026-05-13
+
+Context  
+\=======
+
+Aplicada la taxonomía de 4 capas (ADR-040), queda pendiente definir qué bloques específicos componen el troncal universal (Capa 0). Sin definición precisa, el troncal puede crecer sin control y perder su carácter universal, o quedar incompleto y forzar dependencia inmediata de módulos cross-vertical para tareas básicas.
+
+Decision  
+\========
+
+El troncal universal contiene 9 bloques. Un bloque es troncal si lo necesita CUALQUIER negocio del mundo (PyME, unipersonal, agencia, club, retail) en su día 1\.
+
+Los 9 bloques son:
+
+1\. Configuración del negocio: tenants, sedes, módulos activos, plan de cuentas, períodos contables, centros de costo.  
+2\. CRM: personas, entidades, vínculos, atributos, segmentos, padrones, importadores.  
+3\. ERP Finanzas básico: productos/servicios, cajas, movimientos, comprobantes, plan de cuentas, medios de pago, cuentas corrientes.  
+4\. PIM Nivel 1: catálogo \+ variantes simples \+ categorías jerárquicas (ver ADR-042 para los niveles).  
+5\. Cobranza recurrente: cuotas, suscripciones, convenios de pago.  
+6\. Motor de Comunicaciones: plantillas, envíos, mensajes in-app obligatorio. Canales externos vía conectores.  
+7\. Eventos & Calendario: eventos genéricos, invitados, asistencias básicas.  
+8\. Proyectos & Tareas: mini-Trello con proyectos, tareas, comentarios, adjuntos.  
+9\. Auditoría & Seguridad: audit log, API keys, abuse blocks, sesiones.
+
+Alternatives considered  
+\=======================
+
+Troncal de 6 bloques (sin Cobranza, Comunicaciones, Eventos, Proyectos): se descartó porque cualquier negocio con clientes recurrentes (gimnasios, suscripciones SaaS, abogados con retainer) necesita cobranza desde día 1\. Llevarlo a Capa 1 forzaría compra adicional inmediata.
+
+Troncal de 12 bloques (incluyendo RRHH, Documentos/Firma, Tickets): se descartó porque RRHH no aplica a unipersonales, Documentos/Firma no aplica a kioscos, Tickets no aplica a negocios sin atención al cliente. Patrón uniforme de la industria (SAP, Oracle, NetSuite, Odoo, Zoho, Holded): estos son módulos opcionales, no core.
+
+Consequences  
+\============
+
+Positivas:  
+\- Un cliente unipersonal o microempresa arranca con troncal mínimo y puede operar de la noche a la mañana.  
+\- La oferta comercial inicial es clara: troncal completo en el precio base, módulos cross-vertical y verticales como add-ons.  
+\- Cualquier negocio del mundo encuentra los 9 bloques útiles, sin sobrecarga.
+
+Negativas:  
+\- El troncal mínimo no está 100% construido hoy (PIM Nivel 1 falta, Proyectos & Tareas falta).  
+\- FASE A está dedicada a completar estos 9 bloques antes de avanzar a verticales.
+
+References  
+\==========
+
+\- RFC-004 — Arquitectura Multi-Vertical (decisión D2)  
+\- ADR-040 (taxonomía de 4 capas)  
+\- ADR-042 (PIM en 3 niveles)
+
+───────────────────────────────────────────────────────────────────  
+ADR-042 — PIM implementado en 3 niveles (Nivel 1 troncal, Niveles 2-3 cross-vertical opcional)  
+───────────────────────────────────────────────────────────────────
+
+Status: Accepted  
+Date: 2026-05-13
+
+Context  
+\=======
+
+El bloque PIM (Product Information Management) del troncal universal cubre productos y servicios. En la práctica, los SaaS de gestión PyME se ahogan cuando intentan incluir listas de precios múltiples y stock con movimientos como funcionalidades core: la complejidad crece rápido (segmentación por canal, vigencias, monedas, stock por ubicación, lotes, reservas, transferencias) y el cliente unipersonal no las necesita.
+
+Se necesita una estrategia de capas que permita arrancar con lo mínimo y crecer hacia funcionalidad avanzada sin reescribir nada.
+
+Decision  
+\========
+
+El PIM se implementa en 3 niveles, con activación independiente por tenant:
+
+Nivel 1 — PIM puro (TRONCAL, parte del bloque 4 del ADR-041):  
+\- Identidad del producto/servicio: nombre, SKU, EAN, marca, modelo, descripción  
+\- Variantes simples como entidades con SKU propio: "Camiseta M roja" vs "Camiseta L azul"  
+\- Categorías jerárquicas  
+\- Precio base único \+ stock\_actual simple total
+
+Nivel 2 — Pricing avanzado (CROSS-VERTICAL OPCIONAL):  
+\- Listas de precios múltiples con segmento, vigencia, prioridad  
+\- Resolución contextual: precio base si no hay lista; precio de lista si hay match por canal/persona/fecha/horario  
+\- Reglas de aplicación (canal, segmento de persona, fecha, horario, cantidad)
+
+Nivel 3 — Stock & Movimientos (CROSS-VERTICAL OPCIONAL):  
+\- Ubicaciones físicas como entidades (no campo text)  
+\- Movimientos como historial (entrada/salida/transferencia/ajuste/reserva/dañado)  
+\- Stock real por producto x ubicación x estado calculado en tiempo real  
+\- Reservas temporales, lotes, series, fechas de vencimiento (premium)
+
+Nivel 1 se construye en Sprint A2. Niveles 2 y 3 se construyen en FASE D según demanda real.
+
+Alternatives considered  
+\=======================
+
+PIM monolítico con listas de precios y stock completos desde día 1: se descartó porque agrega complejidad innecesaria para el 80% de clientes (servicios puros, unipersonales, microempresas).
+
+PIM mínimo sin variantes: se descartó porque retail no puede operar sin "Camiseta M roja" como SKU independiente con stock propio.
+
+Consequences  
+\============
+
+Positivas:  
+\- El cliente unipersonal o de servicios opera con Nivel 1 sin sobrecarga.  
+\- Retail multi-sucursal activa Nivel 2 y 3 según crece.  
+\- El motor de Stock central (Nivel 3\) es el destino de consolidación de las tablas paralelas actuales (utileria\_items, concesion\_productos), evitando rewriting hoy.  
+\- Conectores premium (Sales Layer, Plytix, Akeneo) se enchufan al Nivel 1 vía marketplace si el cliente quiere PIM enterprise.
+
+Negativas:  
+\- Decisión de qué nivel activar es del cliente; mal asesoramiento puede frustrar.  
+\- Migración paulatina de tablas paralelas a Nivel 3 es FASE D.
+
+References  
+\==========
+
+\- RFC-004 — Arquitectura Multi-Vertical (decisión D3)  
+\- ADR-041 (troncal mínimo)  
+\- ADR-046 (vista v\_productos\_catalogo como puente temporal)
+
+───────────────────────────────────────────────────────────────────  
+ADR-043 — Modelo modular comercial con apagados visibles  
+───────────────────────────────────────────────────────────────────
+
+Status: Accepted  
+Date: 2026-05-13
+
+Context  
+\=======
+
+La plataforma ofrece más de 30 módulos clasificados en 4 capas. Un tenant nunca activa todos. La UI debe decidir cómo mostrar los módulos no contratados: ocultarlos, mostrarlos con candado, o no mostrarlos pero permitir activación on-demand.
+
+Decision  
+\========
+
+Los módulos siguen un patrón de renderización por estado, siempre visibles cuando son relevantes al contexto:
+
+Estado 1: Activado \+ con data → renderizado normal.  
+Estado 2: Activado sin data → empty state con CTA "Crear primero".  
+Estado 3: Disponible no contratado → visible con candado, badge "Activar", click abre modal con descripción del módulo \+ precio \+ botón "Contratar".  
+Estado 4: Próximamente → visible gris claro, badge "Próximamente", click muestra fecha estimada.
+
+Implementación:  
+\- Wrapper \<ModuloGuard slug="X"\> en componentes que dependen de un módulo  
+\- Tabla catalogo\_modulos\_pricing (nueva) con precio mensual y descripción comercial por módulo  
+\- Pantalla /admin/marketplace donde el cliente ve todos los módulos disponibles, con filtros por capa y estado
+
+Alternatives considered  
+\=======================
+
+Ocultar módulos no contratados: se descartó porque pierde la oportunidad de upselling y deja al cliente sin saber qué capacidades existen.
+
+Mostrar todos sin restricción: se descartó porque genera confusión cuando el cliente intenta usar funcionalidad que no contrató.
+
+Consequences  
+\============
+
+Positivas:  
+\- Upselling permanente: cada vez que el cliente intenta usar algo no contratado, ve el valor antes de pagar.  
+\- Transparencia comercial: ningún módulo está oculto, el catálogo entero es visible.  
+\- Reduce cargas de soporte: el cliente entiende qué hay disponible sin preguntar.
+
+Negativas:  
+\- Requiere mantener catalogo\_modulos\_pricing actualizado.  
+\- Wrapper \<ModuloGuard\> agrega complejidad al árbol de componentes.
+
+References  
+\==========
+
+\- RFC-004 — Arquitectura Multi-Vertical (decisión D6)
+
+───────────────────────────────────────────────────────────────────  
+ADR-044 — Orden de ejecución del plan A → B → C → D → E  
+───────────────────────────────────────────────────────────────────
+
+Status: Accepted  
+Date: 2026-05-13  
+Supersedes: ADR-027 (orden de fases lineal 1-17)
+
+Context  
+\=======
+
+El roadmap original asumía 17 fases lineales (FASE 1 a FASE 17\) bajo el modelo de un único vertical. Con la re-arquitectura multi-vertical (ADR-040), el orden de construcción cambia: hay que completar primero el troncal universal, después un vertical completo (CCBP), después validar con cliente real, después abrir cross-vertical adicionales y otros verticales.
+
+Decision  
+\========
+
+El plan de ejecución se reorganiza en 5 fases macro:
+
+FASE A — Cerrar troncal mínimo (6 sprints A1-A6, costo \~55-62h):  
+A1 Fix Base Operativa, A2 PIM Nivel 1, A3 Finanzas, A4 CRM avanzado, A5 Comunicaciones cierre, A6 Proyectos & Tareas.
+
+FASE B — Cerrar vertical CCBP (6 sprints B1-B6, costo \~30h):  
+B1 Lesiones, B2 Historial, B3 Scouting, B4 Reportes deportivos, B5 Socios, B6 Cuerpo Técnico \+ Diagramación.
+
+FASE C — Demo a Hindu (validación end-to-end sin nuevas features):  
+Reset DB \+ carga de cero por Yair \+ workflow real durante una semana.
+
+FASE D — Cross-vertical extra (6 sprints D1-D6):  
+Documentos/Firma, Tickets, Pricing avanzado (PIM Nivel 2), Stock & Movimientos (PIM Nivel 3), Espacios físicos, Consolidación de tablas paralelas.
+
+FASE E — Abrir otros verticales (orden comercial sugerido):  
+E1 Estudios de Arquitectura, E2 Estudios de Abogacía, E3 Agencias de Publicidad, E4 Retailers PyME.
+
+Las fases anteriores 1-17 quedan como historial. Las que estaban completas (1-5) se preservan. Las que estaban planificadas (6-17) se reorganizan según el nuevo plan: parte va a FASE B, parte a FASE D, parte se reclasifica como satélite de otras fases.
+
+Alternatives considered  
+\=======================
+
+Continuar el plan lineal 1-17 después de RFC-004: se descartó porque mantiene el modelo monolítico vertical y no aprovecha la nueva arquitectura para abrir verticales nuevos.
+
+Saltar FASE B y arrancar otros verticales antes de cerrar CCBP: se descartó porque Hindu es el cliente piloto real y necesita producto completo para validar. Sin validación end-to-end, abrir más verticales aumenta el riesgo de errores arquitectónicos no detectados.
+
+Consequences  
+\============
+
+Positivas:  
+\- Orden basado en dependencias técnicas y comerciales reales.  
+\- FASE C (demo Hindu) es el quality gate antes de abrir más verticales.  
+\- Cada fase tiene un objetivo claro y entregable demostrable.
+
+Negativas:  
+\- FASE 6 que estaba planificada (lesiones, scouting, etc.) se pospone hasta FASE B (después de cerrar troncal).  
+\- Los sprints ya armados de FASE 6 se reutilizan en FASE B (sin retrabajo, solo reubicación).
+
+References  
+\==========
+
+\- RFC-004 — Arquitectura Multi-Vertical (decisión D8)  
+\- ADR-027 (orden lineal anterior, queda parcialmente superseded)
+
+───────────────────────────────────────────────────────────────────  
+ADR-045 — Reclasificación de módulos deportivos a cross-vertical  
+───────────────────────────────────────────────────────────────────
+
+Status: Accepted  
+Date: 2026-05-13
+
+Context  
+\=======
+
+Varios módulos hoy clasificados conceptualmente como "deportivos" o "específicos de CCBP" en realidad sirven a múltiples verticales. Mantenerlos como deportivos bloquea su reutilización en otros verticales (estudios, agencias, retail).
+
+Decision  
+\========
+
+Los siguientes módulos se reclasifican a Capa 1 cross-vertical:
+
+\- asistencias (CCBP: convocatorias. Empresa: presentismo de empleados. Educación: alumnos en clase)  
+\- eventos\_calendario (todos los verticales agendan algo)  
+\- reservas (CCBP: canchas. Coworking: salas. Médico: consultorios. Restaurant: mesas)  
+\- acceso (CCBP: socios. Empresa: empleados. Edificio: visitantes)  
+\- pre\_inscripciones (CCBP: socios nuevos. Estudios: leads. Retail: programa de fidelidad)  
+\- utileria (renombrar conceptualmente a inventario; CCBP: utilería deportiva. Retail: stock. Estudios: papelería)  
+\- concesiones (renombrar conceptualmente a pos; CCBP: buffet. Retail: caja. Restaurant: comanda)  
+\- socios (renombrar conceptualmente a suscripciones\_membresia; CCBP: socios. Coworking: miembros. Gym: abonos)
+
+Los renombres FÍSICOS de carpetas modules/X y de tablas se difieren a FASE D. En FASE A solo se reclasifica conceptualmente vía la columna catalogo\_modulos.capa, sin romper el código existente.
+
+Notificaciones se mantiene como sub-bloque del Motor de Comunicaciones (no es módulo independiente).
+
+Alternatives considered  
+\=======================
+
+Mantener como deportivos hasta FASE E (cuando se abra primer vertical no-CCBP): se descartó porque la clasificación correcta debe estar disponible desde el comienzo para que MODULE-CATALOG, ROADMAP y oferta comercial sean precisos.
+
+Renombrar físicamente las carpetas en FASE A: se descartó porque rompería imports en cientos de archivos y aumentaría el riesgo del sprint A1. Mejor reclasificación conceptual ahora, renombre físico en FASE D.
+
+Consequences  
+\============
+
+Positivas:  
+\- Cuando se abre otro vertical (FASE E), estos módulos están listos para reutilizarse.  
+\- MODULE-CATALOG refleja la arquitectura real desde el comienzo.
+
+Negativas:  
+\- Inconsistencia temporal entre nombres físicos (carpetas como modules/utileria) y nombres conceptuales (Inventario). Se resuelve en FASE D.
+
+References  
+\==========
+
+\- RFC-004 — Arquitectura Multi-Vertical (decisión D7 y sección 4.1)  
+\- ADR-040 (taxonomía de 4 capas)
+
+───────────────────────────────────────────────────────────────────  
+ADR-046 — Vista v\_productos\_catalogo como puente temporal entre tablas paralelas  
+───────────────────────────────────────────────────────────────────
+
+Status: Accepted  
+Date: 2026-05-13
+
+Context  
+\=======
+
+Hoy existen tres tablas paralelas de productos en la DB:
+
+\- productos\_servicios (Finanzas)  
+\- utileria\_items (Utilería)  
+\- concesion\_productos (Concesiones/POS)
+
+Las tres tienen estructura similar pero divergente. Esto es deuda técnica heredada. Una consolidación física implica reescribir importantes partes de los módulos utileria y concesiones, con alto riesgo durante FASE A.
+
+El bloque PIM del troncal (Sprint A2) necesita una vista unificada del catálogo de productos para que cualquier módulo o pantalla pueda consultar "qué productos existen en el tenant".
+
+Decision  
+\========
+
+Se crea una vista de PostgreSQL llamada v\_productos\_catalogo que hace UNION ALL de las 3 tablas, con un campo origen para diferenciar:
+
+CREATE VIEW v\_productos\_catalogo AS  
+  SELECT id, tenant\_id, nombre, sku, marca, precio, moneda, 'productos\_servicios' AS origen  
+  FROM productos\_servicios WHERE deleted\_at IS NULL  
+  UNION ALL  
+  SELECT id, tenant\_id, nombre, NULL AS sku, marca, costo\_reposicion AS precio, moneda, 'utileria\_items' AS origen  
+  FROM utileria\_items WHERE deleted\_at IS NULL  
+  UNION ALL  
+  SELECT id, tenant\_id, nombre, NULL AS sku, marca, precio, moneda, 'concesion\_productos' AS origen  
+  FROM concesion\_productos WHERE activo \= true;
+
+La UI del PIM (Sprint A2) lee de esta vista. Cada módulo origen sigue usando su tabla nativa para operaciones de escritura.
+
+La consolidación física (migración de utileria\_items y concesion\_productos a productos\_servicios \+ columnas adicionales) se difiere a FASE D, Sprint D5 (Consolidación de tablas paralelas), una vez que Hindu haya validado el sistema en FASE C.
+
+Alternatives considered  
+\=======================
+
+Consolidación física inmediata en Sprint A2: se descartó por alto riesgo de romper utileria y concesiones (módulos productivos con datos reales).
+
+Vista materializada en lugar de vista regular: se descartó porque las 3 tablas tienen volumen bajo (\~hundreds de filas en Hindu) y la vista regular no agrega latencia perceptible. Si en el futuro hay cliente con volumen grande, se evalúa.
+
+Consequences  
+\============
+
+Positivas:  
+\- Sprint A2 puede entregarse sin riesgo de romper módulos existentes.  
+\- La UI del PIM ve un catálogo unificado desde día 1\.  
+\- Consolidación física queda planificada para FASE D con bajo riesgo (Hindu ya validado).
+
+Negativas:  
+\- La vista es solo lectura; escrituras siguen siendo por tabla nativa. Esto puede confundir a desarrolladores nuevos.  
+\- Deuda técnica visible hasta FASE D.
+
+References  
+\==========
+
+\- RFC-004 — Arquitectura Multi-Vertical (sección 4.3 y 5.1)  
+\- ADR-042 (PIM en 3 niveles)
+
+───────────────────────────────────────────────────────────────────  
+RESUMEN DEL BUNDLE  
+───────────────────────────────────────────────────────────────────
+
+ADRs nuevos canonizados: ADR-040, ADR-041, ADR-042, ADR-043, ADR-044, ADR-045, ADR-046.
+
+ADRs parcialmente superseded por este bundle:  
+\- ADR-002 (parcialmente, en lo relativo a la asunción de vertical único — superseded por ADR-040)  
+\- ADR-027 (parcialmente, en lo relativo al orden lineal 1-17 — superseded por ADR-044)
+
+Decisiones técnicas que NO se canonizan en ADR separado pero quedan vigentes en el RFC-004:  
+\- D4 (Proyectos & Tareas en troncal) — ya cubierta por ADR-041  
+\- D5 (RRHH NO en troncal) — ya cubierta por ADR-041 implícitamente  
+\- D9 (ClubCore \= bundle del vertical CCBP) — decisión comercial, no técnica  
+\- D10 (Hindu \= primer cliente del vertical CCBP) — decisión comercial  
+\- D11 (Mock-first universal mantiene vigencia) — ADR-035 ya vigente
+
+Aplicación al repo:  
+\- Path destino: docs/DECISIONS.md (append al final del archivo)  
+\- Code agrega los 7 ADRs preservando los 39 vigentes (ADR-001 a ADR-039)  
+\- Commit message sugerido: "docs(adrs): canoniza ADR-040 a ADR-046 derivados del RFC-004"
+
+Fin del bundle.  
