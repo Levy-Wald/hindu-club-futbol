@@ -285,8 +285,28 @@ formación define 11 slots con coordenadas x/y para renderizado visual.
 (e.g. `arquero`, `lateral_derecho`), coordenadas x/y para visualización,
 y línea de clasificación (arquero/defensa/mediocampo/ataque).
 
+**Torneo.** Competencia formal, interna (organizada por el club) o externa
+(organizada por una federación como FACCMA, AIF). Vive en `torneos`.
+6 formatos soportados: liga, eliminacion, grupos_playoff, suizo, triangular,
+cuadrangular. 5 estados: planificado, inscripcion, en_curso, finalizado,
+cancelado. Sprint FASE 5.1, RFC-002.
+
+**Categoría del torneo.** Subdivisión dentro de un torneo (e.g. Sub-15,
+Primera, Open). Vive en `torneo_categorias`. Un equipo puede estar en
+distintas categorías del mismo torneo.
+
+**Equipo del torneo.** Inscripción de un equipo (propio o externo) en un
+torneo. Vive en `torneo_equipos`. Polimórfico: equipo_id (propio) XOR
+equipo_externo_nombre (externo). Sprint FASE 5.1.
+
+**Criterios de desempate.** Orden de prioridad para resolver empates en
+tabla de posiciones. Almacenados como jsonb array en `torneos.criterios_desempate`.
+Presets: Argentina (puntos > dif goles > goles a favor > enfrentamiento directo),
+FIFA (puntos > enfrentamiento directo > dif goles > goles a favor).
+
 **Partido.** Evento competitivo entre dos equipos. Vive en
-`partidos_detalle`.
+`partidos_detalle`. Puede estar asociado a un torneo via `torneo_id` (FK
+formal) o `torneo_slug` (deprecated, dual-read hasta Sprint 5.7+).
 
 **Scouting.** Ficha de evaluación de un jugador (propio o externo). Vive en
 `scouting_fichas`.

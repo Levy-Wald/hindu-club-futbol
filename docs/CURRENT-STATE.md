@@ -6,24 +6,24 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 13 de mayo de 2026 — Sprint FASE 4.6 cerrado.
-> Reservas de canchas. FASE 4 (Planificadores) CERRADA al 100%.
+> Última actualización: 13 de mayo de 2026 — Sprint FASE 5.1 cerrado.
+> Modelo de torneos + creador interno. FASE 5 iniciada.
 
 ---
 
 ## 0. Snapshot ejecutivo
 
 **Estado general:** FASE 1 cerrada. FASE 2 (Comunicación) completada al 100%.
-FASE 3 (Operación deportiva) completada al 100%. **FASE 4 (Planificadores)
-completada al 100%:** Sprints 4.1, 4.2, 4.3, 4.4, 4.5 y 4.6 cerrados.
+FASE 3 (Operación deportiva) completada al 100%. FASE 4 (Planificadores)
+completada al 100%. **FASE 5 (Competencias) iniciada:** Sprint 5.1 cerrado.
 
-**Ultimo sprint cerrado:** **FASE 4.6** — Reservas de canchas.
-1 tabla nueva (reservas_canchas). Reserva = evento + fila con tarifa calculada.
-5 estados (pendiente/confirmada/pagada/cancelada/completada). Cliente
-polimórfico. Pantalla /admin/reservas con tabla + filtros + modales.
-Sidebar actualizado con "Reservas" en Operaciones.
+**Ultimo sprint cerrado:** **FASE 5.1** — Modelo de torneos + creador interno.
+3 tablas nuevas (torneos, torneo_categorias, torneo_equipos). 6 formatos.
+5 estados. Migration retroactiva (no-op: todos los 98 partidos con torneo_slug
+NULL). partidos_detalle extendida con torneo_id + categoria_id (dual-read).
+Wizard 3 pasos. Detalle con 3 tabs. Sidebar Competencias > Torneos.
 
-**Próximo sprint:** FASE 5 (Competencias/Torneos) — a decidir.
+**Próximo sprint:** FASE 5.2 — a decidir.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -36,28 +36,28 @@ Sidebar actualizado con "Reservas" en Operaciones.
 
 | Métrica | Valor |
 |---|---|
-| Tablas en `public` | 156 |
-| Tablas con RLS habilitada | 150 (99.3%) |
-| RLS policies | 373 |
+| Tablas en `public` | 159 |
+| Tablas con RLS habilitada | 153 (96.2%) |
+| RLS policies | 376 |
 | Funciones custom (`pg_proc` en public) | 134 |
 | Triggers | 96 |
 | VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 72 (8 públicas + 64 admin) |
+| Páginas Next.js | 74 (8 públicas + 66 admin) |
 | API routes | 17 (5 endpoints v1 + 5 internos + 7 crons) |
-| Server actions | ~178 en 32 archivos |
-| Componentes custom (no shadcn) | ~148 |
-| Tests E2E (Playwright) | 69 specs (65 pass, 1 skip, 3 flaky pre-existing) |
+| Server actions | ~186 en 33 archivos |
+| Componentes custom (no shadcn) | ~160 |
+| Tests E2E (Playwright) | 73 specs (69 pass, 1 skip, 3 flaky pre-existing) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |
-| Atributos en catálogo | 68 (con reservas.gestor) |
+| Atributos en catálogo | 70 (con torneos.admin, torneos.cargador) |
 | Tipos de notificación catalogados | 23 |
 | Tipos de evento catalogados | 24 (+amistoso) |
-| Módulos catalogados | 56 (+reservas) |
-| Módulos activos en Hindu | 40+ |
-| Manifiestos module.json | 25 |
+| Módulos catalogados | 57 (+torneos) |
+| Módulos activos en Hindu | 42+ |
+| Manifiestos module.json | 26 |
 | Verticales en catálogo | 4 (club_deportivo, country_deportivo, federacion_hub, polo_educativo) |
 
 ---
@@ -185,7 +185,10 @@ nivel que los demás (no una "capa vertical" separada).
 | `equipos_competencias` | 0 | Esqueleto |
 | `esquemas_tacticos` | 0 | Operativo — módulo táctico (Sprint FASE 4.5) |
 | `esquema_posiciones` | 0 | Operativo — posiciones por esquema (Sprint FASE 4.5) |
-| `partidos_detalle` | 0 | Esqueleto |
+| `partidos_detalle` | 98 | Extendida con torneo_id + categoria_id (Sprint FASE 5.1). torneo_slug deprecated (dual-read) |
+| `torneos` | 0 | 6 formatos, 5 estados, CHECK constraints (Sprint FASE 5.1) |
+| `torneo_categorias` | 0 | Categorías por torneo (Sprint FASE 5.1) |
+| `torneo_equipos` | 0 | Equipos inscriptos, polimórfico propio/externo (Sprint FASE 5.1) |
 | `scouting_fichas` | 0 | UI funcional, sin uso |
 | `eventos` | 0 | Esqueleto |
 | `evento_invitados` | 0 | Polymorphic (persona/entidad/equipo), auto-poblado lazy desde plantel (Sprint FASE 3.1) |
@@ -280,7 +283,26 @@ con CHECK constraint. Cliente polimórfico (persona/entidad/externo). Pantalla
 con acciones por estado. Sidebar: "Reservas" en sección Operaciones (AP-006 SÍ).
 Permisos: tenant.admin o reservas.gestor. 3 E2E tests.
 
-**Gaps:** scouting con uso real (postergado), partidos cargados (postergado).
+**Módulo Torneos (Sprint FASE 5.1):**
+Módulo en `modules/torneos/` con module.json, lib/ (types, formatos,
+criterios-desempate, queries, actions, permisos), ui/ (pantalla-listado,
+tabla-torneos, filtros-torneos, badge-estado-torneo, modal-nuevo-torneo,
+pantalla-detalle, detalle-torneo-client, tab-datos-generales, tab-categorias,
+tab-equipos-inscriptos, modal-agregar-categoria, modal-agregar-equipo).
+3 tablas nuevas (torneos, torneo_categorias, torneo_equipos) con RLS.
+6 formatos (liga, eliminacion, grupos_playoff, suizo, triangular, cuadrangular).
+5 estados (planificado, inscripcion, en_curso, finalizado, cancelado).
+Equipos polimórficos (propio con equipo_id o externo con nombre libre).
+Wizard 3 pasos para crear torneo. Detalle con 3 tabs (datos/categorías/equipos).
+partidos_detalle extendida con torneo_id + categoria_id (dual-read, torneo_slug
+deprecated). Migration retroactiva no-op (todos 98 partidos con slug NULL).
+Sidebar: nueva sección "Competencias > Torneos" en Club Deportivo.
+Atributos torneos.admin y torneos.cargador. RFC-002.
+Pages: `/admin/competencias/torneos`, `/admin/competencias/torneos/[id]`.
+4 E2E tests.
+
+**Gaps:** scouting con uso real (postergado), fixture automático (Sprint 5.3),
+tabla de posiciones (Sprint 5.4), carga de resultados (Sprint 5.5).
 
 ---
 
@@ -324,7 +346,7 @@ Rutas: `/admin/rrhh/contratos`, `/admin/rrhh/liquidaciones`.
 | `tenants` | 1 | Hindu |
 | `tenant_modulos` | 35+ | Módulos activados en Hindu |
 | `tenant_config_publica` | 1 | Branding Hindu |
-| `catalogo_modulos` | 48 | Catálogo completo (incl. 11 nuevos + 1 vertical) |
+| `catalogo_modulos` | 49 | Catálogo completo (incl. torneos) |
 | `sedes` | 2 | Hindu tiene 2 sedes |
 | `api_keys` | 0 | Sin keys generadas |
 | `api_logs` | 0 | Sin uso de API externa |
@@ -672,6 +694,14 @@ Historial referenciado en commits del repo. Listado resumido:
   con tabla + filtros + modales crear/detalle. Sidebar con "Reservas" en
   Operaciones (AP-006 SÍ, tiene pantalla propia). Atributo reservas.gestor.
   Tag v0.19.0. 69 E2E (65 pass, 1 skip, 3 flaky pre-existing).
+- **Sprint FASE 5.1** — Modelo de torneos + creador interno.
+  Módulo `torneos` con 3 tablas nuevas (torneos, torneo_categorias,
+  torneo_equipos) + extensión partidos_detalle (torneo_id, categoria_id).
+  6 formatos con CHECK. 5 estados. Equipos polimórficos (propio/externo).
+  Migration retroactiva no-op (98 partidos con torneo_slug NULL).
+  Wizard 3 pasos, detalle 3 tabs. Sidebar "Competencias > Torneos".
+  Atributos torneos.admin + torneos.cargador. RFC-002.
+  Tag v0.20.0. 73 E2E (69 pass, 1 skip, 3 flaky pre-existing).
 
 ---
 
