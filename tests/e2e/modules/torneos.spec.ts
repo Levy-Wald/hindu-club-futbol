@@ -376,15 +376,18 @@ test.describe('Torneos', () => {
       '2026-07-01,12:00,Resultado C,Resultado D,Cancha 2,1,Sub-15,0,2',
     ].join('\n')
 
+    // Scope to the active resultados tab panel to avoid strict mode violation
+    const resultadosPanel = page.getByRole('tabpanel', { name: 'Importar resultados' })
+
     const buffer = Buffer.from(csvContent, 'utf-8')
-    await page.getByTestId('file-input-csv').setInputFiles({
+    await resultadosPanel.getByTestId('file-input-csv').setInputFiles({
       name: 'resultados.csv',
       mimeType: 'text/csv',
       buffer,
     })
 
-    await expect(page.getByTestId('btn-importar')).toBeVisible({ timeout: 3000 })
-    await page.getByTestId('btn-importar').click()
+    await expect(resultadosPanel.getByTestId('btn-importar')).toBeVisible({ timeout: 3000 })
+    await resultadosPanel.getByTestId('btn-importar').click()
 
     await expect(page.getByText('2 partido(s) importado(s)')).toBeVisible({ timeout: 15000 })
 
