@@ -197,13 +197,15 @@ amistosos, tacticas, reservas de canchas.
 
 ---
 
-## FASE 5 — Competencias, Torneos, Ligas, Federaciones (~6 sprints) [NUEVA]
+## FASE 5 — Competencias, Torneos, Ligas, Federaciones (CERRADA 2026-05-13)
 
 **Objetivo.** Sistema completo de gestion de competencias: torneos
 internos organizados por el club, participacion en ligas externas
-(FACCMA, AIF), fixture, resultados, tabla de posiciones.
+(FACCMA, AIF), fixture, resultados, tabla de posiciones, stats.
 
 **Depende de.** FASE 4 (planificadores y eventos).
+
+**Tag:** `v0.25.0` (6 sprints completados)
 
 ### Modulos
 
@@ -214,7 +216,7 @@ internos organizados por el club, participacion en ligas externas
 | 5.3 | Fixture auto-generador (6 algoritmos TS, preview + confirm, 21 unit tests vitest) | Done |
 | 5.4 | Tabla de posiciones (SQL function + UI con selector categoría + highlight propio) | Done |
 | 5.5 | Carga resultado detallada (2 tablas, wizard 3 pasos, stats idempotentes) | Done |
-| 5.6 | Stats por jugador y equipo | Red |
+| 5.6 | Stats jugador/equipo: 3 dashboards, stats avanzadas mock, sidebar Estadísticas | Done |
 
 **Nota:** "Torneo Interno" = competencia organizada por el propio club
 (Hindu como entidad organizadora), distinta de torneos organizados por

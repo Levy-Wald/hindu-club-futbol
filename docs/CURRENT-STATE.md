@@ -6,8 +6,8 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 13 de mayo de 2026 — Sprint FASE 5.5 cerrado.
-> Carga de resultado detallada con stats agregadas. FASE 5 en curso.
+> Última actualización: 13 de mayo de 2026 — Sprint FASE 5.6 cerrado.
+> Stats jugador/equipo dashboards. FASE 5 COMPLETA.
 
 ---
 
@@ -15,16 +15,15 @@
 
 **Estado general:** FASE 1 cerrada. FASE 2 (Comunicación) completada al 100%.
 FASE 3 (Operación deportiva) completada al 100%. FASE 4 (Planificadores)
-completada al 100%. **FASE 5 (Competencias) iniciada:** Sprint 5.1–5.5 cerrados.
+completada al 100%. **FASE 5 (Competencias) completada al 100%** (6 sprints cerrados).
 
-**Ultimo sprint cerrado:** **FASE 5.5** — Carga de resultado detallada con stats agregadas.
-2 tablas nuevas (torneo_partidos_eventos granular, partido_stats_jugador agregada).
-Atributo torneos.cargador_resultado. Server actions CRUD eventos + confirmar resultado.
-Stats calculator idempotente (DELETE+INSERT). UI wizard 3 pasos: marcador+plantel,
-eventos (goles/tarjetas/cambios), revision+confirmación. Warning marcador ≠ goles.
-4 E2E tests.
+**Ultimo sprint cerrado:** **FASE 5.6** — Stats jugador/equipo dashboards.
+3 server actions de agregación (ranking jugadores, stats jugador, stats equipos).
+3 UI dashboards: ranking goleadores/asistidores, perfil jugador con stats totales,
+stats por equipo. Stats avanzadas (xG, pases, duelos) en mock con badge
+"Próximamente — FASE 16". Sidebar "Estadísticas" under Competencias. 3 E2E tests.
 
-**Próximo sprint:** FASE 5.6 — Stats por jugador y equipo.
+**Próximo sprint:** FASE 6 (por definir).
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -45,11 +44,11 @@ eventos (goles/tarjetas/cambios), revision+confirmación. Warning marcador ≠ g
 | VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 79 (8 públicas + 71 admin) |
+| Páginas Next.js | 82 (8 públicas + 74 admin) |
 | API routes | 17 (5 endpoints v1 + 5 internos + 7 crons) |
-| Server actions | ~196 en 37 archivos |
-| Componentes custom (no shadcn) | ~171 |
-| Tests E2E (Playwright) | 87 specs (83 pass, 1 skip, 3 flaky pre-existing comunicaciones) |
+| Server actions | ~199 en 38 archivos |
+| Componentes custom (no shadcn) | ~174 |
+| Tests E2E (Playwright) | 90 specs (86 pass, 1 skip, 3 flaky pre-existing comunicaciones) |
 | Tests unitarios (vitest) | 21 specs (21 pass) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |

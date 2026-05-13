@@ -349,6 +349,19 @@ Vive en `partido_stats_jugador` con UNIQUE(partido_evento_id, persona_id). Calcu
 por `recalcularStatsPartido` que es idempotente (DELETE+INSERT). Columnas avanzadas
 (tiros, pases, xG) en mock-first para Sprint 5.6+.
 
+**Ranking de jugadores.** Dashboard que agrega `partido_stats_jugador` por persona
+y ordena por métrica seleccionable (goles, asistencias, tarjetas, minutos).
+Filtrable por torneo. UI en `/admin/competencias/stats/jugadores`. Sprint FASE 5.6.
+
+**Perfil de jugador (stats).** Dashboard individual con stats totales (6 cards:
+PJ, goles, asistencias, TA, TR, minutos) + tabla de últimos partidos + sección
+mock de stats avanzadas con badge "Próximamente — FASE 16". UI en
+`/admin/competencias/stats/jugadores/[persona_id]`. Sprint FASE 5.6.
+
+**Stats avanzadas (mock).** Columnas en `partido_stats_jugador` (tiros, pases,
+duelos_ganados, duelos_perdidos, xG) que existen en DB pero se muestran con
+badge "Próximamente — FASE 16" en UI. Se activarán con datos reales en FASE 16+.
+
 **Scouting.** Ficha de evaluación de un jugador (propio o externo). Vive en
 `scouting_fichas`.
 

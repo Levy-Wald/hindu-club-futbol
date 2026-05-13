@@ -102,18 +102,21 @@ FASE 4 completada al 100% el 2026-05-13.
 | 5.3 | Fixture auto-generador: 6 algoritmos TS puros, preview + confirm, migration fase+fecha_numero, 21 unit tests (vitest) | `v0.22.0` | 80/1/3 flaky | Cerrado |
 | 5.4 | Tabla de posiciones: SQL function calcular_tabla_posiciones, server action, UI con selector categoría + highlight equipo propio, fix flaky E2E | `v0.23.0` | 83/1/4 flaky | Cerrado |
 | 5.5 | Carga resultado detallada: 2 tablas (torneo_partidos_eventos + partido_stats_jugador), wizard 3 pasos, stats idempotentes, atributo cargador_resultado | `v0.24.0` | 87/1/3 flaky | Cerrado |
+| 5.6 | Stats jugador/equipo: 3 dashboards (ranking, perfil, equipos), stats avanzadas mock, sidebar Estadísticas | `v0.25.0` | 90/1/3 flaky | Cerrado |
+
+FASE 5 completada al 100% el 2026-05-13.
 
 ---
 
 ## Sprint actual
 
-Sprint FASE 5.5 cerrado. Próximo: FASE 5.6 (Stats por jugador y equipo).
+FASE 5 cerrada. Próximo: FASE 6 (por definir).
 
 ---
 
 ## Proximos en cola
 
-- FASE 5.6: Stats por jugador y equipo
+- FASE 6: Operación deportiva extendida (por definir)
 
 ---
 
