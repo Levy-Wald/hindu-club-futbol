@@ -221,10 +221,12 @@ test.describe('Torneos', () => {
 
       // Select categoria
       await page.getByTestId('select-categoria-equipo').click()
+      await expect(page.getByRole('option', { name: 'Sub-15' })).toBeVisible({ timeout: 5000 })
       await page.getByRole('option', { name: 'Sub-15' }).click()
 
-      // Tab propio (default)
+      // Tab propio (default) — wait for options to load
       await page.getByTestId('select-equipo-propio').click()
+      await expect(page.getByRole('option', { name: equipos![i].nombre })).toBeVisible({ timeout: 5000 })
       await page.getByRole('option', { name: equipos![i].nombre }).click()
 
       await page.getByTestId('btn-inscribir-equipo').click()
@@ -237,6 +239,7 @@ test.describe('Torneos', () => {
       await expect(page.getByTestId('modal-agregar-equipo')).toBeVisible({ timeout: 5000 })
 
       await page.getByTestId('select-categoria-equipo').click()
+      await expect(page.getByRole('option', { name: 'Sub-15' })).toBeVisible({ timeout: 5000 })
       await page.getByRole('option', { name: 'Sub-15' }).click()
 
       await page.getByTestId('tab-equipo-externo').click()
