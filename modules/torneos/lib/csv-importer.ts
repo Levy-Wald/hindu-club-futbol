@@ -251,7 +251,7 @@ export async function importarCSVResultados(input: {
         fecha: row.fecha,
         hora_inicio: hora + ':00',
         equipo_id: local.equipo_id,
-        estado: 'finalizado',
+        estado: 'completado',
       })
       .select('id')
       .single()
