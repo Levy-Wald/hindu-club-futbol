@@ -33,7 +33,7 @@ export function EntidadHijas({ hijas }: EntidadHijasProps) {
             {hijas.map((h) => (
               <Link
                 key={h.id}
-                href={`/admin/externos/${h.id}`}
+                href={`/admin/entidades/${h.id}`}
                 className="flex items-center justify-between border rounded-md p-3 hover:bg-accent transition-colors"
               >
                 <div className="flex items-center gap-3">

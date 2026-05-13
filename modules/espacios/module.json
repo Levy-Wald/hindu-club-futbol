@@ -1,0 +1,22 @@
+{
+  "slug": "espacios_fisicos",
+  "name": "Espacios fisicos",
+  "version": "1.0.0",
+  "category": "operativo",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": ["reservas"],
+  "owns_tables": ["espacios", "catalogo_tipos_espacio"],
+  "owns_catalogs": ["catalogo_tipos_espacio"],
+  "permissions_required": ["tenant.admin", "espacios.admin"],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": ["/admin/configuracion/espacios"],
+  "public_routes": [],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

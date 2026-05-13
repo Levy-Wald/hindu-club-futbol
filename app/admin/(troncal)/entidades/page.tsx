@@ -38,7 +38,7 @@ export default async function ExternosPage({ searchParams }: Props) {
             filename="modelo_entidades.csv"
             sampleRow={['Club Atlético River Plate', 'club', '011-4789-1234', 'contacto@river.com.ar', 'www.cariverplate.com.ar', '30-12345678-9', 'Club Atlético River Plate']}
           />
-          <Link href="/admin/externos/importar">
+          <Link href="/admin/entidades/importar">
             <Button variant="outline" size="sm">
               <Upload className="h-4 w-4 mr-1" />
               <span className="hidden sm:inline">Importar</span>

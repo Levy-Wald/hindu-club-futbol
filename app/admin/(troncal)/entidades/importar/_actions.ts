@@ -62,6 +62,6 @@ export async function importarEntidadesBatch(
     }
   }
 
-  revalidatePath('/admin/externos')
+  revalidatePath('/admin/entidades')
   return { imported, skipped, errors }
 }

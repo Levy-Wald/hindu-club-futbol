@@ -108,7 +108,7 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
           entidades.map((e) => (
             <Link
               key={e.id}
-              href={`/admin/externos/${e.id}`}
+              href={`/admin/entidades/${e.id}`}
               className={`block rounded-lg border p-3 ${!e.activo ? 'opacity-50' : ''}`}
             >
               <div className="flex items-center justify-between gap-3">
@@ -161,7 +161,7 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
                     <Checkbox checked={selected.has(e.id)} onCheckedChange={() => toggleSelect(e.id)} />
                   </TableCell>
                   <TableCell>
-                    <Link href={`/admin/externos/${e.id}`} className="font-medium hover:underline">
+                    <Link href={`/admin/entidades/${e.id}`} className="font-medium hover:underline">
                       {e.nombre}
                     </Link>
                   </TableCell>
@@ -187,7 +187,7 @@ export function EntidadesTable({ entidades }: EntidadesTableProps) {
                         <MoreHorizontal className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => router.push(`/admin/externos/${e.id}`)}>
+                        <DropdownMenuItem onClick={() => router.push(`/admin/entidades/${e.id}`)}>
                           <Pencil className="mr-2 h-4 w-4" />
                           Editar
                         </DropdownMenuItem>

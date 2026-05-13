@@ -69,7 +69,7 @@ export async function crearEntidad(input: CrearEntidadInput) {
     return formatResult(false, error.message)
   }
 
-  revalidatePath('/admin/externos')
+  revalidatePath('/admin/entidades')
   return formatResult(true, 'Entidad creada', data)
 }
 
@@ -114,8 +114,8 @@ export async function editarEntidad(id: string, input: EditarEntidadInput) {
     return formatResult(false, error.message)
   }
 
-  revalidatePath('/admin/externos')
-  revalidatePath(`/admin/externos/${id}`)
+  revalidatePath('/admin/entidades')
+  revalidatePath(`/admin/entidades/${id}`)
   return formatResult(true, 'Entidad actualizada')
 }
 
@@ -137,7 +137,7 @@ export async function toggleActivoEntidad(id: string) {
 
   if (error) return formatResult(false, error.message)
 
-  revalidatePath('/admin/externos')
+  revalidatePath('/admin/entidades')
   return formatResult(true, entidad.activo ? 'Entidad desactivada' : 'Entidad activada')
 }
 
@@ -163,7 +163,7 @@ export async function asignarRepresentante(input: AsignarRepresentanteInput) {
 
   if (error) return formatResult(false, error.message)
 
-  revalidatePath(`/admin/externos/${input.entidad_id}`)
+  revalidatePath(`/admin/entidades/${input.entidad_id}`)
   return formatResult(true, 'Representante asignado')
 }
 
@@ -177,7 +177,7 @@ export async function quitarRepresentante(id: string, entidadId: string) {
 
   if (error) return formatResult(false, error.message)
 
-  revalidatePath(`/admin/externos/${entidadId}`)
+  revalidatePath(`/admin/entidades/${entidadId}`)
   return formatResult(true, 'Representante removido')
 }
 
@@ -202,6 +202,6 @@ export async function eliminarEntidad(id: string) {
 
   if (error) return formatResult(false, error.message)
 
-  revalidatePath('/admin/externos')
+  revalidatePath('/admin/entidades')
   return formatResult(true, 'Entidad eliminada')
 }

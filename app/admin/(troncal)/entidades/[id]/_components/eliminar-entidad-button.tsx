@@ -32,7 +32,7 @@ export function EliminarEntidadButton({ id, nombre }: EliminarEntidadButtonProps
       const result = await eliminarEntidad(id)
       if (result.ok) {
         toast.success(result.message)
-        router.push('/admin/externos')
+        router.push('/admin/entidades')
       } else {
         toast.error(result.message)
         setOpen(false)

@@ -44,7 +44,7 @@ export default async function EntidadDetallePage({ params }: PageProps) {
       {/* Sticky Header */}
       <div className="sticky top-0 z-10 -mx-4 px-4 py-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b sm:border-b-0 sm:static sm:mx-0 sm:px-0 sm:py-0 sm:backdrop-blur-none">
         <div className="flex items-start gap-3">
-          <Link href="/admin/externos">
+          <Link href="/admin/entidades">
             <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -56,7 +56,7 @@ export default async function EntidadDetallePage({ params }: PageProps) {
               {entidadPadre && (
                 <span className="text-sm text-muted-foreground">
                   Parte de{' '}
-                  <Link href={`/admin/externos/${entidadPadre.id}`} className="hover:underline font-medium">
+                  <Link href={`/admin/entidades/${entidadPadre.id}`} className="hover:underline font-medium">
                     {entidadPadre.nombre}
                   </Link>
                 </span>

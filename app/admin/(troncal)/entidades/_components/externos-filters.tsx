@@ -45,7 +45,7 @@ export function ExternosFilters() {
     if (activo) params.set('activo', activo)
     else params.delete('activo')
 
-    router.push(`/admin/externos?${params.toString()}`)
+    router.push(`/admin/entidades?${params.toString()}`)
   }, [tipo, activo, searchParams, router])
 
   const clearFilters = useCallback(() => {
@@ -55,7 +55,7 @@ export function ExternosFilters() {
     params.delete('tipo')
     params.delete('activo')
     params.delete('page')
-    router.push(`/admin/externos?${params.toString()}`)
+    router.push(`/admin/entidades?${params.toString()}`)
   }, [searchParams, router])
 
   return (

@@ -205,7 +205,7 @@ export default async function EquipoDetallePage({ params }: PageProps) {
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Federación / Liga</p>
                     {entidad ? (
-                      <Link href={`/admin/externos/${entidad.id}`} className="text-sm font-medium hover:underline">
+                      <Link href={`/admin/entidades/${entidad.id}`} className="text-sm font-medium hover:underline">
                         {entidad.nombre}
                       </Link>
                     ) : (

@@ -19,7 +19,7 @@ export function ExternosSearch() {
         params.delete('q')
       }
       params.delete('page')
-      router.push(`/admin/externos?${params.toString()}`)
+      router.push(`/admin/entidades?${params.toString()}`)
     }, 300)
 
     return () => clearTimeout(timer)

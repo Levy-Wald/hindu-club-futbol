@@ -116,7 +116,7 @@ export function ExternosImportWizard() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/admin/externos"><Button variant="ghost" size="icon" className="h-8 w-8"><ArrowLeft className="h-4 w-4" /></Button></Link>
+        <Link href="/admin/entidades"><Button variant="ghost" size="icon" className="h-8 w-8"><ArrowLeft className="h-4 w-4" /></Button></Link>
         <div>
           <h1 className="text-xl font-semibold">Importar entidades externas</h1>
           <p className="text-sm text-muted-foreground">CSV, Excel o texto pegado</p>
@@ -199,7 +199,7 @@ export function ExternosImportWizard() {
             <div className="rounded-md border p-3"><p className="text-2xl font-bold text-warning-600">{results.skipped}</p><p className="text-xs text-muted-foreground">Omitidas</p></div>
             <div className="rounded-md border p-3"><p className="text-2xl font-bold text-error-600">{results.errors.length}</p><p className="text-xs text-muted-foreground">Errores</p></div>
           </div>
-          <div className="flex justify-end"><Link href="/admin/externos"><Button>Ver entidades</Button></Link></div>
+          <div className="flex justify-end"><Link href="/admin/entidades"><Button>Ver entidades</Button></Link></div>
         </div>
       )}
     </div>

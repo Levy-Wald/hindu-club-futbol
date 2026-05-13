@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
-import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
+import { Calendar, dateFnsLocalizer, type SlotInfo } from 'react-big-calendar'
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop'
 import { format, parse, startOfWeek, getDay } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -59,6 +59,7 @@ export function CalendarioSemanal({
   const [conflictoInfo, setConflictoInfo] = useState<{ drop: PendienteDrop; conflicto: ConflictoOverlap; scope: MoverEventoScope } | null>(null)
   const [moviendo, setMoviendo] = useState(false)
   const [isTouch, setIsTouch] = useState(false)
+  const [nuevoEventoSlot, setNuevoEventoSlot] = useState<{ start: Date; end: Date } | null>(null)
 
   useEffect(() => {
     setIsTouch(isTouchDevice())
@@ -184,8 +185,50 @@ export function CalendarioSemanal({
   const minTime = useMemo(() => new Date(0, 0, 0, 6, 0, 0), [])
   const maxTime = useMemo(() => new Date(0, 0, 0, 23, 0, 0), [])
 
+  const handleSelectSlot = useCallback((slotInfo: SlotInfo) => {
+    setNuevoEventoSlot({ start: slotInfo.start, end: slotInfo.end })
+  }, [])
+
+  const handleNuevoEvento = useCallback(() => {
+    const now = new Date()
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() + 1, 0, 0)
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    setNuevoEventoSlot({ start, end })
+  }, [])
+
   return (
-    <div data-testid="calendario-semanal">
+    <div data-testid="planificador-calendario">
+      <div className="flex items-center justify-end mb-3">
+        <button
+          type="button"
+          onClick={handleNuevoEvento}
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          data-testid="btn-nuevo-evento-planificador"
+        >
+          + Nuevo evento
+        </button>
+      </div>
+
+      {nuevoEventoSlot && (
+        <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-md text-sm">
+          <div className="flex items-center justify-between">
+            <span>
+              Nuevo evento: {format(nuevoEventoSlot.start, 'dd/MM HH:mm')} - {format(nuevoEventoSlot.end, 'HH:mm')}
+            </span>
+            <button
+              type="button"
+              onClick={() => setNuevoEventoSlot(null)}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Cerrar
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Funcionalidad de creacion de eventos disponible en Sprint A2.
+          </p>
+        </div>
+      )}
+
       {isTouch && (
         <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-md text-sm text-blue-700 dark:text-blue-300">
           Para mover o redimensionar eventos, usá la versión de escritorio.
@@ -215,6 +258,8 @@ export function CalendarioSemanal({
         onEventResize={isTouch ? undefined : handleEventResize}
         resizable={!isTouch}
         draggableAccessor={() => !isTouch}
+        selectable
+        onSelectSlot={handleSelectSlot}
         onSelectEvent={(event) => setSeleccionado(event as EventoCalendar)}
         eventPropGetter={eventPropGetter}
         onNavigate={handleNavigate}
