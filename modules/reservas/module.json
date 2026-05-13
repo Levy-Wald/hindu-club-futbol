@@ -1,0 +1,22 @@
+{
+  "slug": "reservas",
+  "name": "Reservas de canchas",
+  "version": "1.0.0",
+  "category": "operaciones",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": [],
+  "owns_tables": ["reservas_canchas"],
+  "owns_catalogs": [],
+  "permissions_required": ["tenant.admin", "reservas.gestor"],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": ["/admin/reservas"],
+  "public_routes": [],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}
