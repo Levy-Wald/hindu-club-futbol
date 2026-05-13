@@ -11,12 +11,14 @@
   "soft_depends_on_modules": [],
   "owns_tables": ["torneos", "torneo_categorias", "torneo_equipos"],
   "owns_catalogs": [],
-  "permissions_required": ["tenant.admin", "torneos.admin", "torneos.cargador"],
+  "permissions_required": ["tenant.admin", "torneos.admin", "torneos.cargador", "torneos.inscriptor"],
   "events_emits": [],
   "events_consumes": [],
   "ui_routes": [
     "/admin/competencias/torneos",
-    "/admin/competencias/torneos/[id]"
+    "/admin/competencias/torneos/[id]",
+    "/admin/competencias/torneos/[id]/import",
+    "/admin/competencias/inscripciones"
   ],
   "public_routes": [],
   "api_endpoints": [],

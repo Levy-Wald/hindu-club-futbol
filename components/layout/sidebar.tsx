@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Users,
   ClipboardList,
+  ClipboardCheck,
   Shield,
   Building2,
   CalendarDays,
@@ -121,6 +122,7 @@ const operacionesSubItems: NavItemDef[] = [
 
 const competenciasSubItems: NavItemDef[] = [
   { label: 'Torneos', href: '/admin/competencias/torneos', icon: Trophy },
+  { label: 'Inscripciones', href: '/admin/competencias/inscripciones', icon: ClipboardCheck },
 ]
 
 const planificadoresSubItems: NavItemDef[] = [

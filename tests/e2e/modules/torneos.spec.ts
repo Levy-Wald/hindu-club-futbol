@@ -18,14 +18,34 @@ test.describe('Torneos', () => {
   let torneoExternoId: string | null = null
   let categoriaId: string | null = null
   const equipoInscriptoIds: string[] = []
+  const inscripcionIds: string[] = []
+  const csvEventoIds: string[] = []
 
   test.afterAll(async () => {
     const supabase = serviceRole()
+
+    // Clean CSV-imported partidos_detalle + eventos
+    for (const eventoId of csvEventoIds) {
+      await supabase.from('partidos_detalle').delete().eq('evento_id', eventoId)
+      await supabase.from('eventos').delete().eq('id', eventoId)
+    }
+
+    // Clean inscripciones (equipos_competencias)
+    for (const id of inscripcionIds) {
+      await supabase.from('equipos_competencias').delete().eq('id', id)
+    }
+
     // Clean equipos inscriptos
     for (const id of equipoInscriptoIds) {
       await supabase.from('torneo_equipos').delete().eq('id', id)
     }
-    // Clean categorias + torneos (CASCADE will clean categorias)
+
+    // Clean torneo_equipos for external torneo (from inscripcion test)
+    if (torneoExternoId) {
+      await supabase.from('torneo_equipos').delete().eq('torneo_id', torneoExternoId)
+    }
+
+    // Clean categorias + torneos
     if (torneoInternoId) {
       await supabase.from('torneo_categorias').delete().eq('torneo_id', torneoInternoId)
       await supabase.from('torneos').delete().eq('id', torneoInternoId)
@@ -228,6 +248,167 @@ test.describe('Torneos', () => {
 
     for (const eq of inscriptos!) {
       equipoInscriptoIds.push(eq.id)
+    }
+  })
+
+  // Sprint 5.2 tests
+
+  test('admin inscribe equipo Sub-15 en torneo FACCMA externo', async ({ page }) => {
+    // torneoExternoId should exist from test 2
+    expect(torneoExternoId).not.toBeNull()
+
+    await page.goto('/admin/competencias/inscripciones')
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.getByTestId('pantalla-inscripciones')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('btn-inscribir-equipo')).toBeVisible()
+
+    await page.getByTestId('btn-inscribir-equipo').click()
+    await expect(page.getByTestId('modal-inscribir')).toBeVisible({ timeout: 5000 })
+
+    // Select torneo FACCMA
+    await page.getByTestId('select-torneo').click()
+    await page.getByRole('option', { name: /Liga FACCMA E2E/ }).click()
+
+    // Select first equipo
+    const supabase = serviceRole()
+    const { data: equipos } = await supabase
+      .from('equipos')
+      .select('id, nombre')
+      .eq('tenant_id', TENANT)
+      .limit(1)
+
+    expect(equipos!.length).toBeGreaterThanOrEqual(1)
+
+    await page.getByTestId('select-equipo').click()
+    await page.getByRole('option', { name: equipos![0].nombre }).click()
+
+    await page.getByTestId('btn-submit-inscripcion').click()
+
+    // Modal should close
+    await expect(page.getByTestId('modal-inscribir')).not.toBeVisible({ timeout: 10000 })
+
+    // Verify in DB
+    const { data: inscs } = await supabase
+      .from('equipos_competencias')
+      .select('id, equipo_id, torneo_id, torneo_nombre')
+      .eq('tenant_id', TENANT)
+      .eq('torneo_id', torneoExternoId!)
+      .eq('activo', true)
+
+    expect(inscs!.length).toBeGreaterThanOrEqual(1)
+    const insc = inscs!.find((i) => i.equipo_id === equipos![0].id)
+    expect(insc).toBeDefined()
+    expect(insc!.torneo_nombre).toBe('Liga FACCMA E2E')
+
+    // Track for cleanup
+    inscripcionIds.push(insc!.id)
+  })
+
+  test('admin importa CSV con 5 partidos fixture', async ({ page }) => {
+    expect(torneoInternoId).not.toBeNull()
+
+    await page.goto(`/admin/competencias/torneos/${torneoInternoId}/import`)
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.getByTestId('pantalla-import-csv')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('tab-fixture')).toBeVisible()
+
+    // Create CSV content with 5 matches
+    const csvContent = [
+      'fecha,hora,equipo_local,equipo_visitante,cancha,jornada,categoria',
+      '2026-06-01,10:00,Equipo CSV A,Equipo CSV B,Cancha 1,1,Sub-15',
+      '2026-06-01,12:00,Equipo CSV C,Equipo CSV D,Cancha 2,1,Sub-15',
+      '2026-06-08,10:00,Equipo CSV A,Equipo CSV C,Cancha 1,2,Sub-15',
+      '2026-06-08,12:00,Equipo CSV B,Equipo CSV D,Cancha 2,2,Sub-15',
+      '2026-06-15,10:00,Equipo CSV A,Equipo CSV D,Cancha 1,3,Sub-15',
+    ].join('\n')
+
+    // Upload CSV via file input
+    const buffer = Buffer.from(csvContent, 'utf-8')
+    await page.getByTestId('file-input-csv').setInputFiles({
+      name: 'fixture.csv',
+      mimeType: 'text/csv',
+      buffer,
+    })
+
+    // Click import
+    await expect(page.getByTestId('btn-importar')).toBeVisible({ timeout: 3000 })
+    await page.getByTestId('btn-importar').click()
+
+    // Wait for result
+    await expect(page.getByText('5 partido(s) importado(s)')).toBeVisible({ timeout: 15000 })
+
+    // Verify in DB
+    const supabase = serviceRole()
+    const { data: partidos } = await supabase
+      .from('partidos_detalle')
+      .select('evento_id, torneo_id, rival_texto')
+      .eq('tenant_id', TENANT)
+      .eq('torneo_id', torneoInternoId!)
+
+    // Should have the original 0 + 5 new
+    const csvPartidos = partidos!.filter((p) =>
+      p.rival_texto?.startsWith('Equipo CSV')
+    )
+    expect(csvPartidos.length).toBe(5)
+
+    // Track evento_ids for cleanup
+    for (const p of csvPartidos) {
+      csvEventoIds.push(p.evento_id)
+    }
+  })
+
+  test('admin importa CSV con resultados', async ({ page }) => {
+    expect(torneoInternoId).not.toBeNull()
+
+    await page.goto(`/admin/competencias/torneos/${torneoInternoId}/import`)
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.getByTestId('pantalla-import-csv')).toBeVisible({ timeout: 15000 })
+
+    // Switch to resultados tab
+    await page.getByTestId('tab-resultados').click()
+
+    const csvContent = [
+      'fecha,hora,equipo_local,equipo_visitante,cancha,jornada,categoria,marcador_local,marcador_visitante',
+      '2026-07-01,10:00,Resultado A,Resultado B,Cancha 1,1,Sub-15,3,1',
+      '2026-07-01,12:00,Resultado C,Resultado D,Cancha 2,1,Sub-15,0,2',
+    ].join('\n')
+
+    const buffer = Buffer.from(csvContent, 'utf-8')
+    await page.getByTestId('file-input-csv').setInputFiles({
+      name: 'resultados.csv',
+      mimeType: 'text/csv',
+      buffer,
+    })
+
+    await expect(page.getByTestId('btn-importar')).toBeVisible({ timeout: 3000 })
+    await page.getByTestId('btn-importar').click()
+
+    await expect(page.getByText('2 partido(s) importado(s)')).toBeVisible({ timeout: 15000 })
+
+    // Verify in DB
+    const supabase = serviceRole()
+    const { data: partidos } = await supabase
+      .from('partidos_detalle')
+      .select('evento_id, marcador_local, marcador_visitante, rival_texto')
+      .eq('tenant_id', TENANT)
+      .eq('torneo_id', torneoInternoId!)
+
+    const resultados = partidos!.filter((p) =>
+      p.rival_texto?.startsWith('Resultado')
+    )
+    expect(resultados.length).toBe(2)
+
+    const r1 = resultados.find((p) => p.rival_texto === 'Resultado B')
+    expect(r1).toBeDefined()
+    expect(r1!.marcador_local).toBe(3)
+    expect(r1!.marcador_visitante).toBe(1)
+
+    // Track for cleanup
+    for (const p of resultados) {
+      csvEventoIds.push(p.evento_id)
     }
   })
 

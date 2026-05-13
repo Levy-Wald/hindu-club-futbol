@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Users,
   ClipboardList,
+  ClipboardCheck,
   Menu,
   X,
   Shield,
@@ -86,6 +87,7 @@ const comunicacionesSubItems: NavItemDef[] = [
 
 const competenciasSubItems: NavItemDef[] = [
   { label: 'Torneos', href: '/admin/competencias/torneos', icon: Trophy },
+  { label: 'Inscripciones', href: '/admin/competencias/inscripciones', icon: ClipboardCheck },
 ]
 
 const planificadoresSubItems: NavItemDef[] = [

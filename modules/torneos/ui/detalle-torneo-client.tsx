@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type {
@@ -49,6 +49,14 @@ export function DetalleTorneoClient({
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold">{torneo.nombre}</h1>
             <BadgeEstadoTorneo estado={torneo.estado} />
+            {puedeAdmin && (
+              <Link href={`/admin/competencias/torneos/${torneo.id}/import`}>
+                <Button variant="outline" size="sm">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Importar CSV
+                </Button>
+              </Link>
+            )}
           </div>
           <p className="text-sm text-muted-foreground">
             {torneo.tipo === 'externo' ? 'Externo' : 'Interno'}
