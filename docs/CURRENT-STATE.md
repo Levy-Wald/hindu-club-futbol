@@ -34,39 +34,40 @@ Stack:
 \- Vercel project\_id: prj\_sH5WIGNfNGo5tXxyTVvQaEfBDyBk  
 \- App prod: https://hindu-club.vercel.app
 
-ESTADO AL 13 DE MAYO DE 2026 (PRE-FASE-A)  
-\==========================================
+ESTADO AL 13 DE MAYO DE 2026 (POST SPRINT A1)
+\==============================================
 
-FASE CONCLUIDAS (modelo viejo):  
-\- FASE 1-5: cerradas en producción  
+FASE CONCLUIDAS (modelo viejo):
+\- FASE 1-5: cerradas en producción
 \- Hindu en producción con 2.395 personas, 8 equipos, 280 eventos, 98 partidos, 102 cuotas, 1.381 envíos
 
-FASE EN PLANIFICACIÓN:  
-\- FASE A (Cerrar troncal mínimo): planificación completa, sprints A1-A6 documentados  
-\- Próximo a ejecutar: Sprint A1 (Fix Base Operativa \+ Espacios)
+FASE A EN PROGRESO:
+\- Sprint A1 (Fix Base Operativa + Espacios): CERRADO (v0.27.0-fase-a-sprint-1)
+\- Próximo a ejecutar: Sprint A2
 
-FASES SIGUIENTES:  
-\- FASE B (Cerrar vertical CCBP): planificada, RFC-003 vigente, B1 con prompt detallado preparado  
-\- FASE C (Demo a Hindu): planificada  
-\- FASE D (Cross-vertical extra): planificada  
+FASES SIGUIENTES:
+\- FASE B (Cerrar vertical CCBP): planificada, RFC-003 vigente, B1 con prompt detallado preparado
+\- FASE C (Demo a Hindu): planificada
+\- FASE D (Cross-vertical extra): planificada
 \- FASE E (Otros verticales): planificada
 
 MÉTRICAS DE BASE DE DATOS (verificadas vía Supabase MCP el 13 de mayo de 2026\)  
 \==============================================================================
 
-Tablas: \~161 (incluyendo torneo\_partidos\_eventos y partido\_stats\_jugador del Sprint 5.5)  
-Funciones SQL: 134  
-Triggers: 539  
-RLS policies: 383  
-Catálogos seedeados: 17+  
-Migrations consolidadas: 1 (20260504220000\_clubcore\_init)
+Tablas: \~163 (+ catalogo\_tipos\_espacio, catalogo\_modulos\_pricing, espacios en Sprint A1)
+Funciones SQL: 134
+Triggers: 539
+RLS policies: 385 (+ 2 catalogs RLS in A1)
+Catálogos seedeados: 17+
+Migrations consolidadas: 1 (20260504220000\_clubcore\_init) + 2 Sprint A1 migrations
 
 Datos productivos (tenant Hindu):  
 \- personas: 2.395  
 \- equipos: 8  
 \- personas\_equipos: 212  
 \- sedes: 2  
-\- canchas: 0 (a crear en Sprint A1)  
+\- espacios: 0 (tabla creada en Sprint A1, canchas deprecated a favor de espacios)
+\- canchas: deprecated (tabla existe, espacio\_id added, se migra gradualmente)  
 \- eventos: 280 (182 entrenamientos \+ 98 partidos)  
 \- partidos\_detalle: 98  
 \- partido\_stats\_jugador: 0 (creada en 5.5, pendiente datos)  
@@ -83,27 +84,35 @@ Datos productivos (tenant Hindu):
 ESTADO DEL CÓDIGO  
 \==================
 
-Repo: limpio, branch main al día. Último commit relevante: 19cc5dd (restructure docs RFC-004).
+Repo: limpio, branch main al día. Tag: v0.27.0-fase-a-sprint-1.
 
-Módulos en \`modules/\` (17 con código):  
-\- ✅ Productivos: personas, equipos, comunicaciones, finanzas (parcial), cuotas, suscripciones, competencias, partidos, asistencias, reservas, acceso, pre\_inscripciones, entrenamientos, tactica, amistosos, utileria, planificadores  
-\- 🟠 Huérfanos: socios, disciplinas, eventos\_calendario, proveedores, talles  
-\- 🆕 A crear (FASE A): pim, proyectos, espacios
+Módulos en \`modules/\` (18 con código):
+\- Productivos: personas, equipos, comunicaciones, finanzas (parcial), cuotas, suscripciones, competencias, partidos, asistencias, reservas, acceso, pre\_inscripciones, entrenamientos, tactica, amistosos, utileria, planificadores, espacios
+\- Huérfanos: socios, disciplinas, eventos\_calendario, proveedores, talles
+\- A crear (FASE A): pim, proyectos
 
-Páginas con 404 conocidos (a resolver en FASE A):  
-\- /admin/operaciones/eventos/\[eventoId\] (Sprint A1)  
-\- /admin/competencias/partidos/\[id\] (Sprint A1, hub falta)  
-\- /admin/comunicaciones/plantillas/\[id\] (Sprint A5)  
-\- /admin/concesiones/\[id\]/punto-venta/\[pdv\] (Sprint A1 o A3)  
-\- /admin/entidades (Sprint A1, link existe, ruta es /externos)  
-\- /admin/finanzas/cuotas/emitir (Sprint A3)  
-\- /admin/finanzas/movimientos/nuevo (Sprint A3)  
-\- /admin/finanzas/transferencias/nueva (Sprint A3)
+Páginas 404 resueltas en Sprint A1 (8 rutas):
+\- /admin/operaciones/eventos/\[eventoId\] — Hub evento con tabs condicionales
+\- /admin/competencias/partidos/\[id\] — Hub partido
+\- /admin/comunicaciones/plantillas/\[id\] — Hub plantilla
+\- /admin/concesiones/\[id\]/punto-venta/\[pdv\] — Hub PDV
+\- /admin/entidades — Renombrado desde /externos
+\- /admin/finanzas/cuotas/emitir — Placeholder (Sprint A3)
+\- /admin/finanzas/movimientos/nuevo — Placeholder (Sprint A3)
+\- /admin/finanzas/transferencias/nueva — Placeholder (Sprint A3)
 
-Bugs UX confirmados (a resolver en FASE A):  
-\- Planificador no permite creación de eventos (selectable \+ onSelectSlot faltan, Sprint A1)  
-\- Sidebar mezcla técnico/operativo (Sprint A1)  
-\- Scouting visible en sidebar pero no construido (Sprint A1: ocultar hasta B3)
+Páginas nuevas en Sprint A1 (11 total):
+\- /admin/configuracion/sedes — Listado de sedes con conteo de espacios
+\- /admin/configuracion/sedes/\[id\] — Detalle sede con espacios
+\- /admin/configuracion/espacios — Listado global de espacios
+\- /admin/marketplace — Marketplace de módulos por capa
+\- + 7 hubs/placeholders listados arriba
+
+Bugs UX resueltos en Sprint A1:
+\- Planificador: selectable + onSelectSlot + botón +Nuevo evento
+\- Sidebar: reorganizado por secciones (Troncal, Cross-vertical, CCBP)
+\- Scouting: ocultado de sidebar hasta B3
+\- externos renombrado a entidades
 
 ESTADO DE LA DOCUMENTACIÓN  
 \============================
@@ -208,19 +217,18 @@ REGLAS OPERATIVAS VIGENTES
 7\. No cargar más data productiva de Hindu hasta FASE C.  
 8\. No tests masivos contra personas reales de Hindu.
 
-PRÓXIMOS PASOS INMEDIATOS  
+PRÓXIMOS PASOS INMEDIATOS
 \==========================
 
-1\. Cerrar el commit grande de re-documentación (Tandas 1 a 4 \+ addendums).  
-2\. Ejecutar Sprint A1 — Fix Base Operativa \+ Espacios.  
-3\. Continuar FASE A sprint por sprint hasta cerrarla.  
-4\. Cerrar FASE B.  
-5\. FASE C — Demo a Hindu.
+1\. Ejecutar Sprint A2.
+2\. Continuar FASE A sprint por sprint hasta cerrarla.
+3\. Cerrar FASE B.
+4\. FASE C — Demo a Hindu.
 
-ÚLTIMA ACTUALIZACIÓN  
+ÚLTIMA ACTUALIZACIÓN
 \=====================
 
-13 de mayo de 2026\. Versión 2.0.  
-Próxima revisión: al cierre del Sprint A1.
+13 de mayo de 2026\. Versión 2.1 (post Sprint A1).
+Próxima revisión: al cierre del Sprint A2.
 
 Quien actualiza este doc: Claude Code en el cierre de cada sprint (PROMPT-TEMPLATE PARTE 10.1). El arquitecto verifica vía MCP.  

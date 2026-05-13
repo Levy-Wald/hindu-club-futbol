@@ -52,8 +52,8 @@ FASE A — CERRAR TRONCAL MÍNIMO
 
 | ID    | Tema                                            | Estado    | Tag esperado                  | Costo  | Depende de  |  
 | \----- | \----------------------------------------------- | \--------- | \----------------------------- | \------ | \----------- |  
-| A1    | Fix Base Operativa \+ Espacios                   | ⏳ NEXT    | v0.27.0-fase-a-sprint-1       | 12-15h | FASE 5      |  
-| A2    | PIM Nivel 1                                     | 📋 PLANNED | v0.27.0-fase-a-sprint-2       | 7-8h   | A1          |  
+| A1    | Fix Base Operativa \+ Espacios                   | ✅ DONE    | v0.27.0-fase-a-sprint-1       | 12-15h | FASE 5      |
+| A2    | PIM Nivel 1                                     | ⏳ NEXT    | v0.27.0-fase-a-sprint-2       | 7-8h   | A1          |  
 | A3    | Finanzas completa (resolver dup \+ 404s)         | 📋 PLANNED | v0.27.0-fase-a-sprint-3       | 8-10h  | A1          |  
 | A4    | CRM avanzado (padrones \+ importadores)          | 📋 PLANNED | v0.27.0-fase-a-sprint-4       | 10h    | A1          |  
 | A5    | Comunicaciones cierre (fix 404 \+ automatiz.)    | 📋 PLANNED | v0.27.0-fase-a-sprint-5       | 5h     | \-           |  
