@@ -210,8 +210,8 @@ internos organizados por el club, participacion en ligas externas
 | # | Modulo | Estado |
 |---|---|---|
 | 5.1 | Torneos internos (creador con formatos: liga, eliminacion, grupos+playoff, suizo, triangular, cuadrangular) | Done |
-| 5.2 | Participacion en torneos externos (FACCMA, AIF) | Yellow |
-| 5.3 | Fixture y resultados | Red |
+| 5.2 | Inscripciones externas + CSV import | Done |
+| 5.3 | Fixture auto-generador | Red |
 | 5.4 | Tabla de posiciones en tiempo real | Red |
 | 5.5 | Carga de resultados pos-partido (goles, tarjetas, cambios) | Yellow |
 | 5.6 | Stats por jugador y equipo | Red |

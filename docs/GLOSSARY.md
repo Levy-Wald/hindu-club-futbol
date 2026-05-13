@@ -308,6 +308,15 @@ FIFA (puntos > enfrentamiento directo > dif goles > goles a favor).
 `partidos_detalle`. Puede estar asociado a un torneo via `torneo_id` (FK
 formal) o `torneo_slug` (deprecated, dual-read hasta Sprint 5.7+).
 
+**Inscripción en torneo externo.** Registro formal de un equipo propio en
+un torneo organizado por una federación externa. Crea fila en `torneo_equipos`
+(asociación al torneo) + `equipos_competencias` (relación formal con
+federación, categoría externa, número de afiliación). Sprint FASE 5.2.
+
+**Import CSV.** Carga masiva de fixture y/o resultados desde archivo CSV.
+Valida por fila y reporta errores individuales. Crea eventos + partidos_detalle
+asociados al torneo. Sprint FASE 5.2.
+
 **Scouting.** Ficha de evaluación de un jugador (propio o externo). Vive en
 `scouting_fichas`.
 

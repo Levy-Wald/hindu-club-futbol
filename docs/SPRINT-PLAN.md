@@ -95,13 +95,16 @@ FASE 4 completada al 100% el 2026-05-13.
 
 ## Sprint actual
 
-Pendiente de asignación por el Arquitecto.
+Sprint FASE 5.2 cerrado. Próximo: FASE 5.3 (Fixture auto-generador).
 
 ---
 
 ## Proximos en cola
 
-- FASE 5: Competencias/Torneos
+- FASE 5.3: Fixture auto-generador
+- FASE 5.4: Tabla de posiciones
+- FASE 5.5: Resultados detallados
+- FASE 5.6: Stats por jugador y equipo
 
 ---
 

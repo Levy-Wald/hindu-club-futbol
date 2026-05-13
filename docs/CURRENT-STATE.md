@@ -6,8 +6,8 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 13 de mayo de 2026 — Sprint FASE 5.1 cerrado.
-> Modelo de torneos + creador interno. FASE 5 iniciada.
+> Última actualización: 13 de mayo de 2026 — Sprint FASE 5.2 cerrado.
+> Inscripciones en torneos externos + CSV import. FASE 5 en curso.
 
 ---
 
@@ -17,13 +17,12 @@
 FASE 3 (Operación deportiva) completada al 100%. FASE 4 (Planificadores)
 completada al 100%. **FASE 5 (Competencias) iniciada:** Sprint 5.1 cerrado.
 
-**Ultimo sprint cerrado:** **FASE 5.1** — Modelo de torneos + creador interno.
-3 tablas nuevas (torneos, torneo_categorias, torneo_equipos). 6 formatos.
-5 estados. Migration retroactiva (no-op: todos los 98 partidos con torneo_slug
-NULL). partidos_detalle extendida con torneo_id + categoria_id (dual-read).
-Wizard 3 pasos. Detalle con 3 tabs. Sidebar Competencias > Torneos.
+**Ultimo sprint cerrado:** **FASE 5.2** — Inscripciones en torneos externos + CSV import.
+Extensión de equipos_competencias con torneo_id FK. Atributo torneos.inscriptor.
+Inscripciones CRUD en /admin/competencias/inscripciones. CSV importer para
+fixture y resultados (papaparse). Pantalla import en /admin/competencias/torneos/[id]/import.
 
-**Próximo sprint:** FASE 5.2 — a decidir.
+**Próximo sprint:** FASE 5.3 — Fixture auto-generador.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -44,15 +43,15 @@ Wizard 3 pasos. Detalle con 3 tabs. Sidebar Competencias > Torneos.
 | VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 74 (8 públicas + 66 admin) |
+| Páginas Next.js | 76 (8 públicas + 68 admin) |
 | API routes | 17 (5 endpoints v1 + 5 internos + 7 crons) |
 | Server actions | ~186 en 33 archivos |
 | Componentes custom (no shadcn) | ~160 |
-| Tests E2E (Playwright) | 73 specs (69 pass, 1 skip, 3 flaky pre-existing) |
+| Tests E2E (Playwright) | 76 specs (72 pass, 1 skip, 3 flaky pre-existing) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |
-| Atributos en catálogo | 70 (con torneos.admin, torneos.cargador) |
+| Atributos en catálogo | 71 (con torneos.admin, torneos.cargador, torneos.inscriptor) |
 | Tipos de notificación catalogados | 23 |
 | Tipos de evento catalogados | 24 (+amistoso) |
 | Módulos catalogados | 57 (+torneos) |
@@ -297,9 +296,13 @@ Wizard 3 pasos para crear torneo. Detalle con 3 tabs (datos/categorías/equipos)
 partidos_detalle extendida con torneo_id + categoria_id (dual-read, torneo_slug
 deprecated). Migration retroactiva no-op (todos 98 partidos con slug NULL).
 Sidebar: nueva sección "Competencias > Torneos" en Club Deportivo.
-Atributos torneos.admin y torneos.cargador. RFC-002.
-Pages: `/admin/competencias/torneos`, `/admin/competencias/torneos/[id]`.
-4 E2E tests.
+Atributos torneos.admin, torneos.cargador, torneos.inscriptor. RFC-002.
+Pages: `/admin/competencias/torneos`, `/admin/competencias/torneos/[id]`,
+`/admin/competencias/torneos/[id]/import`, `/admin/competencias/inscripciones`.
+Sprint 5.2: Inscripciones CRUD para torneos externos. CSV importer (papaparse)
+para fixture y resultados con validación por fila. equipos_competencias extendida
+con torneo_id FK. Sidebar: Competencias > Inscripciones.
+7 E2E tests (4 Sprint 5.1 + 3 Sprint 5.2).
 
 **Gaps:** scouting con uso real (postergado), fixture automático (Sprint 5.3),
 tabla de posiciones (Sprint 5.4), carga de resultados (Sprint 5.5).
@@ -702,6 +705,13 @@ Historial referenciado en commits del repo. Listado resumido:
   Wizard 3 pasos, detalle 3 tabs. Sidebar "Competencias > Torneos".
   Atributos torneos.admin + torneos.cargador. RFC-002.
   Tag v0.20.0. 73 E2E (69 pass, 1 skip, 3 flaky pre-existing).
+- **Sprint FASE 5.2** — Inscripciones en torneos externos + CSV import.
+  equipos_competencias extendida con torneo_id FK. Atributo torneos.inscriptor.
+  Inscripciones CRUD (/admin/competencias/inscripciones). CSV importer
+  (papaparse) para fixture y resultados con validación por fila y error
+  reporting. Pantalla import en /admin/competencias/torneos/[id]/import.
+  Sidebar: Inscripciones bajo Competencias.
+  Tag v0.21.0. 76 E2E (72 pass, 1 skip, 3 flaky pre-existing).
 
 ---
 
