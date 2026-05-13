@@ -117,16 +117,19 @@ test.describe('Tactica', () => {
     const supabase = serviceRole()
 
     // Fixture: add a player to the team
-    const { data: persona } = await supabase
+    const dniUnique = `E2E${Date.now()}`
+    const { data: persona, error: errPersona } = await supabase
       .from('personas')
       .insert({
         tenant_id: TENANT,
         nombre: 'Jugador',
         apellido: 'TacticaE2E',
-        tipo_persona: 'deportista',
+        tipo_documento: 'dni',
+        numero_documento: dniUnique,
       })
       .select('id')
       .single()
+    if (errPersona) throw new Error(`Persona insert failed: ${errPersona.message}`)
 
     await supabase.from('personas_equipos').insert({
       tenant_id: TENANT,
