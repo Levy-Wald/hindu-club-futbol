@@ -156,6 +156,19 @@ test.describe('Tactica', () => {
     // Modal should close, slot should show player
     await expect(page.getByTestId('modal-asignar')).not.toBeVisible({ timeout: 5000 })
 
+    // Wait for save to complete (Guardando... disappears)
+    await expect(page.getByText('Guardando...')).not.toBeVisible({ timeout: 10000 })
+
+    // Re-fetch esquemaId (formation change may have created a new one)
+    const { data: latestEsquema } = await supabase
+      .from('esquemas_tacticos')
+      .select('id')
+      .eq('evento_id', eventoId!)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+    esquemaId = latestEsquema!.id
+
     // Verify in DB
     const { data: posiciones } = await supabase
       .from('esquema_posiciones')
