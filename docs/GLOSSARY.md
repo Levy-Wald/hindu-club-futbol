@@ -323,6 +323,14 @@ duración arrastrando bordes. Sprint 4.2.
 vista semanal para cambiar su hora de inicio o fin sin moverlo de día.
 Reutiliza `moverEventoAction` (misma action que para mover).
 
+**Amistoso.** Partido contra club externo no vinculado a torneo oficial.
+Tipo de evento (`tipo_evento_slug='amistoso'`) con organizador integrado
+que incluye logística, nómina del rival y plantel propio. Sprint 4.4.
+
+**Logística del amistoso.** Datos operativos del amistoso guardados en
+`eventos.metadata.logistica_amistoso` (jsonb): colores de camiseta,
+contacto del rival, observaciones. No tabla propia.
+
 **Plan de entrenamiento.** Planificación de un entrenamiento con objetivo,
 intensidad general y bloques ordenados de ejercicios. 1:1 con un evento de
 tipo `entrenamiento`. Vive en `entrenamiento_planes` con UNIQUE(evento_id).

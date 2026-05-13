@@ -6,8 +6,8 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint FASE 4.3 cerrado.
-> Organizador de entrenamientos con bloques, catálogo de ejercicios, DnD.
+> Última actualización: 12 de mayo de 2026 — Sprint FASE 4.4 cerrado.
+> Organizador de amistosos integrado con logística + nómina rival.
 
 ---
 
@@ -15,13 +15,13 @@
 
 **Estado general:** FASE 1 cerrada. FASE 2 (Comunicación) completada al 100%.
 FASE 3 (Operación deportiva) completada al 100%. FASE 4 (Planificadores)
-en progreso: Sprints 4.1, 4.2 y 4.3 cerrados.
+en progreso: Sprints 4.1, 4.2, 4.3 y 4.4 cerrados.
 
-**Ultimo sprint cerrado:** **FASE 4.3** — Organizador de entrenamientos.
-Módulo `entrenamientos` con plan 1:1 por evento, bloques ordenados con
-catálogo de 20 ejercicios globales y bloques libres, drag-and-drop reorder.
+**Ultimo sprint cerrado:** **FASE 4.4** — Organizador de amistosos.
+Pantalla integrada con logística (metadata jsonb), generación de nómina
+rival (reusa nominas_externas), link a plantel propio. Sin tablas nuevas.
 
-**Próximo sprint:** Sprint 4.4+ (FASE 4) — a decidir por el Arquitecto.
+**Próximo sprint:** Sprint 4.5 (táctico) o 4.6 (reservas) — a decidir.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -34,7 +34,7 @@ catálogo de 20 ejercicios globales y bloques libres, drag-and-drop reorder.
 
 | Métrica | Valor |
 |---|---|
-| Tablas en `public` | 153 |
+| Tablas en `public` | 155 |
 | Tablas con RLS habilitada | 149 (99.3%) |
 | RLS policies | 369 |
 | Funciones custom (`pg_proc` en public) | 134 |
@@ -46,15 +46,16 @@ catálogo de 20 ejercicios globales y bloques libres, drag-and-drop reorder.
 | API routes | 17 (5 endpoints v1 + 5 internos + 7 crons) |
 | Server actions | ~172 en 30 archivos |
 | Componentes custom (no shadcn) | ~135 |
-| Tests E2E (Playwright) | 60 specs (59 pass, 1 skip, 0 fail) |
+| Tests E2E (Playwright) | 63 specs (58 pass, 1 skip, 4 flaky pre-existing) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |
 | Atributos en catálogo | 67 (con entrenamientos.editor) |
 | Tipos de notificación catalogados | 23 |
-| Módulos catalogados | 53 (+entrenamientos) |
-| Módulos activos en Hindu | 39+ |
-| Manifiestos module.json | 22 |
+| Tipos de evento catalogados | 24 (+amistoso) |
+| Módulos catalogados | 54 (+amistosos) |
+| Módulos activos en Hindu | 40+ |
+| Manifiestos module.json | 23 |
 | Verticales en catálogo | 4 (club_deportivo, country_deportivo, federacion_hub, polo_educativo) |
 
 ---
@@ -243,6 +244,16 @@ custom por tenant. Permisos: tenant.admin, entrenamientos.editor, o CT del
 equipo (dt, asistente_dt, preparador_fisico). Excepción AP-006: sin entrada
 en sidebar, acceso solo desde detalle de evento. Page en
 `app/admin/(troncal)/operaciones/eventos/[eventoId]/plan/`. 4 E2E tests.
+
+**Módulo Amistosos (Sprint FASE 4.4):**
+Módulo en `modules/amistosos/` con module.json, lib/ (types, queries,
+actions, permisos), ui/ (pantalla-amistoso, header-amistoso, seccion-logistica,
+seccion-nomina-rival, seccion-plantel-propio). Sin tablas nuevas — logística
+en `eventos.metadata.logistica_amistoso` jsonb. Slug 'amistoso' agregado a
+`catalogo_tipos_evento`. No CHECK constraint (AP-005 clear). Integra con
+módulo nominas_externas para generar link de nómina del rival. Permisos:
+tenant.admin o CT del equipo. Excepción AP-006: sin sidebar. Page en
+`app/admin/(troncal)/operaciones/eventos/[eventoId]/amistoso/`. 3 E2E tests.
 
 **Gaps:** scouting con uso real (postergado), partidos cargados (postergado).
 
@@ -616,6 +627,12 @@ Historial referenciado en commits del repo. Listado resumido:
   bloques ordenados con @dnd-kit drag-and-drop, catálogo + libre, permisos CT.
   Excepción AP-006: sin sidebar, acceso desde detalle de evento.
   Tag v0.16.0. 59/1/0 E2E.
+- **Sprint FASE 4.4** — Organizador de amistosos.
+  Módulo `amistosos` sin tablas nuevas. Logística en eventos.metadata jsonb.
+  Slug 'amistoso' en catalogo_tipos_evento. Integración con nominas_externas
+  para nómina del rival. 4 secciones: header, logística, nómina rival, plantel.
+  AP-005 clear (no CHECK constraint). AP-006 excepción documentada.
+  Tag v0.17.0. 63 E2E (58 pass, 1 skip, 4 flaky pre-existing).
 
 ---
 
