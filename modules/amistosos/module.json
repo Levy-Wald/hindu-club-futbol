@@ -1,0 +1,23 @@
+{
+  "slug": "amistosos",
+  "name": "Organizador de amistosos",
+  "version": "1.0.0",
+  "category": "operaciones",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas", "eventos"],
+  "depends_on_modules": ["asistencias"],
+  "soft_depends_on_modules": ["nominas_externas", "planificadores"],
+  "owns_tables": [],
+  "owns_catalogs": [],
+  "permissions_required": ["tenant.admin"],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": ["/admin/operaciones/eventos/[eventoId]/amistoso"],
+  "public_routes": [],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null,
+  "sidebar_exception": "Modulo accesible solo desde detalle de evento tipo amistoso. AP-006 excepcion documentada."
+}
