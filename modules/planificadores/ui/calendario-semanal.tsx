@@ -10,6 +10,7 @@ import { moverEventoAction } from '../lib/actions'
 import { ModalDetalleEvento } from './modal-detalle-evento'
 import { ModalMoverRecurrente } from './modal-mover-recurrente'
 import { WarningOverlap } from './warning-overlap'
+import { CrearEventoDialog } from './crear-evento-dialog'
 import type { EventoCalendar, ConflictoOverlap, MoverEventoScope } from '../lib/types'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
@@ -45,11 +46,15 @@ type PendienteDrop = {
 export function CalendarioSemanal({
   eventos: eventosIniciales,
   fechaInicioStr,
+  sedes = [],
+  equipos = [],
 }: {
   eventos: EventoCalendar[]
   fechaInicioStr: string // 'yyyy-MM-dd' — constructed to Date on client to avoid timezone shift
   personaId: string
   tenantId: string
+  sedes?: { id: string; nombre: string }[]
+  equipos?: { id: string; nombre: string }[]
 }) {
   const fechaInicio = useMemo(() => new Date(`${fechaInicioStr}T12:00:00`), [fechaInicioStr])
   const router = useRouter()
@@ -185,8 +190,11 @@ export function CalendarioSemanal({
   const minTime = useMemo(() => new Date(0, 0, 0, 6, 0, 0), [])
   const maxTime = useMemo(() => new Date(0, 0, 0, 23, 0, 0), [])
 
+  const [crearEventoOpen, setCrearEventoOpen] = useState(false)
+
   const handleSelectSlot = useCallback((slotInfo: SlotInfo) => {
     setNuevoEventoSlot({ start: slotInfo.start, end: slotInfo.end })
+    setCrearEventoOpen(true)
   }, [])
 
   const handleNuevoEvento = useCallback(() => {
@@ -194,6 +202,7 @@ export function CalendarioSemanal({
     const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() + 1, 0, 0)
     const end = new Date(start.getTime() + 60 * 60 * 1000)
     setNuevoEventoSlot({ start, end })
+    setCrearEventoOpen(true)
   }, [])
 
   return (
@@ -209,25 +218,15 @@ export function CalendarioSemanal({
         </button>
       </div>
 
-      {nuevoEventoSlot && (
-        <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-md text-sm">
-          <div className="flex items-center justify-between">
-            <span>
-              Nuevo evento: {format(nuevoEventoSlot.start, 'dd/MM HH:mm')} - {format(nuevoEventoSlot.end, 'HH:mm')}
-            </span>
-            <button
-              type="button"
-              onClick={() => setNuevoEventoSlot(null)}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              Cerrar
-            </button>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Funcionalidad de creacion de eventos disponible en Sprint A2.
-          </p>
-        </div>
-      )}
+      <CrearEventoDialog
+        open={crearEventoOpen}
+        onOpenChange={(v) => { setCrearEventoOpen(v); if (!v) setNuevoEventoSlot(null) }}
+        defaultFecha={nuevoEventoSlot ? format(nuevoEventoSlot.start, 'yyyy-MM-dd') : undefined}
+        defaultHoraInicio={nuevoEventoSlot ? format(nuevoEventoSlot.start, 'HH:mm') : undefined}
+        defaultHoraFin={nuevoEventoSlot ? format(nuevoEventoSlot.end, 'HH:mm') : undefined}
+        sedes={sedes}
+        equipos={equipos}
+      />
 
       {isTouch && (
         <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-md text-sm text-blue-700 dark:text-blue-300">

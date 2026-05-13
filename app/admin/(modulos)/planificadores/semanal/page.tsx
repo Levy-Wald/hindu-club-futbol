@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import { TENANT_ID } from '@/lib/tenant'
 import { canVerPlanificador } from '@/modules/planificadores/lib/permisos'
 import { obtenerEventosPorSemana } from '@/modules/planificadores/lib/queries'
 import { CalendarioSemanal } from '@/modules/planificadores/ui/calendario-semanal'
@@ -35,7 +37,14 @@ export default async function PlanificadorSemanalPage(props: {
     : startOfWeek(new Date(), { weekStartsOn: 1 })
 
   const fechaInicioStr = format(fechaInicio, 'yyyy-MM-dd')
-  const eventos = await obtenerEventosPorSemana(fechaInicio, persona.tenant_id)
+  const tenant_id = persona.tenant_id ?? TENANT_ID
+  const service = createServiceRoleClient()
+
+  const [eventos, sedesResult, equiposResult] = await Promise.all([
+    obtenerEventosPorSemana(fechaInicio, tenant_id),
+    service.from('sedes').select('id, nombre').eq('tenant_id', tenant_id).is('deleted_at', null).order('nombre'),
+    service.from('equipos').select('id, nombre').eq('tenant_id', tenant_id).is('deleted_at', null).order('nombre'),
+  ])
 
   return (
     <div className="container mx-auto p-4">
@@ -47,7 +56,9 @@ export default async function PlanificadorSemanalPage(props: {
         eventos={eventos}
         fechaInicioStr={fechaInicioStr}
         personaId={persona.id}
-        tenantId={persona.tenant_id}
+        tenantId={tenant_id}
+        sedes={sedesResult.data ?? []}
+        equipos={equiposResult.data ?? []}
       />
     </div>
   )

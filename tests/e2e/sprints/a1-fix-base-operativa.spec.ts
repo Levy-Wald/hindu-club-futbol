@@ -110,9 +110,10 @@ test.describe('Sprint A1 — Fix Base Operativa + Espacios', () => {
     await expect(btn).toBeVisible()
     await btn.click()
 
-    // Verify the nuevo evento banner appears
-    await expect(page.getByText('Nuevo evento:')).toBeVisible({ timeout: 5000 })
-    await expect(page.getByText('Sprint A2')).toBeVisible()
+    // Verify the crear evento dialog opens
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('dialog').getByText('Nuevo evento')).toBeVisible()
+    await expect(page.locator('#ev-titulo')).toBeVisible()
 
     // Screenshot
     await page.screenshot({ path: 'sprint-a1-screenshots/planificador-nuevo-evento.png', fullPage: true })

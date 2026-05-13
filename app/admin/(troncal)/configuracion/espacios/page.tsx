@@ -1,17 +1,30 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { TENANT_ID } from '@/lib/tenant'
-import { listarEspacios } from '@/modules/espacios/lib/queries'
-import { Button } from '@/components/ui/button'
+import { listarEspacios, listarTiposEspacio } from '@/modules/espacios/lib/queries'
 import { Badge } from '@/components/ui/badge'
-import { Plus, LayoutDashboard } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { LayoutDashboard } from 'lucide-react'
+import { CrearEspacioDialog } from '@/modules/espacios/ui/crear-espacio-dialog'
+import { createServiceRoleClient } from '@/lib/supabase/service-role'
 
 export default async function EspaciosPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const espacios = await listarEspacios(TENANT_ID)
+  const [espacios, tiposEspacio] = await Promise.all([
+    listarEspacios(TENANT_ID),
+    listarTiposEspacio(),
+  ])
+
+  const service = createServiceRoleClient()
+  const { data: sedes } = await service
+    .from('sedes')
+    .select('id, nombre')
+    .eq('tenant_id', TENANT_ID)
+    .is('deleted_at', null)
+    .order('nombre')
 
   return (
     <div className="container mx-auto p-4 max-w-5xl" data-testid="pantalla-espacios">
@@ -20,10 +33,10 @@ export default async function EspaciosPage() {
           <h1 className="text-2xl font-bold">Espacios</h1>
           <p className="text-sm text-muted-foreground">Lugares fisicos asignables a eventos y reservas</p>
         </div>
-        <Button data-testid="btn-nuevo-espacio">
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo espacio
-        </Button>
+        <CrearEspacioDialog
+          sedes={sedes ?? []}
+          tiposEspacio={tiposEspacio}
+        />
       </div>
 
       {espacios.length === 0 ? (

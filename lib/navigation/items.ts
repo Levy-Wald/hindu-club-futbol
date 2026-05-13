@@ -26,15 +26,12 @@ import {
   ClipboardList,
   KeyRound,
   FileSpreadsheet,
-  CalendarRange,
   CalendarCheck,
   Store,
-  Package,
   Shirt,
   HeartPulse,
   ShoppingBag,
   MapPin,
-  Lock,
 } from 'lucide-react'
 
 export interface NavItemDef {
@@ -81,9 +78,17 @@ export const troncalSection: NavSectionDef = {
   items: [
     { label: 'Personas', href: '/admin/personas', icon: Users },
     { label: 'Entidades', href: '/admin/entidades', icon: Building2 },
-    { label: 'Calendario', href: '/admin/operaciones', icon: Calendar },
   ],
   collapsibles: [
+    {
+      label: 'Operaciones',
+      icon: Calendar,
+      activeCheck: (p) => p.startsWith('/admin/operaciones') || p.startsWith('/admin/planificadores'),
+      subItems: [
+        { label: 'Calendario', href: '/admin/operaciones', icon: Calendar },
+        { label: 'Planificador', href: '/admin/planificadores/semanal', icon: CalendarDays },
+      ],
+    },
     {
       label: 'Configuracion',
       icon: Settings,
@@ -126,7 +131,6 @@ export const crossVerticalSection: NavSectionDef = {
   label: 'Cross-vertical',
   testId: 'sidebar-section-cross-vertical',
   items: [
-    { label: 'Asistencias', href: '/admin/operaciones', icon: ClipboardCheck },
     { label: 'Reservas', href: '/admin/reservas', icon: CalendarCheck },
     { label: 'POS', href: '/admin/concesiones', icon: Store },
     { label: 'Inventario', href: '/admin/utileria', icon: Shirt },
@@ -168,15 +172,6 @@ export const ccbpSection: NavSectionDef = {
         { label: 'Torneos', href: '/admin/competencias/torneos', icon: Trophy },
         { label: 'Inscripciones', href: '/admin/competencias/inscripciones', icon: ClipboardCheck },
         { label: 'Estadisticas', href: '/admin/competencias/stats/jugadores', icon: BarChart3 },
-      ],
-    },
-    {
-      label: 'Planificadores',
-      icon: CalendarRange,
-      activeCheck: (p) => p.startsWith('/admin/planificadores'),
-      subItems: [
-        { label: 'Mensual', href: '/admin/planificadores/mensual', icon: CalendarRange },
-        { label: 'Semanal', href: '/admin/planificadores/semanal', icon: CalendarDays },
       ],
     },
   ],

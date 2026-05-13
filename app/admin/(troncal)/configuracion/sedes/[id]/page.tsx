@@ -3,9 +3,12 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { TENANT_ID } from '@/lib/tenant'
+import { listarTiposEspacio } from '@/modules/espacios/lib/queries'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, MapPin } from 'lucide-react'
+import { CrearEspacioDialog } from '@/modules/espacios/ui/crear-espacio-dialog'
+import { SedeFormDialog } from '../_components/sede-form-dialog'
 
 export default async function SedeDetallePage({
   params,
@@ -29,13 +32,18 @@ export default async function SedeDetallePage({
 
   if (!sede) notFound()
 
-  const { data: espacios } = await service
-    .from('espacios')
-    .select('id, nombre, tipo_slug, capacidad_personas, activo')
-    .eq('sede_id', id)
-    .eq('tenant_id', TENANT_ID)
-    .is('deleted_at', null)
-    .order('nombre')
+  const [espaciosResult, tiposEspacio] = await Promise.all([
+    service
+      .from('espacios')
+      .select('id, nombre, tipo_slug, capacidad_personas, activo')
+      .eq('sede_id', id)
+      .eq('tenant_id', TENANT_ID)
+      .is('deleted_at', null)
+      .order('nombre'),
+    listarTiposEspacio(),
+  ])
+
+  const espacios = espaciosResult.data
 
   const direccion = sede.direccion as Record<string, string> | null
   const dirStr = direccion?.calle
@@ -58,16 +66,29 @@ export default async function SedeDetallePage({
             </h1>
             <p className="text-sm text-muted-foreground">{dirStr}</p>
           </div>
-          <Button variant="outline">Editar</Button>
+          <SedeFormDialog
+            mode="edit"
+            sede={{
+              id: sede.id,
+              nombre: sede.nombre,
+              slug: sede.slug,
+              direccion: direccion,
+            }}
+            triggerRender={<Button variant="outline" />}
+            triggerLabel="Editar"
+          />
         </div>
       </div>
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Espacios</h2>
-          <Button size="sm" data-testid="btn-nuevo-espacio">
-            + Nuevo espacio en esta sede
-          </Button>
+          <CrearEspacioDialog
+            sedes={[{ id: sede.id, nombre: sede.nombre }]}
+            tiposEspacio={tiposEspacio}
+            sedeIdPreseleccionada={sede.id}
+            label="Nuevo espacio en esta sede"
+          />
         </div>
 
         {(!espacios || espacios.length === 0) ? (

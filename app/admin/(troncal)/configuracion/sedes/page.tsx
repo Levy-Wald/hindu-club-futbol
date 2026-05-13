@@ -3,9 +3,9 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { TENANT_ID } from '@/lib/tenant'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { MapPin, Plus, ChevronRight } from 'lucide-react'
+import { MapPin, ChevronRight } from 'lucide-react'
+import { SedeFormDialog } from './_components/sede-form-dialog'
 
 export default async function SedesPage() {
   const supabase = await createClient()
@@ -45,10 +45,7 @@ export default async function SedesPage() {
           <h1 className="text-2xl font-bold">Sedes</h1>
           <p className="text-sm text-muted-foreground">Lugares fisicos del tenant</p>
         </div>
-        <Button data-testid="btn-nueva-sede">
-          <Plus className="h-4 w-4 mr-2" />
-          Nueva sede
-        </Button>
+        <SedeFormDialog mode="create" />
       </div>
 
       {(!sedes || sedes.length === 0) ? (
