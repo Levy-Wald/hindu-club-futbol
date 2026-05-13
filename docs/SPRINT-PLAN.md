@@ -86,6 +86,7 @@ FASE 3 completada al 100% el 2026-05-12.
 | 4.2 | Planificador semanal con grilla + resize: grilla 6AM-11PM, drag move + resize, toggle Mes/Semana, sidebar Semanal | `v0.15.0` | 56/1/0 | Cerrado |
 | 4.3 | Organizador de entrenamientos: módulo entrenamientos, 3 tablas, 20 ejercicios globales, plan 1:1 evento, bloques DnD, permisos CT | `v0.16.0` | 60/1/0 | Cerrado |
 | 4.4 | Organizador de amistosos: logística en metadata jsonb, integración nominas_externas, slug 'amistoso', sin tablas nuevas | `v0.17.0` | 63/1/0 | Cerrado |
+| 4.5 | Organizador táctico: SVG cancha visual, 5 formaciones, click-to-assign, panel plantel, reusa esquemas_tacticos, sin tablas nuevas | `v0.18.0` | 66/1/0 | Cerrado |
 
 ---
 
@@ -97,7 +98,6 @@ Pendiente de asignación por el Arquitecto.
 
 ## Proximos en cola
 
-- Sprint 4.5: Planificador táctico
 - Sprint 4.6: Reservas de cancha
 
 ---

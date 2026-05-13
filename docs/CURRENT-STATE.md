@@ -6,8 +6,8 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint FASE 4.4 cerrado.
-> Organizador de amistosos integrado con logística + nómina rival.
+> Última actualización: 12 de mayo de 2026 — Sprint FASE 4.5 cerrado.
+> Organizador táctico visual con SVG cancha y asignación de jugadores.
 
 ---
 
@@ -15,13 +15,14 @@
 
 **Estado general:** FASE 1 cerrada. FASE 2 (Comunicación) completada al 100%.
 FASE 3 (Operación deportiva) completada al 100%. FASE 4 (Planificadores)
-en progreso: Sprints 4.1, 4.2, 4.3 y 4.4 cerrados.
+en progreso: Sprints 4.1, 4.2, 4.3, 4.4 y 4.5 cerrados.
 
-**Ultimo sprint cerrado:** **FASE 4.4** — Organizador de amistosos.
-Pantalla integrada con logística (metadata jsonb), generación de nómina
-rival (reusa nominas_externas), link a plantel propio. Sin tablas nuevas.
+**Ultimo sprint cerrado:** **FASE 4.5** — Organizador táctico.
+SVG cancha visual con 5 formaciones hardcoded, slots por línea con colores,
+selector de formación, modal de asignación, panel plantel lateral. Reusa
+esquemas_tacticos + esquema_posiciones existentes. Sin tablas nuevas.
 
-**Próximo sprint:** Sprint 4.5 (táctico) o 4.6 (reservas) — a decidir.
+**Próximo sprint:** Sprint 4.6 (reservas de cancha) — a decidir.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -42,20 +43,20 @@ rival (reusa nominas_externas), link a plantel propio. Sin tablas nuevas.
 | VIEWs | 28 |
 | Storage buckets | 6 (incl. private-utileria-fotos) |
 | Migrations consolidadas | 1 (init) + incrementales por sprint |
-| Páginas Next.js | 70 (8 públicas + 62 admin) |
+| Páginas Next.js | 71 (8 públicas + 63 admin) |
 | API routes | 17 (5 endpoints v1 + 5 internos + 7 crons) |
-| Server actions | ~172 en 30 archivos |
-| Componentes custom (no shadcn) | ~135 |
-| Tests E2E (Playwright) | 63 specs (58 pass, 1 skip, 4 flaky pre-existing) |
+| Server actions | ~175 en 31 archivos |
+| Componentes custom (no shadcn) | ~143 |
+| Tests E2E (Playwright) | 66 specs (61 pass, 1 skip, 4 flaky pre-existing) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |
 | Atributos en catálogo | 67 (con entrenamientos.editor) |
 | Tipos de notificación catalogados | 23 |
 | Tipos de evento catalogados | 24 (+amistoso) |
-| Módulos catalogados | 54 (+amistosos) |
+| Módulos catalogados | 55 (+tactica) |
 | Módulos activos en Hindu | 40+ |
-| Manifiestos module.json | 23 |
+| Manifiestos module.json | 24 |
 | Verticales en catálogo | 4 (club_deportivo, country_deportivo, federacion_hub, polo_educativo) |
 
 ---
@@ -181,8 +182,8 @@ nivel que los demás (no una "capa vertical" separada).
 | `categorias_equipo` | 0 | Esqueleto |
 | `canchas` | 0 | Esqueleto |
 | `equipos_competencias` | 0 | Esqueleto |
-| `esquemas_tacticos` | 0 | Esqueleto |
-| `esquema_posiciones` | 0 | Esqueleto |
+| `esquemas_tacticos` | 0 | Operativo — módulo táctico (Sprint FASE 4.5) |
+| `esquema_posiciones` | 0 | Operativo — posiciones por esquema (Sprint FASE 4.5) |
 | `partidos_detalle` | 0 | Esqueleto |
 | `scouting_fichas` | 0 | UI funcional, sin uso |
 | `eventos` | 0 | Esqueleto |
@@ -254,6 +255,18 @@ en `eventos.metadata.logistica_amistoso` jsonb. Slug 'amistoso' agregado a
 módulo nominas_externas para generar link de nómina del rival. Permisos:
 tenant.admin o CT del equipo. Excepción AP-006: sin sidebar. Page en
 `app/admin/(troncal)/operaciones/eventos/[eventoId]/amistoso/`. 3 E2E tests.
+
+**Módulo Táctico (Sprint FASE 4.5):**
+Módulo en `modules/tactica/` con module.json, lib/ (types, formaciones, queries,
+actions, permisos), ui/ (pantalla-tactica, editor-tactico, selector-formacion,
+cancha-visual, slot-jugador, panel-plantel, modal-asignar-jugador). SVG cancha
+vertical con slots posicionados por línea (arquero=amarillo, defensa=azul,
+mediocampo=verde, ataque=rojo). 5 formaciones hardcoded (4-4-2, 4-3-3, 4-2-3-1,
+3-5-2, 5-3-2). Click-to-assign vía modal. Panel plantel lateral con
+disponibles/asignados. Reusa tablas `esquemas_tacticos` y `esquema_posiciones`
+existentes — sin tablas nuevas. Solo para eventos tipo partido/amistoso.
+Permisos: tenant.admin o CT del equipo. Excepción AP-006: sin sidebar. Page en
+`app/admin/(troncal)/operaciones/eventos/[eventoId]/tactica/`. 3 E2E tests.
 
 **Gaps:** scouting con uso real (postergado), partidos cargados (postergado).
 
@@ -633,6 +646,13 @@ Historial referenciado en commits del repo. Listado resumido:
   para nómina del rival. 4 secciones: header, logística, nómina rival, plantel.
   AP-005 clear (no CHECK constraint). AP-006 excepción documentada.
   Tag v0.17.0. 63 E2E (58 pass, 1 skip, 4 flaky pre-existing).
+- **Sprint FASE 4.5** — Organizador táctico.
+  Módulo `tactica` sin tablas nuevas. SVG cancha visual con 5 formaciones
+  hardcoded (4-4-2, 4-3-3, 4-2-3-1, 3-5-2, 5-3-2), slots por línea con
+  colores, selector de formación, modal de asignación click-to-assign, panel
+  plantel lateral. Reusa esquemas_tacticos + esquema_posiciones existentes.
+  Solo para eventos tipo partido/amistoso. AP-006 excepción documentada.
+  Tag v0.18.0. 66 E2E (61 pass, 1 skip, 4 flaky pre-existing).
 
 ---
 

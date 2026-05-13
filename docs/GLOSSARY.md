@@ -261,8 +261,18 @@ externas. FASE 5 del roadmap.
 
 **Cancha.** Espacio físico donde se entrena o juega. Vive en `canchas`.
 
-**Esquema táctico.** Formación deportiva (4-4-2, 4-3-3, etc.) usada por un
-equipo. Vive en `esquemas_tacticos`.
+**Esquema táctico.** Formación deportiva (4-4-2, 4-3-3, etc.) con asignación
+de jugadores a posiciones (slots). Vive en `esquemas_tacticos` (esquema) +
+`esquema_posiciones` (jugador→slot). Visualizado como SVG cancha con slots
+por línea (arquero, defensa, mediocampo, ataque). Sprint FASE 4.5.
+
+**Formación.** Distribución táctica de 11 jugadores (e.g. 4-4-2, 4-3-3).
+5 formaciones hardcoded en `modules/tactica/lib/formaciones.ts`. Cada
+formación define 11 slots con coordenadas x/y para renderizado visual.
+
+**Slot (táctico).** Posición dentro de una formación. Tiene slug único
+(e.g. `arquero`, `lateral_derecho`), coordenadas x/y para visualización,
+y línea de clasificación (arquero/defensa/mediocampo/ataque).
 
 **Partido.** Evento competitivo entre dos equipos. Vive en
 `partidos_detalle`.
