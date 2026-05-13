@@ -137,7 +137,7 @@ test.describe('Tactica', () => {
       equipo_id: equipoId!,
       rol_equipo_slug: 'jugador',
       activo: true,
-      numero_camiseta: '10',
+      dorsal: 10,
     })
 
     await page.goto(`/admin/operaciones/eventos/${eventoId}/tactica`)

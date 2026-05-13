@@ -86,11 +86,10 @@ export async function obtenerPlantelParaEvento(
 
   const { data: miembros } = await supabase
     .from('personas_equipos')
-    .select('persona_id, numero_camiseta, posicion_habitual')
+    .select('persona_id, dorsal, posicion')
     .eq('equipo_id', evento.equipo_id)
     .eq('tenant_id', tenant_id)
     .eq('activo', true)
-    .is('deleted_at', null)
     .in('rol_equipo_slug', ['jugador', 'capitan', 'subcapitan'])
 
   if (!miembros || miembros.length === 0) return []
@@ -113,8 +112,8 @@ export async function obtenerPlantelParaEvento(
       persona_id: m.persona_id,
       nombre: personasMap[m.persona_id].nombre,
       apellido: personasMap[m.persona_id].apellido,
-      numero_camiseta: m.numero_camiseta ?? null,
-      posicion_habitual: m.posicion_habitual ?? null,
+      numero_camiseta: m.dorsal ? String(m.dorsal) : null,
+      posicion_habitual: m.posicion ?? null,
     }))
     .sort((a, b) => `${a.apellido} ${a.nombre}`.localeCompare(`${b.apellido} ${b.nombre}`))
 }

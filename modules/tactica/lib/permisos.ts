@@ -40,7 +40,6 @@ export async function canEditarTactica(
     .eq('equipo_id', evento.equipo_id)
     .in('rol_equipo_slug', ['dt', 'asistente_dt', 'preparador_fisico'])
     .eq('activo', true)
-    .is('deleted_at', null)
     .maybeSingle()
 
   return !!rol
