@@ -196,11 +196,13 @@ test.describe('Torneos', () => {
     expect(cat).not.toBeNull()
     categoriaId = cat!.id
 
-    // Get 2 equipos propios
+    // Get 2 equipos propios — use unique names to avoid strict mode violations
     const { data: equipos } = await supabase
       .from('equipos')
       .select('id, nombre')
       .eq('tenant_id', TENANT)
+      .ilike('nombre', 'FACCMA%')
+      .order('nombre')
       .limit(2)
 
     expect(equipos!.length).toBeGreaterThanOrEqual(2)
@@ -226,8 +228,8 @@ test.describe('Torneos', () => {
 
       // Tab propio (default) — wait for options to load
       await page.getByTestId('select-equipo-propio').click()
-      await expect(page.getByRole('option', { name: equipos![i].nombre })).toBeVisible({ timeout: 5000 })
-      await page.getByRole('option', { name: equipos![i].nombre }).click()
+      await expect(page.getByRole('option', { name: equipos![i].nombre }).first()).toBeVisible({ timeout: 5000 })
+      await page.getByRole('option', { name: equipos![i].nombre }).first().click()
 
       await page.getByTestId('btn-inscribir-equipo').click()
       await expect(page.getByTestId('modal-agregar-equipo')).not.toBeVisible({ timeout: 10000 })
