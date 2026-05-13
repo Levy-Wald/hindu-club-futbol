@@ -6,8 +6,8 @@
 > **Code mantiene este documento.** Lo actualiza al final de cada sprint
 > según R-PE6 de `PROMPT-ENVELOPE.md`.
 >
-> Última actualización: 12 de mayo de 2026 — Sprint FASE 4.2 cerrado.
-> Planificador semanal con grilla + drag-and-drop + resize.
+> Última actualización: 12 de mayo de 2026 — Sprint FASE 4.3 cerrado.
+> Organizador de entrenamientos con bloques, catálogo de ejercicios, DnD.
 
 ---
 
@@ -15,14 +15,13 @@
 
 **Estado general:** FASE 1 cerrada. FASE 2 (Comunicación) completada al 100%.
 FASE 3 (Operación deportiva) completada al 100%. FASE 4 (Planificadores)
-en progreso: Sprint 4.1 y 4.2 cerrados.
+en progreso: Sprints 4.1, 4.2 y 4.3 cerrados.
 
-**Ultimo sprint cerrado:** **FASE 4.2** — Planificador semanal con grilla
-horaria 6AM-11PM, drag-and-drop para mover eventos entre días, resize para
-cambiar duración. Toggle Mes/Semana en ambas vistas.
+**Ultimo sprint cerrado:** **FASE 4.3** — Organizador de entrenamientos.
+Módulo `entrenamientos` con plan 1:1 por evento, bloques ordenados con
+catálogo de 20 ejercicios globales y bloques libres, drag-and-drop reorder.
 
-**Próximo sprint:** Sprint 4.3 (FASE 4 — Organizador de entrenamientos)
-o 4.6 (Reservas de canchas) — a decidir por el Arquitecto.
+**Próximo sprint:** Sprint 4.4+ (FASE 4) — a decidir por el Arquitecto.
 
 **Deadline operativo:** 1 jun 2026 (prueba interna Hindu) · 1 jul 2026
 (full operativo + demo-ready).
@@ -35,7 +34,7 @@ o 4.6 (Reservas de canchas) — a decidir por el Arquitecto.
 
 | Métrica | Valor |
 |---|---|
-| Tablas en `public` | 150 |
+| Tablas en `public` | 153 |
 | Tablas con RLS habilitada | 149 (99.3%) |
 | RLS policies | 369 |
 | Funciones custom (`pg_proc` en public) | 134 |
@@ -47,15 +46,15 @@ o 4.6 (Reservas de canchas) — a decidir por el Arquitecto.
 | API routes | 17 (5 endpoints v1 + 5 internos + 7 crons) |
 | Server actions | ~172 en 30 archivos |
 | Componentes custom (no shadcn) | ~135 |
-| Tests E2E (Playwright) | 56 specs (55 pass, 1 skip, 0 fail) |
+| Tests E2E (Playwright) | 60 specs (59 pass, 1 skip, 0 fail) |
 | Tenants registrados | 1 (Hindu Club) |
 | Personas (Hindu) | 2,390 |
 | Equipos (Hindu) | 7 |
-| Atributos en catálogo | 66 (con planificadores.editor) |
+| Atributos en catálogo | 67 (con entrenamientos.editor) |
 | Tipos de notificación catalogados | 23 |
-| Módulos catalogados | 52 (+planificadores) |
+| Módulos catalogados | 53 (+entrenamientos) |
 | Módulos activos en Hindu | 39+ |
-| Manifiestos module.json | 21 |
+| Manifiestos module.json | 22 |
 | Verticales en catálogo | 4 (club_deportivo, country_deportivo, federacion_hub, polo_educativo) |
 
 ---
@@ -188,6 +187,9 @@ nivel que los demás (no una "capa vertical" separada).
 | `eventos` | 0 | Esqueleto |
 | `evento_invitados` | 0 | Polymorphic (persona/entidad/equipo), auto-poblado lazy desde plantel (Sprint FASE 3.1) |
 | `evento_asistencias` | 0 | 6 estados (pendiente/presente/ausente/tarde/justificado/lesionado), upsert idempotente (Sprint FASE 3.1) |
+| `catalogo_ejercicios` | 20 | 20 globales (tenant_id NULL), 7 categorías. UNIQUE(tenant_id, slug) (Sprint FASE 4.3) |
+| `entrenamiento_planes` | 0 | 1:1 con evento. UNIQUE(evento_id). Objetivo, intensidad, notas DT (Sprint FASE 4.3) |
+| `entrenamiento_plan_bloques` | 0 | Bloques ordenados. CHECK ejercicio_id OR nombre_personalizado. CASCADE delete (Sprint FASE 4.3) |
 | `personas_historial_categoria_deportiva` | 0 | Esqueleto |
 | `personas_historial_padron` | 0 | Esqueleto |
 | `personas_lesiones` | 0 | Esqueleto |
@@ -230,6 +232,17 @@ Dos vistas: mensual (react-big-calendar month + drag-and-drop) y semanal
 ambas pantallas. Reutiliza `moverEventoAction` para mover y redimensionar.
 Permisos: tenant.admin, planificadores.editor, o roles CT del equipo.
 Pages: `/admin/planificadores/mensual`, `/admin/planificadores/semanal`.
+
+**Módulo Entrenamientos (Sprint FASE 4.3):**
+Módulo en `modules/entrenamientos/` con module.json, lib/ (types, queries,
+actions, permisos), ui/ (pantalla-plan, plan-header, lista-bloques-wrapper,
+lista-bloques, bloque-card, modal-agregar-bloque). Plan 1:1 con evento tipo
+entrenamiento (UNIQUE on evento_id). Bloques ordenados con drag-and-drop
+(@dnd-kit). Catálogo de 20 ejercicios globales (tenant_id NULL) + ejercicios
+custom por tenant. Permisos: tenant.admin, entrenamientos.editor, o CT del
+equipo (dt, asistente_dt, preparador_fisico). Excepción AP-006: sin entrada
+en sidebar, acceso solo desde detalle de evento. Page en
+`app/admin/(troncal)/operaciones/eventos/[eventoId]/plan/`. 4 E2E tests.
 
 **Gaps:** scouting con uso real (postergado), partidos cargados (postergado).
 
@@ -383,6 +396,7 @@ dia 6 de cada mes 8AM). `CRON_SECRET` configurada en Vercel (verificada Sprint 2
 | `catalogo_tipos_vehiculo` | 10 | Indirecto |
 | `catalogo_tipos_talle` | 20 | Indirecto |
 | `catalogo_categorias_movimiento` | 21 | Indirecto |
+| `catalogo_ejercicios` | 20 | No (global seed, tenant custom via code) |
 | `catalogo_planes_comerciales` | 3 | Sí |
 
 **Sin UI CRUD (gaps detectados):** `tipos_vehiculo`, `companias_seguro`,
@@ -595,6 +609,13 @@ Historial referenciado en commits del repo. Listado resumido:
   cobranza), multi-tenancy, dependencias externas, seguridad, performance,
   escalabilidad y deuda arquitectónica. Lista de docs vivos de 15 a 16.
   Tag v0.8.4.
+
+- **Sprint FASE 4.3** — Organizador de entrenamientos.
+  Módulo `entrenamientos` con 3 tablas (catalogo_ejercicios, entrenamiento_planes,
+  entrenamiento_plan_bloques), 20 ejercicios globales seed, plan 1:1 con evento,
+  bloques ordenados con @dnd-kit drag-and-drop, catálogo + libre, permisos CT.
+  Excepción AP-006: sin sidebar, acceso desde detalle de evento.
+  Tag v0.16.0. 59/1/0 E2E.
 
 ---
 

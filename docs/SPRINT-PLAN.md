@@ -84,18 +84,18 @@ FASE 3 completada al 100% el 2026-05-12.
 |---|---|---|---|---|
 | 4.1 | Planificador mensual con drag-and-drop: react-big-calendar, mover eventos, modal recurrentes, overlap warning, sidebar | `v0.14.0` | 53/1/0 | Cerrado |
 | 4.2 | Planificador semanal con grilla + resize: grilla 6AM-11PM, drag move + resize, toggle Mes/Semana, sidebar Semanal | `v0.15.0` | 56/1/0 | Cerrado |
+| 4.3 | Organizador de entrenamientos: módulo entrenamientos, 3 tablas, 20 ejercicios globales, plan 1:1 evento, bloques DnD, permisos CT | `v0.16.0` | 60/1/0 | Cerrado |
 
 ---
 
 ## Sprint actual
 
-Pendiente de asignación por el Arquitecto. Candidatos: Sprint 4.3 o 4.6.
+Pendiente de asignación por el Arquitecto.
 
 ---
 
 ## Proximos en cola
 
-- Sprint 4.3: Organizador de entrenamientos
 - Sprint 4.4: Organizador de amistosos
 - Sprint 4.5: Planificador táctico
 - Sprint 4.6: Reservas de cancha

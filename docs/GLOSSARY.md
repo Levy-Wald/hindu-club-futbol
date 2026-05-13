@@ -323,6 +323,21 @@ duración arrastrando bordes. Sprint 4.2.
 vista semanal para cambiar su hora de inicio o fin sin moverlo de día.
 Reutiliza `moverEventoAction` (misma action que para mover).
 
+**Plan de entrenamiento.** Planificación de un entrenamiento con objetivo,
+intensidad general y bloques ordenados de ejercicios. 1:1 con un evento de
+tipo `entrenamiento`. Vive en `entrenamiento_planes` con UNIQUE(evento_id).
+
+**Bloque de entrenamiento.** Unidad dentro de un plan: un ejercicio del
+catálogo o un bloque libre con nombre personalizado. Tiene orden, duración,
+repeticiones, series, intensidad override y notas. Vive en
+`entrenamiento_plan_bloques`. CHECK: debe tener `ejercicio_id` O
+`nombre_personalizado`.
+
+**Ejercicio (catálogo).** Actividad deportiva catalogada con categoría
+(calentamiento, técnica, físico, táctico, mental, enfriamiento), duración
+sugerida e intensidad. Vive en `catalogo_ejercicios`. `tenant_id` NULL =
+global (seed), non-null = personalizado del tenant.
+
 **Suscriptor.** Persona (jugador o no) que aporta económicamente a un fondo
 específico (ej: Fondo Fútbol). Modelado como atributo `suscriptor` +
 suscripción al plan correspondiente.
