@@ -56,7 +56,7 @@ export async function crearProducto(input: ProductoInput) {
   }
 
   const { data, error } = await supabase
-    .from('productos_servicios')
+    .from('productos')
     .insert({
       tenant_id: TENANT_ID,
       // Identidad
@@ -113,7 +113,7 @@ export async function editarProducto(productoId: string, input: ProductoInput) {
   }
 
   const { error } = await supabase
-    .from('productos_servicios')
+    .from('productos')
     .update({
       // Identidad
       nombre: input.nombre.trim(),
@@ -164,7 +164,7 @@ export async function toggleProductoActivo(productoId: string, activo: boolean) 
   const supabase = await createClient()
 
   const { error } = await supabase
-    .from('productos_servicios')
+    .from('productos')
     .update({ activo })
     .eq('id', productoId)
     .eq('tenant_id', TENANT_ID)
@@ -181,7 +181,7 @@ export async function eliminarProducto(productoId: string) {
   const supabase = await createClient()
 
   const { error } = await supabase
-    .from('productos_servicios')
+    .from('productos')
     .update({ deleted_at: new Date().toISOString(), activo: false })
     .eq('id', productoId)
     .eq('tenant_id', TENANT_ID)
@@ -198,7 +198,7 @@ export async function exportarProductos(filtros: { tipo?: string; search?: strin
   const supabase = await createClient()
 
   let query = supabase
-    .from('productos_servicios')
+    .from('productos')
     .select(`
       id, nombre, tipo, sku, ean13, ean14, marca, modelo, color, material, origen,
       unidad_medida, descripcion, descripcion_larga,
@@ -208,8 +208,8 @@ export async function exportarProductos(filtros: { tipo?: string; search?: strin
       activo, created_at,
       centro_costo:centros_costo(nombre),
       categoria:catalogo_categorias_movimiento(nombre),
-      cuenta_ingreso:plan_cuentas!productos_servicios_cuenta_ingreso_id_fkey(codigo, nombre),
-      cuenta_egreso:plan_cuentas!productos_servicios_cuenta_egreso_id_fkey(codigo, nombre)
+      cuenta_ingreso:plan_cuentas!fk_productos_cuenta_ingreso(codigo, nombre),
+      cuenta_egreso:plan_cuentas!fk_productos_cuenta_egreso(codigo, nombre)
     `)
     .eq('tenant_id', TENANT_ID)
     .is('deleted_at', null)

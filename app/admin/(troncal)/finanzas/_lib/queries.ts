@@ -177,7 +177,7 @@ export async function fetchMovimientos(filters?: {
       caja:cajas!caja_id(id, nombre),
       caja_destino:cajas!caja_destino_id(id, nombre),
       categoria:catalogo_categorias_movimiento(id, nombre, slug),
-      producto:productos_servicios(id, nombre),
+      producto:productos(id, nombre),
       medio_pago:medios_pago(id, nombre),
       centro_costo:centros_costo(id, nombre),
       persona:personas(id, nombre, apellido),
@@ -224,7 +224,7 @@ export async function fetchMovimiento(id: string) {
       caja:cajas!caja_id(id, nombre, tipo, moneda),
       caja_destino:cajas!caja_destino_id(id, nombre, tipo, moneda),
       categoria:catalogo_categorias_movimiento(id, nombre, slug),
-      producto:productos_servicios(id, nombre, tipo),
+      producto:productos(id, nombre, tipo),
       medio_pago:medios_pago(id, nombre, tipo),
       centro_costo:centros_costo(id, nombre, codigo),
       persona:personas(id, nombre, apellido, numero_documento),
@@ -251,7 +251,7 @@ export async function fetchProductos(tipo?: string) {
   const supabase = await createClient()
 
   let query = supabase
-    .from('productos_servicios')
+    .from('productos')
     .select(`
       *,
       cuenta_ingreso:plan_cuentas!cuenta_ingreso_id(id, codigo, nombre),
@@ -275,7 +275,7 @@ export async function fetchProducto(id: string) {
   const supabase = await createClient()
 
   const { data, error } = await supabase
-    .from('productos_servicios')
+    .from('productos')
     .select(`
       *,
       cuenta_ingreso:plan_cuentas!cuenta_ingreso_id(id, codigo, nombre),
@@ -302,7 +302,7 @@ export async function fetchCuotasPlanes() {
     .from('cuotas_planes')
     .select(`
       *,
-      producto:productos_servicios(id, nombre, tipo)
+      producto:productos(id, nombre, tipo)
     `)
     .eq('tenant_id', TENANT_ID)
     .order('nombre')
@@ -318,7 +318,7 @@ export async function fetchCuotasPlan(id: string) {
     .from('cuotas_planes')
     .select(`
       *,
-      producto:productos_servicios(id, nombre, tipo, precio, moneda)
+      producto:productos(id, nombre, tipo, precio, moneda)
     `)
     .eq('id', id)
     .eq('tenant_id', TENANT_ID)

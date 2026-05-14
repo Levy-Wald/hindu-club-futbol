@@ -29,6 +29,7 @@ type ActionResult<T = void> = ActionOk<T> | ActionErr
 // --- Producto Schemas ---
 
 const modosValidos = ['venta', 'alquiler', 'prestamo', 'gratis'] as const
+const tiposUsoValidos = ['reventa', 'uso_interno_consumible', 'uso_interno_bien_uso', 'servicio'] as const
 
 const productoSchema = z.object({
   sku: z.string().max(100).optional(),
@@ -37,6 +38,7 @@ const productoSchema = z.object({
   descripcion_corta: z.string().max(300).optional().or(z.literal('')),
   descripcion_larga: z.string().max(5000).optional().or(z.literal('')),
   tipo: z.enum(['producto', 'servicio']),
+  tipo_uso: z.enum(tiposUsoValidos).nullable().optional(),
   precio_base_ars: z.number().min(0).nullable().optional(),
   precio_base_usd: z.number().min(0).nullable().optional(),
   stock_simple: z.number().min(0).nullable().optional(),
@@ -52,6 +54,20 @@ const productoSchema = z.object({
   origen_pais: z.string().max(100).optional().or(z.literal('')),
   cantidad_por_bulto: z.number().int().positive().nullable().optional(),
   peso_kg: z.number().positive().nullable().optional(),
+  // Financial
+  cuenta_ingreso_id: z.string().uuid().nullable().optional(),
+  cuenta_egreso_id: z.string().uuid().nullable().optional(),
+  categoria_movimiento_id: z.string().uuid().nullable().optional(),
+  centro_costo_id: z.string().uuid().nullable().optional(),
+  es_arancelado: z.boolean().optional(),
+  es_comprable: z.boolean().optional(),
+  iva_compra: z.number().min(0).max(100).nullable().optional(),
+  iva_venta: z.number().min(0).max(100).nullable().optional(),
+  precio_compra: z.number().min(0).nullable().optional(),
+  stock_minimo: z.number().min(0).nullable().optional(),
+  cupo_maximo: z.number().int().positive().nullable().optional(),
+  instalacion: z.string().max(200).optional().or(z.literal('')),
+  moneda: z.string().max(10).optional(),
 })
 
 // --- Producto Actions ---
@@ -80,6 +96,7 @@ export async function crearProductoAction(input: z.infer<typeof productoSchema>)
       descripcion_corta: d.descripcion_corta?.trim() || null,
       descripcion_larga: d.descripcion_larga?.trim() || null,
       tipo: d.tipo,
+      tipo_uso: d.tipo_uso ?? null,
       precio_base_ars: d.precio_base_ars ?? null,
       precio_base_usd: d.precio_base_usd ?? null,
       stock_simple: d.tipo === 'producto' ? (d.stock_simple ?? null) : null,
@@ -94,6 +111,19 @@ export async function crearProductoAction(input: z.infer<typeof productoSchema>)
       origen_pais: d.origen_pais?.trim() || null,
       cantidad_por_bulto: d.cantidad_por_bulto ?? null,
       peso_kg: d.peso_kg ?? null,
+      cuenta_ingreso_id: d.cuenta_ingreso_id ?? null,
+      cuenta_egreso_id: d.cuenta_egreso_id ?? null,
+      categoria_movimiento_id: d.categoria_movimiento_id ?? null,
+      centro_costo_id: d.centro_costo_id ?? null,
+      es_arancelado: d.es_arancelado ?? false,
+      es_comprable: d.es_comprable ?? false,
+      iva_compra: d.iva_compra ?? 21,
+      iva_venta: d.iva_venta ?? 21,
+      precio_compra: d.precio_compra ?? null,
+      stock_minimo: d.stock_minimo ?? null,
+      cupo_maximo: d.cupo_maximo ?? null,
+      instalacion: d.instalacion?.trim() || null,
+      moneda: d.moneda || 'ARS',
     })
     .select('id')
     .single()
@@ -136,6 +166,7 @@ export async function editarProductoAction(input: {
       descripcion_corta: d.descripcion_corta?.trim() || null,
       descripcion_larga: d.descripcion_larga?.trim() || null,
       tipo: d.tipo,
+      tipo_uso: d.tipo_uso ?? null,
       precio_base_ars: d.precio_base_ars ?? null,
       precio_base_usd: d.precio_base_usd ?? null,
       stock_simple: d.tipo === 'producto' ? (d.stock_simple ?? null) : null,
@@ -150,6 +181,19 @@ export async function editarProductoAction(input: {
       origen_pais: d.origen_pais?.trim() || null,
       cantidad_por_bulto: d.cantidad_por_bulto ?? null,
       peso_kg: d.peso_kg ?? null,
+      cuenta_ingreso_id: d.cuenta_ingreso_id ?? null,
+      cuenta_egreso_id: d.cuenta_egreso_id ?? null,
+      categoria_movimiento_id: d.categoria_movimiento_id ?? null,
+      centro_costo_id: d.centro_costo_id ?? null,
+      es_arancelado: d.es_arancelado ?? false,
+      es_comprable: d.es_comprable ?? false,
+      iva_compra: d.iva_compra ?? 21,
+      iva_venta: d.iva_venta ?? 21,
+      precio_compra: d.precio_compra ?? null,
+      stock_minimo: d.stock_minimo ?? null,
+      cupo_maximo: d.cupo_maximo ?? null,
+      instalacion: d.instalacion?.trim() || null,
+      moneda: d.moneda || 'ARS',
     })
     .eq('id', input.id)
     .eq('tenant_id', tenant_id)

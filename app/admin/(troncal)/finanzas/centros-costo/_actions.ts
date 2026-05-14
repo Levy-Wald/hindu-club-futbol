@@ -323,7 +323,7 @@ export async function listarProductosPorCentro(centroId: string) {
   const supabase = await createClient()
 
   const { data, error } = await supabase
-    .from('productos_servicios')
+    .from('productos')
     .select('id, nombre, tipo, precio_base, moneda, activo')
     .eq('tenant_id', TENANT_ID)
     .eq('centro_costo_id', centroId)

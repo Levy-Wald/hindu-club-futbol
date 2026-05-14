@@ -2,6 +2,8 @@ export type ProductoTipo = 'producto' | 'servicio'
 
 export type ModoOperacion = 'venta' | 'alquiler' | 'prestamo' | 'gratis'
 
+export type TipoUso = 'reventa' | 'uso_interno_consumible' | 'uso_interno_bien_uso' | 'servicio'
+
 export type Producto = {
   id: string
   tenant_id: string
@@ -12,6 +14,7 @@ export type Producto = {
   descripcion_corta: string | null
   descripcion_larga: string | null
   tipo: ProductoTipo
+  tipo_uso: TipoUso | null
   precio_base_ars: number | null
   precio_base_usd: number | null
   stock_simple: number | null
@@ -27,6 +30,20 @@ export type Producto = {
   origen_pais: string | null
   cantidad_por_bulto: number | null
   peso_kg: number | null
+  // Financial / accounting
+  cuenta_ingreso_id: string | null
+  cuenta_egreso_id: string | null
+  categoria_movimiento_id: string | null
+  centro_costo_id: string | null
+  es_arancelado: boolean
+  es_comprable: boolean
+  iva_compra: number | null
+  iva_venta: number | null
+  precio_compra: number | null
+  stock_minimo: number | null
+  cupo_maximo: number | null
+  instalacion: string | null
+  moneda: string
   activo: boolean
   metadata: Record<string, unknown>
   created_at: string
@@ -50,6 +67,7 @@ export type ProductoVariante = {
   stock_simple_variante: number | null
   atributos: Record<string, string>
   imagen_url: string | null
+  talle_id: string | null
   activo: boolean
   created_at: string
   updated_at: string
@@ -115,6 +133,7 @@ export type CatalogoProductoRow = {
   nombre: string
   descripcion: string | null
   tipo: string
+  tipo_uso: TipoUso | null
   precio_ars: number | null
   stock: number | null
   unidad_medida_slug: string | null

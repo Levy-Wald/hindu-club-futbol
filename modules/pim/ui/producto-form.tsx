@@ -22,7 +22,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { Plus, ChevronDown } from 'lucide-react'
 import { crearProductoAction, editarProductoAction } from '../lib/actions'
-import type { Producto, ProductoCategoria, UnidadMedida, Marca, ModoOperacion } from '../lib/tipos'
+import type { Producto, ProductoCategoria, UnidadMedida, Marca, ModoOperacion, TipoUso } from '../lib/tipos'
 import { useRouter } from 'next/navigation'
 
 const MODOS_LABELS: Record<ModoOperacion, string> = {
@@ -30,6 +30,13 @@ const MODOS_LABELS: Record<ModoOperacion, string> = {
   alquiler: 'Alquiler',
   prestamo: 'Préstamo',
   gratis: 'Gratis',
+}
+
+const TIPO_USO_LABELS: Record<TipoUso, string> = {
+  reventa: 'Reventa',
+  uso_interno_consumible: 'Uso interno (consumible)',
+  uso_interno_bien_uso: 'Uso interno (bien de uso)',
+  servicio: 'Servicio',
 }
 
 interface ProductoFormDialogProps {
@@ -115,6 +122,16 @@ export function ProductoFormDialog({
   const [stock, setStock] = useState(producto?.stock_simple?.toString() ?? '')
   const [unidadSlug, setUnidadSlug] = useState(producto?.unidad_medida_slug ?? '')
 
+  // Clasificacion
+  const [tipoUso, setTipoUso] = useState<TipoUso | ''>(producto?.tipo_uso ?? '')
+
+  // Contabilidad
+  const [esArancelado, setEsArancelado] = useState(producto?.es_arancelado ?? false)
+  const [esComprable, setEsComprable] = useState(producto?.es_comprable ?? false)
+  const [ivaCompra, setIvaCompra] = useState(producto?.iva_compra?.toString() ?? '21')
+  const [ivaVenta, setIvaVenta] = useState(producto?.iva_venta?.toString() ?? '21')
+  const [moneda, setMoneda] = useState(producto?.moneda ?? 'ARS')
+
   // Categorias
   const [selectedCatIds, setSelectedCatIds] = useState<string[]>(
     producto?.categorias?.map((c) => c.id) ?? []
@@ -123,10 +140,11 @@ export function ProductoFormDialog({
   function resetForm() {
     if (mode === 'create') {
       setSku(''); setEan13(''); setEan14(''); setNombre(''); setTipo('producto'); setMarcaId('')
-      setDescCorta(''); setDescLarga('')
+      setTipoUso(''); setDescCorta(''); setDescLarga('')
       setMaterial(''); setColor(''); setMedidaTamano(''); setPesoKg('')
       setModosDisp(['venta']); setOrigenPais(''); setCantidadBulto('')
       setPrecioArs(''); setPrecioUsd(''); setStock(''); setUnidadSlug('')
+      setEsArancelado(false); setEsComprable(false); setIvaCompra('21'); setIvaVenta('21'); setMoneda('ARS')
       setSelectedCatIds([])
     }
     setError(null)
@@ -172,6 +190,7 @@ export function ProductoFormDialog({
         sku: sku.trim() || undefined,
         nombre: nombre.trim(),
         tipo,
+        tipo_uso: tipoUso || null,
         descripcion_corta: descCorta.trim() || '',
         descripcion_larga: descLarga.trim() || '',
         precio_base_ars: precioArs ? parseFloat(precioArs) : null,
@@ -189,6 +208,11 @@ export function ProductoFormDialog({
         origen_pais: origenPais.trim() || '',
         cantidad_por_bulto: cantidadBulto ? parseInt(cantidadBulto, 10) : null,
         peso_kg: pesoKg ? parseFloat(pesoKg) : null,
+        es_arancelado: esArancelado,
+        es_comprable: esComprable,
+        iva_compra: ivaCompra ? parseFloat(ivaCompra) : null,
+        iva_venta: ivaVenta ? parseFloat(ivaVenta) : null,
+        moneda: moneda || 'ARS',
       }
 
       const result =
@@ -296,7 +320,63 @@ export function ProductoFormDialog({
             )}
           </Section>
 
-          {/* Seccion 2: Descripcion */}
+          {/* Seccion 2: Clasificacion */}
+          <Section title="Clasificacion" testId="section-clasificacion">
+            <div className="space-y-1">
+              <Label htmlFor="tipo-uso-select">Tipo de uso</Label>
+              <Select value={tipoUso} onValueChange={(v) => setTipoUso((v ?? '') as TipoUso | '')}>
+                <SelectTrigger id="tipo-uso-select">
+                  <SelectValue placeholder="Sin clasificar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Sin clasificar</SelectItem>
+                  {(Object.entries(TIPO_USO_LABELS) as [TipoUso, string][]).map(([val, label]) => (
+                    <SelectItem key={val} value={val}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Define el tratamiento contable del producto</p>
+            </div>
+          </Section>
+
+          {/* Seccion 3: Contabilidad */}
+          <Section title="Contabilidad" testId="section-contabilidad">
+            <div className="grid grid-cols-2 gap-3">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox checked={esArancelado} onCheckedChange={(v) => setEsArancelado(!!v)} />
+                Arancelado
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox checked={esComprable} onCheckedChange={(v) => setEsComprable(!!v)} />
+                Comprable
+              </label>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="iva-compra">IVA compra %</Label>
+                <Input id="iva-compra" type="number" min="0" max="100" step="0.5" value={ivaCompra} onChange={(e) => setIvaCompra(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="iva-venta">IVA venta %</Label>
+                <Input id="iva-venta" type="number" min="0" max="100" step="0.5" value={ivaVenta} onChange={(e) => setIvaVenta(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="moneda-select">Moneda</Label>
+                <Select value={moneda} onValueChange={(v) => setMoneda(v ?? 'ARS')}>
+                  <SelectTrigger id="moneda-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ARS">ARS</SelectItem>
+                    <SelectItem value="USD">USD</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">Cuentas contables y centro de costo se configuran desde el detalle del producto.</p>
+          </Section>
+
+          {/* Seccion 4: Descripcion */}
           <Section title="Descripcion" testId="section-descripcion">
             <div className="space-y-1">
               <div className="flex items-center justify-between">

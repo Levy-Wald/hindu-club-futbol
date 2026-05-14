@@ -276,7 +276,7 @@ export async function crearProducto(formData: FormData): Promise<ActionResult> {
   const precio = precioRaw ? parseFloat(precioRaw) : 0
 
   const { data, error } = await supabase
-    .from('productos_servicios')
+    .from('productos')
     .insert({
       tenant_id: TENANT_ID,
       nombre,
@@ -331,7 +331,7 @@ export async function editarProducto(id: string, formData: FormData): Promise<Ac
   if (esAranceladoRaw !== null) updateData.es_arancelado = esAranceladoRaw === 'true'
 
   const { error } = await supabase
-    .from('productos_servicios')
+    .from('productos')
     .update(updateData)
     .eq('id', id)
     .eq('tenant_id', TENANT_ID)
@@ -347,7 +347,7 @@ export async function toggleProducto(id: string): Promise<ActionResult> {
 
   // Obtener estado actual
   const { data: producto, error: fetchError } = await supabase
-    .from('productos_servicios')
+    .from('productos')
     .select('activo')
     .eq('id', id)
     .eq('tenant_id', TENANT_ID)
@@ -358,7 +358,7 @@ export async function toggleProducto(id: string): Promise<ActionResult> {
   }
 
   const { error } = await supabase
-    .from('productos_servicios')
+    .from('productos')
     .update({ activo: !producto.activo })
     .eq('id', id)
     .eq('tenant_id', TENANT_ID)

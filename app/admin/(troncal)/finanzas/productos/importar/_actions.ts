@@ -24,7 +24,7 @@ export async function importarProductosBatch(
     // Dedup by SKU
     if (row.sku) {
       const { data: existing } = await supabase
-        .from('productos_servicios')
+        .from('productos')
         .select('id')
         .eq('tenant_id', TENANT_ID)
         .eq('sku', row.sku.trim())
@@ -40,7 +40,7 @@ export async function importarProductosBatch(
     // Dedup by EAN13
     if (!row.sku && row.ean13) {
       const { data: existing } = await supabase
-        .from('productos_servicios')
+        .from('productos')
         .select('id')
         .eq('tenant_id', TENANT_ID)
         .eq('ean13', row.ean13.trim())
@@ -84,7 +84,7 @@ export async function importarProductosBatch(
     insertData.es_arancelado = row.es_arancelado ? ['si', 'sí', '1', 'true', 'yes'].includes(row.es_arancelado.toLowerCase().trim()) : false
     insertData.es_comprable = row.es_comprable ? ['si', 'sí', '1', 'true', 'yes'].includes(row.es_comprable.toLowerCase().trim()) : false
 
-    const { error } = await supabase.from('productos_servicios').insert(insertData)
+    const { error } = await supabase.from('productos').insert(insertData)
 
     if (error) {
       errors.push({ row: i + 1, message: error.message })

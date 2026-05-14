@@ -106,6 +106,10 @@ export async function listarProductos(
       modos_disponibles: p.modos_disponibles ?? ['venta'],
       cantidad_por_bulto: p.cantidad_por_bulto ? Number(p.cantidad_por_bulto) : null,
       peso_kg: p.peso_kg ? Number(p.peso_kg) : null,
+      iva_compra: p.iva_compra ? Number(p.iva_compra) : null,
+      iva_venta: p.iva_venta ? Number(p.iva_venta) : null,
+      precio_compra: p.precio_compra ? Number(p.precio_compra) : null,
+      stock_minimo: p.stock_minimo ? Number(p.stock_minimo) : null,
       categorias: (links ?? [])
         .filter((l) => l.producto_id === p.id)
         .map((l) => catsMap[l.categoria_id])
@@ -170,6 +174,10 @@ export async function productoPorId(
     modos_disponibles: producto.modos_disponibles ?? ['venta'],
     cantidad_por_bulto: producto.cantidad_por_bulto ? Number(producto.cantidad_por_bulto) : null,
     peso_kg: producto.peso_kg ? Number(producto.peso_kg) : null,
+    iva_compra: producto.iva_compra ? Number(producto.iva_compra) : null,
+    iva_venta: producto.iva_venta ? Number(producto.iva_venta) : null,
+    precio_compra: producto.precio_compra ? Number(producto.precio_compra) : null,
+    stock_minimo: producto.stock_minimo ? Number(producto.stock_minimo) : null,
     categorias,
     variantes_count: variantes?.length ?? 0,
     marca_nombre,

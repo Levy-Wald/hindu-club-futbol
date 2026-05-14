@@ -355,7 +355,7 @@ export default function ProductosPage() {
   const fetchProductos = useCallback(async () => {
     const supabase = createClient()
     const { data, error } = await supabase
-      .from('productos_servicios')
+      .from('productos')
       .select(`
         id, nombre, tipo, sku, ean13, ean14, marca, modelo, color, material, origen,
         unidad_medida, descripcion, descripcion_larga,
@@ -367,8 +367,8 @@ export default function ProductosPage() {
         activo, created_at,
         centro_costo:centros_costo(nombre),
         categoria:catalogo_categorias_movimiento(nombre),
-        cuenta_ingreso:plan_cuentas!productos_servicios_cuenta_ingreso_id_fkey(codigo, nombre),
-        cuenta_egreso:plan_cuentas!productos_servicios_cuenta_egreso_id_fkey(codigo, nombre)
+        cuenta_ingreso:plan_cuentas!fk_productos_cuenta_ingreso(codigo, nombre),
+        cuenta_egreso:plan_cuentas!fk_productos_cuenta_egreso(codigo, nombre)
       `)
       .eq('tenant_id', TENANT_ID)
       .is('deleted_at', null)
@@ -509,7 +509,7 @@ export default function ProductosPage() {
           p.activo ? 'Si' : 'No',
         ]
       }),
-      filename: `productos_servicios_${new Date().toISOString().split('T')[0]}`,
+      filename: `productos_${new Date().toISOString().split('T')[0]}`,
     }
   }
 

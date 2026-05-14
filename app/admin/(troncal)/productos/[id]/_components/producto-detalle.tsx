@@ -17,6 +17,7 @@ import type {
   Marca,
   ProductoImagen,
   ModoOperacion,
+  TipoUso,
 } from '@/modules/pim/lib/tipos'
 
 const MODOS_LABELS: Record<ModoOperacion, string> = {
@@ -24,6 +25,13 @@ const MODOS_LABELS: Record<ModoOperacion, string> = {
   alquiler: 'Alquiler',
   prestamo: 'Préstamo',
   gratis: 'Gratis',
+}
+
+const TIPO_USO_LABELS: Record<TipoUso, string> = {
+  reventa: 'Reventa',
+  uso_interno_consumible: 'Consumible',
+  uso_interno_bien_uso: 'Bien de uso',
+  servicio: 'Servicio',
 }
 
 interface ProductoDetalleProps {
@@ -70,6 +78,7 @@ export function ProductoDetalle({
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               {p.sku && <span>SKU: {p.sku}</span>}
               <Badge variant="outline" className="capitalize">{p.tipo}</Badge>
+              {p.tipo_uso && <Badge variant="outline">{TIPO_USO_LABELS[p.tipo_uso]}</Badge>}
               {!p.activo && <Badge variant="secondary">Inactivo</Badge>}
               {p.marca_nombre && <span>Marca: {p.marca_nombre}</span>}
             </div>
@@ -212,6 +221,24 @@ export function ProductoDetalle({
               {!p.origen_pais && p.cantidad_por_bulto === null && (
                 <p className="text-muted-foreground">Sin datos logisticos</p>
               )}
+            </div>
+
+            {/* Contabilidad */}
+            <div className="border rounded-lg p-4 space-y-3 text-sm md:col-span-2">
+              <h3 className="font-medium text-xs uppercase text-muted-foreground tracking-wider">Contabilidad</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <InfoRow label="Moneda" value={p.moneda} />
+                <InfoRow label="IVA compra" value={p.iva_compra !== null ? `${p.iva_compra}%` : '-'} />
+                <InfoRow label="IVA venta" value={p.iva_venta !== null ? `${p.iva_venta}%` : '-'} />
+                {p.precio_compra !== null && <InfoRow label="Precio compra" value={`$${p.precio_compra.toLocaleString('es-AR')}`} />}
+              </div>
+              <div className="flex gap-4">
+                {p.es_arancelado && <Badge variant="secondary">Arancelado</Badge>}
+                {p.es_comprable && <Badge variant="secondary">Comprable</Badge>}
+                {!p.es_arancelado && !p.es_comprable && (
+                  <span className="text-muted-foreground">Sin flags contables</span>
+                )}
+              </div>
             </div>
           </div>
         </TabsContent>
