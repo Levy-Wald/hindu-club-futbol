@@ -14,6 +14,8 @@ import type {
   ListaPrecios,
   PrecioProducto,
   TipoLista,
+  StockEspacio,
+  MovimientoStock,
 } from './tipos'
 
 export async function listarProductos(
@@ -511,4 +513,145 @@ export async function listarPreciosDeProducto(
     lista_tipo: listaMap[r.lista_id]?.tipo as TipoLista,
     variante_nombre: r.variante_id ? (varianteMap[r.variante_id] ?? null) : null,
   })) as PrecioProducto[]
+}
+
+// ──────────────────────────── Stock ────────────────────────────
+
+export async function stockDeProducto(productoId: string): Promise<StockEspacio[]> {
+  const supabase = createServiceRoleClient()
+  const { data: rows } = await supabase
+    .from('producto_stock_espacio')
+    .select('*')
+    .eq('producto_id', productoId)
+    .order('created_at', { ascending: true })
+
+  if (!rows || rows.length === 0) return []
+
+  // Resolve espacio names
+  const espacioIds = [...new Set(rows.map((r) => r.espacio_id))]
+  const espacioMap: Record<string, string> = {}
+  if (espacioIds.length > 0) {
+    const { data: espacios } = await supabase
+      .from('espacios')
+      .select('id, nombre')
+      .in('id', espacioIds)
+    for (const e of espacios ?? []) espacioMap[e.id] = e.nombre
+  }
+
+  // Resolve variante names
+  const varianteIds = rows.map((r) => r.variante_id).filter(Boolean) as string[]
+  const varianteMap: Record<string, string> = {}
+  if (varianteIds.length > 0) {
+    const { data: vars } = await supabase
+      .from('productos_variantes')
+      .select('id, nombre_variante')
+      .in('id', varianteIds)
+    for (const v of vars ?? []) varianteMap[v.id] = v.nombre_variante
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    cantidad: Number(r.cantidad),
+    stock_minimo: r.stock_minimo !== null ? Number(r.stock_minimo) : null,
+    stock_maximo: r.stock_maximo !== null ? Number(r.stock_maximo) : null,
+    espacio_nombre: espacioMap[r.espacio_id] ?? r.espacio_id,
+    variante_nombre: r.variante_id ? (varianteMap[r.variante_id] ?? null) : null,
+  })) as StockEspacio[]
+}
+
+export async function stockTotalProducto(productoId: string): Promise<number> {
+  const supabase = createServiceRoleClient()
+  const { data } = await supabase
+    .from('v_producto_stock_total')
+    .select('stock_total')
+    .eq('producto_id', productoId)
+    .is('variante_id', null)
+    .maybeSingle()
+
+  return data?.stock_total ? Number(data.stock_total) : 0
+}
+
+export async function listarMovimientos(
+  productoId?: string,
+  limit = 50
+): Promise<MovimientoStock[]> {
+  const supabase = createServiceRoleClient()
+  let query = supabase
+    .from('producto_movimientos_stock')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  if (productoId) {
+    query = query.eq('producto_id', productoId)
+  }
+
+  const { data: rows } = await query
+  if (!rows || rows.length === 0) return []
+
+  // Resolve names
+  const productoIds = [...new Set(rows.map((r) => r.producto_id))]
+  const productoMap: Record<string, string> = {}
+  if (productoIds.length > 0) {
+    const { data: prods } = await supabase
+      .from('productos')
+      .select('id, nombre')
+      .in('id', productoIds)
+    for (const p of prods ?? []) productoMap[p.id] = p.nombre
+  }
+
+  const espacioIds = [...new Set([
+    ...rows.map((r) => r.espacio_origen_id),
+    ...rows.map((r) => r.espacio_destino_id),
+  ].filter(Boolean) as string[])]
+  const espacioMap: Record<string, string> = {}
+  if (espacioIds.length > 0) {
+    const { data: espacios } = await supabase
+      .from('espacios')
+      .select('id, nombre')
+      .in('id', espacioIds)
+    for (const e of espacios ?? []) espacioMap[e.id] = e.nombre
+  }
+
+  const personaIds = rows.map((r) => r.realizado_por_persona_id).filter(Boolean) as string[]
+  const personaMap: Record<string, string> = {}
+  if (personaIds.length > 0) {
+    const { data: personas } = await supabase
+      .from('personas')
+      .select('id, nombre, apellido')
+      .in('id', [...new Set(personaIds)])
+    for (const p of personas ?? []) personaMap[p.id] = `${p.nombre} ${p.apellido}`
+  }
+
+  const varianteIds = rows.map((r) => r.variante_id).filter(Boolean) as string[]
+  const varianteMap: Record<string, string> = {}
+  if (varianteIds.length > 0) {
+    const { data: vars } = await supabase
+      .from('productos_variantes')
+      .select('id, nombre_variante')
+      .in('id', [...new Set(varianteIds)])
+    for (const v of vars ?? []) varianteMap[v.id] = v.nombre_variante
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    cantidad: Number(r.cantidad),
+    producto_nombre: productoMap[r.producto_id] ?? r.producto_id,
+    variante_nombre: r.variante_id ? (varianteMap[r.variante_id] ?? null) : null,
+    espacio_origen_nombre: r.espacio_origen_id ? (espacioMap[r.espacio_origen_id] ?? null) : null,
+    espacio_destino_nombre: r.espacio_destino_id ? (espacioMap[r.espacio_destino_id] ?? null) : null,
+    realizado_por_nombre: r.realizado_por_persona_id ? (personaMap[r.realizado_por_persona_id] ?? null) : null,
+  })) as MovimientoStock[]
+}
+
+export async function espaciosTipoDeposito(tenantId: string): Promise<{ id: string; nombre: string }[]> {
+  const supabase = createServiceRoleClient()
+  const { data } = await supabase
+    .from('espacios')
+    .select('id, nombre')
+    .eq('tenant_id', tenantId)
+    .eq('activo', true)
+    .order('nombre')
+
+  return (data ?? []) as { id: string; nombre: string }[]
 }

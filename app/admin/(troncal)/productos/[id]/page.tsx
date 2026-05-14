@@ -14,6 +14,9 @@ import {
   listarAtributosParaResponsable,
   listarListasPrecios,
   listarPreciosDeProducto,
+  stockDeProducto,
+  listarMovimientos,
+  espaciosTipoDeposito,
 } from '@/modules/pim/lib/queries'
 import { ProductoDetalle } from './_components/producto-detalle'
 
@@ -38,6 +41,9 @@ export default async function ProductoDetailPage({ params }: Props) {
     atributosResp,
     listasPrecios,
     precios,
+    stockEspacios,
+    movimientos,
+    espacios,
   ] = await Promise.all([
     productoPorId(TENANT_ID, id),
     listarVariantes(id),
@@ -52,6 +58,9 @@ export default async function ProductoDetailPage({ params }: Props) {
     listarAtributosParaResponsable(),
     listarListasPrecios(TENANT_ID),
     listarPreciosDeProducto(id),
+    stockDeProducto(id),
+    listarMovimientos(id, 20),
+    espaciosTipoDeposito(TENANT_ID),
   ])
 
   if (!producto) notFound()
@@ -71,6 +80,9 @@ export default async function ProductoDetailPage({ params }: Props) {
       atributosResp={atributosResp}
       listasPrecios={listasPrecios}
       precios={precios}
+      stockEspacios={stockEspacios}
+      movimientos={movimientos}
+      espacios={espacios}
     />
   )
 }

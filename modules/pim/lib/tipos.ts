@@ -205,6 +205,45 @@ export type PrecioProducto = {
   variante_nombre?: string | null
 }
 
+export type TipoMovimiento = 'entrada' | 'salida' | 'transferencia' | 'ajuste'
+
+export type StockEspacio = {
+  id: string
+  producto_id: string
+  variante_id: string | null
+  espacio_id: string
+  cantidad: number
+  stock_minimo: number | null
+  stock_maximo: number | null
+  created_at: string
+  updated_at: string
+  // Resolved
+  espacio_nombre?: string
+  variante_nombre?: string | null
+}
+
+export type MovimientoStock = {
+  id: string
+  producto_id: string
+  variante_id: string | null
+  tipo: TipoMovimiento
+  cantidad: number
+  espacio_origen_id: string | null
+  espacio_destino_id: string | null
+  motivo: string | null
+  referencia_tabla: string | null
+  referencia_id: string | null
+  realizado_por_persona_id: string | null
+  metadata: Record<string, unknown>
+  created_at: string
+  // Resolved
+  producto_nombre?: string
+  variante_nombre?: string | null
+  espacio_origen_nombre?: string | null
+  espacio_destino_nombre?: string | null
+  realizado_por_nombre?: string | null
+}
+
 export type CatalogoProductoRow = {
   origen: 'pim'
   id_origen: string

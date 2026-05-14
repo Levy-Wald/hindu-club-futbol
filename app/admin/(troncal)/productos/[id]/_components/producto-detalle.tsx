@@ -15,6 +15,8 @@ import { ResponsableFormDialog } from '@/modules/pim/ui/responsable-form'
 import { ResponsableRow } from '@/modules/pim/ui/responsable-row'
 import { PrecioFormDialog } from '@/modules/pim/ui/precio-form'
 import { PrecioRow } from '@/modules/pim/ui/precio-row'
+import { MovimientoStockFormDialog } from '@/modules/pim/ui/movimiento-stock-form'
+import { StockRow } from '@/modules/pim/ui/stock-row'
 import type {
   ProductoConCategorias,
   ProductoVariante,
@@ -26,6 +28,8 @@ import type {
   ProductoResponsable,
   ListaPrecios,
   PrecioProducto,
+  StockEspacio,
+  MovimientoStock,
   ModoOperacion,
   TipoUso,
 } from '@/modules/pim/lib/tipos'
@@ -58,6 +62,9 @@ interface ProductoDetalleProps {
   atributosResp: { slug: string; nombre: string }[]
   listasPrecios: ListaPrecios[]
   precios: PrecioProducto[]
+  stockEspacios: StockEspacio[]
+  movimientos: MovimientoStock[]
+  espacios: { id: string; nombre: string }[]
 }
 
 export function ProductoDetalle({
@@ -74,6 +81,9 @@ export function ProductoDetalle({
   atributosResp,
   listasPrecios,
   precios,
+  stockEspacios,
+  movimientos,
+  espacios,
 }: ProductoDetalleProps) {
   const p = producto
 
@@ -114,6 +124,7 @@ export function ProductoDetalle({
           categorias={categorias}
           unidades={unidades}
           marcas={marcas}
+          listasPrecios={listasPrecios}
           triggerRender={<Button variant="outline" size="sm" />}
           triggerLabel="Editar"
         />
@@ -136,7 +147,11 @@ export function ProductoDetalle({
         {p.tipo === 'producto' && (
           <div className="border rounded-lg p-3">
             <p className="text-xs text-muted-foreground">Stock</p>
-            <p className="text-lg font-semibold">{p.stock_simple ?? '-'}</p>
+            <p className="text-lg font-semibold">
+              {stockEspacios.length > 0
+                ? stockEspacios.reduce((sum, s) => sum + s.cantidad, 0)
+                : (p.stock_simple ?? '-')}
+            </p>
           </div>
         )}
         <div className="border rounded-lg p-3">
@@ -157,6 +172,7 @@ export function ProductoDetalle({
       <Tabs defaultValue="variantes">
         <TabsList>
           <TabsTrigger value="variantes">Variantes ({variantes.length})</TabsTrigger>
+          <TabsTrigger value="stock">Stock ({stockEspacios.length})</TabsTrigger>
           <TabsTrigger value="precios">Precios ({precios.length})</TabsTrigger>
           <TabsTrigger value="imagenes">Imagenes ({imagenes.length})</TabsTrigger>
           <TabsTrigger value="proveedores">Proveedores ({proveedores.length})</TabsTrigger>
@@ -176,6 +192,48 @@ export function ProductoDetalle({
                 {variantes.map((v) => (
                   <VarianteRow key={v.id} variante={v} />
                 ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="stock" className="pt-4">
+          <div className="space-y-3">
+            <MovimientoStockFormDialog
+              productoId={p.id}
+              variantes={variantes}
+              espacios={espacios}
+            />
+            {stockEspacios.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground border rounded-lg">
+                <p>No hay stock registrado.</p>
+              </div>
+            ) : (
+              <div className="border rounded-lg divide-y">
+                {stockEspacios.map((s) => (
+                  <StockRow key={s.id} stock={s} />
+                ))}
+              </div>
+            )}
+            {movimientos.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Ultimos movimientos</h3>
+                <div className="border rounded-lg divide-y text-sm">
+                  {movimientos.slice(0, 10).map((m) => (
+                    <div key={m.id} className="p-2 flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="font-medium capitalize">{m.tipo}</span>
+                        {m.espacio_origen_nombre && <span className="text-muted-foreground"> de {m.espacio_origen_nombre}</span>}
+                        {m.espacio_destino_nombre && <span className="text-muted-foreground"> a {m.espacio_destino_nombre}</span>}
+                        {m.motivo && <span className="text-muted-foreground"> · {m.motivo}</span>}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="font-semibold">{m.tipo === 'salida' ? '-' : '+'}{m.cantidad}</span>
+                        <span className="text-xs text-muted-foreground">{new Date(m.created_at).toLocaleDateString('es-AR')}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

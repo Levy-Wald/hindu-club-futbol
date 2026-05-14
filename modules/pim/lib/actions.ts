@@ -70,6 +70,58 @@ const productoSchema = z.object({
   moneda: z.string().max(10).optional(),
 })
 
+async function syncPrecioToListaVentaDefault(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  tenantId: string,
+  productoId: string,
+  precioArs: number | null,
+  precioUsd: number | null
+) {
+  const { data: listaDefault } = await supabase
+    .from('producto_listas_precios')
+    .select('id, moneda')
+    .eq('tenant_id', tenantId)
+    .eq('tipo', 'venta')
+    .eq('es_default', true)
+    .eq('activa', true)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  if (!listaDefault) return
+
+  const precio = listaDefault.moneda === 'USD' ? precioUsd : precioArs
+  if (precio === null || precio === undefined) return
+
+  // Partial unique index with COALESCE — use check-then-insert/update
+  const { data: existing } = await supabase
+    .from('producto_precios')
+    .select('id')
+    .eq('producto_id', productoId)
+    .is('variante_id', null)
+    .eq('lista_id', listaDefault.id)
+    .is('deleted_at', null)
+    .is('fecha_vigencia_desde', null)
+    .is('fecha_vigencia_hasta', null)
+    .maybeSingle()
+
+  if (existing) {
+    await supabase
+      .from('producto_precios')
+      .update({ precio, moneda: listaDefault.moneda })
+      .eq('id', existing.id)
+  } else {
+    await supabase
+      .from('producto_precios')
+      .insert({
+        producto_id: productoId,
+        variante_id: null,
+        lista_id: listaDefault.id,
+        precio,
+        moneda: listaDefault.moneda,
+      })
+  }
+}
+
 // --- Producto Actions ---
 
 export async function crearProductoAction(input: z.infer<typeof productoSchema>): Promise<ActionResult<{ id: string }>> {
@@ -136,6 +188,9 @@ export async function crearProductoAction(input: z.infer<typeof productoSchema>)
       d.categoria_ids.map((cid) => ({ producto_id: data.id, categoria_id: cid }))
     )
   }
+
+  // Sync price to venta default lista
+  await syncPrecioToListaVentaDefault(supabase, tenant_id, data.id, d.precio_base_ars ?? null, d.precio_base_usd ?? null)
 
   revalidatePath('/admin/productos')
   return { ok: true, id: data.id }
@@ -209,6 +264,9 @@ export async function editarProductoAction(input: {
       )
     }
   }
+
+  // Sync price to venta default lista
+  await syncPrecioToListaVentaDefault(supabase, tenant_id, input.id, d.precio_base_ars ?? null, d.precio_base_usd ?? null)
 
   revalidatePath('/admin/productos')
   revalidatePath(`/admin/productos/${input.id}`)
@@ -1355,5 +1413,74 @@ export async function actualizarPreciosMasivoAction(input: {
   for (const pid of prodIds) {
     revalidatePath(`/admin/productos/${pid}`)
   }
+  return { ok: true }
+}
+
+// ──────────────────────────── Stock Min/Max ────────────────────────────
+
+const ConfigurarMinMaxSchema = z.object({
+  producto_id: z.string().uuid(),
+  variante_id: z.string().uuid().nullable(),
+  espacio_id: z.string().uuid(),
+  stock_minimo: z.number().nullable(),
+  stock_maximo: z.number().nullable(),
+})
+
+export async function configurarMinMaxStockAction(
+  input: z.infer<typeof ConfigurarMinMaxSchema>
+): Promise<ActionResult> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canEditPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const parsed = ConfigurarMinMaxSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Datos invalidos' }
+
+  const data = parsed.data
+
+  if (data.stock_minimo !== null && data.stock_maximo !== null && data.stock_minimo > data.stock_maximo) {
+    return { ok: false, error: 'Minimo no puede ser mayor al maximo' }
+  }
+
+  const supabase = createServiceRoleClient()
+
+  // Find existing stock record
+  let query = supabase
+    .from('producto_stock_espacio')
+    .select('id')
+    .eq('producto_id', data.producto_id)
+    .eq('espacio_id', data.espacio_id)
+
+  if (data.variante_id) {
+    query = query.eq('variante_id', data.variante_id)
+  } else {
+    query = query.is('variante_id', null)
+  }
+
+  const { data: existing } = await query.maybeSingle()
+
+  if (existing) {
+    const { error } = await supabase
+      .from('producto_stock_espacio')
+      .update({ stock_minimo: data.stock_minimo, stock_maximo: data.stock_maximo })
+      .eq('id', existing.id)
+    if (error) return { ok: false, error: error.message }
+  } else {
+    const { error } = await supabase
+      .from('producto_stock_espacio')
+      .insert({
+        producto_id: data.producto_id,
+        variante_id: data.variante_id,
+        espacio_id: data.espacio_id,
+        cantidad: 0,
+        stock_minimo: data.stock_minimo,
+        stock_maximo: data.stock_maximo,
+      })
+    if (error) return { ok: false, error: error.message }
+  }
+
+  revalidatePath(`/admin/productos/${data.producto_id}`)
   return { ok: true }
 }

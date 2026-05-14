@@ -34,6 +34,7 @@ import {
   MapPin,
   ShoppingCart,
   Tag,
+  PackageCheck,
 } from 'lucide-react'
 
 export interface NavItemDef {
@@ -91,6 +92,7 @@ export const troncalSection: NavSectionDef = {
         { label: 'Categorias', href: '/admin/productos/categorias', icon: Tag },
         { label: 'Marcas', href: '/admin/productos/marcas', icon: Tag },
         { label: 'Listas de Precios', href: '/admin/productos/listas-precios', icon: DollarSign },
+        { label: 'Movimientos Stock', href: '/admin/productos/movimientos', icon: PackageCheck },
       ],
     },
     {

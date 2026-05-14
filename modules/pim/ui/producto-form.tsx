@@ -22,7 +22,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { Plus, ChevronDown } from 'lucide-react'
 import { crearProductoAction, editarProductoAction } from '../lib/actions'
-import type { Producto, ProductoCategoria, UnidadMedida, Marca, ModoOperacion, TipoUso } from '../lib/tipos'
+import type { Producto, ProductoCategoria, UnidadMedida, Marca, ModoOperacion, TipoUso, ListaPrecios } from '../lib/tipos'
 import { useRouter } from 'next/navigation'
 
 const MODOS_LABELS: Record<ModoOperacion, string> = {
@@ -45,6 +45,7 @@ interface ProductoFormDialogProps {
   categorias: ProductoCategoria[]
   unidades: UnidadMedida[]
   marcas: Marca[]
+  listasPrecios?: ListaPrecios[]
   triggerRender?: React.ReactElement
   triggerLabel?: string
 }
@@ -83,6 +84,7 @@ export function ProductoFormDialog({
   categorias,
   unidades,
   marcas,
+  listasPrecios,
   triggerRender,
   triggerLabel,
 }: ProductoFormDialogProps) {
@@ -445,16 +447,35 @@ export function ProductoFormDialog({
 
           {/* Seccion 5: Precio y Stock */}
           <Section title="Precio y stock" testId="section-precio-stock">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label htmlFor="precio-ars">Precio ARS</Label>
-                <Input id="precio-ars" data-testid="input-precio-ars" type="number" min="0" step="0.01" value={precioArs} onChange={(e) => setPrecioArs(e.target.value)} />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="precio-usd">Precio USD</Label>
-                <Input id="precio-usd" type="number" min="0" step="0.01" value={precioUsd} onChange={(e) => setPrecioUsd(e.target.value)} />
-              </div>
-            </div>
+            {(() => {
+              const listaVentaDefault = listasPrecios?.find((l) => l.tipo === 'venta' && l.es_default && l.activa)
+              return (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="precio-ars">Precio ARS</Label>
+                      <Input id="precio-ars" data-testid="input-precio-ars" type="number" min="0" step="0.01" value={precioArs} onChange={(e) => setPrecioArs(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="precio-usd">Precio USD</Label>
+                      <Input id="precio-usd" type="number" min="0" step="0.01" value={precioUsd} onChange={(e) => setPrecioUsd(e.target.value)} />
+                    </div>
+                  </div>
+
+                  {listaVentaDefault && (
+                    <p className="text-xs text-muted-foreground">
+                      Se guardara tambien en la lista &quot;{listaVentaDefault.nombre}&quot; ({listaVentaDefault.moneda}).
+                    </p>
+                  )}
+
+                  {listasPrecios && !listaVentaDefault && (
+                    <p className="text-xs text-amber-600">
+                      No hay lista de venta default activa. Crea una en Productos → Listas de Precios.
+                    </p>
+                  )}
+                </>
+              )
+            })()}
 
             {tipo === 'producto' && (
               <div className="grid grid-cols-2 gap-3">
