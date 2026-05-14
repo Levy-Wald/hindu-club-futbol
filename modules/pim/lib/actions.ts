@@ -34,6 +34,8 @@ const productoSchema = z.object({
   sku: z.string().max(100).optional(),
   nombre: z.string().min(1).max(300),
   descripcion: z.string().max(2000).optional(),
+  descripcion_corta: z.string().max(300).optional().or(z.literal('')),
+  descripcion_larga: z.string().max(5000).optional().or(z.literal('')),
   tipo: z.enum(['producto', 'servicio']),
   precio_base_ars: z.number().min(0).nullable().optional(),
   precio_base_usd: z.number().min(0).nullable().optional(),
@@ -42,6 +44,14 @@ const productoSchema = z.object({
   categoria_ids: z.array(z.string().uuid()).optional(),
   marca_id: z.string().uuid().nullable().optional(),
   modos_disponibles: z.array(z.enum(modosValidos)).min(1).optional(),
+  ean13: z.string().regex(/^\d{13}$/).optional().or(z.literal('')),
+  ean14: z.string().regex(/^\d{14}$/).optional().or(z.literal('')),
+  material: z.string().max(100).optional().or(z.literal('')),
+  color: z.string().max(50).optional().or(z.literal('')),
+  medida_tamano: z.string().max(100).optional().or(z.literal('')),
+  origen_pais: z.string().max(100).optional().or(z.literal('')),
+  cantidad_por_bulto: z.number().int().positive().nullable().optional(),
+  peso_kg: z.number().positive().nullable().optional(),
 })
 
 // --- Producto Actions ---
@@ -67,6 +77,8 @@ export async function crearProductoAction(input: z.infer<typeof productoSchema>)
       sku: d.sku?.trim() || null,
       nombre: d.nombre.trim(),
       descripcion: d.descripcion?.trim() || null,
+      descripcion_corta: d.descripcion_corta?.trim() || null,
+      descripcion_larga: d.descripcion_larga?.trim() || null,
       tipo: d.tipo,
       precio_base_ars: d.precio_base_ars ?? null,
       precio_base_usd: d.precio_base_usd ?? null,
@@ -74,6 +86,14 @@ export async function crearProductoAction(input: z.infer<typeof productoSchema>)
       unidad_medida_slug: d.unidad_medida_slug || null,
       marca_id: d.marca_id ?? null,
       modos_disponibles: d.modos_disponibles ?? ['venta'],
+      ean13: d.ean13?.trim() || null,
+      ean14: d.ean14?.trim() || null,
+      material: d.material?.trim() || null,
+      color: d.color?.trim() || null,
+      medida_tamano: d.medida_tamano?.trim() || null,
+      origen_pais: d.origen_pais?.trim() || null,
+      cantidad_por_bulto: d.cantidad_por_bulto ?? null,
+      peso_kg: d.peso_kg ?? null,
     })
     .select('id')
     .single()
@@ -113,6 +133,8 @@ export async function editarProductoAction(input: {
       sku: d.sku?.trim() || null,
       nombre: d.nombre.trim(),
       descripcion: d.descripcion?.trim() || null,
+      descripcion_corta: d.descripcion_corta?.trim() || null,
+      descripcion_larga: d.descripcion_larga?.trim() || null,
       tipo: d.tipo,
       precio_base_ars: d.precio_base_ars ?? null,
       precio_base_usd: d.precio_base_usd ?? null,
@@ -120,6 +142,14 @@ export async function editarProductoAction(input: {
       unidad_medida_slug: d.unidad_medida_slug || null,
       marca_id: d.marca_id ?? null,
       modos_disponibles: d.modos_disponibles ?? ['venta'],
+      ean13: d.ean13?.trim() || null,
+      ean14: d.ean14?.trim() || null,
+      material: d.material?.trim() || null,
+      color: d.color?.trim() || null,
+      medida_tamano: d.medida_tamano?.trim() || null,
+      origen_pais: d.origen_pais?.trim() || null,
+      cantidad_por_bulto: d.cantidad_por_bulto ?? null,
+      peso_kg: d.peso_kg ?? null,
     })
     .eq('id', input.id)
     .eq('tenant_id', tenant_id)

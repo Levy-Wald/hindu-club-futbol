@@ -150,36 +150,81 @@ export function ProductoDetalle({
         </TabsContent>
 
         <TabsContent value="info" className="pt-4">
-          <div className="border rounded-lg p-4 space-y-3 text-sm">
-            {p.descripcion && (
-              <div>
-                <p className="text-muted-foreground text-xs mb-1">Descripcion</p>
-                <p>{p.descripcion}</p>
-              </div>
-            )}
-            {p.categorias.length > 0 && (
-              <div>
-                <p className="text-muted-foreground text-xs mb-1">Categorias</p>
-                <div className="flex gap-1 flex-wrap">
-                  {p.categorias.map((c) => (
-                    <Badge key={c.id} variant="secondary">{c.nombre}</Badge>
-                  ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Descripcion */}
+            <div className="border rounded-lg p-4 space-y-3 text-sm md:col-span-2">
+              <h3 className="font-medium text-xs uppercase text-muted-foreground tracking-wider">Descripcion</h3>
+              {p.descripcion_corta && (
+                <div>
+                  <p className="text-muted-foreground text-xs mb-1">Corta</p>
+                  <p>{p.descripcion_corta}</p>
                 </div>
+              )}
+              {p.descripcion_larga && (
+                <div>
+                  <p className="text-muted-foreground text-xs mb-1">Larga</p>
+                  <p className="whitespace-pre-wrap">{p.descripcion_larga}</p>
+                </div>
+              )}
+              {!p.descripcion_corta && !p.descripcion_larga && (
+                <p className="text-muted-foreground">Sin descripcion</p>
+              )}
+            </div>
+
+            {/* Identificacion */}
+            <div className="border rounded-lg p-4 space-y-3 text-sm">
+              <h3 className="font-medium text-xs uppercase text-muted-foreground tracking-wider">Identificacion</h3>
+              {p.ean13 && <InfoRow label="EAN-13" value={p.ean13} />}
+              {p.ean14 && <InfoRow label="EAN-14" value={p.ean14} />}
+              {p.categorias.length > 0 && (
+                <div>
+                  <p className="text-muted-foreground text-xs mb-1">Categorias</p>
+                  <div className="flex gap-1 flex-wrap">
+                    {p.categorias.map((c) => (
+                      <Badge key={c.id} variant="secondary">{c.nombre}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {p.unidad_medida_slug && <InfoRow label="Unidad de medida" value={p.unidad_medida_slug} />}
+              <InfoRow label="Creado" value={new Date(p.created_at).toLocaleDateString('es-AR')} />
+            </div>
+
+            {/* Atributos fisicos */}
+            <div className="border rounded-lg p-4 space-y-3 text-sm">
+              <h3 className="font-medium text-xs uppercase text-muted-foreground tracking-wider">Atributos fisicos</h3>
+              {p.material && <InfoRow label="Material" value={p.material} />}
+              {p.color && <InfoRow label="Color" value={p.color} />}
+              {p.medida_tamano && <InfoRow label="Medida / Tamano" value={p.medida_tamano} />}
+              {p.peso_kg !== null && <InfoRow label="Peso" value={`${p.peso_kg} kg`} />}
+              {!p.material && !p.color && !p.medida_tamano && p.peso_kg === null && (
+                <p className="text-muted-foreground">Sin atributos fisicos</p>
+              )}
+            </div>
+
+            {/* Logistica */}
+            <div className="border rounded-lg p-4 space-y-3 text-sm md:col-span-2">
+              <h3 className="font-medium text-xs uppercase text-muted-foreground tracking-wider">Logistica</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {p.origen_pais && <InfoRow label="Origen" value={p.origen_pais} />}
+                {p.cantidad_por_bulto !== null && <InfoRow label="Cantidad por bulto" value={String(p.cantidad_por_bulto)} />}
               </div>
-            )}
-            {p.unidad_medida_slug && (
-              <div>
-                <p className="text-muted-foreground text-xs mb-1">Unidad de medida</p>
-                <p>{p.unidad_medida_slug}</p>
-              </div>
-            )}
-            <div>
-              <p className="text-muted-foreground text-xs mb-1">Creado</p>
-              <p>{new Date(p.created_at).toLocaleDateString('es-AR')}</p>
+              {!p.origen_pais && p.cantidad_por_bulto === null && (
+                <p className="text-muted-foreground">Sin datos logisticos</p>
+              )}
             </div>
           </div>
         </TabsContent>
       </Tabs>
+    </div>
+  )
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-muted-foreground text-xs mb-0.5">{label}</p>
+      <p>{value}</p>
     </div>
   )
 }

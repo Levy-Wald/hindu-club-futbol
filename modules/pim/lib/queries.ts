@@ -34,7 +34,7 @@ export async function listarProductos(
   if (filtros?.activo !== undefined) query = query.eq('activo', filtros.activo)
   if (filtros?.marca_id) query = query.eq('marca_id', filtros.marca_id)
   if (filtros?.busqueda) {
-    query = query.or(`nombre.ilike.%${filtros.busqueda}%,sku.ilike.%${filtros.busqueda}%`)
+    query = query.or(`nombre.ilike.%${filtros.busqueda}%,sku.ilike.%${filtros.busqueda}%,ean13.ilike.%${filtros.busqueda}%,ean14.ilike.%${filtros.busqueda}%`)
   }
 
   const { data: productos } = await query
@@ -104,6 +104,8 @@ export async function listarProductos(
       precio_base_usd: p.precio_base_usd ? Number(p.precio_base_usd) : null,
       stock_simple: p.stock_simple ? Number(p.stock_simple) : null,
       modos_disponibles: p.modos_disponibles ?? ['venta'],
+      cantidad_por_bulto: p.cantidad_por_bulto ? Number(p.cantidad_por_bulto) : null,
+      peso_kg: p.peso_kg ? Number(p.peso_kg) : null,
       categorias: (links ?? [])
         .filter((l) => l.producto_id === p.id)
         .map((l) => catsMap[l.categoria_id])
@@ -166,6 +168,8 @@ export async function productoPorId(
     precio_base_usd: producto.precio_base_usd ? Number(producto.precio_base_usd) : null,
     stock_simple: producto.stock_simple ? Number(producto.stock_simple) : null,
     modos_disponibles: producto.modos_disponibles ?? ['venta'],
+    cantidad_por_bulto: producto.cantidad_por_bulto ? Number(producto.cantidad_por_bulto) : null,
+    peso_kg: producto.peso_kg ? Number(producto.peso_kg) : null,
     categorias,
     variantes_count: variantes?.length ?? 0,
     marca_nombre,

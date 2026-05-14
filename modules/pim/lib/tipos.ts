@@ -7,7 +7,10 @@ export type Producto = {
   tenant_id: string
   sku: string | null
   nombre: string
+  /** @deprecated Usar descripcion_corta + descripcion_larga */
   descripcion: string | null
+  descripcion_corta: string | null
+  descripcion_larga: string | null
   tipo: ProductoTipo
   precio_base_ars: number | null
   precio_base_usd: number | null
@@ -16,6 +19,14 @@ export type Producto = {
   imagen_url: string | null
   marca_id: string | null
   modos_disponibles: ModoOperacion[]
+  ean13: string | null
+  ean14: string | null
+  material: string | null
+  color: string | null
+  medida_tamano: string | null
+  origen_pais: string | null
+  cantidad_por_bulto: number | null
+  peso_kg: number | null
   activo: boolean
   metadata: Record<string, unknown>
   created_at: string
