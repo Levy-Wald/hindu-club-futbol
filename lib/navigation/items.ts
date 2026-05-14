@@ -42,6 +42,7 @@ import {
   Handshake,
   TrendingUp,
   UserCheck,
+  PieChart,
 } from 'lucide-react'
 
 export interface NavItemDef {
@@ -139,6 +140,10 @@ export const troncalSection: NavSectionDef = {
         { label: 'Convenios de pago', href: '/admin/finanzas/convenios', icon: Handshake },
         { label: 'Cuenta corriente', href: '/admin/finanzas/cuenta-corriente', icon: UserCheck },
         { label: 'Configuracion', href: '/admin/finanzas/config', icon: Settings },
+        { label: 'Libro mayor', href: '/admin/finanzas/reportes/libro-mayor', icon: BookOpen },
+        { label: 'Balance general', href: '/admin/finanzas/reportes/balance', icon: PieChart },
+        { label: 'Estado de resultados', href: '/admin/finanzas/reportes/estado-resultados', icon: TrendingUp },
+        { label: 'Cobranzas', href: '/admin/finanzas/reportes/cobranzas', icon: Receipt },
         { label: 'Productos sin cuentas', href: '/admin/finanzas/productos-sin-cuentas', icon: AlertCircle },
       ],
     },
