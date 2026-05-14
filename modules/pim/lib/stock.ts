@@ -28,8 +28,7 @@ const MovimientoSchema = z.object({
   espacio_origen_id: z.string().uuid().nullable(),
   espacio_destino_id: z.string().uuid().nullable(),
   motivo: z.string().nullable(),
-  referencia_tabla: z.string().nullable().optional(),
-  referencia_id: z.string().uuid().nullable().optional(),
+  documento_ref: z.string().nullable().optional(),
 })
 
 type ActionResult = { ok: true } | { ok: false; error: string }
@@ -88,31 +87,8 @@ export async function aplicarMovimientoStockAction(
     }
   }
 
-  // Use RPC for transactional operation
-  const { error: rpcError } = await supabase.rpc('fn_aplicar_movimiento_stock', {
-    p_producto_id: data.producto_id,
-    p_variante_id: data.variante_id,
-    p_tipo: data.tipo,
-    p_cantidad: data.cantidad,
-    p_espacio_origen_id: data.espacio_origen_id,
-    p_espacio_destino_id: data.espacio_destino_id,
-    p_motivo: data.motivo,
-    p_referencia_tabla: data.referencia_tabla ?? null,
-    p_referencia_id: data.referencia_id ?? null,
-    p_realizado_por: persona.id,
-  })
-
-  if (rpcError) {
-    // Fallback: do it with individual queries if RPC doesn't exist
-    if (rpcError.message.includes('function') || rpcError.code === '42883') {
-      return await aplicarMovimientoManual(supabase, data, persona.id)
-    }
-    return { ok: false, error: rpcError.message }
-  }
-
-  revalidatePath(`/admin/productos/${data.producto_id}`)
-  revalidatePath('/admin/productos/movimientos')
-  return { ok: true }
+  // No RPC exists yet — use manual queries
+  return await aplicarMovimientoManual(supabase, data, persona.id)
 }
 
 async function aplicarMovimientoManual(
@@ -131,9 +107,8 @@ async function aplicarMovimientoManual(
       espacio_origen_id: data.espacio_origen_id,
       espacio_destino_id: data.espacio_destino_id,
       motivo: data.motivo,
-      referencia_tabla: data.referencia_tabla ?? null,
-      referencia_id: data.referencia_id ?? null,
-      realizado_por_persona_id: personaId,
+      documento_ref: data.documento_ref ?? null,
+      persona_id: personaId,
     })
   if (movError) return { ok: false, error: movError.message }
 

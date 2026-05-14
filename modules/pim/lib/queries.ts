@@ -317,8 +317,8 @@ export async function listarProveedoresDeProducto(
   if (!rows || rows.length === 0) return []
 
   // Resolve names
-  const entidadIds = rows.map((r) => r.entidad_id).filter(Boolean) as string[]
-  const personaIds = rows.map((r) => r.persona_id).filter(Boolean) as string[]
+  const entidadIds = rows.map((r) => r.proveedor_entidad_id).filter(Boolean) as string[]
+  const personaIds = rows.map((r) => r.proveedor_persona_id).filter(Boolean) as string[]
 
   const entidadMap: Record<string, string> = {}
   const personaMap: Record<string, string> = {}
@@ -341,10 +341,10 @@ export async function listarProveedoresDeProducto(
 
   return rows.map((r) => ({
     ...r,
-    precio_proveedor: r.precio_proveedor ? Number(r.precio_proveedor) : null,
-    nombre_proveedor: r.entidad_id
-      ? (entidadMap[r.entidad_id] ?? 'Entidad desconocida')
-      : (personaMap[r.persona_id!] ?? 'Persona desconocida'),
+    precio_compra: r.precio_compra ? Number(r.precio_compra) : null,
+    nombre_proveedor: r.proveedor_entidad_id
+      ? (entidadMap[r.proveedor_entidad_id] ?? 'Entidad desconocida')
+      : (personaMap[r.proveedor_persona_id!] ?? 'Persona desconocida'),
   })) as ProductoProveedor[]
 }
 
@@ -552,8 +552,8 @@ export async function stockDeProducto(productoId: string): Promise<StockEspacio[
   return rows.map((r) => ({
     ...r,
     cantidad: Number(r.cantidad),
-    stock_minimo: r.stock_minimo !== null ? Number(r.stock_minimo) : null,
-    stock_maximo: r.stock_maximo !== null ? Number(r.stock_maximo) : null,
+    cantidad_minima: r.cantidad_minima !== null ? Number(r.cantidad_minima) : null,
+    cantidad_maxima: r.cantidad_maxima !== null ? Number(r.cantidad_maxima) : null,
     espacio_nombre: espacioMap[r.espacio_id] ?? r.espacio_id,
     variante_nombre: r.variante_id ? (varianteMap[r.variante_id] ?? null) : null,
   })) as StockEspacio[]
@@ -613,7 +613,7 @@ export async function listarMovimientos(
     for (const e of espacios ?? []) espacioMap[e.id] = e.nombre
   }
 
-  const personaIds = rows.map((r) => r.realizado_por_persona_id).filter(Boolean) as string[]
+  const personaIds = rows.map((r) => r.persona_id).filter(Boolean) as string[]
   const personaMap: Record<string, string> = {}
   if (personaIds.length > 0) {
     const { data: personas } = await supabase
@@ -640,7 +640,7 @@ export async function listarMovimientos(
     variante_nombre: r.variante_id ? (varianteMap[r.variante_id] ?? null) : null,
     espacio_origen_nombre: r.espacio_origen_id ? (espacioMap[r.espacio_origen_id] ?? null) : null,
     espacio_destino_nombre: r.espacio_destino_id ? (espacioMap[r.espacio_destino_id] ?? null) : null,
-    realizado_por_nombre: r.realizado_por_persona_id ? (personaMap[r.realizado_por_persona_id] ?? null) : null,
+    realizado_por_nombre: r.persona_id ? (personaMap[r.persona_id] ?? null) : null,
   })) as MovimientoStock[]
 }
 

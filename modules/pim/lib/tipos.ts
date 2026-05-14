@@ -138,13 +138,13 @@ export type RolResponsable =
 export type ProductoProveedor = {
   id: string
   producto_id: string
-  entidad_id: string | null
-  persona_id: string | null
+  proveedor_entidad_id: string | null
+  proveedor_persona_id: string | null
   es_principal: boolean
-  codigo_proveedor: string | null
+  sku_proveedor: string | null
   plazo_entrega_dias: number | null
-  moneda_compra: string | null
-  precio_proveedor: number | null
+  moneda: string | null
+  precio_compra: number | null
   notas: string | null
   created_at: string
   updated_at: string
@@ -213,8 +213,8 @@ export type StockEspacio = {
   variante_id: string | null
   espacio_id: string
   cantidad: number
-  stock_minimo: number | null
-  stock_maximo: number | null
+  cantidad_minima: number | null
+  cantidad_maxima: number | null
   created_at: string
   updated_at: string
   // Resolved
@@ -231,9 +231,10 @@ export type MovimientoStock = {
   espacio_origen_id: string | null
   espacio_destino_id: string | null
   motivo: string | null
-  referencia_tabla: string | null
-  referencia_id: string | null
-  realizado_por_persona_id: string | null
+  documento_ref: string | null
+  persona_id: string | null
+  fecha: string | null
+  notas: string | null
   metadata: Record<string, unknown>
   created_at: string
   // Resolved

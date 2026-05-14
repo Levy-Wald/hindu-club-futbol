@@ -59,13 +59,13 @@ export function ProveedorFormDialog({
     startTransition(async () => {
       const res = await agregarProveedorAProductoAction({
         producto_id: productoId,
-        entidad_id: tipoProveedor === 'entidad' ? entidadId || null : null,
-        persona_id: tipoProveedor === 'persona' ? personaId || null : null,
+        proveedor_entidad_id: tipoProveedor === 'entidad' ? entidadId || null : null,
+        proveedor_persona_id: tipoProveedor === 'persona' ? personaId || null : null,
         es_principal: esPrincipal,
-        codigo_proveedor: codigoProveedor,
+        sku_proveedor: codigoProveedor,
         plazo_entrega_dias: plazoEntrega ? parseInt(plazoEntrega) : null,
-        moneda_compra: monedaCompra,
-        precio_proveedor: precioProveedor ? parseFloat(precioProveedor) : null,
+        moneda: monedaCompra,
+        precio_compra: precioProveedor ? parseFloat(precioProveedor) : null,
         notas,
       })
       if (res.ok) {

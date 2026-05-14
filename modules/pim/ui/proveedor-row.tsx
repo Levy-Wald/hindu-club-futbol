@@ -51,18 +51,18 @@ export function ProveedorRow({ proveedor: prov }: ProveedorRowProps) {
               Principal
             </Badge>
           )}
-          {prov.entidad_id && (
+          {prov.proveedor_entidad_id && (
             <Badge variant="outline" className="text-xs">Entidad</Badge>
           )}
-          {prov.persona_id && (
+          {prov.proveedor_persona_id && (
             <Badge variant="outline" className="text-xs">Persona</Badge>
           )}
         </div>
         <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
-          {prov.codigo_proveedor && <span>Cod: {prov.codigo_proveedor}</span>}
-          {prov.precio_proveedor !== null && (
+          {prov.sku_proveedor && <span>Cod: {prov.sku_proveedor}</span>}
+          {prov.precio_compra !== null && (
             <span>
-              {prov.moneda_compra ?? 'ARS'} ${prov.precio_proveedor.toLocaleString('es-AR')}
+              {prov.moneda ?? 'ARS'} ${prov.precio_compra.toLocaleString('es-AR')}
             </span>
           )}
           {prov.plazo_entrega_dias !== null && (

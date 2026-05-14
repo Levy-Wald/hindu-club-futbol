@@ -789,13 +789,13 @@ const rolesResponsable = ['general', 'compras', 'stock', 'marketing', 'product_o
 
 const proveedorSchema = z.object({
   producto_id: z.string().uuid(),
-  entidad_id: z.string().uuid().nullable().optional(),
-  persona_id: z.string().uuid().nullable().optional(),
+  proveedor_entidad_id: z.string().uuid().nullable().optional(),
+  proveedor_persona_id: z.string().uuid().nullable().optional(),
   es_principal: z.boolean().optional(),
-  codigo_proveedor: z.string().max(100).optional().or(z.literal('')),
+  sku_proveedor: z.string().max(100).optional().or(z.literal('')),
   plazo_entrega_dias: z.number().int().min(0).nullable().optional(),
-  moneda_compra: z.string().max(10).optional().or(z.literal('')),
-  precio_proveedor: z.number().min(0).nullable().optional(),
+  moneda: z.string().max(10).optional().or(z.literal('')),
+  precio_compra: z.number().min(0).nullable().optional(),
   notas: z.string().max(1000).optional().or(z.literal('')),
 })
 
@@ -814,8 +814,8 @@ export async function agregarProveedorAProductoAction(
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
 
   const d = parsed.data
-  if (!d.entidad_id && !d.persona_id) return { ok: false, error: 'Debe seleccionar una entidad o persona' }
-  if (d.entidad_id && d.persona_id) return { ok: false, error: 'Solo una entidad o persona, no ambas' }
+  if (!d.proveedor_entidad_id && !d.proveedor_persona_id) return { ok: false, error: 'Debe seleccionar una entidad o persona' }
+  if (d.proveedor_entidad_id && d.proveedor_persona_id) return { ok: false, error: 'Solo una entidad o persona, no ambas' }
 
   const supabase = createServiceRoleClient()
 
@@ -832,13 +832,13 @@ export async function agregarProveedorAProductoAction(
     .from('producto_proveedores')
     .insert({
       producto_id: d.producto_id,
-      entidad_id: d.entidad_id ?? null,
-      persona_id: d.persona_id ?? null,
+      proveedor_entidad_id: d.proveedor_entidad_id ?? null,
+      proveedor_persona_id: d.proveedor_persona_id ?? null,
       es_principal: d.es_principal ?? false,
-      codigo_proveedor: d.codigo_proveedor?.trim() || null,
+      sku_proveedor: d.sku_proveedor?.trim() || null,
       plazo_entrega_dias: d.plazo_entrega_dias ?? null,
-      moneda_compra: d.moneda_compra?.trim() || null,
-      precio_proveedor: d.precio_proveedor ?? null,
+      moneda: d.moneda?.trim() || null,
+      precio_compra: d.precio_compra ?? null,
       notas: d.notas?.trim() || null,
     })
     .select('id')
@@ -879,10 +879,10 @@ export async function editarProveedorDeProductoAction(
     .from('producto_proveedores')
     .update({
       es_principal: d.es_principal ?? false,
-      codigo_proveedor: d.codigo_proveedor?.trim() || null,
+      sku_proveedor: d.sku_proveedor?.trim() || null,
       plazo_entrega_dias: d.plazo_entrega_dias ?? null,
-      moneda_compra: d.moneda_compra?.trim() || null,
-      precio_proveedor: d.precio_proveedor ?? null,
+      moneda: d.moneda?.trim() || null,
+      precio_compra: d.precio_compra ?? null,
       notas: d.notas?.trim() || null,
     })
     .eq('id', input.id)
@@ -1422,8 +1422,8 @@ const ConfigurarMinMaxSchema = z.object({
   producto_id: z.string().uuid(),
   variante_id: z.string().uuid().nullable(),
   espacio_id: z.string().uuid(),
-  stock_minimo: z.number().nullable(),
-  stock_maximo: z.number().nullable(),
+  cantidad_minima: z.number().nullable(),
+  cantidad_maxima: z.number().nullable(),
 })
 
 export async function configurarMinMaxStockAction(
@@ -1440,7 +1440,7 @@ export async function configurarMinMaxStockAction(
 
   const data = parsed.data
 
-  if (data.stock_minimo !== null && data.stock_maximo !== null && data.stock_minimo > data.stock_maximo) {
+  if (data.cantidad_minima !== null && data.cantidad_maxima !== null && data.cantidad_minima > data.cantidad_maxima) {
     return { ok: false, error: 'Minimo no puede ser mayor al maximo' }
   }
 
@@ -1464,7 +1464,7 @@ export async function configurarMinMaxStockAction(
   if (existing) {
     const { error } = await supabase
       .from('producto_stock_espacio')
-      .update({ stock_minimo: data.stock_minimo, stock_maximo: data.stock_maximo })
+      .update({ cantidad_minima: data.cantidad_minima, cantidad_maxima: data.cantidad_maxima })
       .eq('id', existing.id)
     if (error) return { ok: false, error: error.message }
   } else {
@@ -1475,8 +1475,8 @@ export async function configurarMinMaxStockAction(
         variante_id: data.variante_id,
         espacio_id: data.espacio_id,
         cantidad: 0,
-        stock_minimo: data.stock_minimo,
-        stock_maximo: data.stock_maximo,
+        cantidad_minima: data.cantidad_minima,
+        cantidad_maxima: data.cantidad_maxima,
       })
     if (error) return { ok: false, error: error.message }
   }

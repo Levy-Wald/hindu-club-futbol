@@ -8,8 +8,8 @@ interface StockRowProps {
 }
 
 export function StockRow({ stock }: StockRowProps) {
-  const isLow = stock.stock_minimo !== null && stock.cantidad <= stock.stock_minimo
-  const isOver = stock.stock_maximo !== null && stock.cantidad >= stock.stock_maximo
+  const isLow = stock.cantidad_minima !== null && stock.cantidad <= stock.cantidad_minima
+  const isOver = stock.cantidad_maxima !== null && stock.cantidad >= stock.cantidad_maxima
 
   return (
     <div className="flex items-center justify-between p-3">
@@ -21,8 +21,8 @@ export function StockRow({ stock }: StockRowProps) {
           )}
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-          {stock.stock_minimo !== null && <span>Min: {stock.stock_minimo}</span>}
-          {stock.stock_maximo !== null && <span>Max: {stock.stock_maximo}</span>}
+          {stock.cantidad_minima !== null && <span>Min: {stock.cantidad_minima}</span>}
+          {stock.cantidad_maxima !== null && <span>Max: {stock.cantidad_maxima}</span>}
         </div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
