@@ -516,6 +516,72 @@ export async function fetchCotizacionActual() {
   return data
 }
 
+export async function fetchCotizaciones(filters?: { moneda?: string; desde?: string; hasta?: string }) {
+  const supabase = await createClient()
+
+  let query = supabase
+    .from('cotizaciones')
+    .select('*')
+    .eq('tenant_id', TENANT_ID)
+    .order('fecha', { ascending: false })
+
+  if (filters?.moneda) query = query.eq('moneda', filters.moneda)
+  if (filters?.desde) query = query.gte('fecha', filters.desde)
+  if (filters?.hasta) query = query.lte('fecha', filters.hasta)
+
+  const { data, error } = await query
+  if (error) return []
+  return data ?? []
+}
+
+export async function fetchCotizacionesActuales() {
+  const supabase = await createClient()
+
+  // Get latest cotizacion per moneda
+  const { data, error } = await supabase
+    .from('cotizaciones')
+    .select('*')
+    .eq('tenant_id', TENANT_ID)
+    .order('fecha', { ascending: false })
+
+  if (error || !data) return []
+
+  const byMoneda = new Map<string, typeof data[0]>()
+  for (const row of data) {
+    if (!byMoneda.has(row.moneda)) byMoneda.set(row.moneda, row)
+  }
+  return Array.from(byMoneda.values())
+}
+
+export async function fetchCuentaCorrienteResumen(personaId: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('v_cuenta_corriente_persona')
+    .select('*')
+    .eq('tenant_id', TENANT_ID)
+    .eq('persona_id', personaId)
+    .maybeSingle()
+
+  if (error) return null
+  return data
+}
+
+export async function fetchPersonasParaSelect() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('personas')
+    .select('id, nombre, apellido, numero_documento')
+    .eq('tenant_id', TENANT_ID)
+    .order('apellido')
+    .order('nombre')
+    .limit(2000)
+
+  if (error) return []
+  return data ?? []
+}
+
 // =============================================================================
 // Cuenta corriente / Mi cuenta
 // =============================================================================

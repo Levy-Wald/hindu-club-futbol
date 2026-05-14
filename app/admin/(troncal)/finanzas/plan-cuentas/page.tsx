@@ -5,6 +5,9 @@ import {
   PlanCuentasTree,
   type CuentaNode,
 } from './_components/plan-cuentas-tree'
+import { CuentaFormDialog } from './_components/cuenta-form-dialog'
+import { Button } from '@/components/ui/button'
+import { Plus } from 'lucide-react'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
@@ -23,7 +26,6 @@ function buildTree(cuentas: CuentaRow[]): CuentaNode[] {
   const nodeMap = new Map<string, CuentaNode>()
   const roots: CuentaNode[] = []
 
-  // Crear nodos
   for (const cuenta of cuentas) {
     nodeMap.set(cuenta.id, {
       id: cuenta.id,
@@ -37,7 +39,6 @@ function buildTree(cuentas: CuentaRow[]): CuentaNode[] {
     })
   }
 
-  // Armar arbol
   for (const cuenta of cuentas) {
     const node = nodeMap.get(cuenta.id)!
     if (cuenta.cuenta_padre_id && nodeMap.has(cuenta.cuenta_padre_id)) {
@@ -64,6 +65,11 @@ export default async function PlanCuentasPage() {
   const totalCuentas = cuentas?.length ?? 0
   const imputables = cuentas?.filter((c: CuentaRow) => c.es_imputable).length ?? 0
 
+  // Flat list for parent selector in form
+  const allCuentas = (cuentas as CuentaRow[] ?? [])
+    .filter(c => c.activa)
+    .map(c => ({ id: c.id, codigo: c.codigo, nombre: c.nombre, tipo: c.tipo, nivel: c.nivel }))
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -76,6 +82,15 @@ export default async function PlanCuentasPage() {
             </p>
           </div>
         </div>
+        <CuentaFormDialog
+          trigger={
+            <Button>
+              <Plus className="h-4 w-4 mr-1" />
+              Nueva cuenta
+            </Button>
+          }
+          allCuentas={allCuentas}
+        />
       </div>
 
       {error ? (
@@ -92,7 +107,7 @@ export default async function PlanCuentasPage() {
             <CardTitle className="text-base">Estructura contable</CardTitle>
           </CardHeader>
           <CardContent>
-            <PlanCuentasTree tree={tree} />
+            <PlanCuentasTree tree={tree} allCuentas={allCuentas} />
           </CardContent>
         </Card>
       )}

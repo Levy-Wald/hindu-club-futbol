@@ -420,6 +420,60 @@ export async function editarCuenta(id: string, formData: FormData): Promise<Acti
 }
 
 // =============================================================================
+// Plan de cuentas — desactivar / reactivar
+// =============================================================================
+
+export async function desactivarCuenta(id: string): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  // Verificar que no está siendo usada
+  const checks = await Promise.all([
+    supabase.from('movimientos_caja').select('id', { count: 'exact', head: true })
+      .or(`cuenta_debe_id.eq.${id},cuenta_haber_id.eq.${id}`),
+    supabase.from('productos').select('id', { count: 'exact', head: true })
+      .or(`cuenta_ingreso_id.eq.${id},cuenta_egreso_id.eq.${id}`),
+    supabase.from('cajas').select('id', { count: 'exact', head: true })
+      .eq('cuenta_id', id).is('deleted_at', null),
+    supabase.from('plan_cuentas').select('id', { count: 'exact', head: true })
+      .eq('cuenta_padre_id', id).eq('activa', true),
+  ])
+
+  const labels = ['movimientos', 'productos', 'cajas', 'sub-cuentas activas']
+  for (let i = 0; i < checks.length; i++) {
+    const count = checks[i].count ?? 0
+    if (count > 0) {
+      return fail(`No se puede desactivar: la cuenta tiene ${count} ${labels[i]} asociados`)
+    }
+  }
+
+  const { error } = await supabase
+    .from('plan_cuentas')
+    .update({ activa: false })
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return fail(`Error al desactivar cuenta: ${error.message}`)
+
+  revalidatePath('/admin/finanzas')
+  return ok()
+}
+
+export async function reactivarCuenta(id: string): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('plan_cuentas')
+    .update({ activa: true })
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return fail(`Error al reactivar cuenta: ${error.message}`)
+
+  revalidatePath('/admin/finanzas')
+  return ok()
+}
+
+// =============================================================================
 // Convenios de pago
 // =============================================================================
 
@@ -689,22 +743,24 @@ export async function abrirPeriodo(anio: number, mes: number): Promise<ActionRes
 
 export async function actualizarCotizacion(
   fecha: string,
+  moneda: string,
   valorCompra: number,
-  valorVenta: number
+  valorVenta: number,
+  fuente: string
 ): Promise<ActionResult> {
   const supabase = await createClient()
 
   if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
     return fail('La fecha debe tener formato YYYY-MM-DD')
   }
+  if (!moneda || moneda === 'ARS') {
+    return fail('La moneda no puede ser ARS (es la moneda base)')
+  }
   if (isNaN(valorCompra) || valorCompra <= 0) {
     return fail('El valor de compra debe ser mayor a 0')
   }
   if (isNaN(valorVenta) || valorVenta <= 0) {
     return fail('El valor de venta debe ser mayor a 0')
-  }
-  if (valorVenta < valorCompra) {
-    return fail('El valor de venta no puede ser menor al de compra')
   }
 
   const { data, error } = await supabase
@@ -713,10 +769,10 @@ export async function actualizarCotizacion(
       {
         tenant_id: TENANT_ID,
         fecha,
-        moneda: 'USD',
+        moneda,
         valor_compra: valorCompra,
         valor_venta: valorVenta,
-        fuente: 'manual',
+        fuente: fuente || 'Manual',
       },
       { onConflict: 'tenant_id,fecha,moneda,fuente' }
     )
@@ -727,4 +783,48 @@ export async function actualizarCotizacion(
 
   revalidatePath('/admin/finanzas')
   return ok(data)
+}
+
+export async function eliminarCotizacion(id: string): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('cotizaciones')
+    .delete()
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return fail(`Error al eliminar cotizacion: ${error.message}`)
+
+  revalidatePath('/admin/finanzas')
+  return ok()
+}
+
+export async function reabrirPeriodo(id: string): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  const { data: periodo, error: fetchError } = await supabase
+    .from('periodos_contables')
+    .select('id, estado')
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (fetchError || !periodo) return fail('Periodo no encontrado')
+  if (periodo.estado === 'abierto') return fail('El periodo ya esta abierto')
+
+  const { error } = await supabase
+    .from('periodos_contables')
+    .update({
+      estado: 'abierto',
+      cerrado_por_id: null,
+      cerrado_at: null,
+    })
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return fail(`Error al reabrir periodo: ${error.message}`)
+
+  revalidatePath('/admin/finanzas')
+  return ok()
 }

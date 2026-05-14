@@ -38,6 +38,10 @@ import {
   FolderTree,
   Repeat2,
   AlertCircle,
+  CalendarRange,
+  Handshake,
+  TrendingUp,
+  UserCheck,
 } from 'lucide-react'
 
 export interface NavItemDef {
@@ -130,6 +134,11 @@ export const troncalSection: NavSectionDef = {
         { label: 'Suscripciones', href: '/admin/finanzas/suscripciones', icon: Repeat2 },
         { label: 'Centros de Costo', href: '/admin/finanzas/centros-costo', icon: FolderTree },
         { label: 'Plan de Cuentas', href: '/admin/finanzas/plan-cuentas', icon: BookOpen },
+        { label: 'Periodos contables', href: '/admin/finanzas/periodos', icon: CalendarRange },
+        { label: 'Cotizaciones', href: '/admin/finanzas/cotizaciones', icon: TrendingUp },
+        { label: 'Convenios de pago', href: '/admin/finanzas/convenios', icon: Handshake },
+        { label: 'Cuenta corriente', href: '/admin/finanzas/cuenta-corriente', icon: UserCheck },
+        { label: 'Configuracion', href: '/admin/finanzas/config', icon: Settings },
         { label: 'Productos sin cuentas', href: '/admin/finanzas/productos-sin-cuentas', icon: AlertCircle },
       ],
     },
