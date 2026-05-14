@@ -1,0 +1,33 @@
+{
+  "slug": "pim",
+  "name": "PIM - Catalogo de Productos",
+  "version": "1.0.0",
+  "category": "troncal",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": ["utileria", "concesiones"],
+  "owns_tables": [
+    "productos",
+    "productos_variantes",
+    "producto_categorias",
+    "producto_categoria_links",
+    "catalogo_unidades_medida"
+  ],
+  "owns_catalogs": ["catalogo_unidades_medida"],
+  "owns_views": ["v_productos_catalogo"],
+  "permissions_required": ["tenant.admin", "pim.admin", "pim.editor", "pim.viewer"],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": [
+    "/admin/productos",
+    "/admin/productos/[id]",
+    "/admin/productos/categorias"
+  ],
+  "public_routes": [],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

@@ -32,6 +32,8 @@ import {
   HeartPulse,
   ShoppingBag,
   MapPin,
+  ShoppingCart,
+  Tag,
 } from 'lucide-react'
 
 export interface NavItemDef {
@@ -80,6 +82,16 @@ export const troncalSection: NavSectionDef = {
     { label: 'Entidades', href: '/admin/entidades', icon: Building2 },
   ],
   collapsibles: [
+    {
+      label: 'Productos',
+      icon: ShoppingCart,
+      activeCheck: (p) => p.startsWith('/admin/productos'),
+      subItems: [
+        { label: 'Catalogo', href: '/admin/productos', icon: ShoppingCart },
+        { label: 'Categorias', href: '/admin/productos/categorias', icon: Tag },
+        { label: 'Marcas', href: '/admin/productos/marcas', icon: Tag },
+      ],
+    },
     {
       label: 'Operaciones',
       icon: Calendar,
