@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { resolverCuentasMovimiento } from './helpers-contables'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
@@ -175,6 +176,9 @@ export async function crearMovimiento(formData: FormData) {
   const centroCostoId = formData.get('centro_costo_id') as string | null
   const fecha = formData.get('fecha') as string
   const descripcion = formData.get('descripcion') as string | null
+  const productoId = formData.get('producto_id') as string | null
+  const cuentaDebeId = formData.get('cuenta_debe_id') as string | null
+  const cuentaHaberId = formData.get('cuenta_haber_id') as string | null
 
   // Validaciones basicas
   if (!tipo || !['ingreso', 'egreso', 'transferencia'].includes(tipo)) {
@@ -207,6 +211,29 @@ export async function crearMovimiento(formData: FormData) {
     return { success: false, error: `El periodo contable ${periodoContable} esta cerrado` }
   }
 
+  // Auto-resolver cuentas contables si hay producto y no se pasaron manualmente
+  let resolvedCuentaDebeId = cuentaDebeId || null
+  let resolvedCuentaHaberId = cuentaHaberId || null
+  const warnings: string[] = []
+
+  if (productoId && !cuentaDebeId && !cuentaHaberId && tipo !== 'transferencia') {
+    const signo = tipo as 'ingreso' | 'egreso'
+    const resueltas = await resolverCuentasMovimiento({
+      producto_id: productoId,
+      signo,
+      caja_id: cajaId,
+    })
+
+    // Si hay warning bloqueante (uso_interno + ingreso), rechazar
+    if (resueltas.warnings.some(w => w.includes('no deberia generar ingresos'))) {
+      return { success: false, error: resueltas.warnings[0] }
+    }
+
+    resolvedCuentaDebeId = resueltas.cuenta_debe_id
+    resolvedCuentaHaberId = resueltas.cuenta_haber_id
+    warnings.push(...resueltas.warnings)
+  }
+
   // Insert movimiento
   // DB triggers handle: auto-numbering, monto_neto calc, USD conversion, saldo update, cuenta corriente update
   const insertData: Record<string, unknown> = {
@@ -229,6 +256,9 @@ export async function crearMovimiento(formData: FormData) {
   if (medioPagoId) insertData.medio_pago_id = medioPagoId
   if (personaId) insertData.persona_id = personaId
   if (centroCostoId) insertData.centro_costo_id = centroCostoId
+  if (productoId) insertData.producto_id = productoId
+  if (resolvedCuentaDebeId) insertData.cuenta_debe_id = resolvedCuentaDebeId
+  if (resolvedCuentaHaberId) insertData.cuenta_haber_id = resolvedCuentaHaberId
   if (tipo === 'transferencia' && cajaDestinoId) {
     insertData.caja_destino_id = cajaDestinoId
   }
@@ -243,7 +273,7 @@ export async function crearMovimiento(formData: FormData) {
 
   revalidatePath('/admin/finanzas/movimientos')
   revalidatePath('/admin/finanzas/cajas')
-  return { success: true }
+  return { success: true, warnings }
 }
 
 export async function anularMovimiento(id: string, motivo: string): Promise<ActionResult> {

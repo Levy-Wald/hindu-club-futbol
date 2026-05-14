@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,9 +12,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { Loader2, ChevronDown, CheckCircle2, AlertTriangle, Info } from 'lucide-react'
 import { crearMovimiento } from '@/modules/finanzas/lib/actions'
+import { previewCuentasMovimiento, type CuentasResueltas } from '@/modules/finanzas/lib/helpers-contables'
 
 // -------------------------------------------------------------------
 // Tipos
@@ -43,11 +49,26 @@ interface CentroCosto {
   nombre: string
 }
 
+interface Producto {
+  id: string
+  nombre: string
+  sku: string | null
+  tipo_uso: string | null
+}
+
+interface CuentaContable {
+  id: string
+  codigo: string
+  nombre: string
+}
+
 interface MovimientoFormProps {
   cajas: Caja[]
   categorias: Categoria[]
   mediosPago: MedioPago[]
   centrosCosto: CentroCosto[]
+  productos: Producto[]
+  cuentas: CuentaContable[]
   cajaPreseleccionada?: string
   onSuccess?: () => void
 }
@@ -81,6 +102,8 @@ export function MovimientoForm({
   categorias,
   mediosPago,
   centrosCosto,
+  productos,
+  cuentas,
   cajaPreseleccionada,
   onSuccess,
 }: MovimientoFormProps) {
@@ -103,6 +126,16 @@ export function MovimientoForm({
   const [centroCostoId, setCentroCostoId] = useState<string>('')
   const [fecha, setFecha] = useState<string>(new Date().toISOString().split('T')[0])
   const [descripcion, setDescripcion] = useState<string>('')
+  const [productoId, setProductoId] = useState<string>('')
+
+  // Asiento contable (manual override)
+  const [cuentaDebeId, setCuentaDebeId] = useState<string>('')
+  const [cuentaHaberId, setCuentaHaberId] = useState<string>('')
+  const [asientoOpen, setAsientoOpen] = useState(false)
+
+  // Preview de cuentas resueltas
+  const [preview, setPreview] = useState<CuentasResueltas | null>(null)
+  const [loadingPreview, setLoadingPreview] = useState(false)
 
   // Auto-calc monto neto
   const bruto = parseFloat(montoBruto) || 0
@@ -117,6 +150,42 @@ export function MovimientoForm({
   useEffect(() => {
     setCategoriaId('')
   }, [tipo])
+
+  // Fetch preview when producto + caja + tipo change
+  const fetchPreview = useCallback(async () => {
+    if (!productoId || !cajaId || tipo === 'transferencia') {
+      setPreview(null)
+      return
+    }
+    setLoadingPreview(true)
+    try {
+      const result = await previewCuentasMovimiento({
+        producto_id: productoId,
+        signo: tipo as 'ingreso' | 'egreso',
+        caja_id: cajaId,
+      })
+      setPreview(result)
+      // Si el usuario no hizo override manual, limpiar las cuentas manuales
+      if (!cuentaDebeId && !cuentaHaberId) {
+        setAsientoOpen(false)
+      }
+    } catch {
+      setPreview(null)
+    } finally {
+      setLoadingPreview(false)
+    }
+  }, [productoId, cajaId, tipo, cuentaDebeId, cuentaHaberId])
+
+  useEffect(() => {
+    fetchPreview()
+  }, [fetchPreview])
+
+  // Limpiar preview si se quita el producto
+  useEffect(() => {
+    if (!productoId) {
+      setPreview(null)
+    }
+  }, [productoId])
 
   function handleSubmit() {
     // Validations
@@ -164,17 +233,28 @@ export function MovimientoForm({
     if (centroCostoId) formData.set('centro_costo_id', centroCostoId)
     formData.set('fecha', fecha)
     if (descripcion) formData.set('descripcion', descripcion)
+    if (productoId) formData.set('producto_id', productoId)
+    // Manual override de cuentas
+    if (cuentaDebeId) formData.set('cuenta_debe_id', cuentaDebeId)
+    if (cuentaHaberId) formData.set('cuenta_haber_id', cuentaHaberId)
 
     startTransition(async () => {
       const result = await crearMovimiento(formData)
       if (result.success) {
         toast.success('Movimiento creado correctamente')
+        if (result.warnings && result.warnings.length > 0) {
+          for (const w of result.warnings) {
+            toast.warning(w)
+          }
+        }
         onSuccess?.()
       } else {
         toast.error(result.error ?? 'Error al crear el movimiento')
       }
     })
   }
+
+  const hasBlockingWarning = preview?.warnings.some(w => w.includes('no deberia generar ingresos'))
 
   return (
     <div className="space-y-4">
@@ -228,6 +308,83 @@ export function MovimientoForm({
                 ))}
             </SelectContent>
           </Select>
+        </div>
+      )}
+
+      {/* Producto (nuevo) */}
+      {tipo !== 'transferencia' && (
+        <div className="space-y-1.5">
+          <Label>Producto (opcional)</Label>
+          <Select value={productoId} onValueChange={(val) => setProductoId(val ?? '')}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sin producto" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Sin producto</SelectItem>
+              {productos.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.sku ? `[${p.sku}] ` : ''}{p.nombre}
+                  {p.tipo_uso ? ` (${p.tipo_uso})` : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* Preview cuentas auto-resueltas */}
+      {productoId && tipo !== 'transferencia' && (
+        <div className="space-y-2">
+          {loadingPreview ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground p-3 rounded-lg bg-muted/50">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Resolviendo cuentas contables...
+            </div>
+          ) : preview ? (
+            <>
+              {/* Cuentas resueltas */}
+              {!hasBlockingWarning && (
+                <div className="p-3 rounded-lg bg-muted/50 space-y-1.5">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Info className="h-4 w-4 text-primary shrink-0" />
+                    <span className="font-medium">Asiento contable (auto desde producto)</span>
+                  </div>
+                  <div className="ml-6 text-sm space-y-0.5">
+                    <div className="flex items-center gap-1.5">
+                      {preview.cuenta_debe_id ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-success-600" />
+                      ) : (
+                        <AlertTriangle className="h-3.5 w-3.5 text-warning-600" />
+                      )}
+                      <span className="text-muted-foreground">Debe:</span>
+                      <span>{preview.cuenta_debe_nombre ?? 'Sin cuenta'}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {preview.cuenta_haber_id ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-success-600" />
+                      ) : (
+                        <AlertTriangle className="h-3.5 w-3.5 text-warning-600" />
+                      )}
+                      <span className="text-muted-foreground">Haber:</span>
+                      <span>{preview.cuenta_haber_nombre ?? 'Sin cuenta'}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Warnings */}
+              {preview.warnings.length > 0 && (
+                <div className={`p-3 rounded-lg space-y-1 ${hasBlockingWarning ? 'bg-error-100 dark:bg-error-900/30' : 'bg-warning-100 dark:bg-warning-900/30'}`}>
+                  {preview.warnings.map((w, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm">
+                      <AlertTriangle className={`h-4 w-4 shrink-0 mt-0.5 ${hasBlockingWarning ? 'text-error-600' : 'text-warning-600'}`} />
+                      <span>{w}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : null}
         </div>
       )}
 
@@ -328,8 +485,6 @@ export function MovimientoForm({
             value={personaBusqueda}
             onChange={(e) => {
               setPersonaBusqueda(e.target.value)
-              // For simplicity, using the input as persona_id if it looks like a UUID
-              // In a full implementation, this would be an autocomplete search
               setPersonaId('')
             }}
           />
@@ -414,9 +569,62 @@ export function MovimientoForm({
         />
       </div>
 
+      {/* Asiento contable (avanzado) */}
+      <Collapsible open={asientoOpen} onOpenChange={setAsientoOpen}>
+        <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground w-full">
+          <ChevronDown className={`h-4 w-4 transition-transform ${asientoOpen ? '' : '-rotate-90'}`} />
+          Asiento contable {productoId ? '(override manual)' : '(manual)'}
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-3 mt-2">
+          {productoId && (
+            <p className="text-xs text-muted-foreground">
+              Si seleccionas cuentas aca, se usaran en lugar de las auto-resueltas del producto.
+            </p>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Cuenta Debe</Label>
+              <Select value={cuentaDebeId} onValueChange={(val) => setCuentaDebeId(val ?? '')}>
+                <SelectTrigger>
+                  <SelectValue placeholder={productoId ? 'Auto desde producto' : 'Seleccionar cuenta'} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">
+                    {productoId ? 'Auto desde producto' : 'Sin cuenta'}
+                  </SelectItem>
+                  {cuentas.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.codigo} - {c.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Cuenta Haber</Label>
+              <Select value={cuentaHaberId} onValueChange={(val) => setCuentaHaberId(val ?? '')}>
+                <SelectTrigger>
+                  <SelectValue placeholder={productoId ? 'Auto desde producto' : 'Seleccionar cuenta'} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">
+                    {productoId ? 'Auto desde producto' : 'Sin cuenta'}
+                  </SelectItem>
+                  {cuentas.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.codigo} - {c.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
       {/* Submit */}
       <div className="flex justify-end gap-2 pt-2">
-        <Button onClick={handleSubmit} disabled={isPending}>
+        <Button onClick={handleSubmit} disabled={isPending || !!hasBlockingWarning}>
           {isPending && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
           Registrar movimiento
         </Button>

@@ -35,11 +35,26 @@ interface CentroCosto {
   nombre: string
 }
 
+interface Producto {
+  id: string
+  nombre: string
+  sku: string | null
+  tipo_uso: string | null
+}
+
+interface CuentaContable {
+  id: string
+  codigo: string
+  nombre: string
+}
+
 interface NuevoMovimientoDialogProps {
   cajas: Caja[]
   categorias: Categoria[]
   mediosPago: MedioPago[]
   centrosCosto: CentroCosto[]
+  productos: Producto[]
+  cuentas: CuentaContable[]
   cajaPreseleccionada?: string
 }
 
@@ -48,6 +63,8 @@ export function NuevoMovimientoDialog({
   categorias,
   mediosPago,
   centrosCosto,
+  productos,
+  cuentas,
   cajaPreseleccionada,
 }: NuevoMovimientoDialogProps) {
   const [open, setOpen] = useState(false)
@@ -67,6 +84,8 @@ export function NuevoMovimientoDialog({
           categorias={categorias}
           mediosPago={mediosPago}
           centrosCosto={centrosCosto}
+          productos={productos}
+          cuentas={cuentas}
           cajaPreseleccionada={cajaPreseleccionada}
           onSuccess={() => setOpen(false)}
         />

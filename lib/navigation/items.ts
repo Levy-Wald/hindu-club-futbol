@@ -37,6 +37,7 @@ import {
   PackageCheck,
   FolderTree,
   Repeat2,
+  AlertCircle,
 } from 'lucide-react'
 
 export interface NavItemDef {
@@ -129,6 +130,7 @@ export const troncalSection: NavSectionDef = {
         { label: 'Suscripciones', href: '/admin/finanzas/suscripciones', icon: Repeat2 },
         { label: 'Centros de Costo', href: '/admin/finanzas/centros-costo', icon: FolderTree },
         { label: 'Plan de Cuentas', href: '/admin/finanzas/plan-cuentas', icon: BookOpen },
+        { label: 'Productos sin cuentas', href: '/admin/finanzas/productos-sin-cuentas', icon: AlertCircle },
       ],
     },
     {

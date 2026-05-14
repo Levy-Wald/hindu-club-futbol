@@ -112,13 +112,14 @@ export default async function MovimientosPage({ searchParams }: PageProps) {
 
   const { data: movimientos, error } = await query
 
-  // Fetch cajas and categorias for filters and form
-  const [cajasRes, categoriasRes, mediosPagoRes, centrosCostoRes] = await Promise.all([
+  // Fetch cajas, categorias, productos and cuentas for filters and form
+  const [cajasRes, categoriasRes, mediosPagoRes, centrosCostoRes, productosRes, cuentasRes] = await Promise.all([
     supabase
       .from('cajas')
       .select('id, nombre, tipo, activa')
       .eq('tenant_id', TENANT_ID)
       .eq('activa', true)
+      .is('deleted_at', null)
       .order('nombre'),
     supabase
       .from('catalogo_categorias_movimiento')
@@ -138,12 +139,28 @@ export default async function MovimientosPage({ searchParams }: PageProps) {
       .eq('tenant_id', TENANT_ID)
       .eq('activo', true)
       .order('nombre'),
+    supabase
+      .from('productos')
+      .select('id, nombre, sku, tipo_uso')
+      .eq('tenant_id', TENANT_ID)
+      .eq('activo', true)
+      .is('deleted_at', null)
+      .order('nombre'),
+    supabase
+      .from('plan_cuentas')
+      .select('id, codigo, nombre')
+      .eq('tenant_id', TENANT_ID)
+      .eq('es_imputable', true)
+      .eq('activa', true)
+      .order('codigo'),
   ])
 
   const cajas = cajasRes.data ?? []
   const categorias = categoriasRes.data ?? []
   const mediosPago = mediosPagoRes.data ?? []
   const centrosCosto = centrosCostoRes.data ?? []
+  const productos = productosRes.data ?? []
+  const cuentas = cuentasRes.data ?? []
 
   if (error) {
     return (
@@ -167,6 +184,8 @@ export default async function MovimientosPage({ searchParams }: PageProps) {
           categorias={categorias}
           mediosPago={mediosPago}
           centrosCosto={centrosCosto}
+          productos={productos}
+          cuentas={cuentas}
           cajaPreseleccionada={filters.caja}
         />
       </div>
