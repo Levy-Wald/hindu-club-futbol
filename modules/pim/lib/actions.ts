@@ -724,3 +724,266 @@ export async function reordenarImagenesAction(input: {
   revalidatePath(`/admin/productos/${input.producto_id}`)
   return { ok: true }
 }
+
+// --- Proveedor Schemas ---
+
+const rolesResponsable = ['general', 'compras', 'stock', 'marketing', 'product_owner', 'qa', 'logistica', 'ventas'] as const
+
+const proveedorSchema = z.object({
+  producto_id: z.string().uuid(),
+  entidad_id: z.string().uuid().nullable().optional(),
+  persona_id: z.string().uuid().nullable().optional(),
+  es_principal: z.boolean().optional(),
+  codigo_proveedor: z.string().max(100).optional().or(z.literal('')),
+  plazo_entrega_dias: z.number().int().min(0).nullable().optional(),
+  moneda_compra: z.string().max(10).optional().or(z.literal('')),
+  precio_proveedor: z.number().min(0).nullable().optional(),
+  notas: z.string().max(1000).optional().or(z.literal('')),
+})
+
+// --- Proveedor Actions ---
+
+export async function agregarProveedorAProductoAction(
+  input: z.infer<typeof proveedorSchema>
+): Promise<ActionResult<{ id: string }>> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canEditPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const parsed = proveedorSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
+
+  const d = parsed.data
+  if (!d.entidad_id && !d.persona_id) return { ok: false, error: 'Debe seleccionar una entidad o persona' }
+  if (d.entidad_id && d.persona_id) return { ok: false, error: 'Solo una entidad o persona, no ambas' }
+
+  const supabase = createServiceRoleClient()
+
+  // If es_principal, unset others
+  if (d.es_principal) {
+    await supabase
+      .from('producto_proveedores')
+      .update({ es_principal: false })
+      .eq('producto_id', d.producto_id)
+      .eq('es_principal', true)
+  }
+
+  const { data, error } = await supabase
+    .from('producto_proveedores')
+    .insert({
+      producto_id: d.producto_id,
+      entidad_id: d.entidad_id ?? null,
+      persona_id: d.persona_id ?? null,
+      es_principal: d.es_principal ?? false,
+      codigo_proveedor: d.codigo_proveedor?.trim() || null,
+      plazo_entrega_dias: d.plazo_entrega_dias ?? null,
+      moneda_compra: d.moneda_compra?.trim() || null,
+      precio_proveedor: d.precio_proveedor ?? null,
+      notas: d.notas?.trim() || null,
+    })
+    .select('id')
+    .single()
+
+  if (error || !data) return { ok: false, error: error?.message ?? 'Error agregando proveedor' }
+
+  revalidatePath(`/admin/productos/${d.producto_id}`)
+  return { ok: true, id: data.id }
+}
+
+export async function editarProveedorDeProductoAction(
+  input: { id: string } & z.infer<typeof proveedorSchema>
+): Promise<ActionResult> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canEditPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const parsed = proveedorSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
+
+  const d = parsed.data
+  const supabase = createServiceRoleClient()
+
+  // If es_principal, unset others
+  if (d.es_principal) {
+    await supabase
+      .from('producto_proveedores')
+      .update({ es_principal: false })
+      .eq('producto_id', d.producto_id)
+      .eq('es_principal', true)
+      .neq('id', input.id)
+  }
+
+  const { error } = await supabase
+    .from('producto_proveedores')
+    .update({
+      es_principal: d.es_principal ?? false,
+      codigo_proveedor: d.codigo_proveedor?.trim() || null,
+      plazo_entrega_dias: d.plazo_entrega_dias ?? null,
+      moneda_compra: d.moneda_compra?.trim() || null,
+      precio_proveedor: d.precio_proveedor ?? null,
+      notas: d.notas?.trim() || null,
+    })
+    .eq('id', input.id)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath(`/admin/productos/${d.producto_id}`)
+  return { ok: true }
+}
+
+export async function eliminarProveedorDeProductoAction(input: {
+  id: string
+  producto_id: string
+}): Promise<ActionResult> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canEditPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const supabase = createServiceRoleClient()
+
+  const { error } = await supabase
+    .from('producto_proveedores')
+    .delete()
+    .eq('id', input.id)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath(`/admin/productos/${input.producto_id}`)
+  return { ok: true }
+}
+
+export async function establecerProveedorPrincipalAction(input: {
+  id: string
+  producto_id: string
+}): Promise<ActionResult> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canEditPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const supabase = createServiceRoleClient()
+
+  // Unset all
+  await supabase
+    .from('producto_proveedores')
+    .update({ es_principal: false })
+    .eq('producto_id', input.producto_id)
+
+  // Set this one
+  const { error } = await supabase
+    .from('producto_proveedores')
+    .update({ es_principal: true })
+    .eq('id', input.id)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath(`/admin/productos/${input.producto_id}`)
+  return { ok: true }
+}
+
+// --- Responsable Schemas ---
+
+const responsableSchema = z.object({
+  producto_id: z.string().uuid(),
+  persona_id: z.string().uuid().nullable().optional(),
+  atributo_slug: z.string().max(100).nullable().optional(),
+  rol: z.enum(rolesResponsable),
+  notas: z.string().max(1000).optional().or(z.literal('')),
+})
+
+// --- Responsable Actions ---
+
+export async function agregarResponsableAProductoAction(
+  input: z.infer<typeof responsableSchema>
+): Promise<ActionResult<{ id: string }>> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canEditPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const parsed = responsableSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
+
+  const d = parsed.data
+  if (!d.persona_id && !d.atributo_slug) return { ok: false, error: 'Debe seleccionar persona o atributo' }
+  if (d.persona_id && d.atributo_slug) return { ok: false, error: 'Solo persona o atributo, no ambos' }
+
+  const supabase = createServiceRoleClient()
+
+  const { data, error } = await supabase
+    .from('producto_responsables')
+    .insert({
+      producto_id: d.producto_id,
+      persona_id: d.persona_id ?? null,
+      atributo_slug: d.atributo_slug ?? null,
+      rol: d.rol,
+      notas: d.notas?.trim() || null,
+    })
+    .select('id')
+    .single()
+
+  if (error || !data) return { ok: false, error: error?.message ?? 'Error agregando responsable' }
+
+  revalidatePath(`/admin/productos/${d.producto_id}`)
+  return { ok: true, id: data.id }
+}
+
+export async function editarResponsableDeProductoAction(
+  input: { id: string } & z.infer<typeof responsableSchema>
+): Promise<ActionResult> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canEditPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const parsed = responsableSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
+
+  const d = parsed.data
+  const supabase = createServiceRoleClient()
+
+  const { error } = await supabase
+    .from('producto_responsables')
+    .update({
+      rol: d.rol,
+      notas: d.notas?.trim() || null,
+    })
+    .eq('id', input.id)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath(`/admin/productos/${d.producto_id}`)
+  return { ok: true }
+}
+
+export async function eliminarResponsableDeProductoAction(input: {
+  id: string
+  producto_id: string
+}): Promise<ActionResult> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canEditPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const supabase = createServiceRoleClient()
+
+  const { error } = await supabase
+    .from('producto_responsables')
+    .delete()
+    .eq('id', input.id)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath(`/admin/productos/${input.producto_id}`)
+  return { ok: true }
+}

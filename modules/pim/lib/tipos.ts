@@ -125,6 +125,46 @@ export type ProductoImagen = {
   created_at: string
 }
 
+export type RolResponsable =
+  | 'general'
+  | 'compras'
+  | 'stock'
+  | 'marketing'
+  | 'product_owner'
+  | 'qa'
+  | 'logistica'
+  | 'ventas'
+
+export type ProductoProveedor = {
+  id: string
+  producto_id: string
+  entidad_id: string | null
+  persona_id: string | null
+  es_principal: boolean
+  codigo_proveedor: string | null
+  plazo_entrega_dias: number | null
+  moneda_compra: string | null
+  precio_proveedor: number | null
+  notas: string | null
+  created_at: string
+  updated_at: string
+  // Resolved
+  nombre_proveedor: string
+}
+
+export type ProductoResponsable = {
+  id: string
+  producto_id: string
+  persona_id: string | null
+  atributo_slug: string | null
+  rol: RolResponsable
+  notas: string | null
+  created_at: string
+  updated_at: string
+  // Resolved
+  nombre_responsable: string
+}
+
 export type CatalogoProductoRow = {
   origen: 'pim'
   id_origen: string

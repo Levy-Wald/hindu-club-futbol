@@ -9,6 +9,10 @@ import { ProductoFormDialog } from '@/modules/pim/ui/producto-form'
 import { VarianteFormDialog } from '@/modules/pim/ui/variante-form'
 import { VarianteRow } from '@/modules/pim/ui/variante-row'
 import { GaleriaImagenes } from '@/modules/pim/ui/galeria-imagenes'
+import { ProveedorFormDialog } from '@/modules/pim/ui/proveedor-form'
+import { ProveedorRow } from '@/modules/pim/ui/proveedor-row'
+import { ResponsableFormDialog } from '@/modules/pim/ui/responsable-form'
+import { ResponsableRow } from '@/modules/pim/ui/responsable-row'
 import type {
   ProductoConCategorias,
   ProductoVariante,
@@ -16,6 +20,8 @@ import type {
   UnidadMedida,
   Marca,
   ProductoImagen,
+  ProductoProveedor,
+  ProductoResponsable,
   ModoOperacion,
   TipoUso,
 } from '@/modules/pim/lib/tipos'
@@ -41,6 +47,11 @@ interface ProductoDetalleProps {
   unidades: UnidadMedida[]
   marcas: Marca[]
   imagenes: ProductoImagen[]
+  proveedores: ProductoProveedor[]
+  responsables: ProductoResponsable[]
+  entidades: { id: string; nombre: string; tipo: string }[]
+  personasResp: { id: string; nombre: string; apellido: string }[]
+  atributosResp: { slug: string; nombre: string }[]
 }
 
 export function ProductoDetalle({
@@ -50,6 +61,11 @@ export function ProductoDetalle({
   unidades,
   marcas,
   imagenes,
+  proveedores,
+  responsables,
+  entidades,
+  personasResp,
+  atributosResp,
 }: ProductoDetalleProps) {
   const p = producto
 
@@ -134,6 +150,8 @@ export function ProductoDetalle({
         <TabsList>
           <TabsTrigger value="variantes">Variantes ({variantes.length})</TabsTrigger>
           <TabsTrigger value="imagenes">Imagenes ({imagenes.length})</TabsTrigger>
+          <TabsTrigger value="proveedores">Proveedores ({proveedores.length})</TabsTrigger>
+          <TabsTrigger value="responsables">Responsables ({responsables.length})</TabsTrigger>
           <TabsTrigger value="info">Info</TabsTrigger>
         </TabsList>
 
@@ -156,6 +174,48 @@ export function ProductoDetalle({
 
         <TabsContent value="imagenes" className="pt-4">
           <GaleriaImagenes productoId={p.id} imagenes={imagenes} />
+        </TabsContent>
+
+        <TabsContent value="proveedores" className="pt-4">
+          <div className="space-y-3">
+            <ProveedorFormDialog
+              productoId={p.id}
+              entidades={entidades}
+              personas={personasResp}
+            />
+            {proveedores.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground border rounded-lg">
+                <p>No hay proveedores asignados.</p>
+              </div>
+            ) : (
+              <div className="border rounded-lg divide-y">
+                {proveedores.map((prov) => (
+                  <ProveedorRow key={prov.id} proveedor={prov} />
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="responsables" className="pt-4">
+          <div className="space-y-3">
+            <ResponsableFormDialog
+              productoId={p.id}
+              personas={personasResp}
+              atributos={atributosResp}
+            />
+            {responsables.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground border rounded-lg">
+                <p>No hay responsables asignados.</p>
+              </div>
+            ) : (
+              <div className="border rounded-lg divide-y">
+                {responsables.map((resp) => (
+                  <ResponsableRow key={resp.id} responsable={resp} />
+                ))}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="info" className="pt-4">

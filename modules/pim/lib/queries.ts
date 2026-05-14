@@ -9,6 +9,8 @@ import type {
   UnidadMedida,
   Marca,
   ProductoImagen,
+  ProductoProveedor,
+  ProductoResponsable,
 } from './tipos'
 
 export async function listarProductos(
@@ -291,4 +293,142 @@ export async function imagenesDeProducto(producto_id: string): Promise<ProductoI
     .eq('producto_id', producto_id)
     .order('orden')
   return (data ?? []) as ProductoImagen[]
+}
+
+// --- Proveedores ---
+
+export async function listarProveedoresDeProducto(
+  producto_id: string
+): Promise<ProductoProveedor[]> {
+  const supabase = createServiceRoleClient()
+
+  const { data: rows } = await supabase
+    .from('producto_proveedores')
+    .select('*')
+    .eq('producto_id', producto_id)
+    .order('es_principal', { ascending: false })
+    .order('created_at')
+
+  if (!rows || rows.length === 0) return []
+
+  // Resolve names
+  const entidadIds = rows.map((r) => r.entidad_id).filter(Boolean) as string[]
+  const personaIds = rows.map((r) => r.persona_id).filter(Boolean) as string[]
+
+  const entidadMap: Record<string, string> = {}
+  const personaMap: Record<string, string> = {}
+
+  if (entidadIds.length > 0) {
+    const { data: ents } = await supabase
+      .from('entidades')
+      .select('id, nombre')
+      .in('id', entidadIds)
+    for (const e of ents ?? []) entidadMap[e.id] = e.nombre
+  }
+
+  if (personaIds.length > 0) {
+    const { data: pers } = await supabase
+      .from('personas')
+      .select('id, nombre, apellido')
+      .in('id', personaIds)
+    for (const p of pers ?? []) personaMap[p.id] = `${p.nombre} ${p.apellido}`
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    precio_proveedor: r.precio_proveedor ? Number(r.precio_proveedor) : null,
+    nombre_proveedor: r.entidad_id
+      ? (entidadMap[r.entidad_id] ?? 'Entidad desconocida')
+      : (personaMap[r.persona_id!] ?? 'Persona desconocida'),
+  })) as ProductoProveedor[]
+}
+
+// --- Responsables ---
+
+export async function listarResponsablesDeProducto(
+  producto_id: string
+): Promise<ProductoResponsable[]> {
+  const supabase = createServiceRoleClient()
+
+  const { data: rows } = await supabase
+    .from('producto_responsables')
+    .select('*')
+    .eq('producto_id', producto_id)
+    .order('rol')
+    .order('created_at')
+
+  if (!rows || rows.length === 0) return []
+
+  // Resolve names
+  const personaIds = rows.map((r) => r.persona_id).filter(Boolean) as string[]
+  const atributoSlugs = rows.map((r) => r.atributo_slug).filter(Boolean) as string[]
+
+  const personaMap: Record<string, string> = {}
+  const atributoMap: Record<string, string> = {}
+
+  if (personaIds.length > 0) {
+    const { data: pers } = await supabase
+      .from('personas')
+      .select('id, nombre, apellido')
+      .in('id', personaIds)
+    for (const p of pers ?? []) personaMap[p.id] = `${p.nombre} ${p.apellido}`
+  }
+
+  if (atributoSlugs.length > 0) {
+    const { data: attrs } = await supabase
+      .from('catalogo_atributos')
+      .select('slug, nombre')
+      .in('slug', atributoSlugs)
+    for (const a of attrs ?? []) atributoMap[a.slug] = a.nombre
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    nombre_responsable: r.persona_id
+      ? (personaMap[r.persona_id] ?? 'Persona desconocida')
+      : (atributoMap[r.atributo_slug!] ?? r.atributo_slug ?? 'Atributo desconocido'),
+  })) as ProductoResponsable[]
+}
+
+// --- Entidades para selector de proveedores ---
+
+export async function listarEntidadesProveedoras(
+  tenant_id: string
+): Promise<{ id: string; nombre: string; tipo: string }[]> {
+  const supabase = createServiceRoleClient()
+  const { data } = await supabase
+    .from('entidades')
+    .select('id, nombre, tipo')
+    .eq('tenant_id', tenant_id)
+    .is('deleted_at', null)
+    .order('nombre')
+  return (data ?? []) as { id: string; nombre: string; tipo: string }[]
+}
+
+// --- Personas para selector de responsables ---
+
+export async function listarPersonasParaResponsable(
+  tenant_id: string
+): Promise<{ id: string; nombre: string; apellido: string }[]> {
+  const supabase = createServiceRoleClient()
+  const { data } = await supabase
+    .from('personas')
+    .select('id, nombre, apellido')
+    .eq('tenant_id', tenant_id)
+    .is('deleted_at', null)
+    .order('apellido')
+    .order('nombre')
+    .limit(500)
+  return (data ?? []) as { id: string; nombre: string; apellido: string }[]
+}
+
+// --- Atributos para selector de responsables ---
+
+export async function listarAtributosParaResponsable(): Promise<{ slug: string; nombre: string }[]> {
+  const supabase = createServiceRoleClient()
+  const { data } = await supabase
+    .from('catalogo_atributos')
+    .select('slug, nombre')
+    .order('nombre')
+  return (data ?? []) as { slug: string; nombre: string }[]
 }

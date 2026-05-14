@@ -7,6 +7,11 @@ import {
   listarUnidadesMedida,
   listarMarcas,
   imagenesDeProducto,
+  listarProveedoresDeProducto,
+  listarResponsablesDeProducto,
+  listarEntidadesProveedoras,
+  listarPersonasParaResponsable,
+  listarAtributosParaResponsable,
 } from '@/modules/pim/lib/queries'
 import { ProductoDetalle } from './_components/producto-detalle'
 
@@ -17,13 +22,30 @@ interface Props {
 export default async function ProductoDetailPage({ params }: Props) {
   const { id } = await params
 
-  const [producto, variantes, categorias, unidades, marcas, imagenes] = await Promise.all([
+  const [
+    producto,
+    variantes,
+    categorias,
+    unidades,
+    marcas,
+    imagenes,
+    proveedores,
+    responsables,
+    entidades,
+    personasResp,
+    atributosResp,
+  ] = await Promise.all([
     productoPorId(TENANT_ID, id),
     listarVariantes(id),
     listarCategorias(TENANT_ID),
     listarUnidadesMedida(),
     listarMarcas(TENANT_ID),
     imagenesDeProducto(id),
+    listarProveedoresDeProducto(id),
+    listarResponsablesDeProducto(id),
+    listarEntidadesProveedoras(TENANT_ID),
+    listarPersonasParaResponsable(TENANT_ID),
+    listarAtributosParaResponsable(),
   ])
 
   if (!producto) notFound()
@@ -36,6 +58,11 @@ export default async function ProductoDetailPage({ params }: Props) {
       unidades={unidades}
       marcas={marcas}
       imagenes={imagenes}
+      proveedores={proveedores}
+      responsables={responsables}
+      entidades={entidades}
+      personasResp={personasResp}
+      atributosResp={atributosResp}
     />
   )
 }
