@@ -52,7 +52,7 @@ import {
   cobrarCuota,
   anularCuota,
   fetchSaldoCuota,
-} from '@/app/admin/(troncal)/finanzas/cuotas/_actions'
+} from '@/modules/finanzas/lib/cuotas'
 import { createClient } from '@/lib/supabase/client'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'

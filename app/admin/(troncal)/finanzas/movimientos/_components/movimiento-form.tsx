@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
-import { crearMovimiento } from '../_actions'
+import { crearMovimiento } from '@/modules/finanzas/lib/actions'
 
 // -------------------------------------------------------------------
 // Tipos

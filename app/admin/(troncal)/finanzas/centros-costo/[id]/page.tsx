@@ -43,7 +43,7 @@ import {
   listarProductosPorCentro,
   listarSubcentros,
   listarCentrosCosto,
-} from '../_actions'
+} from '@/modules/finanzas/lib/centros-costo'
 
 // -------------------------------------------------------------------
 // Tipos

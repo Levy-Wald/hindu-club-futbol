@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Loader2, CreditCard, CalendarX } from 'lucide-react'
-import { fetchSuscripcionesPersona, cancelarSuscripcion } from '@/app/admin/(troncal)/finanzas/suscripciones/_actions'
+import { fetchSuscripcionesPersona, cancelarSuscripcion } from '@/modules/finanzas/lib/suscripciones'
 
 interface Suscripcion {
   id: string

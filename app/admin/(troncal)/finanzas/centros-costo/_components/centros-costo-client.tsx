@@ -59,7 +59,7 @@ import {
   editarCentroCosto,
   darDeBajaCentroCosto,
   reactivarCentroCosto,
-} from '../_actions'
+} from '@/modules/finanzas/lib/centros-costo'
 
 // -------------------------------------------------------------------
 // Tipos

@@ -123,12 +123,11 @@ export async function crearSuscripcion(
 
   if (error) {
     if (error.message.includes('uq_suscripcion_activa')) {
-      return fail('Esta persona ya tiene una suscripción activa a este plan')
+      return fail('Esta persona ya tiene una suscripcion activa a este plan')
     }
-    return fail(`Error al crear suscripción: ${error.message}`)
+    return fail(`Error al crear suscripcion: ${error.message}`)
   }
 
-  // Notificar suscripción creada
   const { data: planInfo } = await supabase
     .from('cuotas_planes')
     .select('nombre')
@@ -139,8 +138,8 @@ export async function crearSuscripcion(
     tenant_id: TENANT_ID,
     destinatario_persona_id: personaId,
     tipo: 'suscripcion_creada',
-    titulo: `Suscripción activa: ${planInfo?.nombre ?? 'Plan'}`,
-    mensaje: `Se activó tu suscripción al plan ${planInfo?.nombre ?? 'Plan'}.`,
+    titulo: `Suscripcion activa: ${planInfo?.nombre ?? 'Plan'}`,
+    mensaje: `Se activo tu suscripcion al plan ${planInfo?.nombre ?? 'Plan'}.`,
     prioridad: 'media',
     link_accion: `/admin/personas/${personaId}`,
     origen_tabla: 'suscripciones',
@@ -165,9 +164,9 @@ export async function cancelarSuscripcion(
     .eq('tenant_id', TENANT_ID)
     .single()
 
-  if (fetchErr || !sub) return fail('Suscripción no encontrada')
+  if (fetchErr || !sub) return fail('Suscripcion no encontrada')
   if (sub.estado !== 'activa' && sub.estado !== 'suspendida') {
-    return fail(`No se puede cancelar una suscripción con estado "${sub.estado}"`)
+    return fail(`No se puede cancelar una suscripcion con estado "${sub.estado}"`)
   }
 
   const { error } = await supabase
@@ -182,7 +181,6 @@ export async function cancelarSuscripcion(
 
   if (error) return fail(`Error al cancelar: ${error.message}`)
 
-  // Notificar suscripción cancelada
   const { data: planCancel } = await supabase
     .from('suscripciones')
     .select('plan_id, cuotas_planes(nombre)')
@@ -196,8 +194,8 @@ export async function cancelarSuscripcion(
       tenant_id: TENANT_ID,
       destinatario_persona_id: sub.persona_id,
       tipo: 'suscripcion_cancelada',
-      titulo: `Suscripción cancelada: ${planNombre}`,
-      mensaje: motivo ? `Se canceló tu suscripción. Motivo: ${motivo}` : 'Se canceló tu suscripción.',
+      titulo: `Suscripcion cancelada: ${planNombre}`,
+      mensaje: motivo ? `Se cancelo tu suscripcion. Motivo: ${motivo}` : 'Se cancelo tu suscripcion.',
       prioridad: 'alta',
       link_accion: `/admin/personas/${sub.persona_id}`,
       origen_tabla: 'suscripciones',

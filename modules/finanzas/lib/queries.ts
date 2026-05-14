@@ -11,7 +11,6 @@ const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 export async function fetchFinanzasDashboard() {
   const supabase = await createClient()
 
-  // Cajas con saldo
   const { data: cajas } = await supabase
     .from('cajas')
     .select('id, nombre, tipo, moneda, saldo_actual, activa')
@@ -19,7 +18,6 @@ export async function fetchFinanzasDashboard() {
     .eq('activa', true)
     .order('nombre')
 
-  // Consolidado ARS y USD
   const cajasData = cajas ?? []
   const totalARS = cajasData
     .filter((c) => c.moneda === 'ARS')
@@ -28,10 +26,8 @@ export async function fetchFinanzasDashboard() {
     .filter((c) => c.moneda === 'USD')
     .reduce((acc, c) => acc + Number(c.saldo_actual), 0)
 
-  // Cotización USD actual
   const cotizacion = await fetchCotizacionActual()
 
-  // Movimientos del mes actual
   const ahora = new Date()
   const inicioMes = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-01`
   const { count: movimientosMes } = await supabase
@@ -41,7 +37,6 @@ export async function fetchFinanzasDashboard() {
     .eq('anulado', false)
     .gte('fecha', inicioMes)
 
-  // Cuotas stats
   const { data: cuotasRaw } = await supabase
     .from('cuotas_emitidas')
     .select('estado')
@@ -54,7 +49,6 @@ export async function fetchFinanzasDashboard() {
     else if (row.estado === 'pagada') cuotasStats.pagadas++
   }
 
-  // Últimos 5 movimientos
   const { data: ultimosMovimientos } = await supabase
     .from('movimientos_caja')
     .select(`
@@ -141,15 +135,9 @@ export async function fetchMovimientosCaja(
     .order('fecha', { ascending: false })
     .order('created_at', { ascending: false })
 
-  if (filters?.tipo) {
-    query = query.eq('tipo', filters.tipo)
-  }
-  if (filters?.fecha_desde) {
-    query = query.gte('fecha', filters.fecha_desde)
-  }
-  if (filters?.fecha_hasta) {
-    query = query.lte('fecha', filters.fecha_hasta)
-  }
+  if (filters?.tipo) query = query.eq('tipo', filters.tipo)
+  if (filters?.fecha_desde) query = query.gte('fecha', filters.fecha_desde)
+  if (filters?.fecha_hasta) query = query.lte('fecha', filters.fecha_hasta)
 
   const { data, error } = await query
   if (error) return []
@@ -190,24 +178,12 @@ export async function fetchMovimientos(filters?: {
     .order('fecha', { ascending: false })
     .order('created_at', { ascending: false })
 
-  if (filters?.tipo) {
-    query = query.eq('tipo', filters.tipo)
-  }
-  if (filters?.fecha_desde) {
-    query = query.gte('fecha', filters.fecha_desde)
-  }
-  if (filters?.fecha_hasta) {
-    query = query.lte('fecha', filters.fecha_hasta)
-  }
-  if (filters?.categoria_id) {
-    query = query.eq('categoria_id', filters.categoria_id)
-  }
-  if (filters?.persona_id) {
-    query = query.eq('persona_id', filters.persona_id)
-  }
-  if (filters?.caja_id) {
-    query = query.eq('caja_id', filters.caja_id)
-  }
+  if (filters?.tipo) query = query.eq('tipo', filters.tipo)
+  if (filters?.fecha_desde) query = query.gte('fecha', filters.fecha_desde)
+  if (filters?.fecha_hasta) query = query.lte('fecha', filters.fecha_hasta)
+  if (filters?.categoria_id) query = query.eq('categoria_id', filters.categoria_id)
+  if (filters?.persona_id) query = query.eq('persona_id', filters.persona_id)
+  if (filters?.caja_id) query = query.eq('caja_id', filters.caja_id)
 
   const { data, error } = await query
   if (error) return []
@@ -244,7 +220,7 @@ export async function fetchMovimiento(id: string) {
 }
 
 // =============================================================================
-// Productos / Servicios
+// Productos / Servicios (para dropdowns en movimientos)
 // =============================================================================
 
 export async function fetchProductos(tipo?: string) {
@@ -262,9 +238,7 @@ export async function fetchProductos(tipo?: string) {
     .eq('tenant_id', TENANT_ID)
     .order('nombre')
 
-  if (tipo) {
-    query = query.eq('tipo', tipo)
-  }
+  if (tipo) query = query.eq('tipo', tipo)
 
   const { data, error } = await query
   if (error) return []
@@ -292,7 +266,7 @@ export async function fetchProducto(id: string) {
 }
 
 // =============================================================================
-// Cuotas
+// Cuotas (queries base — RPCs en cuotas.ts)
 // =============================================================================
 
 export async function fetchCuotasPlanes() {
@@ -300,10 +274,7 @@ export async function fetchCuotasPlanes() {
 
   const { data, error } = await supabase
     .from('cuotas_planes')
-    .select(`
-      *,
-      producto:productos(id, nombre, tipo)
-    `)
+    .select(`*, producto:productos(id, nombre, tipo)`)
     .eq('tenant_id', TENANT_ID)
     .order('nombre')
 
@@ -316,10 +287,7 @@ export async function fetchCuotasPlan(id: string) {
 
   const { data: plan, error: planError } = await supabase
     .from('cuotas_planes')
-    .select(`
-      *,
-      producto:productos(id, nombre, tipo, precio, moneda)
-    `)
+    .select(`*, producto:productos(id, nombre, tipo, precio, moneda)`)
     .eq('id', id)
     .eq('tenant_id', TENANT_ID)
     .single()
@@ -334,10 +302,7 @@ export async function fetchCuotasPlan(id: string) {
     .eq('activa', true)
     .order('prioridad')
 
-  return {
-    ...plan,
-    bonificaciones: bonificaciones ?? [],
-  }
+  return { ...plan, bonificaciones: bonificaciones ?? [] }
 }
 
 export async function fetchCuotasEmitidas(filters?: {
@@ -359,38 +324,12 @@ export async function fetchCuotasEmitidas(filters?: {
     .eq('tenant_id', TENANT_ID)
     .order('fecha_vencimiento', { ascending: false })
 
-  if (filters?.plan_id) {
-    query = query.eq('plan_id', filters.plan_id)
-  }
-  if (filters?.estado) {
-    query = query.eq('estado', filters.estado)
-  }
-  if (filters?.periodo) {
-    query = query.eq('periodo', filters.periodo)
-  }
-  if (filters?.persona_id) {
-    query = query.eq('persona_id', filters.persona_id)
-  }
+  if (filters?.plan_id) query = query.eq('plan_id', filters.plan_id)
+  if (filters?.estado) query = query.eq('estado', filters.estado)
+  if (filters?.periodo) query = query.eq('periodo', filters.periodo)
+  if (filters?.persona_id) query = query.eq('persona_id', filters.persona_id)
 
   const { data, error } = await query
-  if (error) return []
-  return data ?? []
-}
-
-export async function fetchEmisiones() {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from('emisiones_cuota')
-    .select(`
-      *,
-      plan:cuotas_planes(id, nombre),
-      padron:padrones(id, nombre),
-      emitido_por:personas!emitido_por_id(id, nombre, apellido)
-    `)
-    .eq('tenant_id', TENANT_ID)
-    .order('created_at', { ascending: false })
-
   if (error) return []
   return data ?? []
 }
@@ -404,10 +343,7 @@ export async function fetchPlanCuentas() {
 
   const { data, error } = await supabase
     .from('plan_cuentas')
-    .select(`
-      *,
-      cuenta_padre:plan_cuentas!cuenta_padre_id(id, codigo, nombre)
-    `)
+    .select(`*, cuenta_padre:plan_cuentas!cuenta_padre_id(id, codigo, nombre)`)
     .eq('tenant_id', TENANT_ID)
     .order('codigo')
 
@@ -431,7 +367,7 @@ export async function fetchCuentasImputables() {
 }
 
 // =============================================================================
-// Auxiliares (para selects/dropdowns)
+// Auxiliares (selects/dropdowns)
 // =============================================================================
 
 export async function fetchMediosPago() {
@@ -520,13 +456,12 @@ export async function fetchCotizacionActual() {
 }
 
 // =============================================================================
-// Mi Cuenta
+// Cuenta corriente / Mi cuenta
 // =============================================================================
 
 export async function fetchMiCuenta(personaId: string) {
   const supabase = await createClient()
 
-  // Cuenta corriente
   const { data: cuentaCorriente } = await supabase
     .from('cuentas_corrientes')
     .select('*')
@@ -534,19 +469,14 @@ export async function fetchMiCuenta(personaId: string) {
     .eq('persona_id', personaId)
     .maybeSingle()
 
-  // Cuotas de la persona
   const { data: cuotas } = await supabase
     .from('cuotas_emitidas')
-    .select(`
-      *,
-      plan:cuotas_planes(id, nombre, periodicidad)
-    `)
+    .select(`*, plan:cuotas_planes(id, nombre, periodicidad)`)
     .eq('tenant_id', TENANT_ID)
     .eq('persona_id', personaId)
     .order('fecha_vencimiento', { ascending: false })
     .limit(50)
 
-  // Movimientos de la persona
   const { data: movimientos } = await supabase
     .from('movimientos_caja')
     .select(`
@@ -572,16 +502,11 @@ export async function fetchConveniosPago(personaId?: string) {
 
   let query = supabase
     .from('convenios_pago')
-    .select(`
-      *,
-      persona:personas(id, nombre, apellido, numero_documento)
-    `)
+    .select(`*, persona:personas(id, nombre, apellido, numero_documento)`)
     .eq('tenant_id', TENANT_ID)
     .order('created_at', { ascending: false })
 
-  if (personaId) {
-    query = query.eq('persona_id', personaId)
-  }
+  if (personaId) query = query.eq('persona_id', personaId)
 
   const { data, error } = await query
   if (error) return []
@@ -589,7 +514,7 @@ export async function fetchConveniosPago(personaId?: string) {
 }
 
 // =============================================================================
-// Períodos contables
+// Periodos contables
 // =============================================================================
 
 export async function fetchPeriodosContables() {
@@ -597,10 +522,7 @@ export async function fetchPeriodosContables() {
 
   const { data, error } = await supabase
     .from('periodos_contables')
-    .select(`
-      *,
-      cerrado_por:personas!cerrado_por_id(id, nombre, apellido)
-    `)
+    .select(`*, cerrado_por:personas!cerrado_por_id(id, nombre, apellido)`)
     .eq('tenant_id', TENANT_ID)
     .order('anio', { ascending: false })
     .order('mes', { ascending: false })

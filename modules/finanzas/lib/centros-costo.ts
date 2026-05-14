@@ -88,18 +88,16 @@ export async function crearCentroCosto(input: CrearCentroInput) {
   const supabase = await createClient()
 
   if (!input.nombre.trim()) return formatResult(false, 'El nombre es obligatorio')
-  if (!input.codigo.trim()) return formatResult(false, 'El código es obligatorio')
+  if (!input.codigo.trim()) return formatResult(false, 'El codigo es obligatorio')
   if (!TIPOS_CENTRO.includes(input.tipo as typeof TIPOS_CENTRO[number])) {
-    return formatResult(false, 'Tipo inválido')
+    return formatResult(false, 'Tipo invalido')
   }
 
   const codigo = input.codigo.trim().toUpperCase()
 
-  // Validar código único
   const esUnico = await validarCodigoUnico(codigo)
-  if (!esUnico) return formatResult(false, `El código "${codigo}" ya está en uso`)
+  if (!esUnico) return formatResult(false, `El codigo "${codigo}" ya esta en uso`)
 
-  // Validar ciclos si tiene padre
   if (input.padre_id) {
     const { data: padre } = await supabase
       .from('centros_costo')
@@ -128,7 +126,7 @@ export async function crearCentroCosto(input: CrearCentroInput) {
 
   if (error) {
     if (error.message.includes('centros_costo_tenant_id_codigo_key')) {
-      return formatResult(false, `El código "${codigo}" ya está en uso`)
+      return formatResult(false, `El codigo "${codigo}" ya esta en uso`)
     }
     return formatResult(false, `Error al crear: ${error.message}`)
   }
@@ -156,12 +154,11 @@ export async function editarCentroCosto(id: string, input: EditarCentroInput) {
 
   if (!input.nombre.trim()) return formatResult(false, 'El nombre es obligatorio')
 
-  // Validar que no se cree ciclo en padre_id
   if (input.padre_id) {
     if (input.padre_id === id) return formatResult(false, 'Un centro no puede ser su propio padre')
     const descendientes = await listarDescendientes(id)
     if (descendientes.includes(input.padre_id)) {
-      return formatResult(false, 'No se puede asignar como padre a un descendiente (crearía un ciclo)')
+      return formatResult(false, 'No se puede asignar como padre a un descendiente (crearia un ciclo)')
     }
   }
 
@@ -225,7 +222,7 @@ export async function reactivarCentroCosto(id: string) {
 }
 
 // -------------------------------------------------------------------
-// Validar código único
+// Validar codigo unico
 // -------------------------------------------------------------------
 
 export async function validarCodigoUnico(codigo: string, idExcluir?: string) {

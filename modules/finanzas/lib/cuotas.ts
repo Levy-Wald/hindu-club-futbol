@@ -172,7 +172,7 @@ export async function editarBonificacion(bonificacionId: string, input: Bonifica
 }
 
 // -------------------------------------------------------------------
-// Preview emisión (cuenta suscripciones elegibles)
+// Preview emision (cuenta suscripciones elegibles)
 // -------------------------------------------------------------------
 
 export async function previewEmision(planId: string, periodo: string) {
@@ -182,7 +182,6 @@ export async function previewEmision(planId: string, periodo: string) {
     return formatResult(false, 'Plan y periodo son obligatorios')
   }
 
-  // Obtener plan
   const { data: plan, error: planError } = await supabase
     .from('cuotas_planes')
     .select('id, nombre, monto, moneda, dia_vencimiento')
@@ -194,7 +193,6 @@ export async function previewEmision(planId: string, periodo: string) {
     return formatResult(false, 'Plan no encontrado')
   }
 
-  // Contar suscripciones activas al plan
   const [anio, mes] = periodo.split('-').map(Number)
   const ultimoDia = new Date(anio, mes, 0).getDate()
   const ultimoDiaMes = `${anio}-${String(mes).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`
@@ -207,7 +205,6 @@ export async function previewEmision(planId: string, periodo: string) {
     .eq('estado', 'activa')
     .lte('fecha_alta', ultimoDiaMes)
 
-  // Verificar si ya hay emisión activa para este plan+periodo
   const { data: emisionExistente } = await supabase
     .from('emisiones_cuota')
     .select('id, cantidad_emitida, estado')
@@ -251,7 +248,6 @@ export async function emitirCuotasMasivas(planId: string, periodo: string) {
     return formatResult(false, `Error al emitir cuotas: ${error.message}`)
   }
 
-  // Function returns TABLE rows — first row is the result
   const rows = data as Array<{
     emision_id: string
     total_emitidas: number
@@ -262,14 +258,13 @@ export async function emitirCuotasMasivas(planId: string, periodo: string) {
   const result = rows[0]
 
   if (!result) {
-    return formatResult(false, 'Error inesperado: sin resultado de emisión')
+    return formatResult(false, 'Error inesperado: sin resultado de emision')
   }
 
   if (result.detalle?.ya_existia) {
-    return formatResult(false, `Ya existe una emisión activa para este plan y periodo (${result.total_emitidas} cuotas)`)
+    return formatResult(false, `Ya existe una emision activa para este plan y periodo (${result.total_emitidas} cuotas)`)
   }
 
-  // Notificar a cada persona que se le emitió cuota
   if (result.total_emitidas > 0) {
     const { data: cuotasEmitidas } = await supabase
       .from('cuotas_emitidas')
@@ -289,7 +284,7 @@ export async function emitirCuotasMasivas(planId: string, periodo: string) {
         tenant_id: TENANT_ID,
         tipo: 'cuota_emitida',
         titulo: `Nueva cuota: ${plan?.nombre ?? 'Plan'}`,
-        mensaje: `Se emitió tu cuota del período ${periodo}. Monto: $${cuotasEmitidas[0]?.monto_final ?? result.total_monto}`,
+        mensaje: `Se emitio tu cuota del periodo ${periodo}. Monto: $${cuotasEmitidas[0]?.monto_final ?? result.total_monto}`,
         prioridad: 'media',
         origen_tabla: 'emisiones_cuota',
         origen_registro_id: result.emision_id,
@@ -308,23 +303,23 @@ export async function emitirCuotasMasivas(planId: string, periodo: string) {
 }
 
 // -------------------------------------------------------------------
-// Anular emisión (wraps fn_anular_emision)
+// Anular emision (wraps fn_anular_emision)
 // -------------------------------------------------------------------
 
 export async function anularEmision(emisionId: string, motivo?: string) {
   const supabase = await createClient()
 
   if (!emisionId) {
-    return formatResult(false, 'ID de emisión es obligatorio')
+    return formatResult(false, 'ID de emision es obligatorio')
   }
 
   const { data, error } = await supabase.rpc('fn_anular_emision', {
     p_emision_id: emisionId,
-    p_motivo: motivo || 'Anulación manual',
+    p_motivo: motivo || 'Anulacion manual',
   })
 
   if (error) {
-    return formatResult(false, `Error al anular emisión: ${error.message}`)
+    return formatResult(false, `Error al anular emision: ${error.message}`)
   }
 
   const rows = data as Array<{
@@ -335,13 +330,13 @@ export async function anularEmision(emisionId: string, motivo?: string) {
   const result = rows[0]
 
   if (!result) {
-    return formatResult(false, 'Error inesperado: sin resultado de anulación')
+    return formatResult(false, 'Error inesperado: sin resultado de anulacion')
   }
 
   revalidatePath('/admin/finanzas/cuotas')
   return formatResult(
     true,
-    `Emisión anulada: ${result.cuotas_anuladas} cuotas anuladas` +
+    `Emision anulada: ${result.cuotas_anuladas} cuotas anuladas` +
     (result.cuotas_no_anulables > 0 ? `, ${result.cuotas_no_anulables} ya pagadas (no se anulan)` : ''),
     result
   )
@@ -443,7 +438,7 @@ export async function cobrarCuota(
 
   if (error) {
     if (error.message.includes('duplicada')) {
-      return formatResult(false, 'Cobranza duplicada detectada. Esperá unos segundos e intentá de nuevo.')
+      return formatResult(false, 'Cobranza duplicada detectada. Espera unos segundos e intenta de nuevo.')
     }
     if (error.message.includes('excede monto')) {
       return formatResult(false, 'El monto ingresado excede el saldo pendiente de la cuota')
@@ -463,7 +458,6 @@ export async function cobrarCuota(
     return formatResult(false, 'Error inesperado: sin resultado de cobranza')
   }
 
-  // Notificar pago recibido
   const { data: cuotaCobrada } = await supabase
     .from('cuotas_emitidas')
     .select('persona_id, periodo, plan_id, cuotas_planes(nombre)')
@@ -478,7 +472,7 @@ export async function cobrarCuota(
       destinatario_persona_id: cuotaCobrada.persona_id,
       tipo: 'pago_recibido',
       titulo: `Pago registrado: ${planNombre}`,
-      mensaje: `Se registró un pago de $${monto} para tu cuota del período ${cuotaCobrada.periodo}.`,
+      mensaje: `Se registro un pago de $${monto} para tu cuota del periodo ${cuotaCobrada.periodo}.`,
       prioridad: 'baja',
       origen_tabla: 'cuotas_pagos',
       origen_registro_id: result.pago_id,
@@ -508,7 +502,6 @@ export async function cobrarCuotasMasivo(
   const resultados: Array<{ cuotaId: string; ok: boolean; error?: string; comprobanteNumero?: string }> = []
 
   for (const cuotaId of cuotaIds) {
-    // Get remaining balance for this cuota
     const { data: cuota } = await supabase
       .from('cuotas_emitidas')
       .select('monto_final')
@@ -521,7 +514,6 @@ export async function cobrarCuotasMasivo(
       continue
     }
 
-    // Get sum of confirmed payments
     const { data: pagosData } = await supabase
       .from('cuotas_pagos')
       .select('monto_pagado')
@@ -567,7 +559,7 @@ export async function anularPago(pagoId: string, motivo: string) {
 
   const { data, error } = await supabase.rpc('fn_anular_pago', {
     p_pago_id: pagoId,
-    p_motivo: motivo || 'Anulación manual',
+    p_motivo: motivo || 'Anulacion manual',
   })
 
   if (error) {
@@ -582,10 +574,9 @@ export async function anularPago(pagoId: string, motivo: string) {
   const result = rows[0]
 
   if (!result) {
-    return formatResult(false, 'Error inesperado: sin resultado de anulación')
+    return formatResult(false, 'Error inesperado: sin resultado de anulacion')
   }
 
-  // Notificar pago anulado
   const { data: pagoAnulado } = await supabase
     .from('cuotas_pagos')
     .select('cuota_id, monto_pagado, cuotas_emitidas(persona_id, periodo, cuotas_planes(nombre))')
@@ -601,7 +592,7 @@ export async function anularPago(pagoId: string, motivo: string) {
         destinatario_persona_id: cuotaInfo.persona_id,
         tipo: 'pago_anulado',
         titulo: `Pago anulado: ${cuotaInfo.cuotas_planes?.nombre ?? 'Plan'}`,
-        mensaje: `Se anuló un pago de $${pagoAnulado.monto_pagado} del período ${cuotaInfo.periodo}. Motivo: ${motivo || 'No especificado'}.`,
+        mensaje: `Se anulo un pago de $${pagoAnulado.monto_pagado} del periodo ${cuotaInfo.periodo}. Motivo: ${motivo || 'No especificado'}.`,
         prioridad: 'alta',
         origen_tabla: 'cuotas_pagos',
         origen_registro_id: pagoId,

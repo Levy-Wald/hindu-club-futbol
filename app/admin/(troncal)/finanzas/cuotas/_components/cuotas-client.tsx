@@ -75,7 +75,7 @@ import {
   cobrarCuota,
   anularCuota,
   fetchSaldoCuota,
-} from '../_actions'
+} from '@/modules/finanzas/lib/cuotas'
 
 // -------------------------------------------------------------------
 // Tipos

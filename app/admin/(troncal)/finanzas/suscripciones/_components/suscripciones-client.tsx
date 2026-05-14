@@ -44,7 +44,7 @@ import {
   cancelarSuscripcion,
   suspenderSuscripcion,
   reactivarSuscripcion,
-} from '../_actions'
+} from '@/modules/finanzas/lib/suscripciones'
 
 interface Suscripcion {
   id: string

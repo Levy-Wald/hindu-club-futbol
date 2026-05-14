@@ -35,6 +35,8 @@ import {
   ShoppingCart,
   Tag,
   PackageCheck,
+  FolderTree,
+  Repeat2,
 } from 'lucide-react'
 
 export interface NavItemDef {
@@ -124,6 +126,8 @@ export const troncalSection: NavSectionDef = {
         { label: 'Cajas', href: '/admin/finanzas/cajas', icon: Banknote },
         { label: 'Movimientos', href: '/admin/finanzas/movimientos', icon: ArrowLeftRight },
         { label: 'Cuotas', href: '/admin/finanzas/cuotas', icon: Receipt },
+        { label: 'Suscripciones', href: '/admin/finanzas/suscripciones', icon: Repeat2 },
+        { label: 'Centros de Costo', href: '/admin/finanzas/centros-costo', icon: FolderTree },
         { label: 'Plan de Cuentas', href: '/admin/finanzas/plan-cuentas', icon: BookOpen },
       ],
     },

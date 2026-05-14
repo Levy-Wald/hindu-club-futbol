@@ -34,7 +34,7 @@ Stack:
 \- Vercel project\_id: prj\_sH5WIGNfNGo5tXxyTVvQaEfBDyBk  
 \- App prod: https://hindu-club.vercel.app
 
-ESTADO AL 13 DE MAYO DE 2026 (POST SPRINT A1)
+ESTADO AL 14 DE MAYO DE 2026 (POST SPRINT A2)
 \==============================================
 
 FASE CONCLUIDAS (modelo viejo):
@@ -43,7 +43,15 @@ FASE CONCLUIDAS (modelo viejo):
 
 FASE A EN PROGRESO:
 \- Sprint A1 (Fix Base Operativa + Espacios): CERRADO (v0.27.0-fase-a-sprint-1)
-\- Próximo a ejecutar: Sprint A2
+\- Sprint A2 (PIM Nivel 1): CERRADO (v0.27.4-fase-a-sprint-2-6)
+  - A2.1: Modelo de datos PIM (8 tablas, RLS, triggers, seeds)
+  - A2.2: Proveedores + responsables de producto
+  - A2.3: Categorías + unidades de medida
+  - A2.4: Variantes de producto
+  - A2.5: Listas de precios
+  - A2.6: Stock + movimientos + integración form
+  - HOTFIX: Column name drift (audit 4 tablas, 9+ columnas corregidas)
+\- Próximo a ejecutar: Sprint A3
 
 FASES SIGUIENTES:
 \- FASE B (Cerrar vertical CCBP): planificada, RFC-003 vigente, B1 con prompt detallado preparado
@@ -84,12 +92,19 @@ Datos productivos (tenant Hindu):
 ESTADO DEL CÓDIGO  
 \==================
 
-Repo: limpio, branch main al día. Tag: v0.27.0-fase-a-sprint-1.
+Repo: limpio, branch main al día. Tag: v0.27.4-fase-a-sprint-2-6.
 
-Módulos en \`modules/\` (18 con código):
-\- Productivos: personas, equipos, comunicaciones, finanzas (parcial), cuotas, suscripciones, competencias, partidos, asistencias, reservas, acceso, pre\_inscripciones, entrenamientos, tactica, amistosos, utileria, planificadores, espacios
+Módulos en \`modules/\` (19 con código):
+\- Productivos: personas, equipos, comunicaciones, finanzas (parcial), cuotas, suscripciones, competencias, partidos, asistencias, reservas, acceso, pre\_inscripciones, entrenamientos, tactica, amistosos, utileria, planificadores, espacios, pim
 \- Huérfanos: socios, disciplinas, eventos\_calendario, proveedores, talles
-\- A crear (FASE A): pim, proyectos
+\- A crear (FASE A): proyectos
+
+Módulo PIM (Sprint A2, modules/pim/):
+\- lib/tipos.ts — Tipos: Producto, ProductoVariante, ProductoProveedor, ListaPrecios, StockEspacio, MovimientoStock
+\- lib/queries.ts — Queries: listarProductos, productoDetalle, variantesDeProducto, proveedoresDeProducto, listasDePrecios, stockDeProducto, listarMovimientos, espaciosTipoDeposito
+\- lib/actions.ts — Actions: crearProducto, editarProducto, eliminarProducto, crearVariante, editarVariante, eliminarVariante, agregarProveedor, eliminarProveedor, establecerProveedorPrincipal, crearListaPrecios, editarListaPrecios, eliminarListaPrecios, agregarPrecio, editarPrecio, eliminarPrecio, configurarMinMaxStock
+\- lib/stock.ts — Action: aplicarMovimientoStockAction (transaccional: pre-check → insert movimiento → upsert stock)
+\- ui/ — Componentes: producto-form, variante-form, variante-row, proveedor-form, proveedor-row, lista-precios-form, precio-form, stock-row, movimiento-stock-form
 
 Páginas 404 resueltas en Sprint A1 (8 rutas):
 \- /admin/operaciones/eventos/\[eventoId\] — Hub evento con tabs condicionales
@@ -107,6 +122,11 @@ Páginas nuevas en Sprint A1 (11 total):
 \- /admin/configuracion/espacios — Listado global de espacios
 \- /admin/marketplace — Marketplace de módulos por capa
 \- + 7 hubs/placeholders listados arriba
+
+Páginas nuevas/modificadas en Sprint A2 (PIM):
+\- /admin/productos — Listado de productos (existente, ahora con módulo PIM)
+\- /admin/productos/\[id\] — Hub producto con tabs: General, Variantes, Stock, Precios, Proveedores
+\- /admin/productos/movimientos — Listado global de movimientos de stock
 
 Bugs UX resueltos en Sprint A1:
 \- Planificador: selectable + onSelectSlot + botón +Nuevo evento
@@ -220,7 +240,7 @@ REGLAS OPERATIVAS VIGENTES
 PRÓXIMOS PASOS INMEDIATOS
 \==========================
 
-1\. Ejecutar Sprint A2.
+1\. Ejecutar Sprint A3 (Finanzas).
 2\. Continuar FASE A sprint por sprint hasta cerrarla.
 3\. Cerrar FASE B.
 4\. FASE C — Demo a Hindu.
@@ -228,7 +248,7 @@ PRÓXIMOS PASOS INMEDIATOS
 ÚLTIMA ACTUALIZACIÓN
 \=====================
 
-13 de mayo de 2026\. Versión 2.1 (post Sprint A1).
-Próxima revisión: al cierre del Sprint A2.
+14 de mayo de 2026\. Versión 2.2 (post Sprint A2).
+Próxima revisión: al cierre del Sprint A3.
 
 Quien actualiza este doc: Claude Code en el cierre de cada sprint (PROMPT-TEMPLATE PARTE 10.1). El arquitecto verifica vía MCP.  

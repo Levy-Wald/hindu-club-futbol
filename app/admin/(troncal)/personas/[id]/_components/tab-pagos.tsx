@@ -38,7 +38,7 @@ import {
 import {
   fetchPagosPorPersona,
   anularPago,
-} from '@/app/admin/(troncal)/finanzas/cuotas/_actions'
+} from '@/modules/finanzas/lib/cuotas'
 
 interface Pago {
   id: string
