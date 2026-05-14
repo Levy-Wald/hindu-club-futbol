@@ -87,7 +87,7 @@ export const troncalSection: NavSectionDef = {
       icon: ShoppingCart,
       activeCheck: (p) => p.startsWith('/admin/productos'),
       subItems: [
-        { label: 'Catalogo', href: '/admin/productos', icon: ShoppingCart },
+        { label: 'Productos', href: '/admin/productos', icon: ShoppingCart },
         { label: 'Categorias', href: '/admin/productos/categorias', icon: Tag },
         { label: 'Marcas', href: '/admin/productos/marcas', icon: Tag },
       ],
