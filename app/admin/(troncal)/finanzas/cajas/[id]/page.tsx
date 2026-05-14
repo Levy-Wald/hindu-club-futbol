@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -17,12 +16,25 @@ import {
   Building2,
   Smartphone,
   Wallet,
+  Bitcoin,
+  CreditCard,
   TrendingUp,
   TrendingDown,
   ArrowLeft,
   Plus,
   ArrowLeftRight,
 } from 'lucide-react'
+import {
+  fetchCaja,
+  fetchMovimientosCaja,
+  fetchEntidadesParaCajas,
+  fetchCuentasImputables,
+  fetchActividadesUsadasEnCajas,
+} from '@/modules/finanzas/lib/queries'
+import { TIPOS_CAJA, TIPOS_FISCAL } from '@/modules/finanzas/lib/tipos'
+import { CajaFormDialog } from '@/modules/finanzas/ui/caja-form'
+import { CajaDetailActions } from './_components/caja-detail-actions'
+import { createClient } from '@/lib/supabase/server'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
@@ -38,27 +50,13 @@ function formatFecha(iso: string): string {
 
 function tipoIcon(tipo: string) {
   switch (tipo) {
-    case 'efectivo':
-      return Banknote
-    case 'banco':
-      return Building2
-    case 'digital':
-      return Smartphone
-    default:
-      return Wallet
-  }
-}
-
-function tipoLabel(tipo: string) {
-  switch (tipo) {
-    case 'efectivo':
-      return 'Efectivo'
-    case 'banco':
-      return 'Banco'
-    case 'digital':
-      return 'Digital'
-    default:
-      return tipo
+    case 'efectivo': return Banknote
+    case 'banco': return Building2
+    case 'mercadopago': return Smartphone
+    case 'cripto': return Bitcoin
+    case 'tarjeta': return CreditCard
+    case 'digital': return Smartphone
+    default: return Wallet
   }
 }
 
@@ -77,14 +75,10 @@ function tipoBadgeClass(tipo: string): string {
 
 function tipoMovLabel(tipo: string): string {
   switch (tipo) {
-    case 'ingreso':
-      return 'Ingreso'
-    case 'egreso':
-      return 'Egreso'
-    case 'transferencia':
-      return 'Transferencia'
-    default:
-      return tipo
+    case 'ingreso': return 'Ingreso'
+    case 'egreso': return 'Egreso'
+    case 'transferencia': return 'Transferencia'
+    default: return tipo
   }
 }
 
@@ -94,31 +88,25 @@ interface PageProps {
 
 export default async function CajaDetailPage({ params }: PageProps) {
   const { id } = await params
+
+  const [caja, movimientos, entidades, cuentas, actividades] = await Promise.all([
+    fetchCaja(id),
+    fetchMovimientosCaja(id),
+    fetchEntidadesParaCajas(),
+    fetchCuentasImputables(),
+    fetchActividadesUsadasEnCajas(),
+  ])
+
+  if (!caja) notFound()
+
+  // Personas for edit form
   const supabase = await createClient()
-
-  // Fetch caja
-  const { data: caja, error } = await supabase
-    .from('cajas')
-    .select(`
-      id,
-      nombre,
-      tipo,
-      saldo_actual,
-      moneda,
-      activa,
-      responsable_id,
-      cuenta_contable_id,
-      created_at,
-      responsable:personas!cajas_responsable_id_fkey(id, nombre, apellido),
-      cuenta_contable:plan_cuentas!cajas_cuenta_contable_id_fkey(id, codigo, nombre)
-    `)
-    .eq('id', id)
+  const { data: personas } = await supabase
+    .from('personas')
+    .select('id, nombre, apellido')
     .eq('tenant_id', TENANT_ID)
-    .maybeSingle()
-
-  if (error || !caja) {
-    notFound()
-  }
+    .order('apellido')
+    .limit(500)
 
   // Stats: ingresos y egresos del mes actual
   const now = new Date()
@@ -148,69 +136,75 @@ export default async function CajaDetailPage({ params }: PageProps) {
   const ingresosMes = (ingresosData ?? []).reduce((sum, m) => sum + (m.monto_neto ?? 0), 0)
   const egresosMes = (egresosData ?? []).reduce((sum, m) => sum + (m.monto_neto ?? 0), 0)
 
-  // Fetch last 50 movements
-  const { data: movimientos } = await supabase
-    .from('movimientos_caja')
-    .select(`
-      id,
-      numero,
-      fecha,
-      tipo,
-      descripcion,
-      monto_bruto,
-      monto_neto,
-      monto_usd,
-      anulado,
-      anulado_at,
-      motivo_anulacion,
-      persona_id,
-      persona:personas!movimientos_caja_persona_id_fkey(id, nombre, apellido),
-      categoria:catalogo_categorias_movimiento!movimientos_caja_categoria_id_fkey(id, nombre)
-    `)
-    .eq('tenant_id', TENANT_ID)
-    .eq('caja_id', id)
-    .order('fecha', { ascending: false })
-    .order('created_at', { ascending: false })
-    .limit(50)
-
   const Icon = tipoIcon(caja.tipo)
+  const moneda = caja.moneda ?? 'ARS'
+  const isDeleted = !!caja.deleted_at
+
   const responsableRaw = caja.responsable as unknown
   const responsable = (Array.isArray(responsableRaw) ? responsableRaw[0] : responsableRaw) as { id: string; nombre: string; apellido: string } | null
-  const cuentaContableRaw = caja.cuenta_contable as unknown
-  const cuentaContable = (Array.isArray(cuentaContableRaw) ? cuentaContableRaw[0] : cuentaContableRaw) as { id: string; codigo: string; nombre: string } | null
-  const moneda = caja.moneda ?? 'ARS'
+  const cuentaRaw = caja.cuenta as unknown
+  const cuenta = (Array.isArray(cuentaRaw) ? cuentaRaw[0] : cuentaRaw) as { id: string; codigo: string; nombre: string } | null
+  const entidadRaw = caja.entidad as unknown
+  const entidad = (Array.isArray(entidadRaw) ? entidadRaw[0] : entidadRaw) as { id: string; nombre: string } | null
+
+  const tipoFiscalDef = TIPOS_FISCAL.find(t => t.value === caja.tipo_fiscal)
+  const tipoLabel = TIPOS_CAJA.find(t => t.value === caja.tipo)?.label ?? caja.tipo
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <Button variant="ghost" size="icon" render={<Link href="/admin/finanzas/cajas" />}>
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Volver a cajas</span>
         </Button>
         <h1 className="text-xl sm:text-2xl font-bold">{caja.nombre}</h1>
         <Badge variant={caja.activa ? 'default' : 'secondary'}>
-          {caja.activa ? 'Activa' : 'Inactiva'}
+          {isDeleted ? 'Eliminada' : caja.activa ? 'Activa' : 'Inactiva'}
         </Badge>
+        {tipoFiscalDef && (
+          <Badge variant="secondary" className={tipoFiscalDef.color}>
+            {tipoFiscalDef.label}
+          </Badge>
+        )}
+        <div className="ml-auto flex items-center gap-2">
+          {!isDeleted && (
+            <CajaFormDialog
+              caja={caja}
+              entidades={entidades}
+              personas={personas ?? []}
+              cuentas={cuentas}
+              actividadesSugeridas={actividades}
+              trigger={<Button variant="outline" size="sm">Editar</Button>}
+            />
+          )}
+          <CajaDetailActions cajaId={caja.id} cajaName={caja.nombre} isDeleted={isDeleted} saldo={caja.saldo_actual} />
+        </div>
       </div>
 
       {/* Info card */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex flex-wrap items-center gap-6">
+          <div className="flex flex-wrap items-start gap-6">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-muted">
                 <Icon className="h-6 w-6 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">{tipoLabel(caja.tipo)}</p>
+                <p className="text-sm text-muted-foreground">{tipoLabel}</p>
                 <p className="text-2xl font-bold">{formatMoney(caja.saldo_actual, moneda)}</p>
               </div>
             </div>
-            {cuentaContable && (
+            {entidad && (
               <div>
-                <p className="text-xs text-muted-foreground">Cuenta contable</p>
-                <p className="text-sm font-medium">{cuentaContable.codigo} - {cuentaContable.nombre}</p>
+                <p className="text-xs text-muted-foreground">Entidad</p>
+                <p className="text-sm font-medium">{entidad.nombre}</p>
+              </div>
+            )}
+            {caja.actividad_slug && (
+              <div>
+                <p className="text-xs text-muted-foreground">Actividad</p>
+                <p className="text-sm font-medium">{caja.actividad_slug}</p>
               </div>
             )}
             {responsable && (
@@ -219,7 +213,44 @@ export default async function CajaDetailPage({ params }: PageProps) {
                 <p className="text-sm font-medium">{responsable.apellido}, {responsable.nombre}</p>
               </div>
             )}
+            {cuenta && (
+              <div>
+                <p className="text-xs text-muted-foreground">Cuenta contable</p>
+                <p className="text-sm font-medium">{cuenta.codigo} - {cuenta.nombre}</p>
+              </div>
+            )}
           </div>
+
+          {/* Datos bancarios */}
+          {(caja.banco_nombre || caja.cbu || caja.numero_cuenta) && (
+            <div className="mt-4 pt-4 border-t flex flex-wrap gap-6">
+              {caja.banco_nombre && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Banco / Plataforma</p>
+                  <p className="text-sm font-medium">{caja.banco_nombre}</p>
+                </div>
+              )}
+              {caja.cbu && (
+                <div>
+                  <p className="text-xs text-muted-foreground">CBU/CVU</p>
+                  <p className="text-sm font-mono">{caja.cbu}</p>
+                </div>
+              )}
+              {caja.numero_cuenta && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Nro. cuenta</p>
+                  <p className="text-sm font-medium">{caja.numero_cuenta}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {caja.descripcion && (
+            <div className="mt-4 pt-4 border-t">
+              <p className="text-xs text-muted-foreground">Descripcion</p>
+              <p className="text-sm">{caja.descripcion}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

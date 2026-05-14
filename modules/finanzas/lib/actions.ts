@@ -19,30 +19,64 @@ function fail(error: string): ActionResult {
 // Cajas
 // =============================================================================
 
+interface CajaInput {
+  nombre: string
+  tipo: string
+  tipo_fiscal: string
+  moneda: string
+  cuenta_id: string | null
+  responsable_id: string | null
+  entidad_id: string | null
+  actividad_slug: string | null
+  banco_nombre: string | null
+  cbu: string | null
+  numero_cuenta: string | null
+  descripcion: string | null
+  activa: boolean
+}
+
+function parseCajaInput(formData: FormData): CajaInput {
+  return {
+    nombre: (formData.get('nombre') as string) || '',
+    tipo: (formData.get('tipo') as string) || 'efectivo',
+    tipo_fiscal: (formData.get('tipo_fiscal') as string) || 'blanco',
+    moneda: (formData.get('moneda') as string) || 'ARS',
+    cuenta_id: (formData.get('cuenta_id') as string) || null,
+    responsable_id: (formData.get('responsable_id') as string) || null,
+    entidad_id: (formData.get('entidad_id') as string) || null,
+    actividad_slug: (formData.get('actividad_slug') as string) || null,
+    banco_nombre: (formData.get('banco_nombre') as string) || null,
+    cbu: (formData.get('cbu') as string) || null,
+    numero_cuenta: (formData.get('numero_cuenta') as string) || null,
+    descripcion: (formData.get('descripcion') as string) || null,
+    activa: formData.get('activa') !== 'false',
+  }
+}
+
 export async function crearCaja(formData: FormData): Promise<ActionResult> {
   const supabase = await createClient()
+  const input = parseCajaInput(formData)
 
-  const nombre = formData.get('nombre') as string | null
-  const tipo = formData.get('tipo') as string | null
-  const moneda = (formData.get('moneda') as string) || 'ARS'
-  const cuentaId = formData.get('cuenta_id') as string | null
-  const responsableId = formData.get('responsable_id') as string | null
-  const descripcion = formData.get('descripcion') as string | null
-
-  if (!nombre || !tipo) {
-    return fail('Nombre y tipo son obligatorios')
-  }
+  if (!input.nombre.trim()) return fail('El nombre es obligatorio')
+  if (!input.tipo) return fail('El tipo es obligatorio')
 
   const { data, error } = await supabase
     .from('cajas')
     .insert({
       tenant_id: TENANT_ID,
-      nombre,
-      tipo,
-      moneda,
-      cuenta_id: cuentaId || null,
-      responsable_id: responsableId || null,
-      descripcion: descripcion || null,
+      nombre: input.nombre.trim(),
+      tipo: input.tipo,
+      tipo_fiscal: input.tipo_fiscal,
+      moneda: input.moneda,
+      cuenta_id: input.cuenta_id,
+      responsable_id: input.responsable_id,
+      entidad_id: input.entidad_id,
+      actividad_slug: input.actividad_slug?.trim() || null,
+      banco_nombre: input.banco_nombre?.trim() || null,
+      cbu: input.cbu?.trim() || null,
+      numero_cuenta: input.numero_cuenta?.trim() || null,
+      descripcion: input.descripcion?.trim() || null,
+      activa: input.activa,
       saldo_actual: 0,
     })
     .select('id')
@@ -56,37 +90,63 @@ export async function crearCaja(formData: FormData): Promise<ActionResult> {
 
 export async function editarCaja(id: string, formData: FormData): Promise<ActionResult> {
   const supabase = await createClient()
+  const input = parseCajaInput(formData)
 
-  const nombre = formData.get('nombre') as string | null
-  const tipo = formData.get('tipo') as string | null
-  const moneda = formData.get('moneda') as string | null
-  const cuentaId = formData.get('cuenta_id') as string | null
-  const responsableId = formData.get('responsable_id') as string | null
-  const descripcion = formData.get('descripcion') as string | null
-  const activaRaw = formData.get('activa')
-  const activa = activaRaw === null ? undefined : activaRaw === 'true'
-
-  if (!nombre || !tipo) {
-    return fail('Nombre y tipo son obligatorios')
-  }
-
-  const updateData: Record<string, unknown> = {
-    nombre,
-    tipo,
-    cuenta_id: cuentaId || null,
-    responsable_id: responsableId || null,
-    descripcion: descripcion || null,
-  }
-  if (moneda) updateData.moneda = moneda
-  if (activa !== undefined) updateData.activa = activa
+  if (!input.nombre.trim()) return fail('El nombre es obligatorio')
+  if (!input.tipo) return fail('El tipo es obligatorio')
 
   const { error } = await supabase
     .from('cajas')
-    .update(updateData)
+    .update({
+      nombre: input.nombre.trim(),
+      tipo: input.tipo,
+      tipo_fiscal: input.tipo_fiscal,
+      moneda: input.moneda,
+      cuenta_id: input.cuenta_id,
+      responsable_id: input.responsable_id,
+      entidad_id: input.entidad_id,
+      actividad_slug: input.actividad_slug?.trim() || null,
+      banco_nombre: input.banco_nombre?.trim() || null,
+      cbu: input.cbu?.trim() || null,
+      numero_cuenta: input.numero_cuenta?.trim() || null,
+      descripcion: input.descripcion?.trim() || null,
+      activa: input.activa,
+    })
     .eq('id', id)
     .eq('tenant_id', TENANT_ID)
 
   if (error) return fail(`Error al editar caja: ${error.message}`)
+
+  revalidatePath('/admin/finanzas')
+  revalidatePath(`/admin/finanzas/cajas/${id}`)
+  return ok()
+}
+
+export async function eliminarCaja(id: string): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('cajas')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return fail(`Error al eliminar caja: ${error.message}`)
+
+  revalidatePath('/admin/finanzas')
+  return ok()
+}
+
+export async function reactivarCaja(id: string): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('cajas')
+    .update({ deleted_at: null, activa: true })
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return fail(`Error al reactivar caja: ${error.message}`)
 
   revalidatePath('/admin/finanzas')
   return ok()

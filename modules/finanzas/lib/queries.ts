@@ -16,6 +16,7 @@ export async function fetchFinanzasDashboard() {
     .select('id, nombre, tipo, moneda, saldo_actual, activa')
     .eq('tenant_id', TENANT_ID)
     .eq('activa', true)
+    .is('deleted_at', null)
     .order('nombre')
 
   const cajasData = cajas ?? []
@@ -78,19 +79,49 @@ export async function fetchFinanzasDashboard() {
 // Cajas
 // =============================================================================
 
-export async function fetchCajas() {
+export async function fetchCajas(filtros?: {
+  tipo?: string
+  tipo_fiscal?: string
+  entidad_id?: string
+  actividad_slug?: string
+  estado?: string // 'activa' | 'inactiva' | 'eliminada' | 'todas'
+  busqueda?: string
+}) {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('cajas')
     .select(`
       *,
       responsable:personas!responsable_id(id, nombre, apellido),
-      cuenta:plan_cuentas!cuenta_id(id, codigo, nombre)
+      cuenta:plan_cuentas!cuenta_id(id, codigo, nombre),
+      entidad:entidades!entidad_id(id, nombre)
     `)
     .eq('tenant_id', TENANT_ID)
     .order('nombre')
 
+  // Por defecto, ocultar eliminadas
+  const estado = filtros?.estado || 'activa'
+  if (estado === 'activa') {
+    query = query.is('deleted_at', null).eq('activa', true)
+  } else if (estado === 'inactiva') {
+    query = query.is('deleted_at', null).eq('activa', false)
+  } else if (estado === 'eliminada') {
+    query = query.not('deleted_at', 'is', null)
+  } else if (estado === 'no_eliminada') {
+    query = query.is('deleted_at', null)
+  }
+  // 'todas' = sin filtro
+
+  if (filtros?.tipo) query = query.eq('tipo', filtros.tipo)
+  if (filtros?.tipo_fiscal) query = query.eq('tipo_fiscal', filtros.tipo_fiscal)
+  if (filtros?.entidad_id) query = query.eq('entidad_id', filtros.entidad_id)
+  if (filtros?.actividad_slug) query = query.eq('actividad_slug', filtros.actividad_slug)
+  if (filtros?.busqueda) {
+    query = query.ilike('nombre', `%${filtros.busqueda}%`)
+  }
+
+  const { data, error } = await query
   if (error) return []
   return data ?? []
 }
@@ -103,7 +134,8 @@ export async function fetchCaja(id: string) {
     .select(`
       *,
       responsable:personas!responsable_id(id, nombre, apellido),
-      cuenta:plan_cuentas!cuenta_id(id, codigo, nombre)
+      cuenta:plan_cuentas!cuenta_id(id, codigo, nombre),
+      entidad:entidades!entidad_id(id, nombre)
     `)
     .eq('id', id)
     .eq('tenant_id', TENANT_ID)
@@ -111,6 +143,35 @@ export async function fetchCaja(id: string) {
 
   if (error) return null
   return data
+}
+
+export async function fetchEntidadesParaCajas() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('entidades')
+    .select('id, nombre, tipo')
+    .eq('tenant_id', TENANT_ID)
+    .is('deleted_at', null)
+    .order('nombre')
+
+  if (error) return []
+  return data ?? []
+}
+
+export async function fetchActividadesUsadasEnCajas() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('cajas')
+    .select('actividad_slug')
+    .eq('tenant_id', TENANT_ID)
+    .is('deleted_at', null)
+    .not('actividad_slug', 'is', null)
+
+  if (error) return []
+  const slugs = [...new Set((data ?? []).map(d => d.actividad_slug).filter(Boolean))]
+  return slugs as string[]
 }
 
 export async function fetchMovimientosCaja(
