@@ -11,6 +11,9 @@ import type {
   ProductoImagen,
   ProductoProveedor,
   ProductoResponsable,
+  ListaPrecios,
+  PrecioProducto,
+  TipoLista,
 } from './tipos'
 
 export async function listarProductos(
@@ -431,4 +434,81 @@ export async function listarAtributosParaResponsable(): Promise<{ slug: string; 
     .select('slug, nombre')
     .order('nombre')
   return (data ?? []) as { slug: string; nombre: string }[]
+}
+
+// --- Listas de precios ---
+
+export async function listarListasPrecios(
+  tenant_id: string,
+  filtros?: { tipo?: TipoLista; activa?: boolean }
+): Promise<ListaPrecios[]> {
+  const supabase = createServiceRoleClient()
+
+  let query = supabase
+    .from('producto_listas_precios')
+    .select('*')
+    .eq('tenant_id', tenant_id)
+    .is('deleted_at', null)
+    .order('orden')
+
+  if (filtros?.tipo) query = query.eq('tipo', filtros.tipo)
+  if (filtros?.activa !== undefined) query = query.eq('activa', filtros.activa)
+
+  const { data } = await query
+  return (data ?? []) as ListaPrecios[]
+}
+
+// --- Precios de producto ---
+
+export async function listarPreciosDeProducto(
+  producto_id: string,
+  filtros?: { lista_id?: string; variante_id?: string }
+): Promise<PrecioProducto[]> {
+  const supabase = createServiceRoleClient()
+
+  let query = supabase
+    .from('producto_precios')
+    .select('*')
+    .eq('producto_id', producto_id)
+    .is('deleted_at', null)
+    .order('created_at')
+
+  if (filtros?.lista_id) query = query.eq('lista_id', filtros.lista_id)
+  if (filtros?.variante_id) query = query.eq('variante_id', filtros.variante_id)
+
+  const { data: rows } = await query
+  if (!rows || rows.length === 0) return []
+
+  // Resolve lista names
+  const listaIds = [...new Set(rows.map((r) => r.lista_id))]
+  const listaMap: Record<string, { slug: string; nombre: string; tipo: string }> = {}
+  if (listaIds.length > 0) {
+    const { data: listas } = await supabase
+      .from('producto_listas_precios')
+      .select('id, slug, nombre, tipo')
+      .in('id', listaIds)
+    for (const l of listas ?? []) {
+      listaMap[l.id] = { slug: l.slug, nombre: l.nombre, tipo: l.tipo }
+    }
+  }
+
+  // Resolve variante names
+  const varianteIds = rows.map((r) => r.variante_id).filter(Boolean) as string[]
+  const varianteMap: Record<string, string> = {}
+  if (varianteIds.length > 0) {
+    const { data: vars } = await supabase
+      .from('productos_variantes')
+      .select('id, nombre_variante')
+      .in('id', varianteIds)
+    for (const v of vars ?? []) varianteMap[v.id] = v.nombre_variante
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    precio: Number(r.precio),
+    lista_slug: listaMap[r.lista_id]?.slug,
+    lista_nombre: listaMap[r.lista_id]?.nombre,
+    lista_tipo: listaMap[r.lista_id]?.tipo as TipoLista,
+    variante_nombre: r.variante_id ? (varianteMap[r.variante_id] ?? null) : null,
+  })) as PrecioProducto[]
 }

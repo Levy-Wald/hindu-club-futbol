@@ -12,6 +12,8 @@ import {
   listarEntidadesProveedoras,
   listarPersonasParaResponsable,
   listarAtributosParaResponsable,
+  listarListasPrecios,
+  listarPreciosDeProducto,
 } from '@/modules/pim/lib/queries'
 import { ProductoDetalle } from './_components/producto-detalle'
 
@@ -34,6 +36,8 @@ export default async function ProductoDetailPage({ params }: Props) {
     entidades,
     personasResp,
     atributosResp,
+    listasPrecios,
+    precios,
   ] = await Promise.all([
     productoPorId(TENANT_ID, id),
     listarVariantes(id),
@@ -46,6 +50,8 @@ export default async function ProductoDetailPage({ params }: Props) {
     listarEntidadesProveedoras(TENANT_ID),
     listarPersonasParaResponsable(TENANT_ID),
     listarAtributosParaResponsable(),
+    listarListasPrecios(TENANT_ID),
+    listarPreciosDeProducto(id),
   ])
 
   if (!producto) notFound()
@@ -63,6 +69,8 @@ export default async function ProductoDetailPage({ params }: Props) {
       entidades={entidades}
       personasResp={personasResp}
       atributosResp={atributosResp}
+      listasPrecios={listasPrecios}
+      precios={precios}
     />
   )
 }

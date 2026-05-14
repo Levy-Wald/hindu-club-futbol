@@ -165,6 +165,46 @@ export type ProductoResponsable = {
   nombre_responsable: string
 }
 
+export type TipoLista = 'compra' | 'costo' | 'venta'
+
+export type ListaPrecios = {
+  id: string
+  tenant_id: string
+  slug: string
+  nombre: string
+  descripcion: string | null
+  tipo: TipoLista
+  moneda: string
+  activa: boolean
+  es_default: boolean
+  orden: number
+  metadata: Record<string, unknown>
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+}
+
+export type PrecioProducto = {
+  id: string
+  producto_id: string
+  variante_id: string | null
+  lista_id: string
+  precio: number
+  moneda: string
+  fecha_vigencia_desde: string | null
+  fecha_vigencia_hasta: string | null
+  notas: string | null
+  metadata: Record<string, unknown>
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+  // Resolved
+  lista_slug?: string
+  lista_nombre?: string
+  lista_tipo?: TipoLista
+  variante_nombre?: string | null
+}
+
 export type CatalogoProductoRow = {
   origen: 'pim'
   id_origen: string

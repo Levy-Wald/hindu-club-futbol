@@ -90,6 +90,7 @@ export const troncalSection: NavSectionDef = {
         { label: 'Productos', href: '/admin/productos', icon: ShoppingCart },
         { label: 'Categorias', href: '/admin/productos/categorias', icon: Tag },
         { label: 'Marcas', href: '/admin/productos/marcas', icon: Tag },
+        { label: 'Listas de Precios', href: '/admin/productos/listas-precios', icon: DollarSign },
       ],
     },
     {

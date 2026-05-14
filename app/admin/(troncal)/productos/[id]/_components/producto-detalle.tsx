@@ -13,6 +13,8 @@ import { ProveedorFormDialog } from '@/modules/pim/ui/proveedor-form'
 import { ProveedorRow } from '@/modules/pim/ui/proveedor-row'
 import { ResponsableFormDialog } from '@/modules/pim/ui/responsable-form'
 import { ResponsableRow } from '@/modules/pim/ui/responsable-row'
+import { PrecioFormDialog } from '@/modules/pim/ui/precio-form'
+import { PrecioRow } from '@/modules/pim/ui/precio-row'
 import type {
   ProductoConCategorias,
   ProductoVariante,
@@ -22,6 +24,8 @@ import type {
   ProductoImagen,
   ProductoProveedor,
   ProductoResponsable,
+  ListaPrecios,
+  PrecioProducto,
   ModoOperacion,
   TipoUso,
 } from '@/modules/pim/lib/tipos'
@@ -52,6 +56,8 @@ interface ProductoDetalleProps {
   entidades: { id: string; nombre: string; tipo: string }[]
   personasResp: { id: string; nombre: string; apellido: string }[]
   atributosResp: { slug: string; nombre: string }[]
+  listasPrecios: ListaPrecios[]
+  precios: PrecioProducto[]
 }
 
 export function ProductoDetalle({
@@ -66,6 +72,8 @@ export function ProductoDetalle({
   entidades,
   personasResp,
   atributosResp,
+  listasPrecios,
+  precios,
 }: ProductoDetalleProps) {
   const p = producto
 
@@ -149,6 +157,7 @@ export function ProductoDetalle({
       <Tabs defaultValue="variantes">
         <TabsList>
           <TabsTrigger value="variantes">Variantes ({variantes.length})</TabsTrigger>
+          <TabsTrigger value="precios">Precios ({precios.length})</TabsTrigger>
           <TabsTrigger value="imagenes">Imagenes ({imagenes.length})</TabsTrigger>
           <TabsTrigger value="proveedores">Proveedores ({proveedores.length})</TabsTrigger>
           <TabsTrigger value="responsables">Responsables ({responsables.length})</TabsTrigger>
@@ -166,6 +175,36 @@ export function ProductoDetalle({
               <div className="border rounded-lg divide-y">
                 {variantes.map((v) => (
                   <VarianteRow key={v.id} variante={v} />
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="precios" className="pt-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <PrecioFormDialog
+                mode="create"
+                productoId={p.id}
+                listas={listasPrecios}
+                variantes={variantes}
+              />
+              <p className="text-xs text-muted-foreground">
+                Gestionar listas en{' '}
+                <Link href="/admin/productos/listas-precios" className="underline">
+                  Productos → Listas de Precios
+                </Link>
+              </p>
+            </div>
+            {precios.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground border rounded-lg">
+                <p>No hay precios asignados.</p>
+              </div>
+            ) : (
+              <div className="border rounded-lg divide-y">
+                {precios.map((pr) => (
+                  <PrecioRow key={pr.id} precio={pr} listas={listasPrecios} variantes={variantes} />
                 ))}
               </div>
             )}

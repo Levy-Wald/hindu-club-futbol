@@ -987,3 +987,373 @@ export async function eliminarResponsableDeProductoAction(input: {
   revalidatePath(`/admin/productos/${input.producto_id}`)
   return { ok: true }
 }
+
+// --- Lista de Precios Schemas ---
+
+const monedasValidas = ['ARS', 'USD', 'EUR', 'BRL', 'UYU', 'CLP'] as const
+const tiposListaValidos = ['compra', 'costo', 'venta'] as const
+
+const listaPreciosSchema = z.object({
+  slug: z.string().min(1).max(100),
+  nombre: z.string().min(1).max(200),
+  descripcion: z.string().max(500).optional().or(z.literal('')),
+  tipo: z.enum(tiposListaValidos),
+  moneda: z.enum(monedasValidas),
+  activa: z.boolean().optional(),
+  es_default: z.boolean().optional(),
+  orden: z.number().int().min(0).optional(),
+})
+
+// --- Lista de Precios Actions ---
+
+export async function crearListaPreciosAction(
+  input: z.infer<typeof listaPreciosSchema>
+): Promise<ActionResult<{ id: string }>> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canAdminPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const parsed = listaPreciosSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
+
+  const tenant_id = persona.tenant_id ?? TENANT_ID
+  const supabase = createServiceRoleClient()
+  const d = parsed.data
+
+  // If es_default, unset others of same tipo
+  if (d.es_default) {
+    await supabase
+      .from('producto_listas_precios')
+      .update({ es_default: false })
+      .eq('tenant_id', tenant_id)
+      .eq('tipo', d.tipo)
+      .eq('es_default', true)
+  }
+
+  const { data, error } = await supabase
+    .from('producto_listas_precios')
+    .insert({
+      tenant_id,
+      slug: d.slug.trim(),
+      nombre: d.nombre.trim(),
+      descripcion: d.descripcion?.trim() || null,
+      tipo: d.tipo,
+      moneda: d.moneda,
+      activa: d.activa ?? true,
+      es_default: d.es_default ?? false,
+      orden: d.orden ?? 0,
+    })
+    .select('id')
+    .single()
+
+  if (error || !data) {
+    if (error?.message?.includes('idx_listas_slug_tenant')) {
+      return { ok: false, error: 'Ya existe una lista con ese slug' }
+    }
+    return { ok: false, error: error?.message ?? 'Error creando lista' }
+  }
+
+  revalidatePath('/admin/productos/listas-precios')
+  return { ok: true, id: data.id }
+}
+
+export async function editarListaPreciosAction(
+  input: { id: string } & z.infer<typeof listaPreciosSchema>
+): Promise<ActionResult> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canAdminPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const parsed = listaPreciosSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
+
+  const tenant_id = persona.tenant_id ?? TENANT_ID
+  const supabase = createServiceRoleClient()
+  const d = parsed.data
+
+  if (d.es_default) {
+    await supabase
+      .from('producto_listas_precios')
+      .update({ es_default: false })
+      .eq('tenant_id', tenant_id)
+      .eq('tipo', d.tipo)
+      .eq('es_default', true)
+      .neq('id', input.id)
+  }
+
+  const { error } = await supabase
+    .from('producto_listas_precios')
+    .update({
+      slug: d.slug.trim(),
+      nombre: d.nombre.trim(),
+      descripcion: d.descripcion?.trim() || null,
+      tipo: d.tipo,
+      moneda: d.moneda,
+      activa: d.activa ?? true,
+      es_default: d.es_default ?? false,
+      orden: d.orden ?? 0,
+    })
+    .eq('id', input.id)
+    .eq('tenant_id', tenant_id)
+
+  if (error) {
+    if (error.message?.includes('idx_listas_slug_tenant')) {
+      return { ok: false, error: 'Ya existe una lista con ese slug' }
+    }
+    return { ok: false, error: error.message }
+  }
+
+  revalidatePath('/admin/productos/listas-precios')
+  return { ok: true }
+}
+
+export async function eliminarListaPreciosAction(input: {
+  id: string
+}): Promise<ActionResult> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canAdminPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const tenant_id = persona.tenant_id ?? TENANT_ID
+  const supabase = createServiceRoleClient()
+
+  const { error } = await supabase
+    .from('producto_listas_precios')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', input.id)
+    .eq('tenant_id', tenant_id)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/admin/productos/listas-precios')
+  return { ok: true }
+}
+
+export async function establecerListaDefaultAction(input: {
+  id: string
+  tipo: 'compra' | 'costo' | 'venta'
+}): Promise<ActionResult> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canAdminPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const tenant_id = persona.tenant_id ?? TENANT_ID
+  const supabase = createServiceRoleClient()
+
+  // Unset all defaults for this tipo
+  await supabase
+    .from('producto_listas_precios')
+    .update({ es_default: false })
+    .eq('tenant_id', tenant_id)
+    .eq('tipo', input.tipo)
+
+  // Set this one
+  const { error } = await supabase
+    .from('producto_listas_precios')
+    .update({ es_default: true })
+    .eq('id', input.id)
+    .eq('tenant_id', tenant_id)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/admin/productos/listas-precios')
+  return { ok: true }
+}
+
+export async function seedListasEstandarAction(): Promise<ActionResult> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canAdminPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const tenant_id = persona.tenant_id ?? TENANT_ID
+  const supabase = createServiceRoleClient()
+
+  // Check if any lists already exist
+  const { data: existing } = await supabase
+    .from('producto_listas_precios')
+    .select('id')
+    .eq('tenant_id', tenant_id)
+    .is('deleted_at', null)
+    .limit(1)
+
+  if (existing && existing.length > 0) {
+    return { ok: false, error: 'Ya existen listas de precios para este tenant' }
+  }
+
+  const listas = [
+    { slug: 'compra', nombre: 'Compra a Proveedores', tipo: 'compra', moneda: 'ARS', es_default: true, orden: 1 },
+    { slug: 'costo_fabrica', nombre: 'Costo Fabrica', tipo: 'costo', moneda: 'ARS', es_default: false, orden: 2 },
+    { slug: 'costo_deposito', nombre: 'Costo en Deposito', tipo: 'costo', moneda: 'ARS', es_default: true, orden: 3 },
+    { slug: 'costo_calle', nombre: 'Costo en Calle', tipo: 'costo', moneda: 'ARS', es_default: false, orden: 4 },
+    { slug: 'venta_distribuidor', nombre: 'Venta a Distribuidor', tipo: 'venta', moneda: 'ARS', es_default: false, orden: 5 },
+    { slug: 'venta_mayorista', nombre: 'Venta Mayorista', tipo: 'venta', moneda: 'ARS', es_default: false, orden: 6 },
+    { slug: 'venta_minorista_pdv', nombre: 'Venta Minorista PDV', tipo: 'venta', moneda: 'ARS', es_default: true, orden: 7 },
+    { slug: 'venta_minorista_ecommerce', nombre: 'Venta Minorista E-commerce', tipo: 'venta', moneda: 'ARS', es_default: false, orden: 8 },
+  ]
+
+  const { error } = await supabase
+    .from('producto_listas_precios')
+    .insert(listas.map((l) => ({ ...l, tenant_id })))
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/admin/productos/listas-precios')
+  return { ok: true }
+}
+
+// --- Precio Schemas ---
+
+const precioSchema = z.object({
+  producto_id: z.string().uuid(),
+  variante_id: z.string().uuid().nullable().optional(),
+  lista_id: z.string().uuid(),
+  precio: z.number().min(0),
+  moneda: z.enum(monedasValidas),
+  fecha_vigencia_desde: z.string().nullable().optional(),
+  fecha_vigencia_hasta: z.string().nullable().optional(),
+  notas: z.string().max(1000).optional().or(z.literal('')),
+})
+
+// --- Precio Actions ---
+
+export async function asignarPrecioAction(
+  input: z.infer<typeof precioSchema>
+): Promise<ActionResult<{ id: string }>> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canEditPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const parsed = precioSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
+
+  const supabase = createServiceRoleClient()
+  const d = parsed.data
+
+  const { data, error } = await supabase
+    .from('producto_precios')
+    .insert({
+      producto_id: d.producto_id,
+      variante_id: d.variante_id ?? null,
+      lista_id: d.lista_id,
+      precio: d.precio,
+      moneda: d.moneda,
+      fecha_vigencia_desde: d.fecha_vigencia_desde || null,
+      fecha_vigencia_hasta: d.fecha_vigencia_hasta || null,
+      notas: d.notas?.trim() || null,
+    })
+    .select('id')
+    .single()
+
+  if (error || !data) {
+    if (error?.message?.includes('idx_producto_precio_unico')) {
+      return { ok: false, error: 'Ya existe un precio base para esta combinacion producto/variante/lista' }
+    }
+    return { ok: false, error: error?.message ?? 'Error asignando precio' }
+  }
+
+  revalidatePath(`/admin/productos/${d.producto_id}`)
+  return { ok: true, id: data.id }
+}
+
+export async function editarPrecioAction(
+  input: { id: string } & z.infer<typeof precioSchema>
+): Promise<ActionResult> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canEditPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const parsed = precioSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
+
+  const d = parsed.data
+  const supabase = createServiceRoleClient()
+
+  const { error } = await supabase
+    .from('producto_precios')
+    .update({
+      precio: d.precio,
+      moneda: d.moneda,
+      fecha_vigencia_desde: d.fecha_vigencia_desde || null,
+      fecha_vigencia_hasta: d.fecha_vigencia_hasta || null,
+      notas: d.notas?.trim() || null,
+    })
+    .eq('id', input.id)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath(`/admin/productos/${d.producto_id}`)
+  return { ok: true }
+}
+
+export async function eliminarPrecioAction(input: {
+  id: string
+  producto_id: string
+}): Promise<ActionResult> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canEditPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  const supabase = createServiceRoleClient()
+
+  const { error } = await supabase
+    .from('producto_precios')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', input.id)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath(`/admin/productos/${input.producto_id}`)
+  return { ok: true }
+}
+
+export async function actualizarPreciosMasivoAction(input: {
+  precios: { producto_id: string; variante_id: string | null; lista_id: string; precio: number; moneda: string }[]
+}): Promise<ActionResult> {
+  const persona = await getPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  const puede = await canEditPim(persona.id)
+  if (!puede) return { ok: false, error: 'Sin permiso' }
+
+  if (!input.precios.length) return { ok: false, error: 'Sin precios para actualizar' }
+
+  const supabase = createServiceRoleClient()
+
+  for (const p of input.precios) {
+    const { error } = await supabase
+      .from('producto_precios')
+      .upsert(
+        {
+          producto_id: p.producto_id,
+          variante_id: p.variante_id ?? null,
+          lista_id: p.lista_id,
+          precio: p.precio,
+          moneda: p.moneda,
+        },
+        { onConflict: 'producto_id,variante_id,lista_id', ignoreDuplicates: false }
+      )
+    if (error) return { ok: false, error: error.message }
+  }
+
+  const prodIds = [...new Set(input.precios.map((p) => p.producto_id))]
+  for (const pid of prodIds) {
+    revalidatePath(`/admin/productos/${pid}`)
+  }
+  return { ok: true }
+}
