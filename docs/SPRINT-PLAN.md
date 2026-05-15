@@ -103,7 +103,7 @@ Cerradas en producción. Reubicadas en la taxonomía RFC-004 según corresponda.
 | H1 | Drift check TS↔BD en todos los módulos A2.x/A3.x | ✅ DONE | v0.29.1-hardening-h1 | <1h | Cero drift, 16 tablas auditadas, ADR-047 draft |
 | H2 | Tests E2E + unit tests del ERP modular | ✅ DONE | v0.29.2-hardening-h2 | <1h | 6 E2E + 30 unit tests, 0 bugs |
 | H3 | Backfill datos demo sintéticos | ✅ DONE | v0.29.3-hardening-h3 | <1h | 7 productos, 20 variantes, 20 precios, 20 stock, 30 movs, 26 cotiz, 5 convenios, 20 conciliacion |
-| H4 | Docs canónicos v2 (ARCHITECTURE v3, DATA-MODEL, MODULE-CATALOG, ADR-INDEX) | 📋 PLANNED | v0.29.5-hardening-post-fase-a | 3-4h | H3 |
+| H4 | Docs canónicos v2 (ARCHITECTURE v3, DATA-MODEL, MODULE-CATALOG, ADR-INDEX, ADRs 047-052) | ✅ DONE | v0.29.5-hardening-post-fase-a | <1h | ARCHITECTURE v3, DATA-MODEL, MODULE-CATALOG, ADR-INDEX, 6 ADRs, cierre Tramo 2 |
 
 **Subtotal**: ~12-16h Code  
 **Tag de cierre**: `v0.29.5-hardening-post-fase-a`
@@ -339,9 +339,9 @@ Cada conector tiene su ADR + flag `activo_por_tenant`.
 
 ## Sprint en curso
 
-**Próximo a arrancar**: A2 v2 (cierre formal PIM N1).
+**Tramo 2 cerrado**: H4 DONE. Tag `v0.29.5-hardening-post-fase-a`.
 
-**Bloqueantes**: ninguno. Prompt A2 oficial existe en Drive `_Sprints/`, requiere ajuste contra BD post-A2.6 antes de pasarlo a Code (versión 2 en preparación).
+**Próximo a arrancar**: Tramo 3 — FASE B sprint B1 (Salud / Lesiones operativas).
 
 **Estado BD verificado al 14-may-2026 vía MCP**:
 - 163 tablas públicas

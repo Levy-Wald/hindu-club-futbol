@@ -1,6 +1,6 @@
 # ADR-047 — Auditoria MCP obligatoria pre-tag
 
-**Status**: Draft (canonizacion formal en H4)
+**Status**: Accepted
 **Fecha**: 14 de mayo de 2026
 **Contexto**: Sprint H1 (Tramo 2 RFC-005)
 
