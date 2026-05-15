@@ -100,7 +100,7 @@ Cerradas en producción. Reubicadas en la taxonomía RFC-004 según corresponda.
 
 | ID | Tema | Estado | Tag esperado | Costo | Depende de |
 |---|---|---|---|---|---|
-| H1 | Drift check TS↔BD en todos los módulos A2.x/A3.x | 📋 PLANNED | v0.29.1-hardening-h1 | 3-4h | A6 cerrado |
+| H1 | Drift check TS↔BD en todos los módulos A2.x/A3.x | ✅ DONE | v0.29.1-hardening-h1 | <1h | Cero drift, 16 tablas auditadas, ADR-047 draft |
 | H2 | Tests E2E + unit tests del ERP modular | 📋 PLANNED | v0.29.2-hardening-h2 | 4-5h | H1 |
 | H3 | Backfill datos demo sintéticos | 📋 PLANNED | v0.29.3-hardening-h3 | 2-3h | H2 |
 | H4 | Docs canónicos v2 (ARCHITECTURE v3, DATA-MODEL, MODULE-CATALOG, ADR-INDEX) | 📋 PLANNED | v0.29.5-hardening-post-fase-a | 3-4h | H3 |
