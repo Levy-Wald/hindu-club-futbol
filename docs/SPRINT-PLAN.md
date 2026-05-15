@@ -88,7 +88,7 @@ Cerradas en producción. Reubicadas en la taxonomía RFC-004 según corresponda.
 |---|---|---|---|---|---|
 | A2 v2 | Cierre formal PIM N1: smoke + datos demo en variantes + tag explícito | ✅ DONE | v0.27.10-fase-a-sprint-2 | <1h | Cierre administrativo, 9 variantes demo cargadas |
 | A4 v2 | Completar CRM: atributos_custom_definicion + atributos_custom_valores + UI vínculos completa | 📋 PLANNED | v0.27.11-fase-a-sprint-4 | 5-8h | Padrones+importadores+vínculos ya construidos, NO rehacer |
-| A5 | Comunicaciones cierre: editor + com_automatizaciones + com_automatizaciones_pasos + com_variables_disponibles + workflow editor + test send | 📋 PLANNED | v0.27.12-fase-a-sprint-5 | 5h | |
+| A5 | Comunicaciones cierre: Tiptap editor + variables sidebar + test send + versionado plantillas + automatizaciones CRUD + workflow editor dnd-kit | ✅ DONE | v0.27.12-fase-a-sprint-5 | 3h | 4 tablas nuevas, @tiptap/react, dnd-kit, isomorphic-dompurify |
 | A6 | Proyectos & Tareas: 4 tablas + Kanban + Lista + Calendario + tab Proyectos en persona/entidad | 📋 PLANNED | v0.29.0-fase-a-completa | 12-15h | dnd-kit |
 
 **Costo restante FASE A**: ~23-30h Code  

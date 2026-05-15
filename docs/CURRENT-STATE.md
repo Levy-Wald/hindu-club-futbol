@@ -34,29 +34,38 @@ Stack:
 \- Vercel project\_id: prj\_sH5WIGNfNGo5tXxyTVvQaEfBDyBk  
 \- App prod: https://hindu-club.vercel.app
 
-ESTADO AL 14 DE MAYO DE 2026 (POST SPRINT A2)
+ESTADO AL 15 DE MAYO DE 2026 (POST SPRINT A5)
 \==============================================
 
 FASE CONCLUIDAS (modelo viejo):
 \- FASE 1-5: cerradas en producción
 \- Hindu en producción con 2.395 personas, 8 equipos, 280 eventos, 98 partidos, 102 cuotas, 1.381 envíos
 
+TRAMO 2 (Hardening post-FASE-A): CERRADO
+\- H1 (drift check): 0 drift, 16 tablas auditadas
+\- H2 (tests): 6 E2E + 30 unit tests
+\- H3 (backfill demo): 7 productos, 20 variantes, 20 precios, 30 movs stock, 26 cotizaciones, 5 convenios, 20 conciliación
+\- H4 (docs canónicos v2): ARCHITECTURE v3, DATA-MODEL, MODULE-CATALOG, 6 ADRs (047-052)
+
 FASE A EN PROGRESO:
-\- Sprint A1 (Fix Base Operativa + Espacios): CERRADO (v0.27.0-fase-a-sprint-1)
-\- Sprint A2 (PIM Nivel 1): CERRADO (v0.27.4-fase-a-sprint-2-6)
-  - A2.1: Modelo de datos PIM (8 tablas, RLS, triggers, seeds)
-  - A2.2: Proveedores + responsables de producto
-  - A2.3: Categorías + unidades de medida
-  - A2.4: Variantes de producto
-  - A2.5: Listas de precios
-  - A2.6: Stock + movimientos + integración form
-  - HOTFIX: Column name drift (audit 4 tablas, 9+ columnas corregidas)
-\- Próximo a ejecutar: Sprint A3
+\- Sprint A1: CERRADO (v0.27.0)
+\- Sprint A2 (PIM N1): CERRADO (v0.27.4)
+\- Sprint A3 (Finanzas): CERRADO (A3.1-A3.6, v0.27.5-v0.28.0)
+\- Sprint A2 v2 (cierre formal PIM): CERRADO (v0.27.10)
+\- Sprint A5 (Comunicaciones cierre): CERRADO (v0.27.12-fase-a-sprint-5)
+  - Tiptap rich text editor para plantillas
+  - Variables sidebar con click-to-insert desde com_variables_disponibles
+  - Test send modal con búsqueda de persona
+  - Versionado de plantillas (version bump + snapshots en com_plantilla_versiones)
+  - CRUD com_automatizaciones + com_automatizaciones_pasos
+  - Workflow editor visual con dnd-kit drag & drop
+  - 4 tablas nuevas: com_variables_disponibles, com_automatizaciones, com_automatizaciones_pasos, com_plantilla_versiones
+\- Próximo a ejecutar: A4 v2 (atributos custom) o A6 (proyectos)
 
 FASES SIGUIENTES:
-\- FASE B (Cerrar vertical CCBP): planificada, RFC-003 vigente, B1 con prompt detallado preparado
+\- FASE B (Cerrar vertical CCBP): planificada, RFC-003 vigente
 \- FASE C (Demo a Hindu): planificada
-\- FASE D (Cross-vertical extra): planificada
+\- FASE D (Cross-vertical extra): planificada (D3+D4 adelantados en A2.5/A2.6)
 \- FASE E (Otros verticales): planificada
 
 MÉTRICAS DE BASE DE DATOS (verificadas vía Supabase MCP el 13 de mayo de 2026\)  
@@ -92,7 +101,7 @@ Datos productivos (tenant Hindu):
 ESTADO DEL CÓDIGO  
 \==================
 
-Repo: limpio, branch main al día. Tag: v0.27.4-fase-a-sprint-2-6.
+Repo: limpio, branch main al día. Tag: v0.27.12-fase-a-sprint-5.
 
 Módulos en \`modules/\` (19 con código):
 \- Productivos: personas, equipos, comunicaciones, finanzas (parcial), cuotas, suscripciones, competencias, partidos, asistencias, reservas, acceso, pre\_inscripciones, entrenamientos, tactica, amistosos, utileria, planificadores, espacios, pim
