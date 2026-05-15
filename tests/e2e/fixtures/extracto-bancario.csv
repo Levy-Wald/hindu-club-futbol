@@ -1,0 +1,6 @@
+fecha,descripcion,monto,referencia,saldo
+14/05/2026,Cobro cuota socio #1234,5000.00,REF-001,105000.00
+14/05/2026,Pago proveedor materiales,-2500.00,REF-002,102500.00
+13/05/2026,Transferencia recibida sponsor,15000.00,REF-003,117500.00
+13/05/2026,Debito automatico servicios,-800.00,REF-004,116700.00
+12/05/2026,Cobro alquiler cancha,3500.00,REF-005,120200.00
