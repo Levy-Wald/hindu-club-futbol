@@ -34,7 +34,7 @@ Stack:
 \- Vercel project\_id: prj\_sH5WIGNfNGo5tXxyTVvQaEfBDyBk  
 \- App prod: https://hindu-club.vercel.app
 
-ESTADO AL 15 DE MAYO DE 2026 (POST SPRINT A5)
+ESTADO AL 15 DE MAYO DE 2026 (POST SPRINT A6)
 \==============================================
 
 FASE CONCLUIDAS (modelo viejo):
@@ -53,14 +53,16 @@ FASE A EN PROGRESO:
 \- Sprint A3 (Finanzas): CERRADO (A3.1-A3.6, v0.27.5-v0.28.0)
 \- Sprint A2 v2 (cierre formal PIM): CERRADO (v0.27.10)
 \- Sprint A5 (Comunicaciones cierre): CERRADO (v0.27.12-fase-a-sprint-5)
-  - Tiptap rich text editor para plantillas
-  - Variables sidebar con click-to-insert desde com_variables_disponibles
-  - Test send modal con búsqueda de persona
-  - Versionado de plantillas (version bump + snapshots en com_plantilla_versiones)
-  - CRUD com_automatizaciones + com_automatizaciones_pasos
-  - Workflow editor visual con dnd-kit drag & drop
-  - 4 tablas nuevas: com_variables_disponibles, com_automatizaciones, com_automatizaciones_pasos, com_plantilla_versiones
-\- Próximo a ejecutar: A4 v2 (atributos custom) o A6 (proyectos)
+  - Tiptap rich text editor, variables sidebar, test send, versionado, automatizaciones + workflow
+\- Sprint A6 (Proyectos & Tareas): CERRADO (v0.27.13-fase-a-sprint-6)
+  - 4 tablas: proyectos, proyecto_tareas, proyecto_miembros, proyecto_comentarios
+  - Catálogo catalogo_estados_tarea (5 estados)
+  - Kanban con dnd-kit, Lista filtrable, Calendario react-big-calendar
+  - Comentarios thread, Equipo (miembros N:M con roles)
+  - Integración movimientos_caja.proyecto_id + fn_presupuesto_consumido
+  - Tab Proyectos en persona, sidebar Proyectos activo
+  - Trigger anti-ciclo subtareas, mutex cliente persona/entidad
+\- Próximo a ejecutar: A4 v2 (atributos custom)
 
 FASES SIGUIENTES:
 \- FASE B (Cerrar vertical CCBP): planificada, RFC-003 vigente
@@ -101,7 +103,7 @@ Datos productivos (tenant Hindu):
 ESTADO DEL CÓDIGO  
 \==================
 
-Repo: limpio, branch main al día. Tag: v0.27.12-fase-a-sprint-5.
+Repo: limpio, branch main al día. Tag: v0.27.13-fase-a-sprint-6.
 
 Módulos en \`modules/\` (19 con código):
 \- Productivos: personas, equipos, comunicaciones, finanzas (parcial), cuotas, suscripciones, competencias, partidos, asistencias, reservas, acceso, pre\_inscripciones, entrenamientos, tactica, amistosos, utileria, planificadores, espacios, pim
