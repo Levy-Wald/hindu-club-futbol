@@ -102,7 +102,7 @@ Cerradas en producción. Reubicadas en la taxonomía RFC-004 según corresponda.
 |---|---|---|---|---|---|
 | H1 | Drift check TS↔BD en todos los módulos A2.x/A3.x | ✅ DONE | v0.29.1-hardening-h1 | <1h | Cero drift, 16 tablas auditadas, ADR-047 draft |
 | H2 | Tests E2E + unit tests del ERP modular | ✅ DONE | v0.29.2-hardening-h2 | <1h | 6 E2E + 30 unit tests, 0 bugs |
-| H3 | Backfill datos demo sintéticos | 📋 PLANNED | v0.29.3-hardening-h3 | 2-3h | H2 |
+| H3 | Backfill datos demo sintéticos | ✅ DONE | v0.29.3-hardening-h3 | <1h | 7 productos, 20 variantes, 20 precios, 20 stock, 30 movs, 26 cotiz, 5 convenios, 20 conciliacion |
 | H4 | Docs canónicos v2 (ARCHITECTURE v3, DATA-MODEL, MODULE-CATALOG, ADR-INDEX) | 📋 PLANNED | v0.29.5-hardening-post-fase-a | 3-4h | H3 |
 
 **Subtotal**: ~12-16h Code  
@@ -367,8 +367,8 @@ Cosas planificadas pero no urgentes ahora:
 | Módulo huérfano: proveedores (¿absorber en entidades?) | TBD |
 | Módulo huérfano: talles (¿es necesario?) | TBD |
 | Nombre del producto raíz (no "ClubCore") | post FASE C |
-| Padrón "e" en Hindu (probable test contaminado) | H3 (backfill demo) |
-| `productos_variantes` con 0 filas | A2 v2 (datos demo) |
+| ~~Padrón "e" en Hindu~~ | ✅ Resuelto en H3 (soft-delete activo=false) |
+| ~~`productos_variantes` con 0 filas~~ | ✅ Resuelto en A2 v2 + H3 (29 filas) |
 
 ---
 
