@@ -34,7 +34,7 @@ Stack:
 \- Vercel project\_id: prj\_sH5WIGNfNGo5tXxyTVvQaEfBDyBk  
 \- App prod: https://hindu-club.vercel.app
 
-ESTADO AL 15 DE MAYO DE 2026 (POST SPRINT A6)
+ESTADO AL 15 DE MAYO DE 2026 (POST SPRINT A4 v2 — FASE A COMPLETA)
 \==============================================
 
 FASE CONCLUIDAS (modelo viejo):
@@ -62,7 +62,13 @@ FASE A EN PROGRESO:
   - Integración movimientos_caja.proyecto_id + fn_presupuesto_consumido
   - Tab Proyectos en persona, sidebar Proyectos activo
   - Trigger anti-ciclo subtareas, mutex cliente persona/entidad
-\- Próximo a ejecutar: A4 v2 (atributos custom)
+\- Sprint A4 v2 (CRM atributos custom + vínculos entidades): CERRADO (v0.27.11-fase-a-sprint-4)
+  - 3 tablas: atributos_custom_definicion, atributos_custom_valores, vinculos_cross
+  - Página configuración /configuracion/atributos-custom
+  - Tab atributos custom en persona + entidad
+  - Tab vínculos entidades (persona-entidad, entidad-entidad) en persona + entidad
+  - Sidebar: Atributos custom en Configuración
+\- FASE A: COMPLETA — todos los sprints cerrados
 
 FASES SIGUIENTES:
 \- FASE B (Cerrar vertical CCBP): planificada, RFC-003 vigente

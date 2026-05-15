@@ -87,12 +87,12 @@ Cerradas en producción. Reubicadas en la taxonomía RFC-004 según corresponda.
 | ID | Tema | Estado | Tag esperado | Costo | Notas |
 |---|---|---|---|---|---|
 | A2 v2 | Cierre formal PIM N1: smoke + datos demo en variantes + tag explícito | ✅ DONE | v0.27.10-fase-a-sprint-2 | <1h | Cierre administrativo, 9 variantes demo cargadas |
-| A4 v2 | Completar CRM: atributos_custom_definicion + atributos_custom_valores + UI vínculos completa | 📋 PLANNED | v0.27.11-fase-a-sprint-4 | 5-8h | Padrones+importadores+vínculos ya construidos, NO rehacer |
+| A4 v2 | Completar CRM: atributos_custom_definicion + atributos_custom_valores + vinculos_cross + UI vínculos entidades | ✅ DONE | v0.27.11-fase-a-sprint-4 | 3h | 3 tablas nuevas, config page, tabs en persona + entidad |
 | A5 | Comunicaciones cierre: Tiptap editor + variables sidebar + test send + versionado plantillas + automatizaciones CRUD + workflow editor dnd-kit | ✅ DONE | v0.27.12-fase-a-sprint-5 | 3h | 4 tablas nuevas, @tiptap/react, dnd-kit, isomorphic-dompurify |
 | A6 | Proyectos & Tareas: 4 tablas + Kanban + Lista + Calendario + tab Proyectos en persona + comentarios + miembros + presupuesto | ✅ DONE | v0.27.13-fase-a-sprint-6 | 3h | dnd-kit, react-big-calendar, fn_presupuesto_consumido |
 
-**Costo restante FASE A**: A4 v2 pendiente (~5-8h Code)
-**Tag de cierre FASE A**: `v0.29.0-fase-a-completa` (pendiente A4 v2)
+**Costo restante FASE A**: 0 — todos los sprints DONE
+**Tag de cierre FASE A**: `v0.29.0-fase-a-completa` (listo para aplicar)
 
 ---
 

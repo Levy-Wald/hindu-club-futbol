@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { fetchPersonaById, fetchCatalogoAtributos, fetchCatalogoVinculos, fetchPadrones, fetchEstadosPadron, fetchTiposSocio, fetchCategoriasEquipo } from '../_lib/queries'
 import { obtenerPreferenciasPersona } from '@/modules/comunicaciones/lib/preferencias/actions'
 import { fetchProyectosDePersona } from '@/modules/proyectos/lib/queries'
+import { fetchDefiniciones, fetchValoresEntidad, fetchVinculosCross, resolveVinculoNames } from '@/modules/atributos-custom/lib/queries'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { PersonaAvatar } from '../_components/persona-avatar'
@@ -21,7 +22,7 @@ export default async function PersonaDetallePage({ params, searchParams }: PageP
   const { tab } = await searchParams
 
   // Todas las queries en paralelo — no esperar persona para lanzar catálogos
-  const [personaResult, catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio, categoriasEquipo, preferenciasComPersona, proyectosPersona] = await Promise.all([
+  const [personaResult, catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio, categoriasEquipo, preferenciasComPersona, proyectosPersona, atributosCustomDefs, atributosCustomVals, vinculosCrossRaw] = await Promise.all([
     fetchPersonaById(id).catch(() => null),
     fetchCatalogoAtributos(),
     fetchCatalogoVinculos(),
@@ -31,7 +32,12 @@ export default async function PersonaDetallePage({ params, searchParams }: PageP
     fetchCategoriasEquipo(),
     obtenerPreferenciasPersona(id),
     fetchProyectosDePersona(id),
+    fetchDefiniciones('persona'),
+    fetchValoresEntidad('persona', id),
+    fetchVinculosCross('persona', id),
   ])
+
+  const vinculosCross = await resolveVinculoNames(vinculosCrossRaw)
 
   if (!personaResult) notFound()
   const persona = personaResult
@@ -82,6 +88,9 @@ export default async function PersonaDetallePage({ params, searchParams }: PageP
         categoriasEquipo={categoriasEquipo}
         preferenciasComPersona={preferenciasComPersona}
         proyectosPersona={proyectosPersona}
+        atributosCustomDefs={atributosCustomDefs}
+        atributosCustomVals={atributosCustomVals}
+        vinculosCross={vinculosCross}
         defaultTab={tab}
       />
     </div>

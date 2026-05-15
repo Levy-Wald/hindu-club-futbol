@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { ArrowLeft, Building2, Info, Users } from 'lucide-react'
+import { ArrowLeft, Building2, Info, Users, Tags, Link2 } from 'lucide-react'
 import {
   fetchEntidadDetalle,
   fetchEntidadRepresentantes,
@@ -14,6 +14,9 @@ import { EntidadInfo } from './_components/entidad-info'
 import { EntidadRepresentantes } from './_components/entidad-representantes'
 import { EntidadHijas } from './_components/entidad-hijas'
 import { EliminarEntidadButton } from './_components/eliminar-entidad-button'
+import { fetchDefiniciones, fetchValoresEntidad, fetchVinculosCross, resolveVinculoNames } from '@/modules/atributos-custom/lib/queries'
+import { ValoresForm } from '@/modules/atributos-custom/ui/valores-form'
+import { VinculosCrossTab } from '@/modules/atributos-custom/ui/vinculos-cross-tab'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -22,17 +25,22 @@ interface PageProps {
 export default async function EntidadDetallePage({ params }: PageProps) {
   const { id } = await params
 
-  let entidad, representantes, hijas, todasEntidades
+  let entidad, representantes, hijas, todasEntidades, atributosCustomDefs, atributosCustomVals, vinculosCrossRaw
   try {
-    ;[entidad, representantes, hijas, todasEntidades] = await Promise.all([
+    ;[entidad, representantes, hijas, todasEntidades, atributosCustomDefs, atributosCustomVals, vinculosCrossRaw] = await Promise.all([
       fetchEntidadDetalle(id),
       fetchEntidadRepresentantes(id),
       fetchEntidadesHijas(id),
       fetchEntidadesForSelect(),
+      fetchDefiniciones('entidad'),
+      fetchValoresEntidad('entidad', id),
+      fetchVinculosCross('entidad', id),
     ])
   } catch {
     notFound()
   }
+
+  const vinculosCross = await resolveVinculoNames(vinculosCrossRaw)
 
   const entidadPadre = entidad.entidad_padre as { id: string; nombre: string; tipo: string } | null
 
@@ -86,6 +94,14 @@ export default async function EntidadDetallePage({ params }: PageProps) {
           <TabsTrigger value="hijas">
             <Building2 className="h-4 w-4" />
             <span className="hidden sm:inline">Entidades hijas</span>
+          </TabsTrigger>
+          <TabsTrigger value="atributos-custom">
+            <Tags className="h-4 w-4" />
+            <span className="hidden sm:inline">Custom</span>
+          </TabsTrigger>
+          <TabsTrigger value="vinculos">
+            <Link2 className="h-4 w-4" />
+            <span className="hidden sm:inline">Vínculos</span>
           </TabsTrigger>
         </TabsList>
 
@@ -141,6 +157,27 @@ export default async function EntidadDetallePage({ params }: PageProps) {
         <TabsContent value="hijas">
           <div className="pt-4">
             <EntidadHijas hijas={hijas} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="atributos-custom">
+          <div className="pt-4">
+            <ValoresForm
+              definiciones={atributosCustomDefs}
+              valoresExistentes={atributosCustomVals}
+              entidadTipo="entidad"
+              entidadId={entidad.id}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="vinculos">
+          <div className="pt-4">
+            <VinculosCrossTab
+              currentId={entidad.id}
+              currentType="entidad"
+              vinculos={vinculosCross}
+            />
           </div>
         </TabsContent>
       </Tabs>

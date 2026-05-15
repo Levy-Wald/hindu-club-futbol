@@ -35,6 +35,9 @@ import { PreferenciasForm } from '@/modules/comunicaciones/ui/preferencias-form'
 import type { PreferenciasPersona } from '@/modules/comunicaciones/lib/preferencias/tipos'
 import { TabProyectosPersona } from '@/modules/proyectos/ui/tab-proyectos-persona'
 import type { ProyectoConRelaciones } from '@/modules/proyectos/lib/tipos'
+import { ValoresForm } from '@/modules/atributos-custom/ui/valores-form'
+import { VinculosCrossTab } from '@/modules/atributos-custom/ui/vinculos-cross-tab'
+import type { AtributoDefinicion, AtributoValor, VinculoCrossConRelaciones } from '@/modules/atributos-custom/lib/tipos'
 
 interface PersonaEditorProps {
   persona: Record<string, unknown>
@@ -46,6 +49,9 @@ interface PersonaEditorProps {
   categoriasEquipo: { id: string; nombre_display: string; edad_min?: number | null; edad_max?: number | null }[]
   preferenciasComPersona?: PreferenciasPersona | null
   proyectosPersona?: ProyectoConRelaciones[]
+  atributosCustomDefs?: AtributoDefinicion[]
+  atributosCustomVals?: AtributoValor[]
+  vinculosCross?: VinculoCrossConRelaciones[]
   modo?: 'admin' | 'mi-perfil'
   defaultTab?: string
 }
@@ -103,7 +109,7 @@ function init(p: Record<string, unknown>): EditarPersonaInput {
   }
 }
 
-export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, padronesDisponibles, estadosPadron, tiposSocio, categoriasEquipo, preferenciasComPersona, proyectosPersona, modo = 'admin', defaultTab }: PersonaEditorProps) {
+export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, padronesDisponibles, estadosPadron, tiposSocio, categoriasEquipo, preferenciasComPersona, proyectosPersona, atributosCustomDefs, atributosCustomVals, vinculosCross, modo = 'admin', defaultTab }: PersonaEditorProps) {
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState<EditarPersonaInput>(() => init(persona))
   const [exportOpen, setExportOpen] = useState(false)
@@ -201,6 +207,8 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
             {!esMiPerfil && <TabsTrigger value="suscripciones">Suscripciones</TabsTrigger>}
             {!esMiPerfil && <TabsTrigger value="cuotas">Cuotas</TabsTrigger>}
             {!esMiPerfil && <TabsTrigger value="pagos">Pagos</TabsTrigger>}
+            {!esMiPerfil && <TabsTrigger value="atributos-custom">Custom</TabsTrigger>}
+            {!esMiPerfil && <TabsTrigger value="vinculos-entidades">Vínculos entidades</TabsTrigger>}
             {!esMiPerfil && <TabsTrigger value="comunicaciones">Comunicaciones</TabsTrigger>}
             {!esMiPerfil && <TabsTrigger value="proyectos">Proyectos</TabsTrigger>}
             <TabsTrigger value="ficha">Ficha total</TabsTrigger>
@@ -317,6 +325,23 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
 
         <TabsContent value="pagos" className="mt-4">
           <TabPagos personaId={persona.id as string} />
+        </TabsContent>
+
+        <TabsContent value="atributos-custom" className="mt-4">
+          <ValoresForm
+            definiciones={atributosCustomDefs ?? []}
+            valoresExistentes={atributosCustomVals ?? []}
+            entidadTipo="persona"
+            entidadId={persona.id as string}
+          />
+        </TabsContent>
+
+        <TabsContent value="vinculos-entidades" className="mt-4">
+          <VinculosCrossTab
+            currentId={persona.id as string}
+            currentType="persona"
+            vinculos={vinculosCross ?? []}
+          />
         </TabsContent>
 
         <TabsContent value="comunicaciones" className="mt-4">

@@ -121,6 +121,7 @@ export const troncalSection: NavSectionDef = {
       subItems: [
         { label: 'Sedes', href: '/admin/configuracion/sedes', icon: MapPin },
         { label: 'Espacios', href: '/admin/configuracion/espacios', icon: LayoutDashboard },
+        { label: 'Atributos custom', href: '/admin/configuracion/atributos-custom', icon: Tag },
         { label: 'Marketplace', href: '/admin/marketplace', icon: ShoppingBag },
         { label: 'General', href: '/admin/configuracion', icon: Settings },
       ],
