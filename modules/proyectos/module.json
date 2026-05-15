@@ -1,0 +1,31 @@
+{
+  "slug": "proyectos",
+  "name": "Proyectos & Tareas",
+  "version": "1.0.0",
+  "category": "troncal",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": ["finanzas"],
+  "owns_tables": [
+    "proyectos",
+    "proyecto_tareas",
+    "proyecto_miembros",
+    "proyecto_comentarios"
+  ],
+  "owns_catalogs": ["catalogo_estados_tarea"],
+  "owns_views": [],
+  "permissions_required": ["tenant.admin", "proyectos.admin", "proyectos.editor", "proyectos.viewer"],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": [
+    "/admin/proyectos",
+    "/admin/proyectos/[id]"
+  ],
+  "public_routes": [],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

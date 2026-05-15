@@ -43,6 +43,7 @@ import {
   TrendingUp,
   UserCheck,
   PieChart,
+  FolderKanban,
 } from 'lucide-react'
 
 export interface NavItemDef {
@@ -89,6 +90,7 @@ export const troncalSection: NavSectionDef = {
   items: [
     { label: 'Personas', href: '/admin/personas', icon: Users },
     { label: 'Entidades', href: '/admin/entidades', icon: Building2 },
+    { label: 'Proyectos', href: '/admin/proyectos', icon: FolderKanban },
   ],
   collapsibles: [
     {
