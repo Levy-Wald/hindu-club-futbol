@@ -1,5 +1,5 @@
 export function extractVariablesFromTemplate(asunto: string | null, cuerpo: string): string[] {
-  const regex = /\{\{(\w+)\}\}/g
+  const regex = /\{\{([\w.]+)\}\}/g
   const variables = new Set<string>()
 
   for (const text of [asunto ?? '', cuerpo]) {

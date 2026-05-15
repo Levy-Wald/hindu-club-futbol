@@ -299,6 +299,86 @@ export async function obtenerJobLog(id: string) {
 }
 
 // =============================================================================
+// Variables disponibles (com_variables_disponibles)
+// =============================================================================
+
+export async function fetchVariablesDisponibles() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('com_variables_disponibles')
+    .select('*')
+    .order('contexto')
+    .order('slug')
+
+  if (error) return []
+  return data ?? []
+}
+
+// =============================================================================
+// Automatizaciones (com_automatizaciones + com_automatizaciones_pasos)
+// =============================================================================
+
+export async function fetchAutomatizaciones() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('com_automatizaciones')
+    .select('*')
+    .eq('tenant_id', TENANT_ID)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+
+  if (error) return []
+  return data ?? []
+}
+
+export async function fetchAutomatizacion(id: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('com_automatizaciones')
+    .select('*')
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (error) return null
+  return data
+}
+
+export async function fetchAutomatizacionPasos(automatizacionId: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('com_automatizaciones_pasos')
+    .select('*')
+    .eq('automatizacion_id', automatizacionId)
+    .order('orden')
+
+  if (error) return []
+  return data ?? []
+}
+
+// =============================================================================
+// Plantilla versiones
+// =============================================================================
+
+export async function fetchPlantillaVersiones(plantillaId: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('com_plantilla_versiones')
+    .select('*')
+    .eq('plantilla_id', plantillaId)
+    .order('version', { ascending: false })
+    .limit(20)
+
+  if (error) return []
+  return data ?? []
+}
+
+// =============================================================================
 // Dashboard
 // =============================================================================
 

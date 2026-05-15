@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -23,9 +22,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { Loader2, Copy, Trash2, ArrowLeft } from 'lucide-react'
+import { Loader2, Copy, Trash2, ArrowLeft, Send } from 'lucide-react'
 import {
   crearPlantilla,
   actualizarPlantilla,
@@ -34,6 +33,10 @@ import {
 } from '@/modules/comunicaciones/lib/actions'
 import { extractVariablesFromTemplate } from '@/modules/comunicaciones/lib/plantillas/parser'
 import { PlantillaPreviewPanel } from './plantilla-preview-panel'
+import { TiptapEditor, insertVariableAtCursor } from './tiptap-editor'
+import { VariablesSidebar } from './variables-sidebar'
+import { TestSendModal } from './test-send-modal'
+import type { Editor } from '@tiptap/react'
 
 interface Plantilla {
   id: string
@@ -43,9 +46,18 @@ interface Plantilla {
   descripcion: string | null
   asunto: string | null
   cuerpo: string
+  body_html?: string | null
   variables_disponibles: string[] | null
   activa: boolean
+  version?: number
   metadata: Record<string, unknown> | null
+}
+
+interface Variable {
+  slug: string
+  descripcion: string
+  contexto: string
+  ejemplo: string | null
 }
 
 interface PlantillaEditorFormProps {
@@ -56,6 +68,7 @@ interface PlantillaEditorFormProps {
     puede_eliminar: boolean
     puede_duplicar: boolean
   }
+  variablesDisponibles?: Variable[]
 }
 
 function slugify(text: string): string {
@@ -67,11 +80,12 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, '')
 }
 
-export function PlantillaEditorForm({ plantilla, permisos }: PlantillaEditorFormProps) {
+export function PlantillaEditorForm({ plantilla, permisos, variablesDisponibles = [] }: PlantillaEditorFormProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const isEdit = !!plantilla
   const esSistema = plantilla?.metadata?.es_sistema === true
+  const editorRef = useRef<Editor | null>(null)
 
   const [nombre, setNombre] = useState(plantilla?.nombre ?? '')
   const [slug, setSlug] = useState(plantilla?.slug ?? '')
@@ -79,6 +93,7 @@ export function PlantillaEditorForm({ plantilla, permisos }: PlantillaEditorForm
   const [descripcion, setDescripcion] = useState(plantilla?.descripcion ?? '')
   const [asunto, setAsunto] = useState(plantilla?.asunto ?? '')
   const [cuerpo, setCuerpo] = useState(plantilla?.cuerpo ?? '')
+  const [bodyHtml, setBodyHtml] = useState(plantilla?.body_html ?? '')
   const [activa, setActiva] = useState(plantilla?.activa ?? true)
   const [variablesManual, setVariablesManual] = useState<string[]>(
     plantilla?.variables_disponibles ?? []
@@ -87,6 +102,7 @@ export function PlantillaEditorForm({ plantilla, permisos }: PlantillaEditorForm
   const [duplicarDialogOpen, setDuplicarDialogOpen] = useState(false)
   const [duplicarSlug, setDuplicarSlug] = useState('')
   const [eliminarDialogOpen, setEliminarDialogOpen] = useState(false)
+  const [testSendOpen, setTestSendOpen] = useState(false)
 
   // Auto-detect variables from content
   const variablesDetectadas = extractVariablesFromTemplate(
@@ -103,8 +119,22 @@ export function PlantillaEditorForm({ plantilla, permisos }: PlantillaEditorForm
     }
   }
 
+  function handleTiptapChange(html: string) {
+    setBodyHtml(html)
+    // Extract text from HTML for the cuerpo field (plain text fallback)
+    const tmp = document.createElement('div')
+    tmp.innerHTML = html
+    setCuerpo(tmp.textContent ?? '')
+  }
+
+  function handleInsertVariable(variableSlug: string) {
+    if (editorRef.current) {
+      insertVariableAtCursor(editorRef.current, variableSlug)
+    }
+  }
+
   function handleGuardar() {
-    if (!nombre.trim() || !cuerpo.trim()) {
+    if (!nombre.trim() || (!cuerpo.trim() && !bodyHtml.trim())) {
       toast.error('Nombre y cuerpo son obligatorios')
       return
     }
@@ -122,6 +152,7 @@ export function PlantillaEditorForm({ plantilla, permisos }: PlantillaEditorForm
           descripcion: descripcion.trim() || null,
           asunto: tipo === 'email' ? asunto.trim() : null,
           cuerpo: cuerpo.trim(),
+          body_html: bodyHtml.trim() || undefined,
           variables_disponibles: variablesTodas,
           activa,
         })
@@ -196,20 +227,27 @@ export function PlantillaEditorForm({ plantilla, permisos }: PlantillaEditorForm
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div>
+        <div className="flex-1">
           <h1 className="text-xl font-bold sm:text-2xl">
             {isEdit ? 'Editar plantilla' : 'Nueva plantilla'}
           </h1>
-          {esSistema && (
-            <Badge variant="outline" className="mt-1 text-[10px]" data-testid="badge-sistema">
-              Plantilla del sistema
-            </Badge>
-          )}
+          <div className="flex items-center gap-2 mt-1">
+            {esSistema && (
+              <Badge variant="outline" className="text-[10px]" data-testid="badge-sistema">
+                Plantilla del sistema
+              </Badge>
+            )}
+            {isEdit && plantilla.version && (
+              <Badge variant="secondary" className="text-[10px]">
+                v{plantilla.version}
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* 2-column layout */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
+      {/* 3-column layout: form | preview | variables */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_320px_240px]">
         {/* Left: Form */}
         <div className="space-y-5">
           <Card>
@@ -298,18 +336,14 @@ export function PlantillaEditorForm({ plantilla, permisos }: PlantillaEditorForm
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="cuerpo">Cuerpo</Label>
-                <Textarea
-                  id="cuerpo"
-                  placeholder="Hola {{nombre}}, te damos la bienvenida..."
-                  value={cuerpo}
-                  onChange={(e) => setCuerpo(e.target.value)}
-                  rows={10}
-                  className="font-mono text-sm"
-                  data-testid="input-cuerpo"
+                <Label>Cuerpo (editor rich text)</Label>
+                <TiptapEditor
+                  content={bodyHtml || cuerpo}
+                  onChange={handleTiptapChange}
+                  onEditorReady={(editor) => { editorRef.current = editor }}
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  {'Usa {{variable}} para insertar datos dinamicos.'}
+                  {'Usa {{variable}} para insertar datos dinamicos. Click en las variables del panel lateral para insertarlas.'}
                 </p>
               </div>
 
@@ -342,6 +376,16 @@ export function PlantillaEditorForm({ plantilla, permisos }: PlantillaEditorForm
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               {isEdit ? 'Guardar cambios' : 'Crear plantilla'}
             </Button>
+
+            {isEdit && (
+              <Button
+                variant="outline"
+                onClick={() => setTestSendOpen(true)}
+              >
+                <Send className="h-4 w-4" />
+                Test send
+              </Button>
+            )}
 
             <Button
               variant="outline"
@@ -378,16 +422,34 @@ export function PlantillaEditorForm({ plantilla, permisos }: PlantillaEditorForm
           </div>
         </div>
 
-        {/* Right: Preview */}
+        {/* Middle: Preview */}
         <div className="hidden lg:block">
           <PlantillaPreviewPanel
             tipo={tipo}
             asunto={tipo === 'email' ? asunto : ''}
-            cuerpo={cuerpo}
+            cuerpo={bodyHtml || cuerpo}
             variables={variablesTodas}
           />
         </div>
+
+        {/* Right: Variables catalog */}
+        <div className="hidden xl:block">
+          <VariablesSidebar
+            variables={variablesDisponibles}
+            onInsert={handleInsertVariable}
+          />
+        </div>
       </div>
+
+      {/* Test send modal */}
+      {isEdit && (
+        <TestSendModal
+          plantillaId={plantilla.id}
+          canal={tipo}
+          open={testSendOpen}
+          onOpenChange={setTestSendOpen}
+        />
+      )}
 
       {/* Duplicar dialog */}
       <Dialog open={duplicarDialogOpen} onOpenChange={setDuplicarDialogOpen}>

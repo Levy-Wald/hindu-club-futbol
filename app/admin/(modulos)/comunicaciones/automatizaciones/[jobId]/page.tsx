@@ -4,7 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { obtenerJobLog } from '@/modules/comunicaciones/lib/queries'
+import {
+  obtenerJobLog,
+  fetchAutomatizacion,
+  fetchAutomatizacionPasos,
+  fetchPlantillas,
+} from '@/modules/comunicaciones/lib/queries'
+import { AutomatizacionForm } from '@/modules/comunicaciones/ui/automatizacion-form'
+import { WorkflowEditor } from '@/modules/comunicaciones/ui/workflow-editor'
 
 const JOB_LABELS: Record<string, string> = {
   apto_vence_7d: 'Apto fisico por vencer (7d)',
@@ -29,10 +36,38 @@ function formatFecha(fecha: string) {
   })
 }
 
-export default async function JobDetailPage({ params }: { params: Promise<{ jobId: string }> }) {
+export default async function AutomatizacionOrJobPage({ params }: { params: Promise<{ jobId: string }> }) {
   const { jobId } = await params
-  const job = await obtenerJobLog(jobId)
 
+  // Try as automatizacion first
+  const auto = await fetchAutomatizacion(jobId)
+  if (auto) {
+    const [pasos, plantillas] = await Promise.all([
+      fetchAutomatizacionPasos(auto.id),
+      fetchPlantillas(),
+    ])
+
+    const plantillasSimple = plantillas.map((p: { slug: string; nombre: string }) => ({
+      slug: p.slug,
+      nombre: p.nombre,
+    }))
+
+    return (
+      <div className="space-y-6">
+        <AutomatizacionForm
+          automatizacion={auto as unknown as Parameters<typeof AutomatizacionForm>[0]['automatizacion']}
+        />
+        <WorkflowEditor
+          automatizacionId={auto.id}
+          pasos={pasos as unknown as Parameters<typeof WorkflowEditor>[0]['pasos']}
+          plantillas={plantillasSimple}
+        />
+      </div>
+    )
+  }
+
+  // Fall back to job log
+  const job = await obtenerJobLog(jobId)
   if (!job) notFound()
 
   const statusInfo = STATUS_VARIANTS[job.status] ?? { label: job.status, variant: 'outline' as const }

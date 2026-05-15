@@ -5,15 +5,16 @@ import { PlantillasTable } from '@/modules/comunicaciones/ui/plantillas-table'
 import { EnviosTable } from '@/modules/comunicaciones/ui/envios-table'
 import { LotesTable } from '@/modules/comunicaciones/ui/lotes-table'
 import { JobsLogTable } from '@/modules/comunicaciones/ui/jobs-log-table'
+import { AutomatizacionesList } from '@/modules/comunicaciones/ui/automatizaciones-list'
 import { obtenerPermisosComunicaciones } from '@/modules/comunicaciones/lib/plantillas/permisos'
-import { listarLotes, listarJobsLog } from '@/modules/comunicaciones/lib/queries'
-import { FileText, Send, Users, Clock } from 'lucide-react'
+import { listarLotes, listarJobsLog, fetchAutomatizaciones } from '@/modules/comunicaciones/lib/queries'
+import { FileText, Send, Users, Zap } from 'lucide-react'
 
 export default async function ComunicacionesPage() {
   const supabase = await createClient()
   const permisos = await obtenerPermisosComunicaciones()
 
-  const [plantillasRes, enviosRes, lotes, jobsLog] = await Promise.all([
+  const [plantillasRes, enviosRes, lotes, jobsLog, automatizaciones] = await Promise.all([
     supabase
       .from('com_plantillas')
       .select('id, nombre, slug, tipo, asunto, cuerpo, variables_disponibles, activa, metadata, created_at, updated_at')
@@ -31,6 +32,7 @@ export default async function ComunicacionesPage() {
       .limit(100),
     listarLotes(),
     listarJobsLog(),
+    fetchAutomatizaciones(),
   ])
 
   const plantillas = plantillasRes.data ?? []
@@ -81,7 +83,7 @@ export default async function ComunicacionesPage() {
             Envios masivos
           </TabsTrigger>
           <TabsTrigger value="automatizaciones" data-testid="tab-automatizaciones">
-            <Clock className="h-4 w-4" />
+            <Zap className="h-4 w-4" />
             Automatizaciones
           </TabsTrigger>
         </TabsList>
@@ -105,8 +107,15 @@ export default async function ComunicacionesPage() {
         </TabsContent>
 
         <TabsContent value="automatizaciones" data-testid="panel-automatizaciones">
-          <div className="pt-4">
-            <JobsLogTable jobs={jobsLog} />
+          <div className="pt-4 space-y-6">
+            <AutomatizacionesList
+              automatizaciones={automatizaciones as unknown as Parameters<typeof AutomatizacionesList>[0]['automatizaciones']}
+              puedeEditar={permisos.puede_editar}
+            />
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Historial de ejecuciones</h3>
+              <JobsLogTable jobs={jobsLog} />
+            </div>
           </div>
         </TabsContent>
       </Tabs>

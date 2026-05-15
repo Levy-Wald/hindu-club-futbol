@@ -167,14 +167,14 @@ export async function crearPlantilla(input: PlantillaInput): Promise<PlantillaAc
 
 export async function actualizarPlantilla(
   id: string,
-  input: Partial<PlantillaInput> & { activa?: boolean }
+  input: Partial<PlantillaInput> & { activa?: boolean; body_html?: string }
 ): Promise<ActionResult> {
   const supabase = await createClient()
 
   // Fetch current to enforce es_sistema rules
   const { data: current } = await supabase
     .from('com_plantillas')
-    .select('slug, tipo, metadata')
+    .select('slug, tipo, metadata, version')
     .eq('id', id)
     .eq('tenant_id', TENANT_ID)
     .single()
@@ -182,6 +182,7 @@ export async function actualizarPlantilla(
   if (!current) return fail('Plantilla no encontrada')
 
   const esSistema = (current.metadata as Record<string, unknown>)?.es_sistema === true
+  const newVersion = (current.version ?? 1) + 1
 
   // Build update payload
   const update: Record<string, unknown> = {}
@@ -190,6 +191,7 @@ export async function actualizarPlantilla(
   if (input.descripcion !== undefined) update.descripcion = input.descripcion || null
   if (input.asunto !== undefined) update.asunto = input.asunto || null
   if (input.cuerpo !== undefined) update.cuerpo = input.cuerpo
+  if (input.body_html !== undefined) update.body_html = input.body_html
   if (input.activa !== undefined) update.activa = input.activa
 
   // Protect sistema fields
@@ -215,6 +217,9 @@ export async function actualizarPlantilla(
     update.variables_disponibles = input.variables_disponibles
   }
 
+  // Bump version
+  update.version = newVersion
+
   const { error } = await supabase
     .from('com_plantillas')
     .update(update)
@@ -227,6 +232,17 @@ export async function actualizarPlantilla(
     }
     return fail(`Error al actualizar: ${error.message}`)
   }
+
+  // Save version snapshot
+  const { data: { user } } = await supabase.auth.getUser()
+  await supabase.from('com_plantilla_versiones').insert({
+    plantilla_id: id,
+    version: newVersion,
+    subject: input.asunto ?? null,
+    body_html: input.body_html ?? null,
+    body_text: input.cuerpo ?? null,
+    guardado_por_user_id: user?.id ?? null,
+  })
 
   revalidatePath('/admin/comunicaciones')
   revalidatePath('/admin/comunicaciones/plantillas')
@@ -566,6 +582,252 @@ export async function ejecutarTriggerManual(jobSlug: string): Promise<ActionResu
 
     return fail(`Error ejecutando trigger: ${errorMsg}`)
   }
+}
+
+// =============================================================================
+// Test Send (plantilla a persona específica, mock-first ADR-035)
+// =============================================================================
+
+export async function testSendPlantilla(
+  plantillaId: string,
+  personaId?: string
+): Promise<ActionResult> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return fail('No autenticado')
+
+  // If no persona specified, use current user's persona
+  let targetPersonaId: string = personaId ?? ''
+  if (!targetPersonaId) {
+    const { data: persona } = await supabase
+      .from('personas')
+      .select('id')
+      .eq('user_id', user.id)
+      .is('deleted_at', null)
+      .maybeSingle()
+    if (!persona) return fail('Persona no encontrada')
+    targetPersonaId = persona.id
+  }
+
+  const { data: plantilla } = await supabase
+    .from('com_plantillas')
+    .select('id, nombre, slug, tipo, asunto, cuerpo, variables_disponibles')
+    .eq('id', plantillaId)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (!plantilla) return fail('Plantilla no encontrada')
+
+  const sampleVars: Record<string, string> = {}
+  for (const v of plantilla.variables_disponibles ?? []) {
+    sampleVars[v] = `[${v}]`
+  }
+
+  const { enviarComunicacion } = await import('./cliente')
+  const result = await enviarComunicacion({
+    personaId: targetPersonaId,
+    plantillaSlug: plantilla.slug,
+    variables: sampleVars,
+    canal: plantilla.tipo as 'email' | 'inapp',
+  })
+
+  if (!result.ok) return fail(result.error || 'Error al enviar prueba')
+
+  revalidatePath('/admin/comunicaciones')
+  return success(`Test enviado (${plantilla.tipo}) a persona ${targetPersonaId.slice(0, 8)}...`)
+}
+
+// =============================================================================
+// Automatizaciones CRUD (com_automatizaciones + com_automatizaciones_pasos)
+// =============================================================================
+
+interface AutomatizacionInput {
+  nombre: string
+  slug: string
+  trigger_evento: string
+  descripcion?: string | null
+  condiciones_json?: Record<string, unknown> | null
+  activo?: boolean
+}
+
+export async function crearAutomatizacion(
+  input: AutomatizacionInput
+): Promise<{ ok: boolean; message: string; id?: string }> {
+  const supabase = await createClient()
+
+  if (!input.nombre || !input.slug || !input.trigger_evento) {
+    return { ok: false, message: 'Nombre, slug y trigger son obligatorios' }
+  }
+
+  const { data, error } = await supabase
+    .from('com_automatizaciones')
+    .insert({
+      tenant_id: TENANT_ID,
+      nombre: input.nombre,
+      slug: input.slug,
+      trigger_evento: input.trigger_evento,
+      descripcion: input.descripcion || null,
+      condiciones_json: input.condiciones_json || null,
+      activo: input.activo ?? false,
+    })
+    .select('id')
+    .single()
+
+  if (error) {
+    if (error.message.includes('duplicate') || error.message.includes('unique')) {
+      return { ok: false, message: `Ya existe una automatizacion con slug "${input.slug}"` }
+    }
+    return { ok: false, message: error.message }
+  }
+
+  revalidatePath('/admin/comunicaciones')
+  return { ok: true, message: 'Automatizacion creada', id: data?.id }
+}
+
+export async function actualizarAutomatizacion(
+  id: string,
+  input: Partial<AutomatizacionInput>
+): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  const update: Record<string, unknown> = {}
+  if (input.nombre !== undefined) update.nombre = input.nombre
+  if (input.descripcion !== undefined) update.descripcion = input.descripcion || null
+  if (input.trigger_evento !== undefined) update.trigger_evento = input.trigger_evento
+  if (input.condiciones_json !== undefined) update.condiciones_json = input.condiciones_json
+  if (input.activo !== undefined) update.activo = input.activo
+
+  const { error } = await supabase
+    .from('com_automatizaciones')
+    .update(update)
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return fail(error.message)
+
+  revalidatePath('/admin/comunicaciones')
+  return success('Automatizacion actualizada')
+}
+
+export async function toggleActivoAutomatizacion(id: string): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from('com_automatizaciones')
+    .select('activo')
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+    .single()
+
+  if (!data) return fail('Automatizacion no encontrada')
+
+  const { error } = await supabase
+    .from('com_automatizaciones')
+    .update({ activo: !data.activo })
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return fail(error.message)
+
+  revalidatePath('/admin/comunicaciones')
+  return success(data.activo ? 'Automatizacion desactivada' : 'Automatizacion activada')
+}
+
+export async function softDeleteAutomatizacion(id: string): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('com_automatizaciones')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('tenant_id', TENANT_ID)
+
+  if (error) return fail(error.message)
+
+  revalidatePath('/admin/comunicaciones')
+  return success('Automatizacion eliminada')
+}
+
+interface PasoInput {
+  automatizacion_id: string
+  tipo_paso: string
+  config_json: Record<string, unknown>
+  orden: number
+}
+
+export async function crearPaso(input: PasoInput): Promise<{ ok: boolean; message: string; id?: string }> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('com_automatizaciones_pasos')
+    .insert({
+      automatizacion_id: input.automatizacion_id,
+      tipo_paso: input.tipo_paso,
+      config_json: input.config_json,
+      orden: input.orden,
+    })
+    .select('id')
+    .single()
+
+  if (error) return { ok: false, message: error.message }
+
+  revalidatePath('/admin/comunicaciones')
+  return { ok: true, message: 'Paso creado', id: data?.id }
+}
+
+export async function actualizarPaso(
+  id: string,
+  input: Partial<{ tipo_paso: string; config_json: Record<string, unknown>; orden: number }>
+): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  const update: Record<string, unknown> = {}
+  if (input.tipo_paso !== undefined) update.tipo_paso = input.tipo_paso
+  if (input.config_json !== undefined) update.config_json = input.config_json
+  if (input.orden !== undefined) update.orden = input.orden
+
+  const { error } = await supabase
+    .from('com_automatizaciones_pasos')
+    .update(update)
+    .eq('id', id)
+
+  if (error) return fail(error.message)
+
+  revalidatePath('/admin/comunicaciones')
+  return success('Paso actualizado')
+}
+
+export async function reordenarPasos(
+  automatizacionId: string,
+  orderedIds: string[]
+): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  for (let i = 0; i < orderedIds.length; i++) {
+    const { error } = await supabase
+      .from('com_automatizaciones_pasos')
+      .update({ orden: i + 1 })
+      .eq('id', orderedIds[i])
+      .eq('automatizacion_id', automatizacionId)
+    if (error) return fail(error.message)
+  }
+
+  revalidatePath('/admin/comunicaciones')
+  return success('Pasos reordenados')
+}
+
+export async function eliminarPaso(id: string): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('com_automatizaciones_pasos')
+    .delete()
+    .eq('id', id)
+
+  if (error) return fail(error.message)
+
+  revalidatePath('/admin/comunicaciones')
+  return success('Paso eliminado')
 }
 
 // =============================================================================
