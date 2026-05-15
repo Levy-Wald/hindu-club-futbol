@@ -2,15 +2,16 @@
 
 ## Estado actual
 
-- **Tag actual:** `v0.9.0-fase3-sprint1` (2026-05-12)
-- **FASE 1 cerrada**, Foundation (15a-c) cerrada, **FASE 2 cerrada**, FASE 3 iniciada (Sprint 3.1 cerrado)
-- **Proximo sprint:** FASE 3.2 (por definir)
-- **DB:** 146 tablas, 361 RLS policies, 130 funciones, 28 vistas, 94 triggers
-- **UI:** 65 paginas, ~162 server actions, ~121 componentes custom
-- **Tests E2E:** 36 specs (35 pass, 1 skip, 0 fail)
-- **Hindu:** 2,390 personas, 7 equipos, 61 com_envios, 18 plantillas sistema, 36+ modulos activos
-- **Arquitectura:** 3 capas — Troncal universal + 19 Modulos componibles + Verticales como presets (ADR-031)
-- **39 ADRs** documentados (001-039)
+- **Tag actual:** `v0.27.11-fase-a-sprint-4` (2026-05-15)
+- **FASE 1-5 cerradas**, **FASE A COMPLETA** (todos los sprints A1-A6 + A4v2 DONE)
+- **Tramo 2 (Hardening) CERRADO** (H1-H4 DONE)
+- **Proximo:** FASE B (Cerrar vertical CCBP)
+- **DB:** 170+ tablas, 401 RLS policies, 137 funciones, 28 vistas, 102 triggers
+- **UI:** 96 paginas, ~215 server actions, ~195 componentes custom
+- **Tests E2E:** 102+ specs (Playwright), 65 unit tests (Vitest)
+- **Hindu:** 2,390 personas, 7 equipos, 61 com_envios, 18 plantillas sistema, 42+ modulos activos
+- **Arquitectura:** 4 capas — Troncal + Cross-vertical + Vertical + Conectores (RFC-004)
+- **52 ADRs** documentados (001-052)
 
 ## Bloqueos operativos vigentes
 
@@ -40,11 +41,11 @@ Drive del proyecto: https://drive.google.com/drive/folders/10cjNwByn0wzcs1ibn4p6
 ## Comandos principales
 
 ```bash
-npm run validate:all    # tsc + build + e2e (gate de cierre de sprint)
-npm run build           # Next.js build
-npx tsc --noEmit        # Type check
-npm run test:e2e        # Playwright E2E tests contra produccion
-npm run lint            # ESLint (79 errores heredados, no incluido en validate:all)
+pnpm run build          # Next.js build (gate de cierre de sprint)
+pnpm tsc --noEmit       # Type check
+pnpm run test:e2e       # Playwright E2E tests contra produccion
+pnpm run test:unit      # Vitest unit tests
+pnpm run lint           # ESLint
 ```
 
 ## Principios arquitectonicos
