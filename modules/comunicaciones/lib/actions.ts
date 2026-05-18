@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { requireCapability } from '@/lib/permissions/capabilities'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
@@ -455,32 +456,8 @@ export async function ejecutarEnvioMasivo(input: {
   canal: 'email' | 'inapp'
   segmento: SegmentoConfig
 }): Promise<EnvioMasivoActionResult> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { ok: false, message: 'No autenticado' }
-
-  const { data: persona } = await supabase
-    .from('personas')
-    .select('id')
-    .eq('user_id', user.id)
-    .is('deleted_at', null)
-    .maybeSingle()
-  if (!persona) return { ok: false, message: 'Persona no encontrada' }
-
-  // Check permissions
-  const { data: attrs } = await supabase
-    .from('personas_atributos')
-    .select('atributo_slug')
-    .eq('persona_id', persona.id)
-    .eq('tenant_id', TENANT_ID)
-    .eq('activo', true)
-
-  const atributos = (attrs ?? []).map(a => a.atributo_slug)
-  const tienePermiso = atributos.includes('sistema.admin') ||
-    atributos.includes('tenant.admin') ||
-    atributos.includes('comunicaciones.admin')
-
-  if (!tienePermiso) return { ok: false, message: 'Sin permisos para envíos masivos' }
+  const auth = await requireCapability('comunicaciones.send')
+  if (!auth.ok) return { ok: false, message: auth.error }
 
   try {
     const { enviarComunicacionMasiva } = await import('./cliente')

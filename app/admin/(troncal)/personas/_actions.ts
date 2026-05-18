@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { requireAllCapabilities } from '@/lib/permissions/capabilities'
 import {
   crearPersonaSchema,
   editarPersonaSchema,
@@ -177,6 +178,9 @@ export async function editarPersona(id: string, input: EditarPersonaInput) {
 }
 
 export async function softDeletePersona(id: string) {
+  const auth = await requireAllCapabilities('personas.delete', 'personas.admin')
+  if (!auth.ok) return formatResult(false, auth.error)
+
   const supabase = await createClient()
 
   // Verificar si tiene movimientos financieros

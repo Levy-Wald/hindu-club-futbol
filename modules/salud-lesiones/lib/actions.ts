@@ -1,12 +1,16 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { requireCapability } from '@/lib/permissions/capabilities'
 import { lesionInputSchema, lesionUpdateSchema } from './schema'
 import type { LesionInputSchema, LesionUpdateSchema } from './schema'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 export async function registrarLesion(input: LesionInputSchema) {
+  const auth = await requireCapability('ccbp.salud.write')
+  if (!auth.ok) return { ok: false, error: auth.error }
+
   const parsed = lesionInputSchema.safeParse(input)
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
 

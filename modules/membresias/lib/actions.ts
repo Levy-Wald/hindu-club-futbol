@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { requireCapability } from '@/lib/permissions/capabilities'
 import { altaMembresiaSchema, type AltaMembresiaInput } from './schema'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
@@ -9,6 +10,9 @@ const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 type Result = { ok: boolean; error?: string; id?: string }
 
 export async function darAltaMembresia(input: AltaMembresiaInput): Promise<Result> {
+  const auth = await requireCapability('cobranza.write')
+  if (!auth.ok) return { ok: false, error: auth.error }
+
   const parsed = altaMembresiaSchema.safeParse(input)
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
 

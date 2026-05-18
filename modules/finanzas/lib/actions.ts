@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { requireCapability } from '@/lib/permissions/capabilities'
 import { resolverCuentasMovimiento } from './helpers-contables'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
@@ -158,6 +159,9 @@ export async function reactivarCaja(id: string): Promise<ActionResult> {
 // =============================================================================
 
 export async function crearMovimiento(formData: FormData) {
+  const auth = await requireCapability('finanzas.write')
+  if (!auth.ok) return { success: false, error: auth.error }
+
   const supabase = await createClient()
 
   const tipo = formData.get('tipo') as string
