@@ -15,29 +15,29 @@ interface PersonaConAtributos {
 async function fetchUsuariosConAtributos(): Promise<PersonaConAtributos[]> {
   const supabase = await createClient()
 
-  // Get personas that have at least one atributo assigned (active users)
+  // Get all personas with user_id (actual users), not filtered by atributos
+  const { data: personas } = await supabase
+    .from('personas')
+    .select('id, nombre, apellido, email_principal, user_id')
+    .eq('tenant_id', TENANT_ID)
+    .not('user_id', 'is', null)
+    .is('deleted_at', null)
+    .order('apellido')
+
+  if (!personas || personas.length === 0) return []
+
+  const personaIds = personas.map(p => p.id)
+
+  // Get atributos for these personas
   const { data: asignaciones } = await (supabase as any)
     .from('personas_atributos')
     .select('persona_id, atributo_slug, catalogo_atributos!atributo_slug(slug, nombre, capa)')
     .eq('tenant_id', TENANT_ID)
     .eq('activo', true)
-
-  if (!asignaciones || asignaciones.length === 0) return []
-
-  const personaIds = [...new Set(asignaciones.map((a: any) => a.persona_id))] as string[]
-
-  const { data: personas } = await supabase
-    .from('personas')
-    .select('id, nombre, apellido, email_principal, user_id')
-    .in('id', personaIds)
-    .eq('tenant_id', TENANT_ID)
-    .is('deleted_at', null)
-    .order('apellido')
-
-  if (!personas) return []
+    .in('persona_id', personaIds)
 
   const attrMap = new Map<string, { slug: string; nombre: string; capa: string }[]>()
-  for (const a of asignaciones as any[]) {
+  for (const a of (asignaciones ?? []) as any[]) {
     const cat = Array.isArray(a.catalogo_atributos) ? a.catalogo_atributos[0] : a.catalogo_atributos
     if (!cat) continue
     const list = attrMap.get(a.persona_id) ?? []

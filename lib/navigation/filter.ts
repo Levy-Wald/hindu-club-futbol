@@ -2,18 +2,26 @@ import { SIDEBAR_CATALOG } from './sidebar-items'
 import { SPACE_VISIBILITY_RULES, SPACES } from './spaces'
 import type { SidebarItem, Space, SpaceId } from './types'
 
+const ADMIN_CAPABILITIES = ['setup.tenant', 'personas.admin', 'finanzas.admin']
+
+function isAdmin(userCapabilities: string[]): boolean {
+  return ADMIN_CAPABILITIES.some(c => userCapabilities.includes(c))
+}
+
 export function getVisibleSidebarItems(
   userCapabilities: string[],
   tenantModulos: string[],
   tenantVerticales: string[],
   espacioActivo: SpaceId
 ): SidebarItem[] {
+  const admin = isAdmin(userCapabilities)
+
   return SIDEBAR_CATALOG.filter(item => {
     if (item.espacio !== espacioActivo) return false
 
     if (item.modulo_slug && !tenantModulos.includes(item.modulo_slug)) return false
 
-    if (item.capability_requerida && !userCapabilities.includes(item.capability_requerida))
+    if (item.capability_requerida && !admin && !userCapabilities.includes(item.capability_requerida))
       return false
 
     if (item.vertical_filter && item.vertical_filter.length > 0) {
@@ -78,6 +86,5 @@ export function inferVerticalesFromModulos(tenantModulos: string[]): string[] {
   if (ccbpModules.some(m => tenantModulos.includes(m))) {
     verticales.push('vertical_ccbp')
   }
-  // Future: vertical_country, vertical_educativo, etc.
   return verticales
 }

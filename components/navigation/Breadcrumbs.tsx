@@ -88,7 +88,7 @@ export function Breadcrumbs() {
   const pathname = usePathname()
   const segments = pathname.split('/').filter(Boolean)
 
-  if (segments.length <= 1) return null
+  if (segments.length === 0) return null
 
   return (
     <nav

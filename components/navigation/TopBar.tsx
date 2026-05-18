@@ -10,7 +10,6 @@ import {
   Search,
   LogOut,
   User,
-  Shield,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -105,7 +104,7 @@ export function TopBar({ userEmail, personaId, personaNombre, onOpenPalette }: T
         </button>
         <ThemeToggle />
         <DropdownMenu>
-          <DropdownMenuTrigger>
+          <DropdownMenuTrigger data-testid="user-avatar">
             <Avatar className="h-8 w-8 cursor-pointer">
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
@@ -120,26 +119,12 @@ export function TopBar({ userEmail, personaId, personaNombre, onOpenPalette }: T
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {personaId ? (
+            {personaId && (
               <DropdownMenuItem onClick={() => router.push(`/admin/personas/${personaId}`)}>
                 <User className="mr-2 h-4 w-4" />
                 Mi perfil
               </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem onClick={() => router.push('/admin/mi-perfil')}>
-                <User className="mr-2 h-4 w-4" />
-                Mi perfil
-              </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={() => router.push('/admin/mi-equipo')}>
-              <Shield className="mr-2 h-4 w-4" />
-              Mi equipo
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push('/admin/configuracion')}>
-              <Settings className="mr-2 h-4 w-4" />
-              Configuración
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
