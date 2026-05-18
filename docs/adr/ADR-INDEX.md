@@ -68,3 +68,9 @@
 | ADR-050 | Cajas con dimensiones contables-fiscales | Accepted | `ADR-050-cajas-dimensionadas.md` |
 | ADR-051 | Resolucion contextual de cuentas via tipo_uso | Accepted | `ADR-051-resolucion-contextual-cuentas.md` |
 | ADR-052 | Conciliacion bancaria con auto-match sign-aware | Accepted | `ADR-052-conciliacion-bancaria-sign-aware.md` |
+
+## ADRs 053+ (Tramo 4 Hardening)
+
+| ADR | Titulo | Status | Archivo |
+|---|---|---|---|
+| ADR-053 | E2E tests excluidos de CI | Accepted | `ADR-053-e2e-no-en-ci.md` |

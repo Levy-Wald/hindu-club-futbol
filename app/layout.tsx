@@ -87,7 +87,7 @@ export default async function RootLayout({
     >
       <head>
         {googleFontsUrl && (
-          // eslint-disable-next-line @next/next/no-page-custom-font
+           
           <link rel="stylesheet" href={googleFontsUrl} />
         )}
         <style

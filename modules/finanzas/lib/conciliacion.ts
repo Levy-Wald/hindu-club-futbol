@@ -48,7 +48,7 @@ function hashFila(fila: FilaBancaria): string {
 
 function normalizeMonto(raw: string): number {
   if (!raw) return NaN
-  let cleaned = raw.replace(/[$ ]/g, '').replace(/\./g, '').replace(',', '.')
+  const cleaned = raw.replace(/[$ ]/g, '').replace(/\./g, '').replace(',', '.')
   return parseFloat(cleaned)
 }
 

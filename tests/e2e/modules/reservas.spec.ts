@@ -17,7 +17,7 @@ test.describe('Reservas', () => {
   let canchaId: string | null = null
   let sedeId: string | null = null
   let reservaId: string | null = null
-  let eventoIds: string[] = []
+  const eventoIds: string[] = []
 
   test.afterAll(async () => {
     const supabase = serviceRole()

@@ -254,18 +254,25 @@ REGLAS OPERATIVAS VIGENTES
 7\. No cargar más data productiva de Hindu hasta FASE C.  
 8\. No tests masivos contra personas reales de Hindu.
 
+CI/CD
+\=====
+
+\- GitHub Actions workflow: `.github/workflows/ci.yml`
+\- 3 jobs: lint-and-typecheck, unit-tests, build
+\- Triggers: push a main, PRs a main
+\- E2E NO en CI (ADR-053) — se corren localmente
+\- Badge CI en README.md
+
 PRÓXIMOS PASOS INMEDIATOS
 \==========================
 
-1\. Ejecutar Sprint A3 (Finanzas).
-2\. Continuar FASE A sprint por sprint hasta cerrarla.
-3\. Cerrar FASE B.
-4\. FASE C — Demo a Hindu.
+1\. Sprint H7 — Performance audit.
+2\. FASE C — Demo a Hindu.
 
 ÚLTIMA ACTUALIZACIÓN
 \=====================
 
-14 de mayo de 2026\. Versión 2.2 (post Sprint A2).
-Próxima revisión: al cierre del Sprint A3.
+18 de mayo de 2026\. Versión 2.3 (post Sprint H6).
+Próxima revisión: al cierre del Sprint H7.
 
 Quien actualiza este doc: Claude Code en el cierre de cada sprint (PROMPT-TEMPLATE PARTE 10.1). El arquitecto verifica vía MCP.  

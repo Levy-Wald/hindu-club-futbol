@@ -85,7 +85,7 @@ export async function obtenerRankingJugadoresAction(input: {
   const topN = input.top_n ?? 20
 
   // Build query joining partido_stats_jugador with personas and partidos_detalle
-  let query = sr
+  const query = sr
     .from('partido_stats_jugador')
     .select('persona_id, goles, asistencias, tarjetas_amarillas, tarjetas_rojas, minutos_jugados, partido_evento_id')
     .eq('tenant_id', tenant_id)
@@ -229,7 +229,7 @@ export async function obtenerStatsJugadorAction(input: {
   }
 
   // Get all stats for this persona
-  let statsQuery = sr
+  const statsQuery = sr
     .from('partido_stats_jugador')
     .select('*')
     .eq('persona_id', input.persona_id)

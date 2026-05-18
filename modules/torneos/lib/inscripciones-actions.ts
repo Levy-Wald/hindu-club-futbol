@@ -68,7 +68,7 @@ export async function listarInscripciones(tenant_id: string): Promise<Inscripcio
 
   // Hydrate federacion names
   const fedIds = [...new Set(rows.filter((r) => r.federacion_id).map((r) => r.federacion_id!))]
-  let fedMap: Record<string, string> = {}
+  const fedMap: Record<string, string> = {}
   if (fedIds.length > 0) {
     const { data: feds } = await supabase
       .from('entidades')
@@ -79,7 +79,7 @@ export async function listarInscripciones(tenant_id: string): Promise<Inscripcio
 
   // Hydrate torneo formal names
   const torneoIds = [...new Set(rows.filter((r) => r.torneo_id).map((r) => r.torneo_id!))]
-  let torneoMap: Record<string, string> = {}
+  const torneoMap: Record<string, string> = {}
   if (torneoIds.length > 0) {
     const { data: torneos } = await supabase
       .from('torneos')

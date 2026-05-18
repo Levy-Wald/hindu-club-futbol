@@ -17,8 +17,8 @@ test.describe('Nóminas externas', () => {
   let nominaId: string | null = null
   let nominaToken: string | null = null
   let eventoId: string | null = null
-  let createdPersonaIds: string[] = []
-  let createdEntidadIds: string[] = []
+  const createdPersonaIds: string[] = []
+  const createdEntidadIds: string[] = []
 
   test.afterAll(async () => {
     const supabase = serviceRole()

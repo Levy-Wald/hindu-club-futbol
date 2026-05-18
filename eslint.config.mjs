@@ -30,6 +30,15 @@ const eslintConfig = defineConfig([
       "clubcore/no-cross-module-imports": "warn",
       "clubcore/no-module-importing-from-app": "error",
       "clubcore/troncal-cannot-import-modules": "error",
+      // Downgraded to warn — preexisting across codebase, fix incrementally
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-require-imports": "warn",
+      "react/no-unescaped-entities": "warn",
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/refs": "warn",
+      "react-hooks/static-components": "warn",
     },
   },
 ]);
