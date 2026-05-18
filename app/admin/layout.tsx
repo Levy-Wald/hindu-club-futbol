@@ -46,7 +46,7 @@ export default async function AdminLayout({
     getActiveTenantModulos(),
   ])
   const tenantVerticales = inferVerticalesFromModulos(tenantModulos)
-  const visibleSpaces = getVisibleSpaces(userCapabilities)
+  const visibleSpaces = getVisibleSpaces(userCapabilities, userAttributes)
 
   return (
     <NavigationShell

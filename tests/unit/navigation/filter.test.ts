@@ -7,7 +7,8 @@ describe('getVisibleSidebarItems', () => {
       ['finanzas.read'],
       ['finanzas'],
       [],
-      'gestion'
+      'gestion',
+      []
     )
     expect(items.some(i => i.id === 'finanzas')).toBe(true)
   })
@@ -17,7 +18,8 @@ describe('getVisibleSidebarItems', () => {
       ['finanzas.read'],
       [], // no modulos
       [],
-      'gestion'
+      'gestion',
+      []
     )
     expect(items.some(i => i.id === 'finanzas')).toBe(false)
   })
@@ -27,17 +29,30 @@ describe('getVisibleSidebarItems', () => {
       [], // no capabilities
       ['finanzas'],
       [],
-      'gestion'
+      'gestion',
+      []
     )
     expect(items.some(i => i.id === 'finanzas')).toBe(false)
   })
 
-  it('admin (setup.tenant) sees items even without specific capability', () => {
+  it('admin (tenant.admin attribute) sees items even without specific capability', () => {
     const items = getVisibleSidebarItems(
-      ['setup.tenant'],
+      [], // no capabilities
       ['finanzas'],
       [],
-      'gestion'
+      'gestion',
+      ['tenant.admin']
+    )
+    expect(items.some(i => i.id === 'finanzas')).toBe(true)
+  })
+
+  it('sistema.admin attribute also grants admin bypass', () => {
+    const items = getVisibleSidebarItems(
+      [],
+      ['finanzas'],
+      [],
+      'gestion',
+      ['sistema.admin']
     )
     expect(items.some(i => i.id === 'finanzas')).toBe(true)
   })
@@ -47,7 +62,8 @@ describe('getVisibleSidebarItems', () => {
       [],
       [],
       [],
-      'operacion'
+      'operacion',
+      []
     )
     // padrones has no modulo_slug but has capability_requerida personas.read
     // with no caps and no admin → filtered out
@@ -60,7 +76,8 @@ describe('getVisibleSidebarItems', () => {
       ['setup.tenant', 'setup.users', 'setup.modulos'],
       [],
       [],
-      'setup'
+      'setup',
+      []
     )
     expect(items.some(i => i.id === 'usuarios')).toBe(true)
     expect(items.some(i => i.id === 'personas')).toBe(false) // wrong space

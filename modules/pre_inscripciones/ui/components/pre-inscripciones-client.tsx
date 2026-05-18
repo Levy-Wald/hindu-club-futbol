@@ -55,34 +55,37 @@ import {
 // Tipos
 // -------------------------------------------------------------------
 
+interface PreInscripcionDatos {
+  nombre?: string
+  apellido?: string
+  numero_documento?: string
+  tipo_documento?: string
+  fecha_nacimiento?: string
+  sexo?: string
+  email?: string
+  telefono?: string
+  disciplina_interes?: string
+  posicion_interes?: string
+  experiencia?: string
+  mensaje?: string
+  es_menor?: boolean
+  tutor_nombre?: string
+  tutor_apellido?: string
+  tutor_email?: string
+  tutor_telefono?: string
+  tutor_relacion?: string
+}
+
 interface PreInscripcion {
   id: string
-  nombre: string
-  apellido: string
-  numero_documento: string | null
-  tipo_documento: string | null
-  fecha_nacimiento: string | null
-  sexo: string | null
-  email: string | null
-  telefono: string | null
-  disciplina_interes: string | null
-  posicion_interes: string | null
-  experiencia: string | null
-  mensaje: string | null
-  es_menor: boolean
-  tutor_nombre: string | null
-  tutor_apellido: string | null
-  tutor_email: string | null
-  tutor_telefono: string | null
-  tutor_relacion: string | null
+  datos: PreInscripcionDatos
   estado: string
   motivo_rechazo: string | null
   persona_id: string | null
-  reviewed_by: string | null
-  reviewed_at: string | null
-  created_at: string
-  updated_at: string
-  metadata: Record<string, unknown>
+  fecha_envio: string | null
+  fecha_revision: string | null
+  revisada_por_persona_id: string | null
+  metadata: Record<string, unknown> | null
 }
 
 interface Stats {
@@ -363,16 +366,16 @@ export function PreInscripcionesClient({
           </DialogHeader>
           {aprobarDialog && (
             <div className="space-y-2 text-sm bg-muted/50 rounded-lg p-3">
-              <p><span className="font-medium">Nombre:</span> {aprobarDialog.apellido}, {aprobarDialog.nombre}</p>
-              <p><span className="font-medium">DNI:</span> {aprobarDialog.numero_documento || 'Sin documento'}</p>
-              {aprobarDialog.fecha_nacimiento && (
-                <p><span className="font-medium">Fecha nac.:</span> {formatFecha(aprobarDialog.fecha_nacimiento)} ({calcularEdad(aprobarDialog.fecha_nacimiento)} anios)</p>
+              <p><span className="font-medium">Nombre:</span> {aprobarDialog.datos.apellido || ''}, {aprobarDialog.datos.nombre || ''}</p>
+              <p><span className="font-medium">DNI:</span> {aprobarDialog.datos.numero_documento || 'Sin documento'}</p>
+              {aprobarDialog.datos.fecha_nacimiento && (
+                <p><span className="font-medium">Fecha nac.:</span> {formatFecha(aprobarDialog.datos.fecha_nacimiento)} ({calcularEdad(aprobarDialog.datos.fecha_nacimiento)} anios)</p>
               )}
-              {aprobarDialog.disciplina_interes && (
-                <p><span className="font-medium">Disciplina:</span> {aprobarDialog.disciplina_interes}</p>
+              {aprobarDialog.datos.disciplina_interes && (
+                <p><span className="font-medium">Disciplina:</span> {aprobarDialog.datos.disciplina_interes}</p>
               )}
-              {aprobarDialog.es_menor && (
-                <p><span className="font-medium">Tutor:</span> {aprobarDialog.tutor_nombre} {aprobarDialog.tutor_apellido}</p>
+              {aprobarDialog.datos.es_menor && (
+                <p><span className="font-medium">Tutor:</span> {aprobarDialog.datos.tutor_nombre || ''} {aprobarDialog.datos.tutor_apellido || ''}</p>
               )}
             </div>
           )}
@@ -400,7 +403,7 @@ export function PreInscripcionesClient({
           </DialogHeader>
           {rechazarDialog && (
             <div className="text-sm text-muted-foreground mb-2">
-              <p>Inscripcion de <span className="font-medium text-foreground">{rechazarDialog.apellido}, {rechazarDialog.nombre}</span></p>
+              <p>Inscripcion de <span className="font-medium text-foreground">{rechazarDialog.datos.apellido || ''}, {rechazarDialog.datos.nombre || ''}</span></p>
             </div>
           )}
           <div className="space-y-2">
@@ -454,16 +457,16 @@ function DesktopRow({ inscripcion, expanded, onToggleExpand, onAprobar, onRechaz
             ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
             : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
         </TableCell>
-        <TableCell className="font-medium">{ins.apellido}, {ins.nombre}</TableCell>
-        <TableCell>{ins.numero_documento || '-'}</TableCell>
-        <TableCell>{calcularEdad(ins.fecha_nacimiento)}</TableCell>
-        <TableCell>{ins.disciplina_interes || '-'}</TableCell>
+        <TableCell className="font-medium">{ins.datos.apellido || ''}, {ins.datos.nombre || ''}</TableCell>
+        <TableCell>{ins.datos.numero_documento || '-'}</TableCell>
+        <TableCell>{calcularEdad(ins.datos.fecha_nacimiento ?? null)}</TableCell>
+        <TableCell>{ins.datos.disciplina_interes || '-'}</TableCell>
         <TableCell>
           <Badge variant={estadoBadgeVariant(ins.estado)} className={estadoBadgeClass(ins.estado)}>
             {estadoLabel(ins.estado)}
           </Badge>
         </TableCell>
-        <TableCell className="text-muted-foreground">{formatFecha(ins.created_at)}</TableCell>
+        <TableCell className="text-muted-foreground">{ins.fecha_envio ? formatFecha(ins.fecha_envio) : '-'}</TableCell>
         <TableCell onClick={(e) => e.stopPropagation()}>
           <AccionesMenu
             inscripcion={ins}
@@ -499,16 +502,16 @@ function MobileCard({ inscripcion, expanded, onToggleExpand, onAprobar, onRechaz
         <div className="flex items-start justify-between">
           <div className="flex-1 cursor-pointer" onClick={onToggleExpand}>
             <div className="flex items-center gap-2 mb-1">
-              <p className="font-medium text-sm">{ins.apellido}, {ins.nombre}</p>
+              <p className="font-medium text-sm">{ins.datos.apellido || ''}, {ins.datos.nombre || ''}</p>
               <Badge variant={estadoBadgeVariant(ins.estado)} className={`text-[10px] ${estadoBadgeClass(ins.estado)}`}>
                 {estadoLabel(ins.estado)}
               </Badge>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              {ins.numero_documento && <span>DNI: {ins.numero_documento}</span>}
-              <span>Edad: {calcularEdad(ins.fecha_nacimiento)}</span>
-              {ins.disciplina_interes && <span>{ins.disciplina_interes}</span>}
-              <span>{formatFecha(ins.created_at)}</span>
+              {ins.datos.numero_documento && <span>DNI: {ins.datos.numero_documento}</span>}
+              <span>Edad: {calcularEdad(ins.datos.fecha_nacimiento ?? null)}</span>
+              {ins.datos.disciplina_interes && <span>{ins.datos.disciplina_interes}</span>}
+              {ins.fecha_envio && <span>{formatFecha(ins.fecha_envio)}</span>}
             </div>
           </div>
           <AccionesMenu
@@ -607,69 +610,69 @@ function DetalleExpandido({ inscripcion }: { inscripcion: PreInscripcion }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <div>
           <p className="text-muted-foreground text-xs mb-0.5">Documento</p>
-          <p>{ins.tipo_documento || 'DNI'}: {ins.numero_documento || '-'}</p>
+          <p>{ins.datos.tipo_documento || 'DNI'}: {ins.datos.numero_documento || '-'}</p>
         </div>
         <div>
           <p className="text-muted-foreground text-xs mb-0.5">Fecha nacimiento</p>
-          <p>{ins.fecha_nacimiento ? formatFecha(ins.fecha_nacimiento) : '-'}</p>
+          <p>{ins.datos.fecha_nacimiento ? formatFecha(ins.datos.fecha_nacimiento) : '-'}</p>
         </div>
         <div>
           <p className="text-muted-foreground text-xs mb-0.5">Sexo</p>
-          <p>{ins.sexo || '-'}</p>
+          <p>{ins.datos.sexo || '-'}</p>
         </div>
         <div>
           <p className="text-muted-foreground text-xs mb-0.5">Email</p>
-          <p>{ins.email || '-'}</p>
+          <p>{ins.datos.email || '-'}</p>
         </div>
         <div>
           <p className="text-muted-foreground text-xs mb-0.5">Telefono</p>
-          <p>{ins.telefono || '-'}</p>
+          <p>{ins.datos.telefono || '-'}</p>
         </div>
         <div>
           <p className="text-muted-foreground text-xs mb-0.5">Disciplina</p>
-          <p>{ins.disciplina_interes || '-'}</p>
+          <p>{ins.datos.disciplina_interes || '-'}</p>
         </div>
-        {ins.posicion_interes && (
+        {ins.datos.posicion_interes && (
           <div>
             <p className="text-muted-foreground text-xs mb-0.5">Posicion</p>
-            <p>{ins.posicion_interes}</p>
+            <p>{ins.datos.posicion_interes}</p>
           </div>
         )}
       </div>
 
-      {ins.experiencia && (
+      {ins.datos.experiencia && (
         <div>
           <p className="text-muted-foreground text-xs mb-0.5">Experiencia</p>
-          <p className="bg-muted/50 rounded p-2">{ins.experiencia}</p>
+          <p className="bg-muted/50 rounded p-2">{ins.datos.experiencia}</p>
         </div>
       )}
 
-      {ins.mensaje && (
+      {ins.datos.mensaje && (
         <div>
           <p className="text-muted-foreground text-xs mb-0.5">Mensaje</p>
-          <p className="bg-muted/50 rounded p-2">{ins.mensaje}</p>
+          <p className="bg-muted/50 rounded p-2">{ins.datos.mensaje}</p>
         </div>
       )}
 
-      {ins.es_menor && (
+      {ins.datos.es_menor && (
         <div className="border rounded-lg p-3 space-y-1">
           <p className="text-xs font-medium text-muted-foreground mb-1">Datos del tutor (menor de edad)</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
               <p className="text-muted-foreground text-xs mb-0.5">Tutor</p>
-              <p>{ins.tutor_nombre} {ins.tutor_apellido}</p>
+              <p>{ins.datos.tutor_nombre || ''} {ins.datos.tutor_apellido || ''}</p>
             </div>
             <div>
               <p className="text-muted-foreground text-xs mb-0.5">Relacion</p>
-              <p>{ins.tutor_relacion || '-'}</p>
+              <p>{ins.datos.tutor_relacion || '-'}</p>
             </div>
             <div>
               <p className="text-muted-foreground text-xs mb-0.5">Email tutor</p>
-              <p>{ins.tutor_email || '-'}</p>
+              <p>{ins.datos.tutor_email || '-'}</p>
             </div>
             <div>
               <p className="text-muted-foreground text-xs mb-0.5">Telefono tutor</p>
-              <p>{ins.tutor_telefono || '-'}</p>
+              <p>{ins.datos.tutor_telefono || '-'}</p>
             </div>
           </div>
         </div>
@@ -682,9 +685,9 @@ function DetalleExpandido({ inscripcion }: { inscripcion: PreInscripcion }) {
         </div>
       )}
 
-      {ins.reviewed_at && (
+      {ins.fecha_revision && (
         <p className="text-xs text-muted-foreground">
-          Revisada el {formatFecha(ins.reviewed_at)}
+          Revisada el {formatFecha(ins.fecha_revision)}
         </p>
       )}
     </div>

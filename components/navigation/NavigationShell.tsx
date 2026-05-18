@@ -46,6 +46,7 @@ export function NavigationShell({
       <NavigationProvider
         visibleSpaces={visibleSpaces}
         userCapabilities={userCapabilities}
+        userAttributes={userAttributes}
         tenantModulos={tenantModulos}
         tenantVerticales={tenantVerticales}
         allItems={allItems}

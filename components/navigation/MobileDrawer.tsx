@@ -31,6 +31,7 @@ export function MobileDrawer() {
     activeSpace,
     setActiveSpace,
     userCapabilities,
+    userAttributes,
     tenantModulos,
     tenantVerticales,
   } = useNavigation()
@@ -41,7 +42,8 @@ export function MobileDrawer() {
     userCapabilities,
     tenantModulos,
     tenantVerticales,
-    mobileSpace
+    mobileSpace,
+    userAttributes
   )
   const groups = groupSidebarItems(items)
 

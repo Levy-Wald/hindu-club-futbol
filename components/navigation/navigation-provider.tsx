@@ -11,6 +11,7 @@ interface NavigationContextValue {
   sidebarGroups: { grupo: string; items: SidebarItem[] }[]
   allItems: SidebarItem[]
   userCapabilities: string[]
+  userAttributes: string[]
   tenantModulos: string[]
   tenantVerticales: string[]
 }
@@ -40,6 +41,7 @@ export function NavigationProvider({
   children,
   visibleSpaces,
   userCapabilities,
+  userAttributes,
   tenantModulos,
   tenantVerticales,
   allItems,
@@ -47,6 +49,7 @@ export function NavigationProvider({
   children: ReactNode
   visibleSpaces: Space[]
   userCapabilities: string[]
+  userAttributes: string[]
   tenantModulos: string[]
   tenantVerticales: string[]
   allItems: SidebarItem[]
@@ -67,7 +70,8 @@ export function NavigationProvider({
     userCapabilities,
     tenantModulos,
     tenantVerticales,
-    activeSpace
+    activeSpace,
+    userAttributes
   )
 
   const sidebarGroups = groupSidebarItems(filteredItems)
@@ -81,6 +85,7 @@ export function NavigationProvider({
         sidebarGroups,
         allItems,
         userCapabilities,
+        userAttributes,
         tenantModulos,
         tenantVerticales,
       }}

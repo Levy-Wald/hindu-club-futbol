@@ -104,7 +104,12 @@ export function TopBar({ userEmail, personaId, personaNombre, onOpenPalette }: T
         </button>
         <ThemeToggle />
         <DropdownMenu>
-          <DropdownMenuTrigger data-testid="user-avatar">
+          <DropdownMenuTrigger
+            data-testid="user-avatar"
+            render={
+              <button type="button" className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+            }
+          >
             <Avatar className="h-8 w-8 cursor-pointer">
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>

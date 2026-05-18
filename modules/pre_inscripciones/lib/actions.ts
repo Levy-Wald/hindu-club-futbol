@@ -24,14 +24,17 @@ export async function aprobarPreInscripcion(inscripcionId: string) {
     return formatResult(false, 'Inscripcion no encontrada')
   }
 
+  // Extract datos JSONB
+  const datos = (inscripcion.datos ?? {}) as Record<string, unknown>
+
   // Check for existing persona with same DNI
   let personaId: string | null = null
-  if (inscripcion.numero_documento) {
+  if (datos.numero_documento) {
     const { data: existing } = await supabase
       .from('personas')
       .select('id')
       .eq('tenant_id', TENANT_ID)
-      .eq('numero_documento', inscripcion.numero_documento)
+      .eq('numero_documento', datos.numero_documento as string)
       .is('deleted_at', null)
       .maybeSingle()
 
@@ -46,14 +49,14 @@ export async function aprobarPreInscripcion(inscripcionId: string) {
       .from('personas')
       .insert({
         tenant_id: TENANT_ID,
-        nombre: inscripcion.nombre,
-        apellido: inscripcion.apellido,
-        numero_documento: inscripcion.numero_documento || null,
-        tipo_documento: inscripcion.tipo_documento || 'DNI',
-        fecha_nacimiento: inscripcion.fecha_nacimiento || null,
-        email_principal: inscripcion.es_menor ? inscripcion.tutor_email : inscripcion.email,
-        telefono_principal: inscripcion.es_menor ? inscripcion.tutor_telefono : inscripcion.telefono,
-        genero: inscripcion.sexo || null,
+        nombre: (datos.nombre as string) || '',
+        apellido: (datos.apellido as string) || '',
+        numero_documento: (datos.numero_documento as string) || null,
+        tipo_documento: (datos.tipo_documento as string) || 'DNI',
+        fecha_nacimiento: (datos.fecha_nacimiento as string) || null,
+        email_principal: datos.es_menor ? (datos.tutor_email as string) : (datos.email as string),
+        telefono_principal: datos.es_menor ? (datos.tutor_telefono as string) : (datos.telefono as string),
+        genero: (datos.sexo as string) || null,
         estado: 'activo',
       })
       .select('id')

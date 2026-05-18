@@ -2,19 +2,20 @@ import { SIDEBAR_CATALOG } from './sidebar-items'
 import { SPACE_VISIBILITY_RULES, SPACES } from './spaces'
 import type { SidebarItem, Space, SpaceId } from './types'
 
-const ADMIN_CAPABILITIES = ['setup.tenant', 'personas.admin', 'finanzas.admin']
+const ADMIN_ATTRIBUTES = ['tenant.admin', 'sistema.admin']
 
-function isAdmin(userCapabilities: string[]): boolean {
-  return ADMIN_CAPABILITIES.some(c => userCapabilities.includes(c))
+export function isAdmin(userAttributes: string[]): boolean {
+  return ADMIN_ATTRIBUTES.some(a => userAttributes.includes(a))
 }
 
 export function getVisibleSidebarItems(
   userCapabilities: string[],
   tenantModulos: string[],
   tenantVerticales: string[],
-  espacioActivo: SpaceId
+  espacioActivo: SpaceId,
+  userAttributes: string[] = []
 ): SidebarItem[] {
-  const admin = isAdmin(userCapabilities)
+  const admin = isAdmin(userAttributes)
 
   return SIDEBAR_CATALOG.filter(item => {
     if (item.espacio !== espacioActivo) return false
@@ -32,8 +33,10 @@ export function getVisibleSidebarItems(
   })
 }
 
-export function getVisibleSpaces(userCapabilities: string[]): Space[] {
+export function getVisibleSpaces(userCapabilities: string[], userAttributes: string[] = []): Space[] {
+  const admin = isAdmin(userAttributes)
   return SPACES.filter(space => {
+    if (admin) return true
     const rules = SPACE_VISIBILITY_RULES[space.id]
     if (rules.visible_if === 'always') return true
     if (rules.visible_if_has_any) {

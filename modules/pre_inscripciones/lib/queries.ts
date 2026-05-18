@@ -11,7 +11,7 @@ export async function fetchPreInscripciones(filtro?: string) {
     .from('pre_inscripciones')
     .select('*')
     .eq('tenant_id', TENANT_ID)
-    .order('created_at', { ascending: false })
+    .order('fecha_envio', { ascending: false })
 
   if (filtro && filtro !== 'todas') {
     query = query.eq('estado', filtro)
