@@ -61,7 +61,7 @@ Cerradas en producción. Reubicadas en la taxonomía RFC-004 según corresponda.
 
 ---
 
-## TRAMO 1 — FASE A (Cerrar troncal mínimo)
+## TRAMO 1 — FASE A (Cerrar troncal mínimo) — ✅ DONE
 
 ### Ejecutado al 14-may
 
@@ -82,7 +82,7 @@ Cerradas en producción. Reubicadas en la taxonomía RFC-004 según corresponda.
 | A3.5 | 4 reportes contables (Libro Mayor, Balance, EERR, Cobranzas) + 3 vistas BD + export PDF/XLSX | ✅ DONE | v0.27.9 | 5h | |
 | A3.6 | Conciliación bancaria: importador CSV/XLSX + UI matcheo + auto-match sign-aware + FK reversa + reporte | ✅ DONE | v0.28.0 | 5h | Consolidación cuotas_emitidas vs fin_cuotas_emitidas resuelta (solo cuotas_emitidas existe) |
 
-### Pendiente para cerrar FASE A
+### Cerrado — Sprints v2 FASE A
 
 | ID | Tema | Estado | Tag esperado | Costo | Notas |
 |---|---|---|---|---|---|
@@ -92,7 +92,7 @@ Cerradas en producción. Reubicadas en la taxonomía RFC-004 según corresponda.
 | A6 | Proyectos & Tareas: 4 tablas + Kanban + Lista + Calendario + tab Proyectos en persona + comentarios + miembros + presupuesto | ✅ DONE | v0.27.13-fase-a-sprint-6 | 3h | dnd-kit, react-big-calendar, fn_presupuesto_consumido |
 
 **Costo restante FASE A**: 0 — todos los sprints DONE
-**Tag de cierre FASE A**: `v0.29.0-fase-a-completa` (listo para aplicar)
+**Tag de cierre FASE A**: `v0.29.0-fase-a-completa` (aplicado 17-may-2026)
 
 ---
 
