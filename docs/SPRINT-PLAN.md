@@ -127,7 +127,7 @@ Cerradas en producción. Reubicadas en la taxonomía RFC-004 según corresponda.
 
 ---
 
-## TRAMO 4 — Hardening post-FASE-B (★ RFC-005)
+## TRAMO 4 — Hardening post-FASE-B (★ RFC-005) ✅ DONE
 
 | ID | Tema | Estado | Tag esperado | Costo |
 |---|---|---|---|---|
@@ -135,8 +135,9 @@ Cerradas en producción. Reubicadas en la taxonomía RFC-004 según corresponda.
 | H6 | Smoke tests automáticos pre-deploy en CI | ✅ DONE | v0.30.2-hardening-h6 | 2-3h |
 | H7 | Performance audit | ✅ DONE | v0.30.5-hardening-post-fase-b | 2h |
 
-**Subtotal**: ~7-9h Code  
-**Tag de cierre**: `v0.30.5-hardening-post-fase-b`
+**Subtotal**: ~7-9h Code
+**Tag de cierre**: `v0.30.5-hardening-post-fase-b` (aplicado 18-may-2026)
+**Cierre formal**: `v0.30.5-tramo-4-cierre-formal`
 
 ---
 

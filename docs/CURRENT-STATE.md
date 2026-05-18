@@ -272,15 +272,22 @@ PERFORMANCE (H7 Audit)
 \- Bundle: 7.8MB JS, 171 chunks, max 440KB
 \- Estado: ACEPTABLE, riesgo BAJO para demo
 
+ESTADO ACTUAL
+\=============
+
+Tramo 4 (Hardening post-FASE-B) CERRADO. Sistema listo para FASE C.
+Tags vigentes: v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.1 (H5), v0.30.2 (H6), v0.30.5 (H7/Tramo 4).
+
 PRÓXIMOS PASOS INMEDIATOS
 \==========================
 
-1\. FASE C — Demo a Hindu (10-14 dias calendario, 0h Code).
+1\. Smoke tests humanos de FASE B (Yair recorre pantallas).
+2\. FASE C — Demo a Hindu (10-14 dias calendario, 0h Code).
 
 ÚLTIMA ACTUALIZACIÓN
 \=====================
 
-18 de mayo de 2026\. Versión 2.4 (post Sprint H7, cierre Tramo 4).
+18 de mayo de 2026\. Versión 2.5 (cierre formal Tramo 4).
 Próxima revisión: al cierre de FASE C.
 
 Quien actualiza este doc: Claude Code en el cierre de cada sprint (PROMPT-TEMPLATE PARTE 10.1). El arquitecto verifica vía MCP.  

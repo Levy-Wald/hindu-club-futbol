@@ -2,11 +2,12 @@
 
 ## Estado actual
 
-- **Tag actual:** `v0.30.5-hardening-post-fase-b` (2026-05-18)
+- **Tag actual:** `v0.30.5-tramo-4-cierre-formal` (2026-05-18)
+- **Tags vigentes:** v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.1 (H5), v0.30.2 (H6), v0.30.5 (H7/Tramo 4)
 - **FASE 1-5 cerradas**, **FASE A COMPLETA**, **FASE B COMPLETA** (B1-B6 DONE)
 - **Tramo 2 (Hardening) CERRADO** (H1-H4 DONE)
 - **Tramo 4 (Hardening post-B) CERRADO** (H5-H7 DONE)
-- **Proximo:** FASE C — Demo a Hindu
+- **Proximo:** FASE C — Demo a Hindu (validacion humana, 0h Code)
 - **DB:** 170+ tablas, 401 RLS policies, 137 funciones, 28 vistas, 102 triggers
 - **UI:** 96 paginas, ~215 server actions, ~195 componentes custom
 - **Tests E2E:** 102+ specs (Playwright), 65 unit tests (Vitest)
