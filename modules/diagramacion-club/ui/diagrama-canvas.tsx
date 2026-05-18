@@ -24,23 +24,33 @@ interface Espacio {
   tipo_slug: string
 }
 
+interface Sede {
+  id: string
+  nombre: string
+}
+
 interface DiagramaCanvasProps {
   shapesInicial: DiagramaShape[]
   espacios: Espacio[]
+  sedes: Sede[]
 }
 
 const CANVAS_W = 800
 const CANVAS_H = 500
 
-export function DiagramaCanvas({ shapesInicial, espacios }: DiagramaCanvasProps) {
+export function DiagramaCanvas({ shapesInicial, espacios, sedes }: DiagramaCanvasProps) {
   const [shapes, setShapes] = useState<DiagramaShape[]>(shapesInicial)
   const [selected, setSelected] = useState<string | null>(null)
   const [dragging, setDragging] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [filtroSede, setFiltroSede] = useState<string>('')
   const [isPending, startTransition] = useTransition()
   const svgRef = useRef<SVGSVGElement>(null)
 
   const selectedShape = shapes.find(s => s.id === selected)
+  const shapesVisibles = filtroSede
+    ? shapes.filter(s => s.sede_id === filtroSede)
+    : shapes
 
   async function reload() {
     const data = await fetchShapes()
@@ -148,10 +158,23 @@ export function DiagramaCanvas({ shapesInicial, espacios }: DiagramaCanvasProps)
           <h1 className="text-xl sm:text-2xl font-bold">Mapa del Club</h1>
           <p className="text-sm text-muted-foreground">Diagramación visual del predio</p>
         </div>
-        <Button size="sm" onClick={handleAddShape} disabled={isPending}>
-          {isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
-          Agregar espacio
-        </Button>
+        <div className="flex items-center gap-2">
+          <Select value={filtroSede} onValueChange={v => setFiltroSede(!v || v === 'todas' ? '' : v)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Todas las sedes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todas">Todas las sedes</SelectItem>
+              {sedes.map(s => (
+                <SelectItem key={s.id} value={s.id}>{s.nombre}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button size="sm" onClick={handleAddShape} disabled={isPending}>
+            {isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
+            Agregar espacio
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
@@ -177,7 +200,7 @@ export function DiagramaCanvas({ shapesInicial, espacios }: DiagramaCanvasProps)
                 <rect width="100%" height="100%" fill="url(#grid)" />
 
                 {/* Shapes */}
-                {shapes.map(s => {
+                {shapesVisibles.map(s => {
                   const x = Number(s.pos_x)
                   const y = Number(s.pos_y)
                   const w = Number(s.ancho)
@@ -269,6 +292,23 @@ export function DiagramaCanvas({ shapesInicial, espacios }: DiagramaCanvasProps)
                       <SelectItem value="ninguno">Sin vincular</SelectItem>
                       {espacios.map(e => (
                         <SelectItem key={e.id} value={e.id}>{e.nombre} ({e.tipo_slug})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Sede</Label>
+                  <Select
+                    value={selectedShape.sede_id ?? ''}
+                    onValueChange={v => handleUpdateField('sede_id', !v || v === 'ninguna' ? null : v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sin sede" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ninguna">Sin sede</SelectItem>
+                      {sedes.map(s => (
+                        <SelectItem key={s.id} value={s.id}>{s.nombre}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

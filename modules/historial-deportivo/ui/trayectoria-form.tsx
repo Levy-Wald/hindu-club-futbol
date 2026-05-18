@@ -1,15 +1,41 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Combobox } from '@/components/ui/combobox'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
-import { crearTrayectoriaClub, actualizarTrayectoriaClub } from '../lib/actions'
+import { crearTrayectoriaClub, actualizarTrayectoriaClub, fetchDistinctClubNombresAction } from '../lib/actions'
 import type { TrayectoriaClub } from '../lib/tipos'
+
+const CATEGORIAS = [
+  'Primera', 'Reserva', 'Sub-20', 'Sub-18', 'Sub-17', 'Sub-16', 'Sub-15', 'Sub-14', 'Sub-13', 'Infantiles', 'Otra',
+] as const
+
+const POSICIONES = [
+  'Arquero', 'Defensor central', 'Lateral derecho', 'Lateral izquierdo',
+  'Mediocampista central', 'Mediocampista ofensivo', 'Mediocampista defensivo',
+  'Volante derecho', 'Volante izquierdo', 'Enganche',
+  'Delantero centro', 'Extremo derecho', 'Extremo izquierdo',
+  'Otra',
+] as const
+
+const DISCIPLINAS = [
+  { value: 'futbol', label: 'Fútbol' },
+  { value: 'futsal', label: 'Futsal' },
+  { value: 'hockey', label: 'Hockey' },
+  { value: 'rugby', label: 'Rugby' },
+  { value: 'basquet', label: 'Básquet' },
+  { value: 'voley', label: 'Vóley' },
+  { value: 'tenis', label: 'Tenis' },
+  { value: 'natacion', label: 'Natación' },
+  { value: 'otro', label: 'Otro' },
+] as const
 
 interface TrayectoriaFormProps {
   open: boolean
@@ -36,6 +62,15 @@ export function TrayectoriaForm({ open, onOpenChange, onSuccess, personaId, edit
   const [asistencias, setAsistencias] = useState(editData?.asistencias?.toString() ?? '')
   const [observaciones, setObservaciones] = useState(editData?.observaciones ?? '')
   const [submitting, setSubmitting] = useState(false)
+  const [clubOptions, setClubOptions] = useState<{ value: string; label: string }[]>([])
+
+  useEffect(() => {
+    if (open) {
+      fetchDistinctClubNombresAction().then(names =>
+        setClubOptions(names.map(n => ({ value: n, label: n })))
+      )
+    }
+  }, [open])
 
   async function handleSubmit() {
     setSubmitting(true)
@@ -77,11 +112,24 @@ export function TrayectoriaForm({ open, onOpenChange, onSuccess, personaId, edit
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Club *</Label>
-              <Input value={clubNombre} onChange={e => setClubNombre(e.target.value)} placeholder="Ej: River Plate" />
+              <Combobox
+                value={clubNombre}
+                onChange={setClubNombre}
+                options={clubOptions}
+                placeholder="Ej: River Plate"
+                allowCreate
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Disciplina</Label>
-              <Input value={disciplina} onChange={e => setDisciplina(e.target.value)} placeholder="Ej: futbol" />
+              <Select value={disciplina} onValueChange={(v) => setDisciplina(v ?? '')}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                <SelectContent>
+                  {DISCIPLINAS.map(d => (
+                    <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -99,11 +147,25 @@ export function TrayectoriaForm({ open, onOpenChange, onSuccess, personaId, edit
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <Label>Categoría</Label>
-              <Input value={categoria} onChange={e => setCategoria(e.target.value)} placeholder="Ej: Primera" />
+              <Select value={categoria} onValueChange={(v) => setCategoria(v ?? '')}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                <SelectContent>
+                  {CATEGORIAS.map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label>Posición</Label>
-              <Input value={posicion} onChange={e => setPosicion(e.target.value)} placeholder="Ej: delantero" />
+              <Select value={posicion} onValueChange={(v) => setPosicion(v ?? '')}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                <SelectContent>
+                  {POSICIONES.map(p => (
+                    <SelectItem key={p} value={p}>{p}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label>N° camiseta</Label>

@@ -8,7 +8,7 @@ export async function fetchShapes() {
   const supabase = await createClient()
   const { data, error } = await (supabase as any)
     .from('diagramacion_club')
-    .select('*, espacio:espacios(id, nombre)')
+    .select('*, espacio:espacios(id, nombre), sede:sedes(id, nombre)')
     .eq('tenant_id', TENANT_ID)
     .is('deleted_at', null)
     .eq('activo', true)
@@ -18,6 +18,7 @@ export async function fetchShapes() {
   return (data ?? []).map((d: any) => ({
     ...d,
     espacio_nombre: Array.isArray(d.espacio) ? d.espacio[0]?.nombre : d.espacio?.nombre ?? null,
+    sede_nombre: Array.isArray(d.sede) ? d.sede[0]?.nombre : d.sede?.nombre ?? null,
   }))
 }
 
@@ -29,6 +30,17 @@ export async function fetchEspaciosDisponibles() {
     .eq('tenant_id', TENANT_ID)
     .is('deleted_at', null)
     .eq('activo', true)
+    .order('nombre')
+  return data ?? []
+}
+
+export async function fetchSedesDisponibles() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('sedes')
+    .select('id, nombre')
+    .eq('tenant_id', TENANT_ID)
+    .is('deleted_at', null)
     .order('nombre')
   return data ?? []
 }

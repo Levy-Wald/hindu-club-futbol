@@ -5,6 +5,9 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Activity, Plus, Loader2, CheckCircle, Trash2, Pencil } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { marcarRecuperada, softDeleteLesion } from '../lib/actions'
@@ -61,9 +64,12 @@ export function LesionList({ personaId, tiposLesion, equipos }: LesionListProps)
 
   useEffect(() => { cargar() }, [cargar])
 
+  const [recuperarId, setRecuperarId] = useState<string | null>(null)
+  const [fechaAlta, setFechaAlta] = useState(new Date().toISOString().slice(0, 10))
+
   async function handleRecuperar(id: string) {
-    const res = await marcarRecuperada(id)
-    if (res.ok) { toast.success('Marcada como recuperada'); cargar() }
+    const res = await marcarRecuperada(id, fechaAlta)
+    if (res.ok) { toast.success('Marcada como recuperada'); setRecuperarId(null); cargar() }
     else toast.error(res.error ?? 'Error')
   }
 
@@ -114,7 +120,7 @@ export function LesionList({ personaId, tiposLesion, equipos }: LesionListProps)
                 <h3 className="text-sm font-medium text-destructive">Activas ({activas.length})</h3>
                 {activas.map(l => (
                   <LesionCard key={l.id} lesion={l} gravedadColor={gravedadColor}
-                    onRecuperar={() => handleRecuperar(l.id)}
+                    onRecuperar={() => { setFechaAlta(new Date().toISOString().slice(0, 10)); setRecuperarId(l.id) }}
                     onEliminar={() => handleEliminar(l.id)}
                     onEditar={() => handleEditar(l)} />
                 ))}
@@ -133,6 +139,27 @@ export function LesionList({ personaId, tiposLesion, equipos }: LesionListProps)
           </div>
         )}
       </CardContent>
+
+      {/* Dialog confirmar recuperación */}
+      <Dialog open={!!recuperarId} onOpenChange={(v) => { if (!v) setRecuperarId(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Marcar como recuperada</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label>Fecha de alta médica</Label>
+              <Input type="date" value={fechaAlta} onChange={e => setFechaAlta(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRecuperarId(null)}>Cancelar</Button>
+            <Button onClick={() => recuperarId && handleRecuperar(recuperarId)} className="bg-green-600 hover:bg-green-700">
+              <CheckCircle className="h-4 w-4 mr-1" /> Confirmar recuperación
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <LesionForm
         open={formOpen}
@@ -202,16 +229,16 @@ function LesionCard({ lesion, gravedadColor, onRecuperar, onEliminar, onEditar }
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEditar} title="Editar">
             <Pencil className="h-3.5 w-3.5" />
           </Button>
-          {onRecuperar && !lesion.recuperada && (
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-green-600" onClick={onRecuperar} title="Marcar recuperada">
-              <CheckCircle className="h-3.5 w-3.5" />
-            </Button>
-          )}
           <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={onEliminar} title="Eliminar">
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
+      {onRecuperar && !lesion.recuperada && (
+        <Button size="sm" variant="outline" className="text-green-700 border-green-300 hover:bg-green-50 w-full" onClick={onRecuperar}>
+          <CheckCircle className="h-3.5 w-3.5 mr-1" /> Marcar como recuperada
+        </Button>
+      )}
     </div>
   )
 }

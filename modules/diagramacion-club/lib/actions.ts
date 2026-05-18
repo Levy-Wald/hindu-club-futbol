@@ -20,6 +20,7 @@ export async function crearShape(input: ShapeInput): Promise<Result> {
     .insert({
       tenant_id: TENANT_ID,
       espacio_id: d.espacio_id || null,
+      sede_id: d.sede_id || null,
       pos_x: d.pos_x,
       pos_y: d.pos_y,
       ancho: d.ancho,
@@ -60,6 +61,7 @@ export async function actualizarShape(id: string, input: Partial<ShapeInput>): P
   if (d.texto_label !== undefined) updateData.texto_label = d.texto_label || null
   if (d.icono !== undefined) updateData.icono = d.icono || null
   if (d.espacio_id !== undefined) updateData.espacio_id = d.espacio_id || null
+  if (d.sede_id !== undefined) updateData.sede_id = d.sede_id || null
   if (d.capa !== undefined) updateData.capa = d.capa
 
   const { error } = await (supabase as any)

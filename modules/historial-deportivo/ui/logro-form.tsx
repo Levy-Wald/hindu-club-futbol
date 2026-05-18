@@ -1,15 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Combobox } from '@/components/ui/combobox'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
-import { crearLogro, actualizarLogro } from '../lib/actions'
+import { crearLogro, actualizarLogro, fetchDistinctTorneoNombresAction, fetchDistinctEquipoNombresLogrosAction } from '../lib/actions'
 import { TIPOS_LOGRO } from '../lib/tipos'
 import type { Logro } from '../lib/tipos'
 
@@ -31,6 +32,19 @@ export function LogroForm({ open, onOpenChange, onSuccess, personaId, editData }
   const [anio, setAnio] = useState(editData?.anio?.toString() ?? '')
   const [fechaOtorgado, setFechaOtorgado] = useState(editData?.fecha_otorgado ?? '')
   const [submitting, setSubmitting] = useState(false)
+  const [torneoOptions, setTorneoOptions] = useState<{ value: string; label: string }[]>([])
+  const [equipoOptions, setEquipoOptions] = useState<{ value: string; label: string }[]>([])
+
+  useEffect(() => {
+    if (open) {
+      fetchDistinctTorneoNombresAction().then(names =>
+        setTorneoOptions(names.map(n => ({ value: n, label: n })))
+      )
+      fetchDistinctEquipoNombresLogrosAction().then(names =>
+        setEquipoOptions(names.map(n => ({ value: n, label: n })))
+      )
+    }
+  }, [open])
 
   async function handleSubmit() {
     setSubmitting(true)
@@ -88,11 +102,23 @@ export function LogroForm({ open, onOpenChange, onSuccess, personaId, editData }
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Torneo</Label>
-              <Input value={torneoNombre} onChange={e => setTorneoNombre(e.target.value)} placeholder="Ej: Apertura 2024" />
+              <Combobox
+                value={torneoNombre}
+                onChange={setTorneoNombre}
+                options={torneoOptions}
+                placeholder="Ej: Apertura 2024"
+                allowCreate
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Equipo</Label>
-              <Input value={equipoNombre} onChange={e => setEquipoNombre(e.target.value)} placeholder="Ej: Hindu Club" />
+              <Combobox
+                value={equipoNombre}
+                onChange={setEquipoNombre}
+                options={equipoOptions}
+                placeholder="Ej: Hindu Club"
+                allowCreate
+              />
             </div>
           </div>
 

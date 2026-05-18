@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 export const shapeInputSchema = z.object({
   espacio_id: z.string().uuid().optional().nullable(),
+  sede_id: z.string().uuid().optional().nullable(),
   pos_x: z.number().min(0).max(1000),
   pos_y: z.number().min(0).max(1000),
   ancho: z.number().min(10).max(500),
@@ -23,6 +24,7 @@ export interface DiagramaShape {
   id: string
   tenant_id: string
   espacio_id: string | null
+  sede_id: string | null
   pos_x: number
   pos_y: number
   ancho: number
@@ -35,4 +37,5 @@ export interface DiagramaShape {
   icono: string | null
   capa: number
   espacio_nombre?: string | null
+  sede_nombre?: string | null
 }

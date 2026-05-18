@@ -145,7 +145,7 @@ export async function fetchRolesStaff() {
   const { data, error } = await supabase
     .from('catalogo_roles_equipo')
     .select('slug, nombre, categoria')
-    .eq('categoria', 'staff')
+    .in('categoria', ['cuerpo_tecnico', 'comision_delegados'])
     .order('nombre', { ascending: true })
 
   if (error) throw error

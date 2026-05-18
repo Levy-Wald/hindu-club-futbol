@@ -19,6 +19,21 @@ const GRAVEDADES = [
   { value: 'muy_grave', label: 'Muy grave' },
 ] as const
 
+const ZONAS_CORPORALES = [
+  'Tobillo derecho', 'Tobillo izquierdo',
+  'Rodilla derecha', 'Rodilla izquierda',
+  'Muslo derecho', 'Muslo izquierdo',
+  'Gemelo derecho', 'Gemelo izquierdo',
+  'Aductor derecho', 'Aductor izquierdo',
+  'Hombro derecho', 'Hombro izquierdo',
+  'Espalda baja', 'Espalda alta',
+  'Cadera', 'Ingle',
+  'Pie derecho', 'Pie izquierdo',
+  'Muñeca derecha', 'Muñeca izquierda',
+  'Cabeza', 'Cuello',
+  'Otra',
+] as const
+
 interface LesionFormProps {
   open: boolean
   onOpenChange: (v: boolean) => void
@@ -146,7 +161,17 @@ export function LesionForm({ open, onOpenChange, onSuccess, personaId, tiposLesi
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Zona corporal *</Label>
-              <Input value={zona} onChange={e => setZona(e.target.value)} placeholder="Ej: tobillo derecho" />
+              <Select value={ZONAS_CORPORALES.includes(zona as any) ? zona : zona ? '_custom' : ''} onValueChange={(v) => {
+                if (v === '_custom') return
+                setZona(v ?? '')
+              }}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                <SelectContent>
+                  {ZONAS_CORPORALES.map(z => (
+                    <SelectItem key={z} value={z}>{z}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label>Fecha *</Label>
