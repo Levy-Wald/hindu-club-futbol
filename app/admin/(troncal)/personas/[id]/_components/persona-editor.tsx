@@ -38,6 +38,7 @@ import type { ProyectoConRelaciones } from '@/modules/proyectos/lib/tipos'
 import { ValoresForm } from '@/modules/atributos-custom/ui/valores-form'
 import { VinculosCrossTab } from '@/modules/atributos-custom/ui/vinculos-cross-tab'
 import type { AtributoDefinicion, AtributoValor, VinculoCrossConRelaciones } from '@/modules/atributos-custom/lib/tipos'
+import { SeccionTrayectoria } from '@/modules/historial-deportivo/ui/seccion-trayectoria'
 
 interface PersonaEditorProps {
   persona: Record<string, unknown>
@@ -188,6 +189,7 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
           <TabsList className="inline-flex w-max sm:flex-wrap sm:w-auto h-auto gap-1">
             <TabsTrigger value="personal">Personal</TabsTrigger>
             <TabsTrigger value="deportivo">Deportivo</TabsTrigger>
+            <TabsTrigger value="trayectoria">Trayectoria</TabsTrigger>
             <TabsTrigger value="salud">Salud</TabsTrigger>
             <TabsTrigger value="profesional">Profesional</TabsTrigger>
             <TabsTrigger value="club">Club</TabsTrigger>
@@ -261,6 +263,11 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
           />
           <SeccionDeporteFisico form={form} update={update} s={s} />
           <SeccionDisciplinas personaId={persona.id as string} tenantId={persona.tenant_id as string} />
+        </TabsContent>
+
+        {/* TRAYECTORIA: clubes previos + logros */}
+        <TabsContent value="trayectoria" className="mt-4">
+          <SeccionTrayectoria personaId={persona.id as string} />
         </TabsContent>
 
         {/* SALUD: datos médicos + obra social + lesiones + rehabilitaciones */}
