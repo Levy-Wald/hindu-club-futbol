@@ -203,6 +203,7 @@ export const ccbpSection: NavSectionDef = {
     { label: 'Padrones', href: '/admin/padrones', icon: ClipboardList },
     { label: 'Salud', href: '/admin/salud', icon: HeartPulse },
     { label: 'Reportes Deportivos', href: '/admin/reportes-deportivos', icon: BarChart3 },
+    { label: 'Membresías', href: '/admin/membresias', icon: CreditCard },
   ],
   collapsibles: [
     {
