@@ -31,7 +31,7 @@ import {
 import { useVistasColumns } from '@/components/ui/vistas-panel'
 import { SelectionBar } from '@/components/ui/selection-bar'
 import Link from 'next/link'
-import { UserPlus, UserMinus, Search, Pencil } from 'lucide-react'
+import { UserPlus, UserMinus, Search, Pencil, Activity } from 'lucide-react'
 import { toast } from 'sonner'
 import { agregarMiembro, quitarMiembro, editarMiembroEquipo, buscarPersonas } from '@/modules/equipos/lib/actions'
 import type { ExportData } from '@/lib/export/formats'
@@ -66,6 +66,7 @@ interface PlantelProps {
   miembros: Miembro[]
   roles: Rol[]
   tipo: 'jugador' | 'staff'
+  lesionadosIds?: string[]
 }
 
 interface PersonaResult {
@@ -78,7 +79,7 @@ interface PersonaResult {
 const JUGADOR_DEFAULT_COLUMNS = ['dorsal', 'posicion', 'documento', 'fecha_inicio']
 const STAFF_DEFAULT_COLUMNS = ['rol', 'documento', 'fecha_inicio']
 
-export function Plantel({ equipoId, miembros, roles, tipo }: PlantelProps) {
+export function Plantel({ equipoId, miembros, roles, tipo, lesionadosIds }: PlantelProps) {
   const isStaff = tipo === 'staff'
   const storageKey = isStaff ? 'equipo-staff-columns' : 'equipo-plantel-columns'
   const defaultColumns = isStaff ? STAFF_DEFAULT_COLUMNS : JUGADOR_DEFAULT_COLUMNS
@@ -436,13 +437,20 @@ export function Plantel({ equipoId, miembros, roles, tipo }: PlantelProps) {
                     onCheckedChange={() => toggleSelect(m.id)}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">
-                      {persona ? (
-                        <Link href={`/admin/personas/${persona.id}`} className="hover:underline">
-                          {persona.apellido}, {persona.nombre}
-                        </Link>
-                      ) : m.persona_id}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-medium truncate">
+                        {persona ? (
+                          <Link href={`/admin/personas/${persona.id}`} className="hover:underline">
+                            {persona.apellido}, {persona.nombre}
+                          </Link>
+                        ) : m.persona_id}
+                      </p>
+                      {lesionadosIds?.includes(m.persona_id) && (
+                        <Badge variant="destructive" className="text-[10px] h-4 shrink-0">
+                          <Activity className="h-2.5 w-2.5 mr-0.5" />LESIONADO
+                        </Badge>
+                      )}
+                    </div>
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground mt-0.5">
                       {!isStaff && m.dorsal !== null && <span>#{m.dorsal}</span>}
                       {!isStaff && m.posicion && <span>{m.posicion}</span>}
@@ -537,11 +545,18 @@ export function Plantel({ equipoId, miembros, roles, tipo }: PlantelProps) {
                       </TableCell>
                     )}
                     <TableCell className="font-medium">
-                      {persona ? (
-                        <Link href={`/admin/personas/${persona.id}`} className="hover:underline">
-                          {persona.apellido}, {persona.nombre}
-                        </Link>
-                      ) : m.persona_id}
+                      <div className="flex items-center gap-1.5">
+                        {persona ? (
+                          <Link href={`/admin/personas/${persona.id}`} className="hover:underline">
+                            {persona.apellido}, {persona.nombre}
+                          </Link>
+                        ) : m.persona_id}
+                        {lesionadosIds?.includes(m.persona_id) && (
+                          <Badge variant="destructive" className="text-[10px] h-4 shrink-0">
+                            <Activity className="h-2.5 w-2.5 mr-0.5" />LESIONADO
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     {isStaff && isVisible('rol') && (
                       <TableCell>

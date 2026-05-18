@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ArrowLeft, Calendar, Info, Users, Shirt, Settings, Trophy, Building2, Image, Briefcase } from 'lucide-react'
 import { fetchEquipoDetalle, fetchRolesEquipo, fetchCategoriasEquipo, fetchEntidadesFederaciones, fetchSedes, fetchCanchas } from '@/modules/equipos/lib/queries'
+import { fetchPersonaIdsLesionados } from '@/modules/salud-lesiones/lib/queries'
 import { Plantel } from '@/modules/equipos/ui/components/plantel'
 import { EditarEquipoForm } from '@/modules/equipos/ui/components/editar-equipo-form'
 import { EquipoComposicion } from '@/modules/equipos/ui/components/equipo-composicion'
@@ -88,6 +89,11 @@ export default async function EquipoDetallePage({ params }: PageProps) {
       marcador_visitante: number | null
     }> | null
   }>
+
+  // Fetch lesionados activos para mostrar badge
+  const personaIds = miembros.map(m => m.persona_id)
+  const lesionadosSet = await fetchPersonaIdsLesionados(personaIds)
+  const lesionadosIds = Array.from(lesionadosSet)
 
   const rolesJugador = roles.filter((r) => r.categoria === 'deportivo')
   const rolesStaff = roles.filter((r) => r.categoria === 'staff')
@@ -256,6 +262,7 @@ export default async function EquipoDetallePage({ params }: PageProps) {
               miembros={miembrosJugadores}
               roles={rolesJugador}
               tipo="jugador"
+              lesionadosIds={lesionadosIds}
             />
           </div>
         </TabsContent>
@@ -268,6 +275,7 @@ export default async function EquipoDetallePage({ params }: PageProps) {
               miembros={miembros}
               roles={todosRoles}
               tipo="jugador"
+              lesionadosIds={lesionadosIds}
             />
           </div>
         </TabsContent>

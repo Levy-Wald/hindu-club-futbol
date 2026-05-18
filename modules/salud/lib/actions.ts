@@ -71,8 +71,8 @@ export async function fetchLesiones(filtros?: {
 
   const transformed = addNombreCompleto(data ?? []).map(r => ({
     ...r,
-    zona_cuerpo: r.zona_corporal,
-    fecha_lesion: r.fecha_inicio,
+    zona_cuerpo: r.zona_corporal ?? '',
+    fecha_lesion: r.fecha_inicio ?? '',
     estado: r.recuperada ? 'recuperada' : 'activa',
     equipo_nombre: r.equipos ?? '',
   }))
@@ -297,12 +297,13 @@ export async function levantarCasoSalud(input: {
 
   const supabase = await createClient()
 
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('personas_lesiones')
     .insert({
       tenant_id: TENANT_ID,
       persona_id: input.persona_id,
       tipo_lesion: input.tipo,
+      tipo_lesion_slug: 'otro',
       zona_corporal: 'no_especificada',
       gravedad: input.severidad,
       descripcion: input.descripcion,

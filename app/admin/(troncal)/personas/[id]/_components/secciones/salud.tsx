@@ -68,17 +68,22 @@ const EMPTY_OBRA_SOCIAL: ObraSocial = {
 
 interface Lesion {
   id: string
-  tipo_lesion: string
-  zona_cuerpo: string
-  gravedad: string
-  fecha_lesion: string
-  fecha_alta: string | null
-  estado: string
+  tipo_lesion: string | null
+  tipo_lesion_slug: string | null
+  zona_corporal: string | null
+  gravedad: string | null
+  fecha_inicio: string | null
+  fecha_alta_medica: string | null
+  recuperada: boolean
+  restriccion_actividad: string | null
   descripcion: string | null
-  diagnostico: string | null
-  contexto_actividad: string | null
-  dias_baja_estimados: number | null
-  profesional_externo_nombre: string | null
+  diagnostico_medico: string | null
+  equipo_id: string | null
+  notas: string | null
+  contexto_actividad?: string | null
+  dias_baja_estimados?: number | null
+  profesional_externo_nombre?: string | null
+  tipos_lesion_nombre?: string | null
 }
 
 interface Rehabilitacion {
@@ -102,16 +107,14 @@ interface SeccionSaludProps {
 
 // --- Constants ---
 
-const TIPOS_LESION = [
-  { value: 'esguince', label: 'Esguince' },
-  { value: 'fractura', label: 'Fractura' },
-  { value: 'desgarro', label: 'Desgarro' },
-  { value: 'contractura', label: 'Contractura' },
-  { value: 'tendinitis', label: 'Tendinitis' },
-  { value: 'luxacion', label: 'Luxación' },
-  { value: 'rotura_ligamento', label: 'Rotura de ligamento' },
-  { value: 'otro', label: 'Otro' },
-]
+// TIPOS_LESION se carga dinámicamente desde tipos_lesion (catálogo BD)
+interface TipoLesionCatalog {
+  slug: string
+  nombre: string
+  zona_corporal_default: string | null
+  gravedad_default: string | null
+  dias_recuperacion_promedio: number | null
+}
 
 const ZONAS_CUERPO = [
   { value: 'tobillo_izq', label: 'Tobillo izquierdo' },
@@ -598,12 +601,15 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
   const [loadingOS, setLoadingOS] = useState(false)
   const [loaded, setLoaded] = useState(false)
 
+  // Tipos lesion catalog
+  const [tiposLesionCatalog, setTiposLesionCatalog] = useState<TipoLesionCatalog[]>([])
+
   // Lesion form
   const [showLesionForm, setShowLesionForm] = useState(false)
   const [lesionForm, setLesionForm] = useState({
-    tipo_lesion: '', zona_cuerpo: '', gravedad: 'moderada', fecha_lesion: '',
-    descripcion: '', diagnostico: '', contexto_actividad: '',
-    dias_baja_estimados: '', profesional_externo_nombre: '',
+    tipo_lesion_slug: '', zona_corporal: '', gravedad: 'moderada', fecha_inicio: '',
+    descripcion: '', diagnostico_medico: '', contexto_actividad: '',
+    dias_baja_estimados: '', profesional_externo_nombre: '', equipo_id: '',
   })
   const [savingLesion, setSavingLesion] = useState(false)
 
@@ -620,11 +626,12 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
     async function load() {
       const supabase = createClient()
 
-      const [medRes, osRes, lesRes, rehabRes] = await Promise.all([
+      const [medRes, osRes, lesRes, rehabRes, tiposRes] = await Promise.all([
         supabase.from('personas_datos_medicos').select('*').eq('persona_id', personaId).maybeSingle(),
         supabase.from('personas_obra_social').select('*').eq('persona_id', personaId).eq('activo', true).maybeSingle(),
-        supabase.from('personas_lesiones').select('*').eq('persona_id', personaId).eq('activo', true).order('fecha_lesion', { ascending: false }),
+        (supabase as any).from('personas_lesiones').select('*, tipos_lesion:tipo_lesion_slug(nombre)').eq('persona_id', personaId).is('deleted_at', null).order('fecha_inicio', { ascending: false }),
         supabase.from('personas_rehabilitaciones').select('*').eq('persona_id', personaId).eq('activo', true).order('fecha_inicio', { ascending: false }),
+        (supabase as any).from('tipos_lesion').select('slug, nombre, zona_corporal_default, gravedad_default, dias_recuperacion_promedio').eq('activo', true).order('nombre'),
       ])
 
       if (medRes.data) {
@@ -666,8 +673,14 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
         })
       }
 
-      if (lesRes.data) setLesiones(lesRes.data)
+      if (lesRes.data) {
+        setLesiones(lesRes.data.map((l: any) => ({
+          ...l,
+          tipos_lesion_nombre: l.tipos_lesion?.nombre ?? null,
+        })))
+      }
       if (rehabRes.data) setRehabilitaciones(rehabRes.data)
+      if (tiposRes.data) setTiposLesionCatalog(tiposRes.data)
 
       setLoaded(true)
     }
@@ -744,26 +757,28 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
   }
 
   async function saveLesion() {
-    if (!lesionForm.tipo_lesion || !lesionForm.zona_cuerpo || !lesionForm.fecha_lesion) {
+    if (!lesionForm.tipo_lesion_slug || !lesionForm.zona_corporal || !lesionForm.fecha_inicio) {
       toast.error('Tipo, zona y fecha son obligatorios')
       return
     }
     setSavingLesion(true)
     const supabase = createClient()
-    const { data, error } = await supabase
+    const tipoNombre = tiposLesionCatalog.find(t => t.slug === lesionForm.tipo_lesion_slug)?.nombre ?? lesionForm.tipo_lesion_slug
+    const { data, error } = await (supabase as any)
       .from('personas_lesiones')
       .insert({
         tenant_id: tenantId,
         persona_id: personaId,
-        tipo_lesion: lesionForm.tipo_lesion,
-        zona_cuerpo: lesionForm.zona_cuerpo,
+        tipo_lesion: tipoNombre,
+        tipo_lesion_slug: lesionForm.tipo_lesion_slug,
+        zona_corporal: lesionForm.zona_corporal,
         gravedad: lesionForm.gravedad,
-        fecha_lesion: lesionForm.fecha_lesion,
+        fecha_inicio: lesionForm.fecha_inicio,
+        equipo_id: lesionForm.equipo_id || null,
         descripcion: lesionForm.descripcion || null,
-        diagnostico: lesionForm.diagnostico || null,
-        contexto_actividad: lesionForm.contexto_actividad || null,
-        dias_baja_estimados: lesionForm.dias_baja_estimados ? parseInt(lesionForm.dias_baja_estimados) : null,
-        profesional_externo_nombre: lesionForm.profesional_externo_nombre || null,
+        diagnostico_medico: lesionForm.diagnostico_medico || null,
+        recuperada: false,
+        activo: true,
       })
       .select()
       .single()
@@ -772,9 +787,9 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
     if (error) {
       toast.error(error.message)
     } else {
-      setLesiones((prev) => [data, ...prev])
+      setLesiones((prev) => [{ ...data, tipos_lesion_nombre: tipoNombre }, ...prev])
       setShowLesionForm(false)
-      setLesionForm({ tipo_lesion: '', zona_cuerpo: '', gravedad: 'moderada', fecha_lesion: '', descripcion: '', diagnostico: '', contexto_actividad: '', dias_baja_estimados: '', profesional_externo_nombre: '' })
+      setLesionForm({ tipo_lesion_slug: '', zona_corporal: '', gravedad: 'moderada', fecha_inicio: '', descripcion: '', diagnostico_medico: '', contexto_actividad: '', dias_baja_estimados: '', profesional_externo_nombre: '', equipo_id: '' })
       toast.success('Lesión registrada')
     }
   }
@@ -815,7 +830,7 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
 
   async function deleteLesion(id: string) {
     const supabase = createClient()
-    const { error } = await supabase.from('personas_lesiones').update({ activo: false }).eq('id', id)
+    const { error } = await (supabase as any).from('personas_lesiones').update({ deleted_at: new Date().toISOString(), activo: false }).eq('id', id)
     if (error) toast.error(error.message)
     else {
       setLesiones((prev) => prev.filter((l) => l.id !== id))
@@ -1051,17 +1066,22 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-sm text-muted-foreground">Tipo lesión *</Label>
-                    <Select value={lesionForm.tipo_lesion} onValueChange={(v) => setLesionForm((p) => ({ ...p, tipo_lesion: v ?? '' }))}>
+                    <Select value={lesionForm.tipo_lesion_slug} onValueChange={(v) => {
+                      const tipo = tiposLesionCatalog.find(t => t.slug === v)
+                      setLesionForm((p) => ({
+                        ...p,
+                        tipo_lesion_slug: v ?? '',
+                        zona_corporal: tipo?.zona_corporal_default && tipo.zona_corporal_default !== 'variable' ? tipo.zona_corporal_default : p.zona_corporal,
+                        gravedad: tipo?.gravedad_default ?? p.gravedad,
+                      }))
+                    }}>
                       <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                      <SelectContent>{TIPOS_LESION.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                      <SelectContent>{tiposLesionCatalog.map((t) => <SelectItem key={t.slug} value={t.slug}>{t.nombre}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-sm text-muted-foreground">Zona del cuerpo *</Label>
-                    <Select value={lesionForm.zona_cuerpo} onValueChange={(v) => setLesionForm((p) => ({ ...p, zona_cuerpo: v ?? '' }))}>
-                      <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                      <SelectContent>{ZONAS_CUERPO.map((z) => <SelectItem key={z.value} value={z.value}>{z.label}</SelectItem>)}</SelectContent>
-                    </Select>
+                    <Label className="text-sm text-muted-foreground">Zona corporal *</Label>
+                    <Input value={lesionForm.zona_corporal} onChange={(e) => setLesionForm((p) => ({ ...p, zona_corporal: e.target.value }))} placeholder="Ej: tobillo derecho" />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm text-muted-foreground">Gravedad</Label>
@@ -1071,25 +1091,8 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-sm text-muted-foreground">Fecha lesión *</Label>
-                    <Input type="date" value={lesionForm.fecha_lesion} onChange={(e) => setLesionForm((p) => ({ ...p, fecha_lesion: e.target.value }))} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-sm text-muted-foreground">Contexto</Label>
-                    <Select value={lesionForm.contexto_actividad} onValueChange={(v) => setLesionForm((p) => ({ ...p, contexto_actividad: v ?? '' }))}>
-                      <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                      <SelectContent>{CONTEXTOS.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-sm text-muted-foreground">Días baja estimados</Label>
-                    <Input type="number" value={lesionForm.dias_baja_estimados} onChange={(e) => setLesionForm((p) => ({ ...p, dias_baja_estimados: e.target.value }))} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-sm text-muted-foreground">Profesional</Label>
-                    <Input value={lesionForm.profesional_externo_nombre} onChange={(e) => setLesionForm((p) => ({ ...p, profesional_externo_nombre: e.target.value }))} placeholder="Nombre del médico" />
+                    <Label className="text-sm text-muted-foreground">Fecha *</Label>
+                    <Input type="date" value={lesionForm.fecha_inicio} onChange={(e) => setLesionForm((p) => ({ ...p, fecha_inicio: e.target.value }))} />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1098,8 +1101,8 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
                     <Input value={lesionForm.descripcion} onChange={(e) => setLesionForm((p) => ({ ...p, descripcion: e.target.value }))} placeholder="Cómo ocurrió" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-sm text-muted-foreground">Diagnóstico</Label>
-                    <Input value={lesionForm.diagnostico} onChange={(e) => setLesionForm((p) => ({ ...p, diagnostico: e.target.value }))} />
+                    <Label className="text-sm text-muted-foreground">Diagnóstico médico</Label>
+                    <Input value={lesionForm.diagnostico_medico} onChange={(e) => setLesionForm((p) => ({ ...p, diagnostico_medico: e.target.value }))} />
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -1120,20 +1123,18 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium">
-                          {TIPOS_LESION.find((t) => t.value === l.tipo_lesion)?.label ?? l.tipo_lesion}
-                          {' — '}
-                          {ZONAS_CUERPO.find((z) => z.value === l.zona_cuerpo)?.label ?? l.zona_cuerpo}
+                          {l.tipos_lesion_nombre ?? l.tipo_lesion ?? 'Sin tipo'}
+                          {l.zona_corporal && ` — ${l.zona_corporal}`}
                         </p>
-                        <Badge variant={getBadgeVariant(l.estado)} className="text-[10px]">
-                          {ESTADOS_LESION.find((e) => e.value === l.estado)?.label ?? l.estado}
+                        <Badge variant={l.recuperada ? 'secondary' : 'destructive'} className="text-[10px]">
+                          {l.recuperada ? 'recuperada' : 'activa'}
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {l.fecha_lesion} · Gravedad: {GRAVEDADES.find((g) => g.value === l.gravedad)?.label ?? l.gravedad}
-                        {l.dias_baja_estimados && ` · ${l.dias_baja_estimados} días baja est.`}
-                        {l.contexto_actividad && ` · ${CONTEXTOS.find((c) => c.value === l.contexto_actividad)?.label}`}
+                        {l.fecha_inicio} · Gravedad: {GRAVEDADES.find((g) => g.value === l.gravedad)?.label ?? l.gravedad}
+                        {l.restriccion_actividad && ` · Restricción: ${l.restriccion_actividad}`}
                       </p>
-                      {l.diagnostico && <p className="text-xs text-muted-foreground mt-0.5">Dx: {l.diagnostico}</p>}
+                      {l.diagnostico_medico && <p className="text-xs text-muted-foreground mt-0.5">Dx: {l.diagnostico_medico}</p>}
                       <div className="relative mt-1">
                         <InlineAttachButton
                           storagePath={`personas/${personaId}/salud/lesiones/${l.id}`}
@@ -1186,7 +1187,7 @@ export function SeccionSalud({ personaId, tenantId }: SeccionSaludProps) {
                       <SelectContent>
                         {lesiones.map((l) => (
                           <SelectItem key={l.id} value={l.id}>
-                            {TIPOS_LESION.find((t) => t.value === l.tipo_lesion)?.label} - {l.fecha_lesion}
+                            {l.tipos_lesion_nombre ?? l.tipo_lesion ?? 'Sin tipo'} - {l.fecha_inicio}
                           </SelectItem>
                         ))}
                       </SelectContent>
