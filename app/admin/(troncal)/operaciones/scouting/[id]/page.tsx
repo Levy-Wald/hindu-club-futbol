@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { fetchScoutingFicha } from '../_lib/queries'
 import { fetchEquiposActivos } from '../../_lib/queries'
+import { fetchEvaluacionesPorFicha } from '@/modules/scouting/lib/queries'
 import { ScoutingFichaEditor } from './_components/scouting-ficha-editor'
+import { EvaluacionesPanel } from '@/modules/scouting/ui/evaluaciones-panel'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -30,11 +32,12 @@ const ESTADOS_VARIANT: Record<string, 'default' | 'secondary' | 'outline' | 'des
 export default async function ScoutingDetallePage({ params }: PageProps) {
   const { id } = await params
 
-  let ficha, equipos
+  let ficha, equipos, evaluaciones
   try {
-    ;[ficha, equipos] = await Promise.all([
+    ;[ficha, equipos, evaluaciones] = await Promise.all([
       fetchScoutingFicha(id),
       fetchEquiposActivos(),
+      fetchEvaluacionesPorFicha(id),
     ])
   } catch {
     notFound()
@@ -81,6 +84,14 @@ export default async function ScoutingDetallePage({ params }: PageProps) {
 
       {/* Editor */}
       <ScoutingFichaEditor ficha={ficha} equipos={equipos} />
+
+      {/* Evaluaciones multi-dimensionales */}
+      <EvaluacionesPanel
+        fichaId={ficha.id}
+        evaluacionesInicial={evaluaciones}
+        fichaPersonaId={ficha.persona_id}
+        fichaEstado={ficha.estado}
+      />
     </div>
   )
 }
