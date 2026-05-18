@@ -2,10 +2,10 @@
 
 ## Estado actual
 
-- **Tag actual:** `v0.27.11-fase-a-sprint-4` (2026-05-15)
-- **FASE 1-5 cerradas**, **FASE A COMPLETA** (todos los sprints A1-A6 + A4v2 DONE)
+- **Tag actual:** `v0.30.0-fase-b-completa` (2026-05-18)
+- **FASE 1-5 cerradas**, **FASE A COMPLETA**, **FASE B COMPLETA** (B1-B6 DONE)
 - **Tramo 2 (Hardening) CERRADO** (H1-H4 DONE)
-- **Proximo:** FASE B (Cerrar vertical CCBP)
+- **Proximo:** TRAMO 4 — Hardening post-FASE-B (H5-H7)
 - **DB:** 170+ tablas, 401 RLS policies, 137 funciones, 28 vistas, 102 triggers
 - **UI:** 96 paginas, ~215 server actions, ~195 componentes custom
 - **Tests E2E:** 102+ specs (Playwright), 65 unit tests (Vitest)

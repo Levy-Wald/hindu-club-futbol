@@ -44,6 +44,7 @@ import {
   UserCheck,
   PieChart,
   FolderKanban,
+  Map,
 } from 'lucide-react'
 
 export interface NavItemDef {
@@ -204,6 +205,7 @@ export const ccbpSection: NavSectionDef = {
     { label: 'Salud', href: '/admin/salud', icon: HeartPulse },
     { label: 'Reportes Deportivos', href: '/admin/reportes-deportivos', icon: BarChart3 },
     { label: 'Membresías', href: '/admin/membresias', icon: CreditCard },
+    { label: 'Mapa del Club', href: '/admin/club/mapa', icon: Map },
   ],
   collapsibles: [
     {

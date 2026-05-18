@@ -110,19 +110,20 @@ Cerradas en producción. Reubicadas en la taxonomía RFC-004 según corresponda.
 
 ---
 
-## TRAMO 3 — FASE B (Cerrar vertical CCBP)
+## TRAMO 3 — FASE B (Cerrar vertical CCBP) — ✅ DONE
 
 | ID | Tema | Estado | Tag esperado | Costo | RFC |
 |---|---|---|---|---|---|
-| B1 | Salud / Lesiones operativas | 📋 PLANNED | v0.28.1-fase-b-sprint-1 | 5h | RFC-003 |
-| B2 | Historial / Trayectoria deportiva | 📋 PLANNED | v0.28.2-fase-b-sprint-2 | 4h | RFC-003 |
-| B3 | Scouting + 11 dimensiones | 📋 PLANNED | v0.28.3-fase-b-sprint-3 | 8h | RFC-003 |
-| B4 | Reportes deportivos | 📋 PLANNED | v0.28.4-fase-b-sprint-4 | 6h | RFC-003 |
-| B5 | Activar Socios (suscripciones_membresía cross-vertical) | 📋 PLANNED | v0.29.0-fase-b-sprint-5 | 5h | — |
-| B6 | Cuerpo Técnico + Diagramación visual del club | 📋 PLANNED | v0.30.0-fase-b-completa | 6h | — |
+| B1 | Salud / Lesiones operativas | ✅ DONE | v0.28.1-fase-b-sprint-1 | 5h | RFC-003 |
+| B2 | Historial / Trayectoria deportiva | ✅ DONE | v0.28.2-fase-b-sprint-2 | 4h | RFC-003 |
+| B3 | Scouting + 11 dimensiones | ✅ DONE | v0.28.3-fase-b-sprint-3 | 8h | RFC-003 |
+| B4 | Reportes deportivos | ✅ DONE | v0.28.4-fase-b-sprint-4 | 6h | RFC-003 |
+| B5 | Activar Socios (suscripciones_membresía cross-vertical) | ✅ DONE | v0.29.0-fase-b-sprint-5 | 5h | — |
+| B6 | Cuerpo Técnico + Diagramación visual del club | ✅ DONE | v0.30.0-fase-b-completa | 6h | — |
 
-**Subtotal**: ~34h Code  
-**Tag de cierre**: `v0.30.0-fase-b-completa`
+**Subtotal**: ~34h Code
+**Tag de cierre**: `v0.30.0-fase-b-completa` (aplicado 18-may-2026)
+**Costo restante FASE B**: 0 — todos los sprints DONE
 
 ---
 
