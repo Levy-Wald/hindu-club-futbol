@@ -106,9 +106,7 @@ export function TopBar({ userEmail, personaId, personaNombre, onOpenPalette }: T
         <DropdownMenu>
           <DropdownMenuTrigger
             data-testid="user-avatar"
-            render={
-              <button type="button" className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
-            }
+            className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Avatar className="h-8 w-8 cursor-pointer">
               <AvatarFallback>{initials}</AvatarFallback>
@@ -124,12 +122,10 @@ export function TopBar({ userEmail, personaId, personaNombre, onOpenPalette }: T
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {personaId && (
-              <DropdownMenuItem onClick={() => router.push(`/admin/personas/${personaId}`)}>
-                <User className="mr-2 h-4 w-4" />
-                Mi perfil
-              </DropdownMenuItem>
-            )}
+            <DropdownMenuItem onClick={() => router.push('/admin/mi-perfil')}>
+              <User className="mr-2 h-4 w-4" />
+              Mi perfil
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />

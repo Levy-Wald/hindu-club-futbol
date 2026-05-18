@@ -52,6 +52,41 @@ export const SIDEBAR_CATALOG: SidebarItem[] = [
     orden: 40,
   },
 
+  // — GRUPO: Mi cuenta —
+  {
+    id: 'mi-perfil',
+    label: 'Mi perfil',
+    href: '/admin/mi-perfil',
+    icon: 'User',
+    capa: 'troncal',
+    estado: 'activo',
+    espacio: 'mi-dia',
+    grupo: 'Mi cuenta',
+    orden: 50,
+  },
+  {
+    id: 'mi-equipo',
+    label: 'Mi equipo',
+    href: '/admin/mi-equipo',
+    icon: 'Users',
+    capa: 'troncal',
+    estado: 'activo',
+    espacio: 'mi-dia',
+    grupo: 'Mi cuenta',
+    orden: 60,
+  },
+  {
+    id: 'mi-cuenta',
+    label: 'Mi cuenta',
+    href: '/admin/mi-cuenta',
+    icon: 'IdCard',
+    capa: 'troncal',
+    estado: 'activo',
+    espacio: 'mi-dia',
+    grupo: 'Mi cuenta',
+    orden: 70,
+  },
+
   // ═══════════════════════════════════════════════════════════════
   // ESPACIO: OPERACIÓN
   // ═══════════════════════════════════════════════════════════════
