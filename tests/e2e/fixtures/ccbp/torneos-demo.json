@@ -1,0 +1,11 @@
+[
+  {
+    "nombre": "DEMO_E2E_Torneo Apertura 2026",
+    "slug": "demo-e2e-torneo-apertura-2026",
+    "tipo": "interno",
+    "formato": "liga",
+    "temporada": "2026",
+    "estado": "en_curso",
+    "activo": true
+  }
+]

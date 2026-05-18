@@ -1,0 +1,3 @@
+[
+  { "nombre": "DEMO_E2E_Plan Mensual Futbol", "periodicidad": "mensual", "monto": 15000, "moneda": "ARS", "dia_vencimiento": 10, "activo": true }
+]

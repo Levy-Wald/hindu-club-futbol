@@ -1,0 +1,12 @@
+[
+  { "nombre": "DEMO_E2E_Juan", "apellido": "DEMO_E2E_Perez", "tipo_documento": "dni", "estado": "activo", "fuente_origen": "e2e_test" },
+  { "nombre": "DEMO_E2E_Carlos", "apellido": "DEMO_E2E_Lopez", "tipo_documento": "dni", "estado": "activo", "fuente_origen": "e2e_test" },
+  { "nombre": "DEMO_E2E_Martin", "apellido": "DEMO_E2E_Garcia", "tipo_documento": "dni", "estado": "activo", "fuente_origen": "e2e_test" },
+  { "nombre": "DEMO_E2E_Lucas", "apellido": "DEMO_E2E_Rodriguez", "tipo_documento": "dni", "estado": "activo", "fuente_origen": "e2e_test" },
+  { "nombre": "DEMO_E2E_Mateo", "apellido": "DEMO_E2E_Martinez", "tipo_documento": "dni", "estado": "activo", "fuente_origen": "e2e_test" },
+  { "nombre": "DEMO_E2E_Nicolas", "apellido": "DEMO_E2E_Fernandez", "tipo_documento": "dni", "estado": "activo", "fuente_origen": "e2e_test" },
+  { "nombre": "DEMO_E2E_Tomas", "apellido": "DEMO_E2E_Gonzalez", "tipo_documento": "dni", "estado": "activo", "fuente_origen": "e2e_test" },
+  { "nombre": "DEMO_E2E_Agustin", "apellido": "DEMO_E2E_Sanchez", "tipo_documento": "dni", "estado": "activo", "fuente_origen": "e2e_test" },
+  { "nombre": "DEMO_E2E_Franco", "apellido": "DEMO_E2E_Romero", "tipo_documento": "dni", "estado": "activo", "fuente_origen": "e2e_test" },
+  { "nombre": "DEMO_E2E_Santiago", "apellido": "DEMO_E2E_Diaz", "tipo_documento": "dni", "estado": "activo", "fuente_origen": "e2e_test" }
+]

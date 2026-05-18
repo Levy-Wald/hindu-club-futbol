@@ -1,0 +1,4 @@
+[
+  { "nombre": "DEMO_E2E_Equipo Alpha", "disciplina_slug": "futbol", "activo": true },
+  { "nombre": "DEMO_E2E_Equipo Beta", "disciplina_slug": "futbol", "activo": true }
+]
