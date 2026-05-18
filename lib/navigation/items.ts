@@ -202,6 +202,7 @@ export const ccbpSection: NavSectionDef = {
     { label: 'Cuerpo Tecnico', href: '/admin/equipos/cuerpo-tecnico', icon: Briefcase },
     { label: 'Padrones', href: '/admin/padrones', icon: ClipboardList },
     { label: 'Salud', href: '/admin/salud', icon: HeartPulse },
+    { label: 'Reportes Deportivos', href: '/admin/reportes-deportivos', icon: BarChart3 },
   ],
   collapsibles: [
     {
