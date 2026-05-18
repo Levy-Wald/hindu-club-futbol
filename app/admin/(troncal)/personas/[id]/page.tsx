@@ -10,6 +10,7 @@ import { PersonaAvatar } from '../_components/persona-avatar'
 import { PersonaEditor } from './_components/persona-editor'
 import { ToggleActivoButton } from './_components/toggle-activo-button'
 import { EliminarPersonaButton } from './_components/eliminar-persona-button'
+import { CapabilityGate } from '@/components/capability-gate'
 import { ArrowLeft, History } from 'lucide-react'
 
 interface PageProps {
@@ -64,11 +65,15 @@ export default async function PersonaDetallePage({ params, searchParams }: PageP
               </Badge>
             </div>
           </div>
-          <ToggleActivoButton
-            personaId={persona.id}
-            personaEstado={persona.estado}
-          />
-          <EliminarPersonaButton personaId={persona.id} />
+          <CapabilityGate capability="personas.write">
+            <ToggleActivoButton
+              personaId={persona.id}
+              personaEstado={persona.estado}
+            />
+          </CapabilityGate>
+          <CapabilityGate capability="personas.delete">
+            <EliminarPersonaButton personaId={persona.id} />
+          </CapabilityGate>
           <Link href={`/admin/personas/${persona.id}/historial`} className="shrink-0">
             <Button variant="outline" size="sm">
               <History className="h-3.5 w-3.5 sm:mr-2" />

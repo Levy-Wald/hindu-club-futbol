@@ -37,10 +37,12 @@ const SPACE_ICONS: Record<SpaceId, LucideIcon> = {
 
 interface TopBarProps {
   userEmail?: string
+  personaId?: string
+  personaNombre?: string
   onOpenPalette: () => void
 }
 
-export function TopBar({ userEmail, onOpenPalette }: TopBarProps) {
+export function TopBar({ userEmail, personaId, personaNombre, onOpenPalette }: TopBarProps) {
   const router = useRouter()
   const { visibleSpaces, activeSpace, setActiveSpace } = useNavigation()
 
@@ -51,7 +53,16 @@ export function TopBar({ userEmail, onOpenPalette }: TopBarProps) {
     router.refresh()
   }
 
-  const initials = userEmail ? userEmail.substring(0, 2).toUpperCase() : 'U'
+  const initials = personaNombre
+    ? personaNombre
+        .split(' ')
+        .map(w => w[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
+    : userEmail
+      ? userEmail.substring(0, 2).toUpperCase()
+      : 'U'
 
   return (
     <header className="flex h-14 items-center border-b px-4 bg-background shrink-0 gap-2">
@@ -100,12 +111,26 @@ export function TopBar({ userEmail, onOpenPalette }: TopBarProps) {
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>{userEmail || 'Usuario'}</DropdownMenuLabel>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                {personaNombre && (
+                  <p className="text-sm font-medium leading-none">{personaNombre}</p>
+                )}
+                <p className="text-xs text-muted-foreground">{userEmail || 'Usuario'}</p>
+              </div>
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push('/admin/mi-perfil')}>
-              <User className="mr-2 h-4 w-4" />
-              Mi perfil
-            </DropdownMenuItem>
+            {personaId ? (
+              <DropdownMenuItem onClick={() => router.push(`/admin/personas/${personaId}`)}>
+                <User className="mr-2 h-4 w-4" />
+                Mi perfil
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={() => router.push('/admin/mi-perfil')}>
+                <User className="mr-2 h-4 w-4" />
+                Mi perfil
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={() => router.push('/admin/mi-equipo')}>
               <Shield className="mr-2 h-4 w-4" />
               Mi equipo

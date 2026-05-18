@@ -1,0 +1,40 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+
+const TENANT_ID = '11111111-1111-1111-1111-111111111111'
+
+export async function GET(req: NextRequest) {
+  const personaId = req.nextUrl.searchParams.get('personaId')
+  if (!personaId) return NextResponse.json({ data: null })
+
+  const supabase = await createClient()
+  const { data: sub } = await (supabase as any)
+    .from('suscripciones')
+    .select('tipo, estado, monto, plan:plan_slug')
+    .eq('tenant_id', TENANT_ID)
+    .eq('persona_id', personaId)
+    .is('deleted_at', null)
+    .in('estado', ['activo', 'suspendido'])
+    .limit(1)
+    .maybeSingle()
+
+  if (!sub) return NextResponse.json({ data: null })
+
+  const { data: proxCuota } = await (supabase as any)
+    .from('cuotas_emitidas')
+    .select('fecha_vencimiento, monto')
+    .eq('persona_id', personaId)
+    .eq('estado', 'pendiente')
+    .order('fecha_vencimiento', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+
+  return NextResponse.json({
+    data: {
+      plan_nombre: sub.plan ?? sub.tipo ?? 'Membresía',
+      estado: sub.estado,
+      proxima_cuota_fecha: proxCuota?.fecha_vencimiento ?? null,
+      proxima_cuota_monto: proxCuota?.monto ?? null,
+    },
+  })
+}

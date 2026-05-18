@@ -25,6 +25,7 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import Link from 'next/link'
+import { CapabilityGate } from '@/components/capability-gate'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
@@ -320,38 +321,44 @@ export default async function FinanzasDashboardPage() {
       </div>
 
       {/* Quick actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Acciones rapidas</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-3">
-          <Button render={<Link href="/admin/finanzas/movimientos/nuevo?tipo=ingreso" />}>
-            <Plus className="h-4 w-4" />
-            Nuevo Ingreso
-          </Button>
-          <Button
-            variant="destructive"
-            render={<Link href="/admin/finanzas/movimientos/nuevo?tipo=egreso" />}
-          >
-            <Minus className="h-4 w-4" />
-            Nuevo Egreso
-          </Button>
-          <Button
-            variant="outline"
-            render={<Link href="/admin/finanzas/transferencias/nueva" />}
-          >
-            <ArrowRightLeft className="h-4 w-4" />
-            Transferencia
-          </Button>
-          <Button
-            variant="secondary"
-            render={<Link href="/admin/finanzas/cuotas/emitir" />}
-          >
-            <Receipt className="h-4 w-4" />
-            Emitir Cuotas
-          </Button>
-        </CardContent>
-      </Card>
+      <CapabilityGate anyOf={['finanzas.write', 'cobranza.write']}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Acciones rapidas</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-3">
+            <CapabilityGate capability="finanzas.write">
+              <Button render={<Link href="/admin/finanzas/movimientos/nuevo?tipo=ingreso" />}>
+                <Plus className="h-4 w-4" />
+                Nuevo Ingreso
+              </Button>
+              <Button
+                variant="destructive"
+                render={<Link href="/admin/finanzas/movimientos/nuevo?tipo=egreso" />}
+              >
+                <Minus className="h-4 w-4" />
+                Nuevo Egreso
+              </Button>
+              <Button
+                variant="outline"
+                render={<Link href="/admin/finanzas/transferencias/nueva" />}
+              >
+                <ArrowRightLeft className="h-4 w-4" />
+                Transferencia
+              </Button>
+            </CapabilityGate>
+            <CapabilityGate capability="cobranza.write">
+              <Button
+                variant="secondary"
+                render={<Link href="/admin/finanzas/cuotas/emitir" />}
+              >
+                <Receipt className="h-4 w-4" />
+                Emitir Cuotas
+              </Button>
+            </CapabilityGate>
+          </CardContent>
+        </Card>
+      </CapabilityGate>
 
       {/* Ultimos movimientos */}
       <Card>

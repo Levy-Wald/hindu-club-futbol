@@ -9,6 +9,7 @@ import { ImportButton } from './_components/import-button'
 import { ExportButton } from './_components/export-button'
 import { PersonasVistas } from './_components/personas-vistas'
 import { DownloadTemplateButton } from '@/components/ui/download-template-button'
+import { CapabilityGate } from '@/components/capability-gate'
 import { Button } from '@/components/ui/button'
 import { Upload } from 'lucide-react'
 
@@ -38,19 +39,23 @@ export default async function PersonasPage({ searchParams }: PageProps) {
         <h1 className="text-xl sm:text-2xl font-bold">Personas</h1>
         <div className="flex items-center gap-2">
           <PersonasVistas />
-          <DownloadTemplateButton
-            headers={['nombre', 'apellido', 'numero_documento', 'email_principal', 'telefono_principal', 'fecha_nacimiento', 'genero', 'cuil_cuit', 'tipo_documento', 'direccion_calle', 'direccion_ciudad', 'direccion_provincia']}
-            filename="modelo_personas.csv"
-            sampleRow={['Juan', 'Pérez', '12345678', 'juan@email.com', '1155001234', '1990-01-15', 'M', '20-12345678-9', 'dni', 'Av. Libertador 1234', 'Buenos Aires', 'CABA']}
-          />
-          <ExportButton />
-          <Link href="/admin/personas/importar">
-            <Button variant="outline" size="sm">
-              <Upload className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">Importar</span>
-            </Button>
-          </Link>
-          <CrearPersonaSheet />
+          <CapabilityGate capability="personas.admin">
+            <DownloadTemplateButton
+              headers={['nombre', 'apellido', 'numero_documento', 'email_principal', 'telefono_principal', 'fecha_nacimiento', 'genero', 'cuil_cuit', 'tipo_documento', 'direccion_calle', 'direccion_ciudad', 'direccion_provincia']}
+              filename="modelo_personas.csv"
+              sampleRow={['Juan', 'Pérez', '12345678', 'juan@email.com', '1155001234', '1990-01-15', 'M', '20-12345678-9', 'dni', 'Av. Libertador 1234', 'Buenos Aires', 'CABA']}
+            />
+            <ExportButton />
+            <Link href="/admin/personas/importar">
+              <Button variant="outline" size="sm">
+                <Upload className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Importar</span>
+              </Button>
+            </Link>
+          </CapabilityGate>
+          <CapabilityGate capability="personas.write">
+            <CrearPersonaSheet />
+          </CapabilityGate>
         </div>
       </div>
 

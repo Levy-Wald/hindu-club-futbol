@@ -3,6 +3,7 @@ import { fetchScoutingFichas } from './_lib/queries'
 import { fetchEquiposActivos } from '../_lib/queries'
 import { ScoutingTable } from './_components/scouting-table'
 import { CrearScoutingDialog } from './_components/crear-scouting-dialog'
+import { CapabilityGate } from '@/components/capability-gate'
 
 interface PageProps {
   searchParams: Promise<Record<string, string | undefined>>
@@ -23,7 +24,9 @@ export default async function ScoutingPage({ searchParams }: PageProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold">Scouting</h1>
-        <CrearScoutingDialog equipos={equipos} />
+        <CapabilityGate capability="ccbp.scouting.write">
+          <CrearScoutingDialog equipos={equipos} />
+        </CapabilityGate>
       </div>
 
       <Suspense>

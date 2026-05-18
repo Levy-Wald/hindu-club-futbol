@@ -14,6 +14,7 @@ import { CalendarioPanel } from '@/modules/equipos/ui/components/horarios-panel'
 import { IndumentariaPanel } from '@/modules/equipos/ui/components/indumentaria-panel'
 import { EliminarEquipoButton } from '@/modules/equipos/ui/components/eliminar-equipo-button'
 import { CuerpoTecnicoTab } from '@/modules/equipos/ui/components/cuerpo-tecnico-tab'
+import { CapabilityGate } from '@/components/capability-gate'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -308,32 +309,36 @@ export default async function EquipoDetallePage({ params }: PageProps) {
         {/* Config Tab */}
         <TabsContent value="config">
           <div className="space-y-6 pt-4">
-            <EditarEquipoForm
-              equipo={{
-                id: equipo.id,
-                nombre: equipo.nombre,
-                disciplina_slug: equipo.disciplina_slug,
-                modalidad: equipo.modalidad,
-                activo: equipo.activo,
-                color_principal: equipo.color_principal ?? null,
-                color_secundario: equipo.color_secundario ?? null,
-                categoria_id: equipo.categoria_id ?? null,
-                entidad_id: equipo.entidad_id ?? null,
-                torneo: equipo.torneo ?? null,
-              }}
-              categorias={categorias.map((c) => ({
-                id: c.id,
-                nombre_display: c.nombre_display,
-                disciplina_slug: c.disciplina_slug,
-                edad_min: (c as unknown as { edad_min: number | null }).edad_min,
-                edad_max: (c as unknown as { edad_max: number | null }).edad_max,
-              }))}
-              federaciones={federaciones}
-            />
-            <div className="border-t pt-6">
-              <p className="text-sm text-muted-foreground mb-3">Zona de peligro</p>
-              <EliminarEquipoButton equipoId={equipo.id} equipoNombre={equipo.nombre} />
-            </div>
+            <CapabilityGate capability="ccbp.plantel.admin">
+              <EditarEquipoForm
+                equipo={{
+                  id: equipo.id,
+                  nombre: equipo.nombre,
+                  disciplina_slug: equipo.disciplina_slug,
+                  modalidad: equipo.modalidad,
+                  activo: equipo.activo,
+                  color_principal: equipo.color_principal ?? null,
+                  color_secundario: equipo.color_secundario ?? null,
+                  categoria_id: equipo.categoria_id ?? null,
+                  entidad_id: equipo.entidad_id ?? null,
+                  torneo: equipo.torneo ?? null,
+                }}
+                categorias={categorias.map((c) => ({
+                  id: c.id,
+                  nombre_display: c.nombre_display,
+                  disciplina_slug: c.disciplina_slug,
+                  edad_min: (c as unknown as { edad_min: number | null }).edad_min,
+                  edad_max: (c as unknown as { edad_max: number | null }).edad_max,
+                }))}
+                federaciones={federaciones}
+              />
+            </CapabilityGate>
+            <CapabilityGate capability="ccbp.plantel.admin">
+              <div className="border-t pt-6">
+                <p className="text-sm text-muted-foreground mb-3">Zona de peligro</p>
+                <EliminarEquipoButton equipoId={equipo.id} equipoNombre={equipo.nombre} />
+              </div>
+            </CapabilityGate>
           </div>
         </TabsContent>
       </Tabs>
