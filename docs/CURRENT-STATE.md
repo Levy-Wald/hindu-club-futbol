@@ -263,16 +263,24 @@ CI/CD
 \- E2E NO en CI (ADR-053) — se corren localmente
 \- Badge CI en README.md
 
+PERFORMANCE (H7 Audit)
+\======================
+
+\- pg_stat_statements: 501 queries, top queries son infra Supabase (no app)
+\- 0 indices faltantes detectados (347 existentes cubren todo)
+\- 7 vistas criticas: todas sub-2ms
+\- Bundle: 7.8MB JS, 171 chunks, max 440KB
+\- Estado: ACEPTABLE, riesgo BAJO para demo
+
 PRÓXIMOS PASOS INMEDIATOS
 \==========================
 
-1\. Sprint H7 — Performance audit.
-2\. FASE C — Demo a Hindu.
+1\. FASE C — Demo a Hindu (10-14 dias calendario, 0h Code).
 
 ÚLTIMA ACTUALIZACIÓN
 \=====================
 
-18 de mayo de 2026\. Versión 2.3 (post Sprint H6).
-Próxima revisión: al cierre del Sprint H7.
+18 de mayo de 2026\. Versión 2.4 (post Sprint H7, cierre Tramo 4).
+Próxima revisión: al cierre de FASE C.
 
 Quien actualiza este doc: Claude Code en el cierre de cada sprint (PROMPT-TEMPLATE PARTE 10.1). El arquitecto verifica vía MCP.  

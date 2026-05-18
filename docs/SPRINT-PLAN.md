@@ -133,7 +133,7 @@ Cerradas en producción. Reubicadas en la taxonomía RFC-004 según corresponda.
 |---|---|---|---|---|
 | H5 | Tests E2E end-to-end CCBP completo | ✅ DONE | v0.30.1-hardening-h5 | 3-4h |
 | H6 | Smoke tests automáticos pre-deploy en CI | ✅ DONE | v0.30.2-hardening-h6 | 2-3h |
-| H7 | Performance audit | 📋 PLANNED | v0.30.5-hardening-post-fase-b | 2h |
+| H7 | Performance audit | ✅ DONE | v0.30.5-hardening-post-fase-b | 2h |
 
 **Subtotal**: ~7-9h Code  
 **Tag de cierre**: `v0.30.5-hardening-post-fase-b`
