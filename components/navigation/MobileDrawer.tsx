@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/sheet'
 import { useNavigation } from './navigation-provider'
 import { SidebarGroup } from './SidebarGroup'
-import type { SpaceId } from '@/lib/navigation/types'
+import type { SpaceId, SidebarCapa } from '@/lib/navigation/types'
 import { getVisibleSidebarItems, groupSidebarItems } from '@/lib/navigation/filter'
 
 const SPACE_ICONS: Record<SpaceId, LucideIcon> = {
@@ -45,7 +45,13 @@ export function MobileDrawer() {
     mobileSpace,
     userAttributes
   )
-  const groups = groupSidebarItems(items)
+  const capaGroups = groupSidebarItems(items)
+
+  const CAPA_COLORS: Record<SidebarCapa, string> = {
+    troncal: 'border-l-blue-500',
+    cross_vertical: 'border-l-amber-500',
+    vertical_ccbp: 'border-l-emerald-500',
+  }
 
   function handleSpaceSelect(space: SpaceId) {
     setMobileSpace(space)
@@ -105,10 +111,19 @@ export function MobileDrawer() {
               })}
             </div>
             <nav className="p-2 space-y-1 overflow-y-auto max-h-[calc(100vh-8rem)]">
-              {groups.map(group => (
-                <SidebarGroup key={group.grupo} label={group.grupo} items={group.items} />
+              {capaGroups.map(capaGroup => (
+                <div key={capaGroup.capa} className={cn('border-l-2 pl-1 mb-2', CAPA_COLORS[capaGroup.capa])}>
+                  <div className="px-2 pt-3 pb-1">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">
+                      {capaGroup.label}
+                    </span>
+                  </div>
+                  {capaGroup.subGroups.map(sg => (
+                    <SidebarGroup key={sg.grupo} label={sg.grupo} items={sg.items} />
+                  ))}
+                </div>
               ))}
-              {groups.length === 0 && (
+              {capaGroups.length === 0 && (
                 <div className="text-sm text-muted-foreground text-center py-8 px-4">
                   No tenés items en este espacio.
                 </div>

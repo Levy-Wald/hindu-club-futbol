@@ -35,7 +35,7 @@ export function MiMembresiaWidget() {
       loading={loading}
       empty={!data}
       emptyMessage="No tenés una membresía activa."
-      href={personaId ? `/admin/personas/${personaId}?tab=membresia` : undefined}
+      href={personaId ? `/admin/personas/${personaId}?tab=suscripciones` : undefined}
     >
       {data && (
         <div className="space-y-2">

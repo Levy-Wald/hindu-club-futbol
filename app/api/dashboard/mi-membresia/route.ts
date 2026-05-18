@@ -10,15 +10,17 @@ export async function GET(req: NextRequest) {
   const supabase = await createClient()
   const { data: sub } = await (supabase as any)
     .from('suscripciones')
-    .select('tipo, estado, monto, plan:plan_slug')
+    .select('tipo, estado, monto_pactado, plan:plan_id(nombre)')
     .eq('tenant_id', TENANT_ID)
     .eq('persona_id', personaId)
     .is('deleted_at', null)
-    .in('estado', ['activo', 'suspendido'])
+    .in('estado', ['activa', 'suspendida'])
     .limit(1)
     .maybeSingle()
 
   if (!sub) return NextResponse.json({ data: null })
+
+  const plan = Array.isArray(sub.plan) ? sub.plan[0] : sub.plan
 
   const { data: proxCuota } = await (supabase as any)
     .from('cuotas_emitidas')
@@ -31,7 +33,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     data: {
-      plan_nombre: sub.plan ?? sub.tipo ?? 'Membresía',
+      plan_nombre: plan?.nombre ?? sub.tipo ?? 'Membresía',
       estado: sub.estado,
       proxima_cuota_fecha: proxCuota?.fecha_vencimiento ?? null,
       proxima_cuota_monto: proxCuota?.monto ?? null,

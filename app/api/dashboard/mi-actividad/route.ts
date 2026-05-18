@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
 
   const { data } = await (supabase as any)
     .from('personas_equipos')
-    .select('rol_equipo_slug, equipo:equipo_id(nombre, categoria:categoria_slug(nombre_display))')
+    .select('rol_equipo_slug, equipo:equipo_id(nombre, categoria:categoria_id(nombre_display))')
     .eq('tenant_id', TENANT_ID)
     .eq('persona_id', personaId)
     .eq('activo', true)

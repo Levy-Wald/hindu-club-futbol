@@ -2,13 +2,13 @@
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import type { SidebarItem, Space, SpaceId } from '@/lib/navigation/types'
-import { getVisibleSidebarItems, groupSidebarItems } from '@/lib/navigation/filter'
+import { getVisibleSidebarItems, groupSidebarItems, type SidebarCapaGroup } from '@/lib/navigation/filter'
 
 interface NavigationContextValue {
   activeSpace: SpaceId
   setActiveSpace: (space: SpaceId) => void
   visibleSpaces: Space[]
-  sidebarGroups: { grupo: string; items: SidebarItem[] }[]
+  sidebarGroups: SidebarCapaGroup[]
   allItems: SidebarItem[]
   userCapabilities: string[]
   userAttributes: string[]
