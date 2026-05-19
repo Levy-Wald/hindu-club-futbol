@@ -17,7 +17,8 @@ export default async function MiCuentaPage() {
     .from('personas')
     .select('id, nombre, apellido, foto_url, dni, email, telefono, fecha_nacimiento, created_at')
     .eq('user_id', user.id)
-    .single()
+    .is('deleted_at', null)
+    .maybeSingle()
 
   if (!persona) {
     return (

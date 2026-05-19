@@ -5,6 +5,7 @@ export const SPACES: Space[] = [
   { id: 'operacion', label: 'Operación', icon: 'Briefcase' },
   { id: 'gestion', label: 'Gestión', icon: 'BarChart3' },
   { id: 'setup', label: 'Setup', icon: 'Settings' },
+  { id: 'plataforma', label: 'Plataforma', icon: 'Layers' },
 ]
 
 export const SPACE_VISIBILITY_RULES: Record<SpaceId, SpaceVisibilityRule> = {
@@ -68,5 +69,8 @@ export const SPACE_VISIBILITY_RULES: Record<SpaceId, SpaceVisibilityRule> = {
       'atributos_custom.admin',
       'ccbp.mapa.admin',
     ],
+  },
+  plataforma: {
+    visible_if_has_attribute: 'sistema.admin',
   },
 }

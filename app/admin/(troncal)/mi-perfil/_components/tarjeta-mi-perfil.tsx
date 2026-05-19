@@ -1,7 +1,6 @@
 'use client'
 
 import { TarjetaJugador } from '../../mi-equipo/_components/tarjeta-jugador'
-import { Button } from '@/components/ui/button'
 
 interface TarjetaJugadorMiPerfilProps {
   persona: {
@@ -49,7 +48,6 @@ export function TarjetaJugadorMiPerfil({ persona, asignacion }: TarjetaJugadorMi
         categoria: categoria?.nombre_display ?? null,
         torneo: equipo.torneo as string | null,
       }}
-      triggerElement={<Button variant="outline" size="sm" className="gap-1.5 shrink-0" />}
       triggerLabel="Mi tarjeta"
     />
   )

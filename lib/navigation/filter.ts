@@ -20,6 +20,9 @@ export function getVisibleSidebarItems(
   return SIDEBAR_CATALOG.filter(item => {
     if (item.espacio !== espacioActivo) return false
 
+    // Próximamente items always visible (owner wants full roadmap visibility)
+    if (item.estado === 'proximamente') return true
+
     if (item.modulo_slug && !tenantModulos.includes(item.modulo_slug)) return false
 
     if (item.capability_requerida && !admin && !userCapabilities.includes(item.capability_requerida))
@@ -39,6 +42,9 @@ export function getVisibleSpaces(userCapabilities: string[], userAttributes: str
     if (admin) return true
     const rules = SPACE_VISIBILITY_RULES[space.id]
     if (rules.visible_if === 'always') return true
+    if (rules.visible_if_has_attribute) {
+      return userAttributes.includes(rules.visible_if_has_attribute)
+    }
     if (rules.visible_if_has_any) {
       return rules.visible_if_has_any.some(cap => userCapabilities.includes(cap))
     }
@@ -57,12 +63,22 @@ export interface SidebarCapaGroup {
   subGroups: SidebarSubGroup[]
 }
 
-const CAPA_ORDER: SidebarItem['capa'][] = ['troncal', 'cross_vertical', 'vertical_ccbp']
+const CAPA_ORDER: SidebarItem['capa'][] = [
+  'troncal',
+  'cross_vertical',
+  'vertical_ccbp',
+  'integracion',
+  'plataforma_saas',
+  'ia_nativa',
+]
 
 const CAPA_LABELS: Record<SidebarItem['capa'], string> = {
   troncal: 'Troncal',
   cross_vertical: 'Modular',
   vertical_ccbp: 'Vertical CCBP',
+  integracion: 'Integraciones',
+  plataforma_saas: 'Plataforma SaaS',
+  ia_nativa: 'IA Nativa',
 }
 
 export function groupSidebarItems(items: SidebarItem[]): SidebarCapaGroup[] {
