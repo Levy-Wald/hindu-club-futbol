@@ -7,6 +7,7 @@ import {
   Briefcase,
   BarChart3,
   Settings,
+  Layers,
   Search,
   LogOut,
   User,
@@ -32,6 +33,7 @@ const SPACE_ICONS: Record<SpaceId, LucideIcon> = {
   operacion: Briefcase,
   gestion: BarChart3,
   setup: Settings,
+  plataforma: Layers,
 }
 
 interface TopBarProps {
@@ -104,13 +106,15 @@ export function TopBar({ userEmail, personaId, personaNombre, onOpenPalette }: T
         </button>
         <ThemeToggle />
         <DropdownMenu>
-          <DropdownMenuTrigger
-            data-testid="user-avatar"
-            className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <Avatar className="h-8 w-8 cursor-pointer">
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
+          <DropdownMenuTrigger asChild>
+            <button
+              data-testid="user-avatar"
+              className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Avatar className="h-8 w-8 cursor-pointer">
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
+            </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="font-normal">

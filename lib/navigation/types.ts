@@ -1,6 +1,12 @@
-export type SpaceId = 'mi-dia' | 'operacion' | 'gestion' | 'setup'
+export type SpaceId = 'mi-dia' | 'operacion' | 'gestion' | 'setup' | 'plataforma'
 
-export type SidebarCapa = 'troncal' | 'cross_vertical' | 'vertical_ccbp'
+export type SidebarCapa =
+  | 'troncal'
+  | 'cross_vertical'
+  | 'vertical_ccbp'
+  | 'integracion'
+  | 'plataforma_saas'
+  | 'ia_nativa'
 
 export type SidebarEstado = 'activo' | 'proximamente'
 
@@ -24,6 +30,7 @@ export interface SidebarItem {
 export interface SpaceVisibilityRule {
   visible_if?: 'always'
   visible_if_has_any?: string[]
+  visible_if_has_attribute?: string
 }
 
 export interface Space {

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Menu, Home, Briefcase, BarChart3, Settings, type LucideIcon } from 'lucide-react'
+import { Menu, Home, Briefcase, BarChart3, Settings, Layers, type LucideIcon } from 'lucide-react'
 import {
   Sheet,
   SheetTrigger,
@@ -22,6 +22,7 @@ const SPACE_ICONS: Record<SpaceId, LucideIcon> = {
   operacion: Briefcase,
   gestion: BarChart3,
   setup: Settings,
+  plataforma: Layers,
 }
 
 export function MobileDrawer() {
@@ -51,6 +52,9 @@ export function MobileDrawer() {
     troncal: 'border-l-blue-500',
     cross_vertical: 'border-l-amber-500',
     vertical_ccbp: 'border-l-emerald-500',
+    integracion: 'border-l-purple-500',
+    plataforma_saas: 'border-l-indigo-500',
+    ia_nativa: 'border-l-cyan-500',
   }
 
   function handleSpaceSelect(space: SpaceId) {

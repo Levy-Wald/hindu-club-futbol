@@ -40,11 +40,10 @@ interface TarjetaJugadorProps {
     categoria: string | null
     torneo: string | null
   }
-  triggerElement?: React.ReactElement
   triggerLabel?: string
 }
 
-export function TarjetaJugador({ jugador, equipo, triggerElement, triggerLabel }: TarjetaJugadorProps) {
+export function TarjetaJugador({ jugador, equipo, triggerLabel }: TarjetaJugadorProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const [downloading, setDownloading] = useState(false)
 
@@ -95,9 +94,11 @@ export function TarjetaJugador({ jugador, equipo, triggerElement, triggerLabel }
 
   return (
     <Dialog>
-      <DialogTrigger render={triggerElement || <Button variant="ghost" size="sm" className="gap-1.5" />}>
-        <CreditCard className="h-3.5 w-3.5" />
-        <span className="hidden sm:inline">{triggerLabel || 'Tarjeta'}</span>
+      <DialogTrigger>
+        <Button variant="ghost" size="sm" className="gap-1.5">
+          <CreditCard className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">{triggerLabel || 'Tarjeta'}</span>
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

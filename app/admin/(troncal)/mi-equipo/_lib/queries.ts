@@ -16,7 +16,7 @@ export async function fetchMiEquipo() {
 
   if (!persona) return null
 
-  const { data: asignacion } = await supabase
+  const { data: asignaciones } = await supabase
     .from('personas_equipos')
     .select(`
       id, rol_equipo_slug, dorsal, posicion,
@@ -31,12 +31,11 @@ export async function fetchMiEquipo() {
     `)
     .eq('persona_id', persona.id)
     .eq('activo', true)
-    .limit(1)
-    .maybeSingle()
+    .order('created_at', { ascending: false })
 
-  if (!asignacion) return null
+  if (!asignaciones || asignaciones.length === 0) return null
 
-  return { persona, asignacion }
+  return { persona, asignaciones }
 }
 
 export async function fetchPlantelEquipo(equipoId: string) {

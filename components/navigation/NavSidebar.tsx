@@ -9,6 +9,9 @@ const CAPA_COLORS: Record<SidebarCapa, string> = {
   troncal: 'border-l-blue-500',
   cross_vertical: 'border-l-amber-500',
   vertical_ccbp: 'border-l-emerald-500',
+  integracion: 'border-l-purple-500',
+  plataforma_saas: 'border-l-indigo-500',
+  ia_nativa: 'border-l-cyan-500',
 }
 
 export function NavSidebar() {
