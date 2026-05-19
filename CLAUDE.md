@@ -2,19 +2,20 @@
 
 ## Estado actual
 
-- **Tag actual:** `v0.30.5-tramo-4-cierre-formal` (2026-05-18)
-- **Tags vigentes:** v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.1 (H5), v0.30.2 (H6), v0.30.5 (H7/Tramo 4)
+- **Tag actual:** `v0.30.14-cierre-pre-fase-c` (2026-05-19)
+- **Tags vigentes:** v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.5 (Tramo 4), v0.30.14 (B12.3/cierre pre-FASE C)
 - **FASE 1-5 cerradas**, **FASE A COMPLETA**, **FASE B COMPLETA** (B1-B6 DONE)
 - **Tramo 2 (Hardening) CERRADO** (H1-H4 DONE)
 - **Tramo 4 (Hardening post-B) CERRADO** (H5-H7 DONE)
+- **B7-FIX a B12.3 CERRADOS** (smoke fixes + capabilities + nav + sidebar 103 items)
 - **Proximo:** FASE C — Demo a Hindu (validacion humana, 0h Code)
-- **DB:** 170+ tablas, 401 RLS policies, 137 funciones, 28 vistas, 102 triggers
-- **UI:** 96 paginas, ~215 server actions, ~195 componentes custom
+- **DB:** 170+ tablas, 401 RLS policies, 137 funciones, 28 vistas, 102 triggers, 25 modulos roadmap
+- **UI:** 96 paginas, ~215 server actions, ~195 componentes custom, 103 sidebar items, 5 espacios
 - **Tests E2E:** 102+ specs (Playwright), 65 unit tests (Vitest)
 - **CI:** GitHub Actions (lint + typecheck + unit + build)
 - **Hindu:** 2,390 personas, 7 equipos, 61 com_envios, 18 plantillas sistema, 42+ modulos activos
 - **Arquitectura:** 4 capas — Troncal + Cross-vertical + Vertical + Conectores (RFC-004)
-- **53 ADRs** documentados (001-053)
+- **60+ ADRs** documentados (001-060+)
 
 ## Bloqueos operativos vigentes
 

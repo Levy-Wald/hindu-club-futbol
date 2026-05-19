@@ -275,8 +275,17 @@ PERFORMANCE (H7 Audit)
 ESTADO ACTUAL
 \=============
 
-Tramo 4 (Hardening post-FASE-B) CERRADO. Sistema listo para FASE C.
-Tags vigentes: v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.1 (H5), v0.30.2 (H6), v0.30.5 (H7/Tramo 4).
+Tramo 4 (Hardening post-FASE-B) CERRADO. B7-FIX a B12.3 CERRADOS. Sistema listo para FASE C.
+Tags vigentes: v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.5 (Tramo 4), v0.30.14 (B12.3/cierre pre-FASE C).
+
+B12.3 (v0.30.14-cierre-pre-fase-c, 19-may-2026):
+- +25 modulos RFC-005 v2.0 en catalogo_modulos (conectores, verticales, plataforma, API, IA)
+- SIDEBAR_CATALOG reescrito: 103 items, 5 espacios (incl. Plataforma)
+- Fix dropdown-menu hydration (@radix-ui/react-dropdown-menu)
+- Fix mi-cuenta (.single() -> .maybeSingle() con deleted_at)
+- Fix mi-equipo (refactor a lista N equipos)
+- Fix tarjeta-jugador (removido render prop DialogTrigger)
+- 2 migrations retroactivas sincronizadas con DB
 
 PRÓXIMOS PASOS INMEDIATOS
 \==========================
@@ -287,7 +296,7 @@ PRÓXIMOS PASOS INMEDIATOS
 ÚLTIMA ACTUALIZACIÓN
 \=====================
 
-18 de mayo de 2026\. Versión 2.5 (cierre formal Tramo 4).
+19 de mayo de 2026\. Versión 2.6 (cierre B12.3 + tag v0.30.14).
 Próxima revisión: al cierre de FASE C.
 
 Quien actualiza este doc: Claude Code en el cierre de cada sprint (PROMPT-TEMPLATE PARTE 10.1). El arquitecto verifica vía MCP.  
