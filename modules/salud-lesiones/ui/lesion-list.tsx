@@ -13,8 +13,8 @@ import { createClient } from '@/lib/supabase/client'
 import { marcarRecuperada, softDeleteLesion } from '../lib/actions'
 import { LesionForm } from './lesion-form'
 import type { TipoLesion } from '../lib/tipos'
+import { TENANT_ID } from '@/lib/tenant'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 interface LesionListProps {
   personaId: string

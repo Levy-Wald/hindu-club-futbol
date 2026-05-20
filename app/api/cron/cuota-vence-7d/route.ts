@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { ejecutarCuotaVence7d } from '@/modules/comunicaciones/lib/triggers/cuota-vence-7d'
+import { TENANT_ID } from '@/lib/tenant'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')

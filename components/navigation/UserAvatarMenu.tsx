@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useTenant } from '@/lib/contexts/tenant-context'
 
 interface UserAvatarMenuProps {
   userEmail?: string
@@ -31,6 +32,7 @@ interface UserAvatarMenuProps {
 export function UserAvatarMenu({ userEmail, personaNombre, fotoPerfilUrl }: UserAvatarMenuProps) {
   const router = useRouter()
   const { setTheme, theme } = useTheme()
+  const { tenantId } = useTenant()
 
   async function handleLogout() {
     const supabase = createClient()
@@ -84,15 +86,15 @@ export function UserAvatarMenu({ userEmail, personaNombre, fotoPerfilUrl }: User
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push('/admin/mi-perfil')}>
+        <DropdownMenuItem onClick={() => router.push(`/admin/${tenantId}/mi-perfil`)}>
           <User className="mr-2 h-4 w-4" />
           Mi perfil
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push('/admin/mi-cuenta')}>
+        <DropdownMenuItem onClick={() => router.push(`/admin/${tenantId}/mi-cuenta`)}>
           <Wallet className="mr-2 h-4 w-4" />
           Mi cuenta
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push('/admin/mi-equipo')}>
+        <DropdownMenuItem onClick={() => router.push(`/admin/${tenantId}/mi-equipo`)}>
           <Trophy className="mr-2 h-4 w-4" />
           Mi equipo
         </DropdownMenuItem>

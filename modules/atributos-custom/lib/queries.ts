@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import type { AtributoDefinicion, AtributoValor, AplicaA, VinculoCross } from './tipos'
+import { TENANT_ID } from '@/lib/tenant'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 export async function fetchDefiniciones(aplicaA?: AplicaA): Promise<AtributoDefinicion[]> {
   const supabase = await createClient()

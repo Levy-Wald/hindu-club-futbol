@@ -13,6 +13,7 @@ import {
 import { cn } from '@/lib/utils'
 import { useNavigation } from './navigation-provider'
 import { UserAvatarMenu } from './UserAvatarMenu'
+import { useTenant } from '@/lib/contexts/tenant-context'
 import type { SpaceId } from '@/lib/navigation/types'
 
 const SPACE_ICONS: Record<SpaceId, LucideIcon> = {
@@ -32,10 +33,11 @@ interface TopBarProps {
 
 export function TopBar({ userEmail, personaNombre, fotoPerfilUrl, onOpenPalette }: TopBarProps) {
   const { visibleSpaces, activeSpace, setActiveSpace } = useNavigation()
+  const { tenantId } = useTenant()
 
   return (
     <header className="flex h-14 items-center border-b px-4 bg-background shrink-0 gap-2">
-      <Link href="/admin" className="font-bold text-lg mr-4 shrink-0 hidden md:block">
+      <Link href={`/admin/${tenantId}`} className="font-bold text-lg mr-4 shrink-0 hidden md:block">
         Hindu Club
       </Link>
       <span className="font-bold text-sm md:hidden shrink-0">Hindu</span>

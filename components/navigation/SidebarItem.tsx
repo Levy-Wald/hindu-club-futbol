@@ -12,8 +12,9 @@ import type { SidebarItem as SidebarItemType } from '@/lib/navigation/types'
 export function SidebarItem({ item }: { item: SidebarItemType }) {
   const pathname = usePathname()
   const Icon = getIcon(item.icon)
+  // Active detection: match tenant-aware hrefs like /admin/[uuid]/X
   const isActive =
-    item.href === '/admin' ? pathname === '/admin' : pathname.startsWith(item.href)
+    item.href.match(/^\/admin\/[^/]+$/) ? pathname === item.href : pathname.startsWith(item.href)
   const isProximamente = item.estado === 'proximamente'
   const showBadge = item.badge || isProximamente
   const [modalOpen, setModalOpen] = useState(false)

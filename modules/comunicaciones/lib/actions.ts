@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requireCapability } from '@/lib/permissions/capabilities'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 type ActionResult = { ok: boolean; message: string }
 
@@ -481,6 +480,7 @@ export async function ejecutarEnvioMasivo(input: {
 // =============================================================================
 
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import { TENANT_ID } from '@/lib/tenant'
 
 const VALID_TRIGGERS = ['apto_vence_7d', 'cuota_vence_7d', 'cuota_vencida_7d'] as const
 

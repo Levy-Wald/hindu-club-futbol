@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { TENANT_ID } from '@/lib/tenant'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 export async function GET() {
   const supabase = await createClient()

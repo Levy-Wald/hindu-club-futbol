@@ -1,19 +1,17 @@
 import { unstable_cache } from 'next/cache'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
-
 /**
  * Cached: tenant_modulos activos (cambia ~1x cada 3 meses)
  * Revalidate: 5 min | Tag: tenant-modules
  */
 export const getCachedTenantModulos = unstable_cache(
-  async (): Promise<string[]> => {
+  async (tenantId: string): Promise<string[]> => {
     const supabase = createServiceRoleClient()
     const { data } = await supabase
       .from('tenant_modulos')
       .select('modulo_slug')
-      .eq('tenant_id', TENANT_ID)
+      .eq('tenant_id', tenantId)
       .eq('activo', true)
     return (data ?? []).map((r: { modulo_slug: string }) => r.modulo_slug)
   },
@@ -22,7 +20,7 @@ export const getCachedTenantModulos = unstable_cache(
 )
 
 /**
- * Cached: catalogo_atributos completo (cambia rarísimo)
+ * Cached: catalogo_atributos completo (cambia rarisimo)
  * Revalidate: 5 min | Tag: catalog-attributes
  */
 export const getCachedCatalogAtributos = unstable_cache(
@@ -38,16 +36,16 @@ export const getCachedCatalogAtributos = unstable_cache(
 )
 
 /**
- * Cached: branding/config pública del tenant (cambia casi nunca)
+ * Cached: branding/config publica del tenant (cambia casi nunca)
  * Revalidate: 10 min | Tag: tenant-config
  */
 export const getCachedBranding = unstable_cache(
-  async () => {
+  async (tenantId: string) => {
     const supabase = createServiceRoleClient()
     const { data } = await supabase
       .from('tenant_config_publica')
       .select('favicon_url, fuente_titulos, fuente_cuerpo, nombre_display, color_primario, color_secundario')
-      .eq('tenant_id', TENANT_ID)
+      .eq('tenant_id', tenantId)
       .maybeSingle()
     return data
   },
@@ -78,13 +76,13 @@ export const getCachedUserCapabilities = unstable_cache(
  * Revalidate: 2 min | Tag: user-attributes
  */
 export const getCachedUserAttributes = unstable_cache(
-  async (personaId: string): Promise<string[]> => {
+  async (personaId: string, tenantId: string): Promise<string[]> => {
     const supabase = createServiceRoleClient()
     const { data } = await supabase
       .from('personas_atributos')
       .select('atributo_slug')
       .eq('persona_id', personaId)
-      .eq('tenant_id', TENANT_ID)
+      .eq('tenant_id', tenantId)
       .eq('activo', true)
     return (data ?? []).map((d: { atributo_slug: string }) => d.atributo_slug)
   },

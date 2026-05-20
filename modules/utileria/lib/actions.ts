@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/server'
 import { obtenerPermisosUtileria } from '@/lib/permisos/utileria'
 import { crearNotificacion, crearNotificacionMasiva } from '@/modules/notificaciones/lib/crear'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 function formatResult(ok: boolean, message: string, data?: unknown) {
   return { ok, message, data }
@@ -22,6 +21,7 @@ async function requireStaff() {
 // -------------------------------------------------------------------
 
 import { CATEGORIAS } from './constants'
+import { TENANT_ID } from '@/lib/tenant'
 
 export async function listarItems(filtros?: {
   categoria?: string

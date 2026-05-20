@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/sheet'
 import { useNavigation } from './navigation-provider'
 import { SidebarGroup } from './SidebarGroup'
+import { useTenant } from '@/lib/contexts/tenant-context'
 import type { SpaceId, SidebarCapa } from '@/lib/navigation/types'
 import { getVisibleSidebarItems, groupSidebarItems } from '@/lib/navigation/filter'
 
@@ -36,6 +37,7 @@ export function MobileDrawer() {
     tenantModulos,
     tenantVerticales,
   } = useNavigation()
+  const { tenantId } = useTenant()
   const [open, setOpen] = useState(false)
   const [mobileSpace, setMobileSpace] = useState<SpaceId>(activeSpace)
 
@@ -71,7 +73,7 @@ export function MobileDrawer() {
           return (
             <Link
               key={space.id}
-              href="/admin"
+              href={`/admin/${tenantId}`}
               onClick={() => setActiveSpace(space.id)}
               className={cn(
                 'flex flex-col items-center justify-center gap-0.5 w-16 py-1 rounded-md transition-colors',

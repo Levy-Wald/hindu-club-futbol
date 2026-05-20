@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import type { Evaluacion } from './tipos'
+import { TENANT_ID } from '@/lib/tenant'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 export async function fetchEvaluacionesPorFicha(fichaId: string): Promise<Evaluacion[]> {
   const supabase = await createClient()

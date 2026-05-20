@@ -3,8 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { shapeInputSchema, shapeUpdateSchema, type ShapeInput } from './schema'
+import { TENANT_ID } from '@/lib/tenant'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 type Result = { ok: boolean; error?: string; id?: string }
 

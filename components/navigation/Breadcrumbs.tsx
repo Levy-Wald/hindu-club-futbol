@@ -86,18 +86,39 @@ function isUuid(s: string) {
 
 export function Breadcrumbs() {
   const pathname = usePathname()
-  const segments = pathname.split('/').filter(Boolean)
+  const rawSegments = pathname.split('/').filter(Boolean)
 
-  if (segments.length === 0) return null
+  // Detect tenant UUID segment for skipping in display and preserving in hrefs
+  const hasTenant = rawSegments.length >= 2 && rawSegments[0] === 'admin' && isUuid(rawSegments[1])
+  const tenantPrefix = hasTenant ? `/admin/${rawSegments[1]}` : ''
+
+  // Display segments: skip tenant UUID
+  const displaySegments: string[] = []
+  for (let i = 0; i < rawSegments.length; i++) {
+    if (i === 1 && hasTenant) continue
+    displaySegments.push(rawSegments[i])
+  }
+
+  if (displaySegments.length === 0) return null
 
   return (
     <nav
       aria-label="Breadcrumb"
       className="text-sm text-muted-foreground mb-4 flex items-center gap-1.5 overflow-x-auto"
     >
-      {segments.map((segment, i) => {
-        const href = `/${segments.slice(0, i + 1).join('/')}`
-        const isLast = i === segments.length - 1
+      {displaySegments.map((segment, i) => {
+        // Build href: for 'admin' use tenant prefix, for rest append to tenant prefix
+        let href: string
+        if (i === 0 && segment === 'admin') {
+          href = tenantPrefix || '/admin'
+        } else {
+          const displayPath = `/${displaySegments.slice(0, i + 1).join('/')}`
+          href = hasTenant
+            ? `${tenantPrefix}${displayPath.slice(6)}` // /admin/X → tenantPrefix/X
+            : displayPath
+        }
+
+        const isLast = i === displaySegments.length - 1
         const label = isUuid(segment)
           ? 'Detalle'
           : SEGMENT_LABELS[segment] ?? segment.replace(/-/g, ' ')

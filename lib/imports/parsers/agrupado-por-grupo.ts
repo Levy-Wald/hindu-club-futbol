@@ -1,4 +1,4 @@
-import { parseFile } from '@/app/admin/(troncal)/padrones/[id]/importar/_lib/parser'
+import { parseFile } from '@/app/admin/[tenant]/(troncal)/padrones/[id]/importar/_lib/parser'
 
 interface GroupedConfig {
   header_pattern: string

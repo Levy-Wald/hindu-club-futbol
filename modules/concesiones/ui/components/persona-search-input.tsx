@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { createClient } from '@/lib/supabase/client'
+import { TENANT_ID } from '@/lib/tenant'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 interface Props {
   value: string

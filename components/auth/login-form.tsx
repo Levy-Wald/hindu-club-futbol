@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Mail, Loader2, KeyRound } from 'lucide-react'
+import { DEFAULT_TENANT_ID } from '@/lib/tenant'
 
 type Mode = 'magic-link' | 'password'
 
@@ -55,7 +56,7 @@ export function LoginForm() {
       return
     }
 
-    router.push('/admin')
+    router.push(`/admin/${DEFAULT_TENANT_ID}`)
     router.refresh()
   }
 

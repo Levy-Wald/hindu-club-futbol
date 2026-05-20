@@ -1,8 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { TENANT_ID } from '@/lib/tenant'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 const MAX_POR_CATEGORIA = 5
 
 export type SearchResultCategory = 'personas' | 'equipos' | 'padrones' | 'externos' | 'paginas'

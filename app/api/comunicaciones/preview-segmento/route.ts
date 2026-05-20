@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { resolverSegmento } from '@/modules/comunicaciones/lib/segmentos/resolver'
 import type { SegmentoConfig } from '@/modules/comunicaciones/lib/segmentos/tipos'
+import { TENANT_ID } from '@/lib/tenant'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 export async function POST(request: NextRequest) {
   const body = await request.json()

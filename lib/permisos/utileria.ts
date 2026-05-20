@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
+import { TENANT_ID } from '@/lib/tenant'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 export interface PermisosUtileria {
   es_staff_utileria: boolean

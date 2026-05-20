@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { DEFAULT_TENANT_ID } from '@/lib/tenant'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -33,7 +34,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Solo proteger rutas /admin/*. Todo lo demás es público.
+  // Solo proteger rutas /admin/*. Todo lo demas es publico.
   if (
     !user &&
     request.nextUrl.pathname.startsWith('/admin')
@@ -43,10 +44,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Si hay usuario y está en /login, redirigir a /admin
+  // Si hay usuario y esta en /login, redirigir a /admin/[tenant]
   if (user && request.nextUrl.pathname === '/login') {
     const url = request.nextUrl.clone()
-    url.pathname = '/admin'
+    url.pathname = `/admin/${DEFAULT_TENANT_ID}`
     return NextResponse.redirect(url)
   }
 

@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { notificarPersona } from '@/modules/comunicaciones/lib/notificar'
 import { crearNotificacion } from '@/modules/notificaciones/lib/crear'
+import { TENANT_ID } from '@/lib/tenant'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 interface Vencimiento {
   persona_id: string

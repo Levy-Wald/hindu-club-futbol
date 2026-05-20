@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/sonner'
 import { getCachedBranding } from '@/lib/cache'
+import { DEFAULT_TENANT_ID } from '@/lib/tenant'
 import './globals.css'
 
 const geistSans = Geist({
@@ -28,7 +29,7 @@ const GOOGLE_FONT_MAP: Record<string, string> = {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const branding = await getCachedBranding()
+  const branding = await getCachedBranding(DEFAULT_TENANT_ID)
 
   const icons: Metadata['icons'] = {}
   if (branding?.favicon_url) {
@@ -47,7 +48,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const branding = await getCachedBranding()
+  const branding = await getCachedBranding(DEFAULT_TENANT_ID)
 
   const fuenteTitulos = branding?.fuente_titulos ?? 'Inter'
   const fuenteCuerpo = branding?.fuente_cuerpo ?? 'Inter'

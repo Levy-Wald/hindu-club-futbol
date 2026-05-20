@@ -3,8 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { crearNotificacion } from '@/modules/notificaciones/lib/crear'
+import { TENANT_ID } from '@/lib/tenant'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 function formatResult(ok: boolean, message: string, data?: unknown) {
   return { ok, message, data }

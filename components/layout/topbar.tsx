@@ -17,6 +17,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Bell, LogOut, User, Shield, Settings } from 'lucide-react'
 import { NotificacionesDropdown } from './notificaciones-dropdown'
+import { useTenant } from '@/lib/contexts/tenant-context'
 
 class NotificacionesErrorBoundary extends Component<
   { children: ReactNode },
@@ -55,6 +56,7 @@ interface TopbarProps {
 
 export function Topbar({ userEmail, personaId }: TopbarProps) {
   const router = useRouter()
+  const { tenantId } = useTenant()
 
   async function handleLogout() {
     const supabase = createClient()
@@ -94,16 +96,16 @@ export function Topbar({ userEmail, personaId }: TopbarProps) {
               {userEmail || 'Usuario'}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push('/admin/mi-perfil')}>
+            <DropdownMenuItem onClick={() => router.push(`/admin/${tenantId}/mi-perfil`)}>
               <User className="mr-2 h-4 w-4" />
               Mi perfil
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push('/admin/mi-equipo')}>
+            <DropdownMenuItem onClick={() => router.push(`/admin/${tenantId}/mi-equipo`)}>
               <Shield className="mr-2 h-4 w-4" />
               Mi equipo
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push('/admin/configuracion')}>
+            <DropdownMenuItem onClick={() => router.push(`/admin/${tenantId}/configuracion`)}>
               <Settings className="mr-2 h-4 w-4" />
               Configuración
             </DropdownMenuItem>

@@ -8,8 +8,8 @@ import {
   logroUpdateSchema,
 } from './schema'
 import type { TrayectoriaClubInput, TrayectoriaClubUpdate, LogroInput, LogroUpdate } from './schema'
+import { TENANT_ID } from '@/lib/tenant'
 
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 // --- Trayectoria clubes ---
 
