@@ -294,6 +294,11 @@ B12.4 (v0.30.15-fix-b12-feedback, 19-may-2026):
 - B12.4.4: Mi Equipo con tabs entre equipos (shadcn Tabs, 1 equipo = directo, 2+ = tabs)
 - B12.4.5: Espacio 'Mi Dia' renombrado a 'Inicio', orden: Inicio/Operacion/Gestion/Plataforma/Setup
 
+B12.5 (v0.30.16-fix-avatar-mi-cuenta, 19-may-2026):
+- B12.5.1: Fix mi-cuenta — columnas inexistentes (foto_url→foto_perfil_url, dni→numero_documento, email→email_principal, telefono→telefono_principal). Verificado via MCP contra user real.
+- B12.5.2: Avatar dropdown enriquecido — agregados links Mi cuenta y Mi equipo al dropdown del TopBar
+- B12.5.3: Build OK, verificación MCP, tag v0.30.16
+
 PRÓXIMOS PASOS INMEDIATOS
 \==========================
 
@@ -302,7 +307,7 @@ PRÓXIMOS PASOS INMEDIATOS
 ÚLTIMA ACTUALIZACIÓN
 \=====================
 
-19 de mayo de 2026\. Versión 2.7 (cierre B12.4 + tag v0.30.15).
+19 de mayo de 2026\. Versión 2.8 (cierre B12.5 + tag v0.30.16).
 Próxima revisión: al cierre de FASE C.
 
 Quien actualiza este doc: Claude Code en el cierre de cada sprint (PROMPT-TEMPLATE PARTE 10.1). El arquitecto verifica vía MCP.  
