@@ -13,12 +13,25 @@ export default async function MiCuentaPage() {
 
   if (!user) redirect('/login')
 
-  const { data: persona } = await supabase
+  const { data: personaRaw } = await supabase
     .from('personas')
-    .select('id, nombre, apellido, foto_url, dni, email, telefono, fecha_nacimiento, created_at')
+    .select('id, nombre, apellido, foto_perfil_url, numero_documento, email_principal, telefono_principal, fecha_nacimiento, created_at')
     .eq('user_id', user.id)
     .is('deleted_at', null)
     .maybeSingle()
+
+  // Map DB column names to client interface
+  const persona = personaRaw ? {
+    id: personaRaw.id,
+    nombre: personaRaw.nombre,
+    apellido: personaRaw.apellido,
+    foto_url: personaRaw.foto_perfil_url,
+    dni: personaRaw.numero_documento,
+    email: personaRaw.email_principal,
+    telefono: personaRaw.telefono_principal,
+    fecha_nacimiento: personaRaw.fecha_nacimiento,
+    created_at: personaRaw.created_at,
+  } : null
 
   if (!persona) {
     return (
