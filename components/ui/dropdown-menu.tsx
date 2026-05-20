@@ -134,7 +134,9 @@ function DropdownMenuItem({
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </DropdownMenuPrimitive.Item>
   )
 }
 
