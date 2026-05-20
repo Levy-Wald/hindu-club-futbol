@@ -1,5 +1,5 @@
 import { LoadingSkeleton } from '@/components/loaders/loading-skeleton'
 
-export default function ComunicacionesLoading() {
+export default function ModulosLoading() {
   return <LoadingSkeleton variant="module-page" />
 }

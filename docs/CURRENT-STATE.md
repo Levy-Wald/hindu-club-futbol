@@ -2,7 +2,7 @@ CURRENT-STATE — Estado actual de la plataforma
 \====================================================
 
 Versión: 2.0 (re-escrito post RFC-004, inicio de FASE A)  
-Fecha: 13 de mayo de 2026  
+Fecha: 20 de mayo de 2026
 Status: Accepted  
 Supersedes: CURRENT-STATE.md v1 (estado al cierre FASE 5 del modelo viejo)  
 Path esperado en repo: docs/CURRENT-STATE.md

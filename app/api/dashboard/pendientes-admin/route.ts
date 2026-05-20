@@ -19,10 +19,12 @@ export async function GET() {
       .eq('estado', 'vencido'),
   ])
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     data: {
       pre_inscripciones_pendientes: preInscRes.count ?? 0,
       cuotas_vencidas: cuotasRes.count ?? 0,
     },
   })
+  response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60')
+  return response
 }

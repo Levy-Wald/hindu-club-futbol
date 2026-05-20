@@ -18,10 +18,12 @@ export async function GET() {
     .order('created_at', { ascending: false })
     .limit(1)
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     data: {
       total_enviados: count ?? 0,
       ultimo_envio: data?.[0]?.created_at ?? null,
     },
   })
+  response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60')
+  return response
 }

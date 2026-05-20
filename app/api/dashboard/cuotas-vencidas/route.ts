@@ -16,11 +16,13 @@ export async function GET() {
   const deudores = new Set(rows.map((r: { persona_id: string }) => r.persona_id))
   const montoTotal = rows.reduce((sum: number, r: { monto: number }) => sum + (r.monto ?? 0), 0)
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     data: {
       total_vencidas: count ?? 0,
       total_deudores: deudores.size,
       monto_total: montoTotal,
     },
   })
+  response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60')
+  return response
 }

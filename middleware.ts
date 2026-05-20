@@ -31,6 +31,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Skip auth (getUser) para rutas que no lo necesitan
+  // Solo /admin/* y /login requieren verificación de sesión
+  if (!pathname.startsWith('/admin') && pathname !== '/login') {
+    return NextResponse.next()
+  }
+
   return await updateSession(request)
 }
 

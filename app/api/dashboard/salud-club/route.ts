@@ -13,7 +13,9 @@ export async function GET() {
     .eq('recuperada', false)
     .is('deleted_at', null)
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     data: { lesionados_activos: count ?? 0 },
   })
+  response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60')
+  return response
 }

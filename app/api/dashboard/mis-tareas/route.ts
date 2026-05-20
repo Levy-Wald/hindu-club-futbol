@@ -19,5 +19,7 @@ export async function GET(req: NextRequest) {
     .order('created_at', { ascending: false })
     .limit(10)
 
-  return NextResponse.json({ data: data ?? [] })
+  const response = NextResponse.json({ data: data ?? [] })
+  response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60')
+  return response
 }

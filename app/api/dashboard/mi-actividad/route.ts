@@ -31,5 +31,7 @@ export async function GET(req: NextRequest) {
     }
   })
 
-  return NextResponse.json({ data: equipos })
+  const response = NextResponse.json({ data: equipos })
+  response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60')
+  return response
 }

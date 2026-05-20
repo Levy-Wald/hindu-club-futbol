@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     .limit(1)
     .maybeSingle()
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     data: {
       plan_nombre: plan?.nombre ?? sub.tipo ?? 'Membresía',
       estado: sub.estado,
@@ -39,4 +39,6 @@ export async function GET(req: NextRequest) {
       proxima_cuota_monto: proxCuota?.monto ?? null,
     },
   })
+  response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60')
+  return response
 }
