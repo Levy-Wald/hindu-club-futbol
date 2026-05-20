@@ -287,16 +287,22 @@ B12.3 (v0.30.14-cierre-pre-fase-c, 19-may-2026):
 - Fix tarjeta-jugador (removido render prop DialogTrigger)
 - 2 migrations retroactivas sincronizadas con DB
 
+B12.4 (v0.30.15-fix-b12-feedback, 19-may-2026):
+- B12.4.1: Audit sidebar 103 items — 7 items sin pagina real marcados como proximamente
+- B12.4.2: Patron modal-proximamente — items 'proximamente' abren modal en vez de navegar a 404
+- B12.4.3: Verificado fix mi-cuenta (ya corregido en B12.3)
+- B12.4.4: Mi Equipo con tabs entre equipos (shadcn Tabs, 1 equipo = directo, 2+ = tabs)
+- B12.4.5: Espacio 'Mi Dia' renombrado a 'Inicio', orden: Inicio/Operacion/Gestion/Plataforma/Setup
+
 PRÓXIMOS PASOS INMEDIATOS
 \==========================
 
-1\. Smoke tests humanos de FASE B (Yair recorre pantallas).
-2\. FASE C — Demo a Hindu (10-14 dias calendario, 0h Code).
+1\. FASE C — Demo a Hindu (validacion humana, 0h Code).
 
 ÚLTIMA ACTUALIZACIÓN
 \=====================
 
-19 de mayo de 2026\. Versión 2.6 (cierre B12.3 + tag v0.30.14).
+19 de mayo de 2026\. Versión 2.7 (cierre B12.4 + tag v0.30.15).
 Próxima revisión: al cierre de FASE C.
 
 Quien actualiza este doc: Claude Code en el cierre de cada sprint (PROMPT-TEMPLATE PARTE 10.1). El arquitecto verifica vía MCP.  
