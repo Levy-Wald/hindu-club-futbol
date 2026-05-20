@@ -299,6 +299,14 @@ B12.5 (v0.30.16-fix-avatar-mi-cuenta, 19-may-2026):
 - B12.5.2: Avatar dropdown enriquecido — agregados links Mi cuenta y Mi equipo al dropdown del TopBar
 - B12.5.3: Build OK, verificación MCP, tag v0.30.16
 
+B12.6+B12.7 (v0.30.17-fix-dropdown-items, 19-may-2026):
+- B12.6: Fix DropdownMenuTrigger — wrapper no pasaba {children} al Radix primitive (botón avatar invisible)
+- B12.6: Nuevo UserAvatarMenu.tsx — avatar con foto real, dropdown con Mi perfil/Mi cuenta/Mi equipo, theme switcher, cerrar sesión
+- B12.6: TopBar simplificado — ThemeToggle movido al dropdown, layout pasa foto_perfil_url
+- B12.7: Fix DropdownMenuItem — mismo bug (children desestructurado pero no pasado). Items del dropdown vacíos.
+- B12.7: Auditoría completa 12 wrappers dropdown-menu: solo Trigger e Item tenían el bug.
+- Smoke visual confirmado por Yair: avatar visible, dropdown abre, items visibles y clickeables.
+
 PRÓXIMOS PASOS INMEDIATOS
 \==========================
 
@@ -307,7 +315,7 @@ PRÓXIMOS PASOS INMEDIATOS
 ÚLTIMA ACTUALIZACIÓN
 \=====================
 
-19 de mayo de 2026\. Versión 2.8 (cierre B12.5 + tag v0.30.16).
+19 de mayo de 2026\. Versión 2.9 (cierre B12.7 + tag v0.30.17).
 Próxima revisión: al cierre de FASE C.
 
 Quien actualiza este doc: Claude Code en el cierre de cada sprint (PROMPT-TEMPLATE PARTE 10.1). El arquitecto verifica vía MCP.  

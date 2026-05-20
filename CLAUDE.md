@@ -2,12 +2,12 @@
 
 ## Estado actual
 
-- **Tag actual:** `v0.30.16-fix-avatar-mi-cuenta` (2026-05-19)
-- **Tags vigentes:** v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.5 (Tramo 4), v0.30.14 (B12.3), v0.30.15 (B12.4), v0.30.16 (B12.5)
+- **Tag actual:** `v0.30.17-fix-dropdown-items` (2026-05-19)
+- **Tags vigentes:** v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.5 (Tramo 4), v0.30.14 (B12.3), v0.30.15 (B12.4), v0.30.16 (B12.5), v0.30.17 (B12.6+B12.7)
 - **FASE 1-5 cerradas**, **FASE A COMPLETA**, **FASE B COMPLETA** (B1-B6 DONE)
 - **Tramo 2 (Hardening) CERRADO** (H1-H4 DONE)
 - **Tramo 4 (Hardening post-B) CERRADO** (H5-H7 DONE)
-- **B7-FIX a B12.5 CERRADOS** (smoke fixes + capabilities + nav + sidebar + mi-cuenta fix + avatar dropdown)
+- **B7-FIX a B12.7 CERRADOS** (smoke fixes + capabilities + nav + sidebar + mi-cuenta + avatar dropdown completo)
 - **Proximo:** FASE C — Demo a Hindu (validacion humana, 0h Code)
 - **DB:** 170+ tablas, 401 RLS policies, 137 funciones, 28 vistas, 102 triggers, 25 modulos roadmap
 - **UI:** 96 paginas, ~215 server actions, ~196 componentes custom, 103 sidebar items, 5 espacios
