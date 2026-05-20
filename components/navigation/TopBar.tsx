@@ -11,6 +11,8 @@ import {
   Search,
   LogOut,
   User,
+  Wallet,
+  Trophy,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -129,6 +131,14 @@ export function TopBar({ userEmail, personaId, personaNombre, onOpenPalette }: T
             <DropdownMenuItem onClick={() => router.push('/admin/mi-perfil')}>
               <User className="mr-2 h-4 w-4" />
               Mi perfil
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/admin/mi-cuenta')}>
+              <Wallet className="mr-2 h-4 w-4" />
+              Mi cuenta
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/admin/mi-equipo')}>
+              <Trophy className="mr-2 h-4 w-4" />
+              Mi equipo
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
