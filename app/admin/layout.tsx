@@ -34,7 +34,7 @@ export default async function AdminLayout({
 
   const { data: persona } = await supabase
     .from('personas')
-    .select('id, nombre, apellido')
+    .select('id, nombre, apellido, foto_perfil_url')
     .eq('user_id', user.id)
     .is('deleted_at', null)
     .maybeSingle()
@@ -53,6 +53,7 @@ export default async function AdminLayout({
       userEmail={user.email}
       personaId={personaId}
       personaNombre={persona ? `${persona.nombre} ${persona.apellido}` : undefined}
+      fotoPerfilUrl={persona?.foto_perfil_url ?? undefined}
       visibleSpaces={visibleSpaces}
       userCapabilities={userCapabilities}
       userAttributes={userAttributes}

@@ -15,6 +15,7 @@ interface NavigationShellProps {
   userEmail?: string
   personaId?: string
   personaNombre?: string
+  fotoPerfilUrl?: string
   visibleSpaces: Space[]
   userCapabilities: string[]
   userAttributes: string[]
@@ -28,6 +29,7 @@ export function NavigationShell({
   userEmail,
   personaId,
   personaNombre,
+  fotoPerfilUrl,
   visibleSpaces,
   userCapabilities,
   userAttributes,
@@ -54,8 +56,8 @@ export function NavigationShell({
         <div className="flex h-dvh flex-col overflow-hidden">
           <TopBar
             userEmail={userEmail}
-            personaId={personaId}
             personaNombre={personaNombre}
+            fotoPerfilUrl={fotoPerfilUrl}
             onOpenPalette={openPalette}
           />
           <div className="flex flex-1 overflow-hidden">

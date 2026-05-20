@@ -36,7 +36,9 @@ function DropdownMenuTrigger({
       data-slot="dropdown-menu-trigger"
       className={className}
       {...props}
-    />
+    >
+      {children}
+    </DropdownMenuPrimitive.Trigger>
   )
 }
 
