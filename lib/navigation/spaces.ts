@@ -1,11 +1,11 @@
 import type { Space, SpaceId, SpaceVisibilityRule } from './types'
 
 export const SPACES: Space[] = [
-  { id: 'mi-dia', label: 'Mi Día', icon: 'Home' },
+  { id: 'mi-dia', label: 'Inicio', icon: 'Home' },
   { id: 'operacion', label: 'Operación', icon: 'Briefcase' },
   { id: 'gestion', label: 'Gestión', icon: 'BarChart3' },
-  { id: 'setup', label: 'Setup', icon: 'Settings' },
   { id: 'plataforma', label: 'Plataforma', icon: 'Layers' },
+  { id: 'setup', label: 'Setup', icon: 'Settings' },
 ]
 
 export const SPACE_VISIBILITY_RULES: Record<SpaceId, SpaceVisibilityRule> = {
