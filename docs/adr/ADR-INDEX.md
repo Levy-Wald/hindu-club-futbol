@@ -74,3 +74,15 @@
 | ADR | Titulo | Status | Archivo |
 |---|---|---|---|
 | ADR-053 | E2E tests excluidos de CI | Accepted | `ADR-053-e2e-no-en-ci.md` |
+
+## ADRs 054-061 (FASE B + Bloque B12)
+
+| ADR | Titulo | Status | Archivo |
+|---|---|---|---|
+| ADR-054 | Combobox autosuggest para entidades externas | Accepted | `ADR-054-combobox-autosuggest.md` |
+| ADR-055 | Capabilities multivertical para SaaS Modular | Accepted | `ADR-055-capabilities-multivertical.md` |
+| ADR-056 | Navegacion 3 niveles 4 espacios | Accepted | `ADR-056-navegacion-3-niveles-4-espacios.md` |
+| ADR-057 | Navegacion universal acciones condicionales | Accepted | `ADR-057-navegacion-universal-acciones-condicionales.md` |
+| ADR-058 | Correccion sidebar catalog completo | Accepted | `ADR-058-correccion-sidebar-catalog-completo.md` |
+| ADR-060 | Sidebar 3 capas estado | Accepted | `ADR-060-sidebar-3-capas-estado.md` |
+| ADR-061 | Drift TS-BD silenciado por Supabase client | Accepted | `ADR-061-drift-ts-bd-silenciado-supabase.md` |

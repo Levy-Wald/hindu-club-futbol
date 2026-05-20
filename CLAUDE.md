@@ -8,14 +8,14 @@
 - **Tramo 2 (Hardening) CERRADO** (H1-H4 DONE)
 - **Tramo 4 (Hardening post-B) CERRADO** (H5-H7 DONE)
 - **B7-FIX a B12.7 CERRADOS** (smoke fixes + capabilities + nav + sidebar + mi-cuenta + avatar dropdown completo)
-- **Proximo:** FASE C — Demo a Hindu (validacion humana, 0h Code)
+- **Proximo:** B13 (auditoria modulo por modulo) → FASE C (demo a Hindu, 0h Code)
 - **DB:** 170+ tablas, 401 RLS policies, 137 funciones, 28 vistas, 102 triggers, 25 modulos roadmap
 - **UI:** 96 paginas, ~215 server actions, ~196 componentes custom, 103 sidebar items, 5 espacios
 - **Tests E2E:** 102+ specs (Playwright), 65 unit tests (Vitest)
 - **CI:** GitHub Actions (lint + typecheck + unit + build)
 - **Hindu:** 2,390 personas, 7 equipos, 61 com_envios, 18 plantillas sistema, 42+ modulos activos
 - **Arquitectura:** 4 capas — Troncal + Cross-vertical + Vertical + Conectores (RFC-004)
-- **60+ ADRs** documentados (001-060+)
+- **61 ADRs** documentados (001-061)
 
 ## Bloqueos operativos vigentes
 

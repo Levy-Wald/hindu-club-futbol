@@ -275,8 +275,8 @@ PERFORMANCE (H7 Audit)
 ESTADO ACTUAL
 \=============
 
-Tramo 4 (Hardening post-FASE-B) CERRADO. B7-FIX a B12.3 CERRADOS. Sistema listo para FASE C.
-Tags vigentes: v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.5 (Tramo 4), v0.30.14 (B12.3/cierre pre-FASE C).
+Tramo 4 (Hardening post-FASE-B) CERRADO. Bloque B12.3-B12.7 CERRADO. Sistema listo para FASE C.
+Tags vigentes: v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.5 (Tramo 4), v0.30.14 (B12.3), v0.30.15 (B12.4), v0.30.16 (B12.5), v0.30.17 (B12.6+B12.7).
 
 B12.3 (v0.30.14-cierre-pre-fase-c, 19-may-2026):
 - +25 modulos RFC-005 v2.0 en catalogo_modulos (conectores, verticales, plataforma, API, IA)
@@ -310,7 +310,8 @@ B12.6+B12.7 (v0.30.17-fix-dropdown-items, 19-may-2026):
 PRÓXIMOS PASOS INMEDIATOS
 \==========================
 
-1\. FASE C — Demo a Hindu (validacion humana, 0h Code).
+1\. B13 — Auditoría módulo por módulo (smoke cada pantalla activa).
+2\. FASE C — Demo a Hindu (validacion humana, 0h Code).
 
 ÚLTIMA ACTUALIZACIÓN
 \=====================

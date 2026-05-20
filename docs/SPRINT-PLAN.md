@@ -141,6 +141,22 @@ Cerradas en producción. Reubicadas en la taxonomía RFC-004 según corresponda.
 
 ---
 
+## Bloque B12.3-B12.7 — Smoke fixes pre-FASE C ✅ DONE
+
+| ID | Tema | Estado | Tag | Costo |
+|---|---|---|---|---|
+| B12.3 | Auditoría 100% módulos sidebar + 4 fixes user-facing | ✅ DONE | v0.30.14-cierre-pre-fase-c | 3h |
+| B12.4 | UX feedback: modal próximamente, tabs mi-equipo, rename Inicio | ✅ DONE | v0.30.15-fix-b12-feedback | 2h |
+| B12.5 | Fix real mi-cuenta (4 columnas DB) + avatar dropdown | ✅ DONE | v0.30.16-fix-avatar-mi-cuenta | 1h |
+| B12.6 | Reset avatar dropdown — fix DropdownMenuTrigger children | ✅ DONE | — | 1h |
+| B12.7 | Fix DropdownMenuItem children (mismo bug) | ✅ DONE | v0.30.17-fix-dropdown-items | 30m |
+
+**Subtotal**: ~7.5h Code
+**Tag de cierre**: `v0.30.17-fix-dropdown-items` (19-may-2026)
+**Smoke visual**: confirmado por Yair en producción
+
+---
+
 ## TRAMO 5 — FASE C Demo Hindu
 
 | ID | Tema | Estado | Duración |
