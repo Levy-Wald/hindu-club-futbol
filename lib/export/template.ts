@@ -1,7 +1,5 @@
 'use client'
 
-import * as XLSX from 'xlsx'
-
 function triggerDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -21,7 +19,8 @@ export function downloadTemplateCSV(headers: string[], filename: string, sampleR
   triggerDownload(blob, filename.replace(/\.[^.]+$/, '.csv'))
 }
 
-export function downloadTemplateXLSX(headers: string[], filename: string, sampleRow?: string[]) {
+export async function downloadTemplateXLSX(headers: string[], filename: string, sampleRow?: string[]) {
+  const XLSX = await import('xlsx')
   const data = sampleRow ? [headers, sampleRow] : [headers]
   const ws = XLSX.utils.aoa_to_sheet(data)
   const wb = XLSX.utils.book_new()

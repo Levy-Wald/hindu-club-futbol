@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ArrowLeft, Package } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { ProductoFormDialog } from '@/modules/pim/ui/producto-form'
 import { VarianteFormDialog } from '@/modules/pim/ui/variante-form'
@@ -102,7 +103,7 @@ export function ProductoDetalle({
         <div className="flex items-center gap-3">
           <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
             {p.imagen_url ? (
-              <img src={p.imagen_url} alt={p.nombre} className="h-12 w-12 rounded-lg object-cover" />
+              <Image src={p.imagen_url} alt={p.nombre} width={48} height={48} className="h-12 w-12 rounded-lg object-cover" unoptimized />
             ) : (
               <Package className="h-6 w-6 text-muted-foreground" />
             )}

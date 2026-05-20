@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Package, Layers } from 'lucide-react'
@@ -21,7 +22,7 @@ export function ProductoRow({ producto }: ProductoRowProps) {
       <div className="flex items-center gap-3 min-w-0">
         <div className="h-10 w-10 rounded bg-muted flex items-center justify-center shrink-0">
           {p.imagen_url ? (
-            <img src={p.imagen_url} alt={p.nombre} className="h-10 w-10 rounded object-cover" />
+            <Image src={p.imagen_url} alt={p.nombre} width={40} height={40} className="h-10 w-10 rounded object-cover" unoptimized />
           ) : (
             <Package className="h-5 w-5 text-muted-foreground" />
           )}

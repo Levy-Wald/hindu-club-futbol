@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
@@ -213,7 +214,7 @@ export function CuerpoTecnicoGlobal() {
                     <Card key={m.id}>
                       <CardContent className="flex items-center gap-3 py-3">
                         {p.foto_perfil_url ? (
-                          <img src={p.foto_perfil_url} alt="" className="h-9 w-9 rounded-full object-cover" />
+                          <Image src={p.foto_perfil_url} alt="" width={36} height={36} className="h-9 w-9 rounded-full object-cover" unoptimized />
                         ) : (
                           <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
                             {p.nombre[0]}{p.apellido[0]}

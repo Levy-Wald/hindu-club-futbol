@@ -23,8 +23,8 @@ export function DownloadTemplateButton({ headers, filename, sampleRow }: Downloa
     toast.success('Modelo CSV descargado')
   }
 
-  function handleXLSX() {
-    downloadTemplateXLSX(headers, filename, sampleRow)
+  async function handleXLSX() {
+    await downloadTemplateXLSX(headers, filename, sampleRow)
     toast.success('Modelo XLSX descargado')
   }
 

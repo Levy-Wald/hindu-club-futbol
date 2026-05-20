@@ -1,3 +1,4 @@
+import NextImage from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
@@ -121,7 +122,7 @@ export default async function EquipoDetallePage({ params }: PageProps) {
           </Link>
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {equipo.escudo_url ? (
-              <img src={equipo.escudo_url} alt="Escudo" className="h-10 w-10 rounded-md object-contain shrink-0" />
+              <NextImage src={equipo.escudo_url} alt="Escudo" width={40} height={40} className="h-10 w-10 rounded-md object-contain shrink-0" unoptimized />
             ) : equipo.color_principal ? (
               <div className="h-10 w-10 rounded-md border shrink-0 flex items-center justify-center" style={{ backgroundColor: equipo.color_principal }}>
                 <Trophy className="h-5 w-5 text-white/80" />

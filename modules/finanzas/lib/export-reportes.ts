@@ -1,9 +1,5 @@
 'use client'
 
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
-import * as XLSX from 'xlsx'
-
 export interface ReporteExportable {
   titulo: string
   tenantNombre: string
@@ -18,7 +14,9 @@ export interface ReporteExportable {
   totales?: Record<string, number>
 }
 
-export function exportarReportePDF(r: ReporteExportable): void {
+export async function exportarReportePDF(r: ReporteExportable): Promise<void> {
+  const { default: jsPDF } = await import('jspdf')
+  const { default: autoTable } = await import('jspdf-autotable')
   const doc = new jsPDF({ orientation: 'landscape' })
 
   // Header
@@ -92,7 +90,8 @@ export function exportarReportePDF(r: ReporteExportable): void {
   doc.save(`${r.titulo.replace(/\s+/g, '_')}.pdf`)
 }
 
-export function exportarReporteXLSX(r: ReporteExportable): void {
+export async function exportarReporteXLSX(r: ReporteExportable): Promise<void> {
+  const XLSX = await import('xlsx')
   const wb = XLSX.utils.book_new()
 
   // Build header rows

@@ -1,9 +1,5 @@
 'use client'
 
-import * as XLSX from 'xlsx'
-import { jsPDF } from 'jspdf'
-import autoTable from 'jspdf-autotable'
-
 export type ExportFormat = 'csv' | 'xlsx' | 'pdf' | 'pdf_membretado'
 
 export interface ExportData {
@@ -40,7 +36,8 @@ export function exportToCSV(data: ExportData) {
   triggerDownload(blob, data.filename.replace(/\.[^.]+$/, '.csv'))
 }
 
-export function exportToXLSX(data: ExportData) {
+export async function exportToXLSX(data: ExportData) {
+  const XLSX = await import('xlsx')
   const ws = XLSX.utils.aoa_to_sheet([data.headers, ...data.rows])
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Datos')
@@ -57,7 +54,9 @@ export function exportToXLSX(data: ExportData) {
   triggerDownload(blob, data.filename.replace(/\.[^.]+$/, '.xlsx'))
 }
 
-export function exportToPDF(data: ExportData) {
+export async function exportToPDF(data: ExportData) {
+  const { jsPDF } = await import('jspdf')
+  const { default: autoTable } = await import('jspdf-autotable')
   const doc = new jsPDF({ orientation: data.headers.length > 6 ? 'landscape' : 'portrait' })
 
   doc.setFontSize(14)
@@ -79,6 +78,8 @@ export function exportToPDF(data: ExportData) {
 }
 
 export async function exportToPDFMembretado(data: ExportData, branding: ClubBranding) {
+  const { jsPDF } = await import('jspdf')
+  const { default: autoTable } = await import('jspdf-autotable')
   const doc = new jsPDF({ orientation: data.headers.length > 6 ? 'landscape' : 'portrait' })
   const pageWidth = doc.internal.pageSize.getWidth()
   let startY = 12
@@ -157,7 +158,7 @@ function loadImage(url: string): Promise<string> {
   })
 }
 
-export function exportData(format: ExportFormat, data: ExportData, branding?: ClubBranding) {
+export async function exportData(format: ExportFormat, data: ExportData, branding?: ClubBranding) {
   switch (format) {
     case 'csv':
       return exportToCSV(data)

@@ -3,7 +3,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import Papa from 'papaparse'
-import * as XLSX from 'xlsx'
 import crypto from 'crypto'
 
 const TENANT_ID = '11111111-1111-1111-1111-111111111111'
@@ -195,6 +194,7 @@ export async function importarExtracto(formData: FormData): Promise<ActionResult
   const fileName = archivo.name.toLowerCase()
 
   if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+    const XLSX = await import('xlsx')
     const buffer = await archivo.arrayBuffer()
     const wb = XLSX.read(buffer, { type: 'array' })
     const ws = wb.Sheets[wb.SheetNames[0]]

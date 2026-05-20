@@ -2,14 +2,15 @@
 
 ## Estado actual
 
-- **Tag actual:** `v0.30.18-b13.0-perf-audit` (2026-05-20)
-- **Tags vigentes:** v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.5 (Tramo 4), v0.30.14 (B12.3), v0.30.15 (B12.4), v0.30.16 (B12.5), v0.30.17 (B12.6+B12.7), v0.30.18 (B13.0)
+- **Tag actual:** `v0.30.19-b13.1-perf-complete` (2026-05-20)
+- **Tags vigentes:** v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.5 (Tramo 4), v0.30.14 (B12.3), v0.30.15 (B12.4), v0.30.16 (B12.5), v0.30.17 (B12.6+B12.7), v0.30.18 (B13.0), v0.30.19 (B13.1)
 - **FASE 1-5 cerradas**, **FASE A COMPLETA**, **FASE B COMPLETA** (B1-B6 DONE)
 - **Tramo 2 (Hardening) CERRADO** (H1-H4 DONE)
 - **Tramo 4 (Hardening post-B) CERRADO** (H5-H7 DONE)
 - **B7-FIX a B12.7 CERRADOS** (smoke fixes + capabilities + nav + sidebar + mi-cuenta + avatar dropdown completo)
 - **B13.0 CERRADO** (loading skeletons, error boundaries, cache headers, middleware opt, audit 89 modulos)
-- **Proximo:** B13.1+ (fixes por modulo de auditoria Yair) → FASE C (demo a Hindu, 0h Code)
+- **B13.1 CERRADO** (cache layer unstable_cache, dynamic imports xlsx/jspdf, next/image, font preconnect, asset cache headers)
+- **Proximo:** B13.2+ (fixes por modulo de auditoria Yair) → FASE C (demo a Hindu, 0h Code)
 - **DB:** 170+ tablas, 401 RLS policies, 137 funciones, 28 vistas, 102 triggers, 25 modulos roadmap
 - **UI:** 96 paginas, ~215 server actions, ~196 componentes custom, 103 sidebar items, 5 espacios
 - **Tests E2E:** 102+ specs (Playwright), 65 unit tests (Vitest)

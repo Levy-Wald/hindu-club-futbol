@@ -2,10 +2,8 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/sonner'
-import { createClient } from '@/lib/supabase/server'
+import { getCachedBranding } from '@/lib/cache'
 import './globals.css'
-
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -29,22 +27,8 @@ const GOOGLE_FONT_MAP: Record<string, string> = {
   'Lato': 'Lato',
 }
 
-async function getBranding() {
-  try {
-    const supabase = await createClient()
-    const { data } = await supabase
-      .from('tenant_config_publica')
-      .select('favicon_url, fuente_titulos, fuente_cuerpo, nombre_display, color_primario, color_secundario')
-      .eq('tenant_id', TENANT_ID)
-      .maybeSingle()
-    return data
-  } catch {
-    return null
-  }
-}
-
 export async function generateMetadata(): Promise<Metadata> {
-  const branding = await getBranding()
+  const branding = await getCachedBranding()
 
   const icons: Metadata['icons'] = {}
   if (branding?.favicon_url) {
@@ -63,7 +47,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const branding = await getBranding()
+  const branding = await getCachedBranding()
 
   const fuenteTitulos = branding?.fuente_titulos ?? 'Inter'
   const fuenteCuerpo = branding?.fuente_cuerpo ?? 'Inter'
@@ -87,8 +71,11 @@ export default async function RootLayout({
     >
       <head>
         {googleFontsUrl && (
-           
-          <link rel="stylesheet" href={googleFontsUrl} />
+          <>
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+            <link rel="stylesheet" href={googleFontsUrl} />
+          </>
         )}
         <style
           dangerouslySetInnerHTML={{

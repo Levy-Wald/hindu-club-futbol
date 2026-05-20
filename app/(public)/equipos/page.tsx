@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { fetchEquiposPublicos, fetchConfigPublica } from '../_lib/queries'
 import { Trophy, Users, ChevronRight } from 'lucide-react'
@@ -38,7 +39,7 @@ export default async function EquiposPublicosPage() {
                     className="group block rounded-xl border bg-card p-4 hover:shadow-lg transition-all hover:border-brand-500/50">
                     <div className="flex items-center gap-3">
                       {equipo.escudo_url ? (
-                        <img src={equipo.escudo_url} alt="" className="h-12 w-12 rounded-lg object-contain" />
+                        <Image src={equipo.escudo_url} alt="" width={48} height={48} className="h-12 w-12 rounded-lg object-contain" unoptimized />
                       ) : (
                         <div className="h-12 w-12 rounded-lg flex items-center justify-center"
                           style={{ backgroundColor: equipo.color_principal || 'var(--color-brand-500)' }}>

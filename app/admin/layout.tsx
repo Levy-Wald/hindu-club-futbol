@@ -1,22 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getUserCapabilities } from '@/lib/permissions/capabilities'
-import { getUserAttributes } from '@/lib/permissions/user-attributes'
+import { getCachedTenantModulos, getCachedUserCapabilities, getCachedUserAttributes } from '@/lib/cache'
 import { getVisibleSpaces, inferVerticalesFromModulos } from '@/lib/navigation/filter'
 import { SIDEBAR_CATALOG } from '@/lib/navigation/sidebar-items'
 import { NavigationShell } from '@/components/navigation/NavigationShell'
-
-const TENANT_ID = '11111111-1111-1111-1111-111111111111'
-
-async function getActiveTenantModulos(): Promise<string[]> {
-  const supabase = await createClient()
-  const { data } = await (supabase as any)
-    .from('tenant_modulos')
-    .select('modulo_slug')
-    .eq('tenant_id', TENANT_ID)
-    .eq('activo', true)
-  return (data ?? []).map((r: { modulo_slug: string }) => r.modulo_slug)
-}
 
 export default async function AdminLayout({
   children,
@@ -41,9 +28,9 @@ export default async function AdminLayout({
 
   const personaId = persona?.id
   const [userCapabilities, userAttributes, tenantModulos] = await Promise.all([
-    personaId ? getUserCapabilities(personaId) : Promise.resolve([]),
-    personaId ? getUserAttributes(personaId) : Promise.resolve([]),
-    getActiveTenantModulos(),
+    personaId ? getCachedUserCapabilities(personaId) : Promise.resolve([]),
+    personaId ? getCachedUserAttributes(personaId) : Promise.resolve([]),
+    getCachedTenantModulos(),
   ])
   const tenantVerticales = inferVerticalesFromModulos(tenantModulos)
   const visibleSpaces = getVisibleSpaces(userCapabilities, userAttributes)

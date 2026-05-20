@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Trash2, Globe } from 'lucide-react'
@@ -28,7 +29,7 @@ export function MarcaRow({ marca }: MarcaRowProps) {
     <div className="flex items-center justify-between p-3 hover:bg-muted/50" data-testid={`marca-row-${marca.slug}`}>
       <div className="flex items-center gap-3 min-w-0">
         {marca.logo_url ? (
-          <img src={marca.logo_url} alt={marca.nombre} className="h-8 w-8 rounded object-contain border" />
+          <Image src={marca.logo_url} alt={marca.nombre} width={32} height={32} className="h-8 w-8 rounded object-contain border" unoptimized />
         ) : (
           <div className="h-8 w-8 rounded border bg-muted flex items-center justify-center text-xs text-muted-foreground font-medium">
             {marca.nombre.charAt(0).toUpperCase()}
