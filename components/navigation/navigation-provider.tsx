@@ -2,13 +2,13 @@
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import type { SidebarItem, Space, SpaceId } from '@/lib/navigation/types'
-import { getVisibleSidebarItems, groupSidebarItems, type SidebarCapaGroup } from '@/lib/navigation/filter'
+import { getVisibleSidebarItems, groupSidebarItems, type SidebarGroup } from '@/lib/navigation/filter'
 
 interface NavigationContextValue {
   activeSpace: SpaceId
   setActiveSpace: (space: SpaceId) => void
   visibleSpaces: Space[]
-  sidebarGroups: SidebarCapaGroup[]
+  sidebarGroups: SidebarGroup[]
   allItems: SidebarItem[]
   userCapabilities: string[]
   userAttributes: string[]
@@ -34,7 +34,7 @@ function getInitialSpace(visibleSpaces: Space[]): SpaceId {
       if (visibleSpaces.some(s => s.id === val)) return val
     }
   }
-  return visibleSpaces[0]?.id ?? 'mi-dia'
+  return visibleSpaces[0]?.id ?? 'inicio'
 }
 
 export function NavigationProvider({

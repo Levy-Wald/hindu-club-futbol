@@ -1,64 +1,79 @@
 import type { Space, SpaceId, SpaceVisibilityRule } from './types'
 
 export const SPACES: Space[] = [
-  { id: 'mi-dia', label: 'Inicio', icon: 'Home' },
-  { id: 'operacion', label: 'Operación', icon: 'Briefcase' },
-  { id: 'gestion', label: 'Gestión', icon: 'BarChart3' },
-  { id: 'plataforma', label: 'Plataforma', icon: 'Layers' },
-  { id: 'setup', label: 'Setup', icon: 'Settings' },
+  { id: 'inicio', label: 'Inicio', icon: 'Home' },
+  { id: 'personas', label: 'Personas', icon: 'Users' },
+  { id: 'actividad', label: 'Actividad', icon: 'Calendar' },
+  { id: 'marketing', label: 'Marketing', icon: 'Megaphone' },
+  { id: 'finanzas', label: 'Finanzas', icon: 'TrendingUp' },
+  { id: 'recursos', label: 'Recursos', icon: 'Package' },
+  { id: 'configuracion', label: 'Configuracion', icon: 'Settings' },
 ]
 
 export const SPACE_VISIBILITY_RULES: Record<SpaceId, SpaceVisibilityRule> = {
-  'mi-dia': {
+  inicio: {
     visible_if: 'always',
   },
-  operacion: {
+  personas: {
     visible_if_has_any: [
       'personas.read',
       'personas.write',
+      'cobranza.read',
+      'cobranza.write',
+      'ccbp.plantel.read',
+      'ccbp.salud.read_basic',
+      'acceso.guardia',
+      'rrhh.read',
+      'rrhh.admin',
+      'concesiones.operar',
+    ],
+  },
+  actividad: {
+    visible_if_has_any: [
       'asistencias.read',
       'asistencias.write',
       'reservas.read',
       'reservas.write',
-      'caja.operar',
-      'inventario.read',
-      'inventario.write',
-      'tickets.read',
-      'tickets.write',
-      'ccbp.plantel.read',
-      'ccbp.salud.read_basic',
-      'comunicaciones.send',
-      'eventos.read',
-      'eventos.write',
-      'acceso.guardia',
-      'cobranza.read',
       'ccbp.entrenamientos.read',
       'ccbp.scouting.read',
       'ccbp.partidos.cargar',
       'ccbp.torneos.admin',
-      'concesiones.operar',
-      'ccbp.utileria.admin',
-      'ecommerce.read',
-      'proyectos.read',
-    ],
-  },
-  gestion: {
-    visible_if_has_any: [
-      'finanzas.read',
-      'finanzas.reportes',
-      'cobranza.read',
-      'auditoria.read',
-      'rrhh.read',
-      'rrhh.admin',
-      'documentos.read',
-      'proyectos.admin',
-      'pim.admin',
-      'pim.read',
-      'ecommerce.admin',
+      'eventos.read',
+      'eventos.write',
       'ccbp.plantel.read',
     ],
   },
-  setup: {
+  marketing: {
+    visible_if_has_any: [
+      'comunicaciones.send',
+      'personas.write',
+    ],
+  },
+  finanzas: {
+    visible_if_has_any: [
+      'finanzas.read',
+      'finanzas.reportes',
+      'finanzas.conciliacion',
+      'finanzas.admin',
+      'caja.operar',
+    ],
+  },
+  recursos: {
+    visible_if_has_any: [
+      'pim.read',
+      'pim.admin',
+      'inventario.read',
+      'inventario.write',
+      'reservas.read',
+      'ccbp.utileria.admin',
+      'ccbp.mapa.admin',
+      'proyectos.read',
+      'proyectos.admin',
+      'ecommerce.read',
+      'ecommerce.admin',
+    ],
+  },
+  configuracion: {
     visible_if_has_any: [
       'setup.users',
       'setup.modulos',
@@ -67,10 +82,6 @@ export const SPACE_VISIBILITY_RULES: Record<SpaceId, SpaceVisibilityRule> = {
       'setup.catalogos',
       'setup.integraciones',
       'atributos_custom.admin',
-      'ccbp.mapa.admin',
     ],
-  },
-  plataforma: {
-    visible_if_has_attribute: 'sistema.admin',
   },
 }

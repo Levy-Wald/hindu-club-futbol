@@ -2,9 +2,18 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Menu, Home, Briefcase, BarChart3, Settings, Layers, type LucideIcon } from 'lucide-react'
+import {
+  Home,
+  Users,
+  Calendar,
+  Megaphone,
+  TrendingUp,
+  Package,
+  Settings,
+  Menu,
+  type LucideIcon,
+} from 'lucide-react'
 import {
   Sheet,
   SheetTrigger,
@@ -15,19 +24,20 @@ import {
 import { useNavigation } from './navigation-provider'
 import { SidebarGroup } from './SidebarGroup'
 import { useTenant } from '@/lib/contexts/tenant-context'
-import type { SpaceId, SidebarCapa } from '@/lib/navigation/types'
+import type { SpaceId } from '@/lib/navigation/types'
 import { getVisibleSidebarItems, groupSidebarItems } from '@/lib/navigation/filter'
 
 const SPACE_ICONS: Record<SpaceId, LucideIcon> = {
-  'mi-dia': Home,
-  operacion: Briefcase,
-  gestion: BarChart3,
-  setup: Settings,
-  plataforma: Layers,
+  inicio: Home,
+  personas: Users,
+  actividad: Calendar,
+  marketing: Megaphone,
+  finanzas: TrendingUp,
+  recursos: Package,
+  configuracion: Settings,
 }
 
 export function MobileDrawer() {
-  const pathname = usePathname()
   const {
     visibleSpaces,
     activeSpace,
@@ -48,16 +58,7 @@ export function MobileDrawer() {
     mobileSpace,
     userAttributes
   )
-  const capaGroups = groupSidebarItems(items)
-
-  const CAPA_COLORS: Record<SidebarCapa, string> = {
-    troncal: 'border-l-blue-500',
-    cross_vertical: 'border-l-amber-500',
-    vertical_ccbp: 'border-l-emerald-500',
-    integracion: 'border-l-purple-500',
-    plataforma_saas: 'border-l-indigo-500',
-    ia_nativa: 'border-l-cyan-500',
-  }
+  const groups = groupSidebarItems(items)
 
   function handleSpaceSelect(space: SpaceId) {
     setMobileSpace(space)
@@ -90,7 +91,7 @@ export function MobileDrawer() {
             className="flex flex-col items-center justify-center gap-0.5 w-16 py-1 text-muted-foreground"
           >
             <Menu className="h-5 w-5" />
-            <span className="text-[10px] font-medium">Más</span>
+            <span className="text-[10px] font-medium">Mas</span>
           </SheetTrigger>
           <SheetContent side="left" className="w-[300px] p-0">
             <SheetHeader className="border-b">
@@ -117,21 +118,12 @@ export function MobileDrawer() {
               })}
             </div>
             <nav className="p-2 space-y-1 overflow-y-auto max-h-[calc(100vh-8rem)]">
-              {capaGroups.map(capaGroup => (
-                <div key={capaGroup.capa} className={cn('border-l-2 pl-1 mb-2', CAPA_COLORS[capaGroup.capa])}>
-                  <div className="px-2 pt-3 pb-1">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">
-                      {capaGroup.label}
-                    </span>
-                  </div>
-                  {capaGroup.subGroups.map(sg => (
-                    <SidebarGroup key={sg.grupo} label={sg.grupo} items={sg.items} />
-                  ))}
-                </div>
+              {groups.map(group => (
+                <SidebarGroup key={group.grupo} label={group.grupo} items={group.items} />
               ))}
-              {capaGroups.length === 0 && (
+              {groups.length === 0 && (
                 <div className="text-sm text-muted-foreground text-center py-8 px-4">
-                  No tenés items en este espacio.
+                  No tenes items en este espacio.
                 </div>
               )}
             </nav>

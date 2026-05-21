@@ -7,7 +7,7 @@ describe('getVisibleSidebarItems', () => {
       ['finanzas.read'],
       ['finanzas'],
       [],
-      'gestion',
+      'finanzas',
       []
     )
     expect(items.some(i => i.id === 'finanzas')).toBe(true)
@@ -18,7 +18,7 @@ describe('getVisibleSidebarItems', () => {
       ['finanzas.read'],
       [], // no modulos
       [],
-      'gestion',
+      'finanzas',
       []
     )
     expect(items.some(i => i.id === 'finanzas')).toBe(false)
@@ -29,7 +29,7 @@ describe('getVisibleSidebarItems', () => {
       [], // no capabilities
       ['finanzas'],
       [],
-      'gestion',
+      'finanzas',
       []
     )
     expect(items.some(i => i.id === 'finanzas')).toBe(false)
@@ -40,7 +40,7 @@ describe('getVisibleSidebarItems', () => {
       [], // no capabilities
       ['finanzas'],
       [],
-      'gestion',
+      'finanzas',
       ['tenant.admin']
     )
     expect(items.some(i => i.id === 'finanzas')).toBe(true)
@@ -51,7 +51,7 @@ describe('getVisibleSidebarItems', () => {
       [],
       ['finanzas'],
       [],
-      'gestion',
+      'finanzas',
       ['sistema.admin']
     )
     expect(items.some(i => i.id === 'finanzas')).toBe(true)
@@ -62,11 +62,11 @@ describe('getVisibleSidebarItems', () => {
       [],
       [],
       [],
-      'operacion',
+      'personas',
       []
     )
     // padrones has no modulo_slug but has capability_requerida personas.read
-    // with no caps and no admin → filtered out
+    // with no caps and no admin -> filtered out
     // but items without both should appear
     expect(items.some(i => i.id === 'inicio')).toBe(false) // wrong space
   })
@@ -76,7 +76,7 @@ describe('getVisibleSidebarItems', () => {
       ['setup.tenant', 'setup.users', 'setup.modulos'],
       [],
       [],
-      'setup',
+      'configuracion',
       []
     )
     expect(items.some(i => i.id === 'usuarios')).toBe(true)

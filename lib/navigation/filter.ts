@@ -20,7 +20,7 @@ export function getVisibleSidebarItems(
   return SIDEBAR_CATALOG.filter(item => {
     if (item.espacio !== espacioActivo) return false
 
-    // Próximamente items always visible (owner wants full roadmap visibility)
+    // Proximamente items always visible (owner wants full roadmap visibility)
     if (item.estado === 'proximamente') return true
 
     if (item.modulo_slug && !tenantModulos.includes(item.modulo_slug)) return false
@@ -52,55 +52,30 @@ export function getVisibleSpaces(userCapabilities: string[], userAttributes: str
   })
 }
 
-export interface SidebarSubGroup {
+export interface SidebarGroup {
   grupo: string
   items: SidebarItem[]
 }
 
-export interface SidebarCapaGroup {
-  capa: SidebarItem['capa']
-  label: string
-  subGroups: SidebarSubGroup[]
-}
-
-const CAPA_ORDER: SidebarItem['capa'][] = [
-  'troncal',
-  'cross_vertical',
-  'vertical_ccbp',
-  'integracion',
-  'plataforma_saas',
-  'ia_nativa',
-]
-
-const CAPA_LABELS: Record<SidebarItem['capa'], string> = {
-  troncal: 'Troncal',
-  cross_vertical: 'Modular',
-  vertical_ccbp: 'Vertical CCBP',
-  integracion: 'Integraciones',
-  plataforma_saas: 'Plataforma SaaS',
-  ia_nativa: 'IA Nativa',
-}
-
-export function groupSidebarItems(items: SidebarItem[]): SidebarCapaGroup[] {
-  const byCapa = new Map<SidebarItem['capa'], Map<string, SidebarItem[]>>()
+export function groupSidebarItems(items: SidebarItem[]): SidebarGroup[] {
+  const byGrupo = new Map<string, SidebarItem[]>()
 
   for (const item of items) {
-    if (!byCapa.has(item.capa)) byCapa.set(item.capa, new Map())
-    const grupoMap = byCapa.get(item.capa)!
-    if (!grupoMap.has(item.grupo)) grupoMap.set(item.grupo, [])
-    grupoMap.get(item.grupo)!.push(item)
+    if (!byGrupo.has(item.grupo)) byGrupo.set(item.grupo, [])
+    byGrupo.get(item.grupo)!.push(item)
   }
 
-  return CAPA_ORDER
-    .filter(capa => byCapa.has(capa))
-    .map(capa => {
-      const grupoMap = byCapa.get(capa)!
-      const subGroups: SidebarSubGroup[] = []
-      for (const [grupo, groupItems] of grupoMap) {
-        subGroups.push({ grupo, items: groupItems.sort((a, b) => a.orden - b.orden) })
-      }
-      return { capa, label: CAPA_LABELS[capa], subGroups }
-    })
+  const groups: SidebarGroup[] = []
+  for (const [grupo, groupItems] of byGrupo) {
+    groups.push({ grupo, items: groupItems.sort((a, b) => a.orden - b.orden) })
+  }
+
+  // Sort groups by the minimum orden of their items (deterministic ordering)
+  return groups.sort((a, b) => {
+    const minA = Math.min(...a.items.map(i => i.orden))
+    const minB = Math.min(...b.items.map(i => i.orden))
+    return minA - minB
+  })
 }
 
 export function inferVerticalesFromModulos(tenantModulos: string[]): string[] {

@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import {
   Home,
-  Briefcase,
-  BarChart3,
+  Users,
+  Calendar,
+  Megaphone,
+  TrendingUp,
+  Package,
   Settings,
-  Layers,
   Search,
   type LucideIcon,
 } from 'lucide-react'
@@ -17,11 +19,13 @@ import { useTenant } from '@/lib/contexts/tenant-context'
 import type { SpaceId } from '@/lib/navigation/types'
 
 const SPACE_ICONS: Record<SpaceId, LucideIcon> = {
-  'mi-dia': Home,
-  operacion: Briefcase,
-  gestion: BarChart3,
-  setup: Settings,
-  plataforma: Layers,
+  inicio: Home,
+  personas: Users,
+  actividad: Calendar,
+  marketing: Megaphone,
+  finanzas: TrendingUp,
+  recursos: Package,
+  configuracion: Settings,
 }
 
 interface TopBarProps {

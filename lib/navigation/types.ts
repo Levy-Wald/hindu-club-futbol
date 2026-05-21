@@ -1,4 +1,4 @@
-export type SpaceId = 'mi-dia' | 'operacion' | 'gestion' | 'setup' | 'plataforma'
+export type SpaceId = 'inicio' | 'personas' | 'actividad' | 'marketing' | 'finanzas' | 'recursos' | 'configuracion'
 
 export type SidebarCapa =
   | 'troncal'
@@ -37,4 +37,15 @@ export interface Space {
   id: SpaceId
   label: string
   icon: string
+}
+
+export interface ModuleSidebarMeta {
+  slug: string
+  nombre: string
+  nombre_display: string | null
+  area_sidebar_bo: string
+  sub_area_sidebar_bo: string
+  orden: number | null
+  prioridad_fase_c: string
+  activo_global: boolean
 }

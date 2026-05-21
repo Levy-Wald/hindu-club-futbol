@@ -1,5 +1,6 @@
 import { unstable_cache } from 'next/cache'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import type { ModuleSidebarMeta } from '@/lib/navigation/types'
 
 /**
  * Cached: tenant_modulos activos (cambia ~1x cada 3 meses)
@@ -17,6 +18,31 @@ export const getCachedTenantModulos = unstable_cache(
   },
   ['tenant-modulos'],
   { tags: ['tenant-modules'], revalidate: 300 }
+)
+
+/**
+ * Cached: sidebar module metadata from catalogo_modulos (cambia rarisimo)
+ * Revalidate: 10 min | Tag: sidebar-modules
+ */
+export const getCachedSidebarModules = unstable_cache(
+  async (): Promise<Map<string, ModuleSidebarMeta>> => {
+    const supabase = createServiceRoleClient()
+    const { data, error } = await supabase
+      .from('catalogo_modulos')
+      .select('slug, nombre, nombre_display, area_sidebar_bo, sub_area_sidebar_bo, orden, prioridad_fase_c, activo_global')
+      .not('area_sidebar_bo', 'is', null)
+    if (error) {
+      console.error('getCachedSidebarModules error:', error)
+      return new Map()
+    }
+    const map = new Map<string, ModuleSidebarMeta>()
+    for (const row of data ?? []) {
+      map.set(row.slug, row as ModuleSidebarMeta)
+    }
+    return map
+  },
+  ['sidebar-modules'],
+  { tags: ['sidebar-modules'], revalidate: 600 }
 )
 
 /**
