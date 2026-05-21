@@ -20,12 +20,13 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
-import { Search, Plus, X, Shield, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Search, Plus, X, Shield, Loader2, ChevronDown, ChevronUp, Download } from 'lucide-react'
 import {
   asignarAtributoUsuario,
   removerAtributoUsuario,
   fetchCapabilitiesPersona,
 } from '../_actions'
+import { exportToCSV } from '@/lib/export/formats'
 
 interface Atributo {
   slug: string
@@ -70,6 +71,7 @@ export function UsuariosPanel({
   catalogo: Atributo[]
 }) {
   const [search, setSearch] = useState('')
+  const [filterAtributo, setFilterAtributo] = useState('')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [capabilities, setCapabilities] = useState<Record<string, string[]>>({})
   const [addDialogFor, setAddDialogFor] = useState<string | null>(null)
@@ -78,11 +80,13 @@ export function UsuariosPanel({
 
   const filtered = usuarios.filter(u => {
     const q = search.toLowerCase()
-    return (
+    const matchesSearch = (
       u.nombre.toLowerCase().includes(q) ||
       u.apellido.toLowerCase().includes(q) ||
       (u.email_principal ?? '').toLowerCase().includes(q)
     )
+    const matchesAtributo = !filterAtributo || u.atributos.some(a => a.slug === filterAtributo)
+    return matchesSearch && matchesAtributo
   })
 
   function handleToggleExpand(personaId: string) {
@@ -135,8 +139,8 @@ export function UsuariosPanel({
 
   return (
     <>
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 max-w-sm min-w-[200px]">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar usuario..."
@@ -145,9 +149,41 @@ export function UsuariosPanel({
             className="pl-9"
           />
         </div>
+        <Select value={filterAtributo} onValueChange={v => setFilterAtributo(!v || v === '__all' ? '' : v)}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Filtrar por atributo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all">Todos los atributos</SelectItem>
+            {catalogo.map(c => (
+              <SelectItem key={c.slug} value={c.slug}>
+                {c.nombre}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Badge variant="secondary" className="text-xs">
           {filtered.length} usuario{filtered.length !== 1 ? 's' : ''}
         </Badge>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            exportToCSV({
+              headers: ['Apellido', 'Nombre', 'Email', 'Atributos'],
+              rows: filtered.map(u => [
+                u.apellido,
+                u.nombre,
+                u.email_principal ?? '',
+                u.atributos.map(a => a.nombre).join(', '),
+              ]),
+              filename: 'usuarios.csv',
+            })
+          }}
+        >
+          <Download className="h-4 w-4 mr-1" />
+          Exportar
+        </Button>
       </div>
 
       <div className="space-y-2">

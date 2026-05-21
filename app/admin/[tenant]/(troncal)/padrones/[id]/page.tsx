@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { ArrowLeft, Users, RefreshCw, Eye, Play } from 'lucide-react'
+import { ArrowLeft, Users, RefreshCw, Eye, Play, Upload } from 'lucide-react'
 import { AgregarMiembroDialog } from './_components/agregar-miembro-dialog'
 import { ExportPadronButton } from './_components/export-padron-button'
 import { EliminarPadronButton } from './_components/eliminar-padron-button'
@@ -84,6 +84,12 @@ export default async function PadronDetallePage({ params }: PageProps) {
             estadosPadron={estadosPadron}
             tiposSocio={tiposSocio}
           />
+          <Link href={`/admin/padrones/${padron.id}/importar`}>
+            <Button variant="outline" size="sm">
+              <Upload className="h-4 w-4 mr-1" />
+              Importar
+            </Button>
+          </Link>
           <Link href={`/admin/padrones/${padron.id}/sync/nuevo`}>
             <Button variant="outline" size="sm">
               <RefreshCw className="h-4 w-4 mr-1" />

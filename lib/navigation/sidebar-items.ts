@@ -770,7 +770,7 @@ export const SIDEBAR_CATALOG: SidebarItem[] = [
     href: '/admin/catalogos',
     icon: 'Library',
     capa: 'troncal',
-    estado: 'proximamente',
+    estado: 'activo',
     capability_requerida: 'setup.tenant',
     espacio: 'setup',
     grupo: 'Configuración',

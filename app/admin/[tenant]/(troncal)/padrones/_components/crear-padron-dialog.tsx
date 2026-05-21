@@ -80,6 +80,10 @@ export function CrearPadronDialog() {
       setErrors((prev) => ({ ...prev, slug: 'El slug es obligatorio' }))
       return
     }
+    if (!form.tipo) {
+      setErrors((prev) => ({ ...prev, tipo: 'El tipo es obligatorio' }))
+      return
+    }
 
     setLoading(true)
     const result = await crearPadron(form)
@@ -131,8 +135,8 @@ export function CrearPadronDialog() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="padron-tipo">Tipo</Label>
-            <Select value={form.tipo} onValueChange={(v) => setForm((prev) => ({ ...prev, tipo: v ?? '' }))}>
+            <Label htmlFor="padron-tipo">Tipo *</Label>
+            <Select value={form.tipo} onValueChange={(v) => { setForm((prev) => ({ ...prev, tipo: v ?? '' })); setErrors((prev) => ({ ...prev, tipo: '' })) }}>
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar tipo" />
               </SelectTrigger>
@@ -145,6 +149,7 @@ export function CrearPadronDialog() {
                 <SelectItem value="otro">Otro</SelectItem>
               </SelectContent>
             </Select>
+            {errors.tipo && <p className="text-sm text-destructive">{errors.tipo}</p>}
           </div>
 
           <div className="space-y-2">
