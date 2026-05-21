@@ -86,7 +86,7 @@ export async function crearCaja(formData: FormData): Promise<ActionResult> {
 
   if (error) return fail(`Error al crear caja: ${error.message}`)
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok(data)
 }
 
@@ -119,7 +119,7 @@ export async function editarCaja(id: string, formData: FormData): Promise<Action
 
   if (error) return fail(`Error al editar caja: ${error.message}`)
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   revalidatePath(`/admin/finanzas/cajas/${id}`)
   return ok()
 }
@@ -135,7 +135,7 @@ export async function eliminarCaja(id: string): Promise<ActionResult> {
 
   if (error) return fail(`Error al eliminar caja: ${error.message}`)
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok()
 }
 
@@ -150,7 +150,7 @@ export async function reactivarCaja(id: string): Promise<ActionResult> {
 
   if (error) return fail(`Error al reactivar caja: ${error.message}`)
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok()
 }
 
@@ -238,6 +238,39 @@ export async function crearMovimiento(formData: FormData) {
     warnings.push(...resueltas.warnings)
   }
 
+  // Auto-imputación via categoría + caja (si no se resolvió por producto ni manualmente)
+  if (!resolvedCuentaDebeId && !resolvedCuentaHaberId && tipo !== 'transferencia' && categoriaId) {
+    const [{ data: cat }, { data: cajaData }] = await Promise.all([
+      supabase.from('catalogo_categorias_movimiento')
+        .select('cuenta_contable_id').eq('id', categoriaId).single(),
+      supabase.from('cajas')
+        .select('cuenta_id').eq('id', cajaId).single(),
+    ])
+    const catCuentaId = cat?.cuenta_contable_id ?? null
+    const cajaCuentaId = cajaData?.cuenta_id ?? null
+    if (!cajaCuentaId) console.warn('[auto-imputacion] Caja sin cuenta contable:', cajaId)
+    if (!catCuentaId) console.warn('[auto-imputacion] Categoria sin cuenta contable:', categoriaId)
+    if (tipo === 'ingreso') {
+      resolvedCuentaDebeId = cajaCuentaId
+      resolvedCuentaHaberId = catCuentaId
+    } else {
+      resolvedCuentaDebeId = catCuentaId
+      resolvedCuentaHaberId = cajaCuentaId
+    }
+  }
+
+  // Auto-imputación transferencias via cuentas de cajas
+  if (!resolvedCuentaDebeId && !resolvedCuentaHaberId && tipo === 'transferencia' && cajaDestinoId) {
+    const [{ data: cajaOrigen }, { data: cajaDest }] = await Promise.all([
+      supabase.from('cajas').select('cuenta_id').eq('id', cajaId).single(),
+      supabase.from('cajas').select('cuenta_id').eq('id', cajaDestinoId).single(),
+    ])
+    resolvedCuentaDebeId = cajaDest?.cuenta_id ?? null
+    resolvedCuentaHaberId = cajaOrigen?.cuenta_id ?? null
+    if (!cajaOrigen?.cuenta_id) console.warn('[auto-imputacion] Caja origen sin cuenta:', cajaId)
+    if (!cajaDest?.cuenta_id) console.warn('[auto-imputacion] Caja destino sin cuenta:', cajaDestinoId)
+  }
+
   // Insert movimiento
   // DB triggers handle: auto-numbering, monto_neto calc, USD conversion, saldo update, cuenta corriente update
   const insertData: Record<string, unknown> = {
@@ -275,8 +308,8 @@ export async function crearMovimiento(formData: FormData) {
     return { success: false, error: `Error al crear movimiento: ${error.message}` }
   }
 
-  revalidatePath('/admin/finanzas/movimientos')
-  revalidatePath('/admin/finanzas/cajas')
+  revalidatePath('/admin/[tenant]/finanzas/movimientos', 'page')
+  revalidatePath('/admin/[tenant]/finanzas/cajas', 'page')
   return { success: true, warnings }
 }
 
@@ -328,7 +361,7 @@ export async function anularMovimiento(id: string, motivo: string): Promise<Acti
 
   if (updateError) return fail(`Error al anular movimiento: ${updateError.message}`)
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok()
 }
 
@@ -375,7 +408,7 @@ export async function crearCuenta(formData: FormData): Promise<ActionResult> {
     return fail(`Error al crear cuenta: ${error.message}`)
   }
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok(data)
 }
 
@@ -419,7 +452,7 @@ export async function editarCuenta(id: string, formData: FormData): Promise<Acti
     return fail(`Error al editar cuenta: ${error.message}`)
   }
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok()
 }
 
@@ -458,7 +491,7 @@ export async function desactivarCuenta(id: string): Promise<ActionResult> {
 
   if (error) return fail(`Error al desactivar cuenta: ${error.message}`)
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok()
 }
 
@@ -473,7 +506,7 @@ export async function reactivarCuenta(id: string): Promise<ActionResult> {
 
   if (error) return fail(`Error al reactivar cuenta: ${error.message}`)
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok()
 }
 
@@ -527,7 +560,7 @@ export async function crearConvenio(formData: FormData): Promise<ActionResult> {
 
   if (error) return fail(`Error al crear convenio: ${error.message}`)
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok(data)
 }
 
@@ -595,7 +628,7 @@ export async function pagarCuotaConvenio(
 
   if (updateError) return fail(`Error al actualizar convenio: ${updateError.message}`)
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok({ movimiento_id: movimiento.id, cuotas_pagadas: nuevaCuotasPagadas, completado: esUltimaCuota })
 }
 
@@ -656,7 +689,7 @@ export async function actualizarConfigFinanciera(formData: FormData): Promise<Ac
 
   if (error) return fail(`Error al actualizar configuracion: ${error.message}`)
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok()
 }
 
@@ -705,7 +738,7 @@ export async function cerrarPeriodo(id: string): Promise<ActionResult> {
 
   if (error) return fail(`Error al cerrar periodo: ${error.message}`)
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok()
 }
 
@@ -737,7 +770,7 @@ export async function abrirPeriodo(anio: number, mes: number): Promise<ActionRes
 
   if (error) return fail(`Error al abrir periodo: ${error.message}`)
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok(data)
 }
 
@@ -785,7 +818,7 @@ export async function actualizarCotizacion(
 
   if (error) return fail(`Error al actualizar cotizacion: ${error.message}`)
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok(data)
 }
 
@@ -800,7 +833,7 @@ export async function eliminarCotizacion(id: string): Promise<ActionResult> {
 
   if (error) return fail(`Error al eliminar cotizacion: ${error.message}`)
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok()
 }
 
@@ -829,6 +862,6 @@ export async function reabrirPeriodo(id: string): Promise<ActionResult> {
 
   if (error) return fail(`Error al reabrir periodo: ${error.message}`)
 
-  revalidatePath('/admin/finanzas')
+  revalidatePath('/admin/[tenant]/finanzas', 'layout')
   return ok()
 }

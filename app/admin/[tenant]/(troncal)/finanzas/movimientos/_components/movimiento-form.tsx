@@ -70,6 +70,7 @@ interface MovimientoFormProps {
   productos: Producto[]
   cuentas: CuentaContable[]
   cajaPreseleccionada?: string
+  tipoInicial?: string
   onSuccess?: () => void
 }
 
@@ -105,12 +106,13 @@ export function MovimientoForm({
   productos,
   cuentas,
   cajaPreseleccionada,
+  tipoInicial = 'ingreso',
   onSuccess,
 }: MovimientoFormProps) {
   const [isPending, startTransition] = useTransition()
 
   // Form state
-  const [tipo, setTipo] = useState<string>('ingreso')
+  const [tipo, setTipo] = useState<string>(tipoInicial)
   const [cajaId, setCajaId] = useState<string>(cajaPreseleccionada ?? '')
   const [cajaDestinoId, setCajaDestinoId] = useState<string>('')
   const [montoBruto, setMontoBruto] = useState<string>('')

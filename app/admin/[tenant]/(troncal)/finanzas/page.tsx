@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -19,13 +18,11 @@ import {
   Landmark,
   CreditCard,
   ArrowRightLeft,
-  Plus,
-  Minus,
-  Receipt,
   RefreshCw,
 } from 'lucide-react'
 import Link from 'next/link'
 import { CapabilityGate } from '@/components/capability-gate'
+import { FinanzasQuickActions } from './_components/finanzas-quick-actions'
 import { TENANT_ID } from '@/lib/tenant'
 
 
@@ -82,6 +79,12 @@ export default async function FinanzasDashboardPage() {
     cuotasPendientesRes,
     movimientosRes,
     cotizacionRes,
+    cajasFormRes,
+    categoriasRes,
+    mediosPagoRes,
+    centrosCostoRes,
+    productosRes,
+    cuentasRes,
   ] = await Promise.all([
     // Cajas activas
     supabase
@@ -132,6 +135,20 @@ export default async function FinanzasDashboardPage() {
       .eq('moneda', 'USD')
       .order('fecha', { ascending: false })
       .limit(1),
+
+    // Data for quick action dialogs
+    supabase.from('cajas').select('id, nombre, tipo, activa')
+      .eq('tenant_id', TENANT_ID).eq('activa', true).is('deleted_at', null).order('nombre'),
+    supabase.from('catalogo_categorias_movimiento').select('id, nombre, tipo')
+      .eq('tenant_id', TENANT_ID).eq('activo', true).order('nombre'),
+    supabase.from('medios_pago').select('id, nombre')
+      .eq('tenant_id', TENANT_ID).eq('activo', true).order('nombre'),
+    supabase.from('centros_costo').select('id, nombre')
+      .eq('tenant_id', TENANT_ID).eq('activo', true).order('nombre'),
+    supabase.from('productos').select('id, nombre, sku, tipo_uso')
+      .eq('tenant_id', TENANT_ID).eq('activo', true).is('deleted_at', null).order('nombre'),
+    supabase.from('plan_cuentas').select('id, codigo, nombre')
+      .eq('es_imputable', true).eq('activa', true).order('codigo'),
   ])
 
   const cajas = cajasRes.data ?? []
@@ -322,42 +339,14 @@ export default async function FinanzasDashboardPage() {
 
       {/* Quick actions */}
       <CapabilityGate anyOf={['finanzas.write', 'cobranza.write']}>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Acciones rapidas</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-3">
-            <CapabilityGate capability="finanzas.write">
-              <Button render={<Link href="/admin/finanzas/movimientos/nuevo?tipo=ingreso" />}>
-                <Plus className="h-4 w-4" />
-                Nuevo Ingreso
-              </Button>
-              <Button
-                variant="destructive"
-                render={<Link href="/admin/finanzas/movimientos/nuevo?tipo=egreso" />}
-              >
-                <Minus className="h-4 w-4" />
-                Nuevo Egreso
-              </Button>
-              <Button
-                variant="outline"
-                render={<Link href="/admin/finanzas/transferencias/nueva" />}
-              >
-                <ArrowRightLeft className="h-4 w-4" />
-                Transferencia
-              </Button>
-            </CapabilityGate>
-            <CapabilityGate capability="cobranza.write">
-              <Button
-                variant="secondary"
-                render={<Link href="/admin/finanzas/cuotas/emitir" />}
-              >
-                <Receipt className="h-4 w-4" />
-                Emitir Cuotas
-              </Button>
-            </CapabilityGate>
-          </CardContent>
-        </Card>
+        <FinanzasQuickActions
+          cajas={cajasFormRes.data ?? []}
+          categorias={categoriasRes.data ?? []}
+          mediosPago={mediosPagoRes.data ?? []}
+          centrosCosto={centrosCostoRes.data ?? []}
+          productos={productosRes.data ?? []}
+          cuentas={cuentasRes.data ?? []}
+        />
       </CapabilityGate>
 
       {/* Ultimos movimientos */}

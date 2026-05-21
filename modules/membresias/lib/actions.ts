@@ -45,7 +45,7 @@ export async function darAltaMembresia(input: AltaMembresiaInput): Promise<Resul
   }
 
   revalidatePath('/admin/membresias')
-  revalidatePath('/admin/finanzas/suscripciones')
+  revalidatePath('/admin/[tenant]/finanzas/suscripciones', 'page')
   return { ok: true, id: data?.id }
 }
 
@@ -77,7 +77,7 @@ export async function darBajaMembresia(suscripcionId: string, motivo?: string): 
   if (error) return { ok: false, error: error.message }
 
   revalidatePath('/admin/membresias')
-  revalidatePath('/admin/finanzas/suscripciones')
+  revalidatePath('/admin/[tenant]/finanzas/suscripciones', 'page')
   return { ok: true }
 }
 
@@ -94,7 +94,7 @@ export async function suspenderMembresia(suscripcionId: string): Promise<Result>
   if (error) return { ok: false, error: error.message }
 
   revalidatePath('/admin/membresias')
-  revalidatePath('/admin/finanzas/suscripciones')
+  revalidatePath('/admin/[tenant]/finanzas/suscripciones', 'page')
   return { ok: true }
 }
 
@@ -114,6 +114,6 @@ export async function reactivarMembresia(suscripcionId: string): Promise<Result>
   if (error) return { ok: false, error: error.message }
 
   revalidatePath('/admin/membresias')
-  revalidatePath('/admin/finanzas/suscripciones')
+  revalidatePath('/admin/[tenant]/finanzas/suscripciones', 'page')
   return { ok: true }
 }

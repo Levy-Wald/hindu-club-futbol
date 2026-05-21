@@ -11,7 +11,13 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
 import { crearCuenta, editarCuenta } from '@/modules/finanzas/lib/actions'
@@ -104,10 +110,14 @@ export function CuentaFormDialog({ trigger, cuenta, parentCuenta, allCuentas }: 
               <Input value={TIPOS_CUENTA.find(t => t.value === defaultTipo)?.label ?? defaultTipo} disabled />
             ) : (
               <Select name="tipo" defaultValue={defaultTipo} required>
-                <option value="">Seleccionar...</option>
-                {TIPOS_CUENTA.map(t => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIPOS_CUENTA.map(t => (
+                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             )}
           </div>
@@ -116,10 +126,15 @@ export function CuentaFormDialog({ trigger, cuenta, parentCuenta, allCuentas }: 
             <div className="space-y-2">
               <Label htmlFor="cuenta_padre_id">Cuenta padre (opcional)</Label>
               <Select name="cuenta_padre_id" defaultValue="">
-                <option value="">Sin padre (raiz)</option>
-                {allCuentas.map(c => (
-                  <option key={c.id} value={c.id}>{c.codigo} — {c.nombre}</option>
-                ))}
+                <SelectTrigger>
+                  <SelectValue placeholder="Sin padre (raiz)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Sin padre (raiz)</SelectItem>
+                  {allCuentas.map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.codigo} — {c.nombre}</SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
           )}
@@ -127,9 +142,14 @@ export function CuentaFormDialog({ trigger, cuenta, parentCuenta, allCuentas }: 
           <div className="space-y-2">
             <Label htmlFor="moneda_default">Moneda default</Label>
             <Select name="moneda_default" defaultValue={isEdit ? undefined : 'ARS'}>
-              {MONEDAS.map(m => (
-                <option key={m.value} value={m.value}>{m.label}</option>
-              ))}
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar..." />
+              </SelectTrigger>
+              <SelectContent>
+                {MONEDAS.map(m => (
+                  <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
 

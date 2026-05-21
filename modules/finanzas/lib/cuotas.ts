@@ -73,7 +73,7 @@ export async function crearPlan(input: PlanInput) {
     return formatResult(false, `Error al crear plan: ${error.message}`)
   }
 
-  revalidatePath('/admin/finanzas/cuotas')
+  revalidatePath('/admin/[tenant]/finanzas/cuotas', 'page')
   return formatResult(true, 'Plan creado correctamente', { id: data.id })
 }
 
@@ -103,7 +103,7 @@ export async function editarPlan(planId: string, input: PlanInput) {
     return formatResult(false, `Error al editar plan: ${error.message}`)
   }
 
-  revalidatePath('/admin/finanzas/cuotas')
+  revalidatePath('/admin/[tenant]/finanzas/cuotas', 'page')
   return formatResult(true, 'Plan actualizado correctamente')
 }
 
@@ -140,7 +140,7 @@ export async function crearBonificacion(input: BonificacionInput) {
     return formatResult(false, `Error al crear bonificacion: ${error.message}`)
   }
 
-  revalidatePath('/admin/finanzas/cuotas')
+  revalidatePath('/admin/[tenant]/finanzas/cuotas', 'page')
   return formatResult(true, 'Bonificacion creada correctamente', { id: data.id })
 }
 
@@ -167,7 +167,7 @@ export async function editarBonificacion(bonificacionId: string, input: Bonifica
     return formatResult(false, `Error al editar bonificacion: ${error.message}`)
   }
 
-  revalidatePath('/admin/finanzas/cuotas')
+  revalidatePath('/admin/[tenant]/finanzas/cuotas', 'page')
   return formatResult(true, 'Bonificacion actualizada correctamente')
 }
 
@@ -293,7 +293,7 @@ export async function emitirCuotasMasivas(planId: string, periodo: string) {
     }
   }
 
-  revalidatePath('/admin/finanzas/cuotas')
+  revalidatePath('/admin/[tenant]/finanzas/cuotas', 'page')
   return formatResult(true, `Se emitieron ${result.total_emitidas} cuotas correctamente`, {
     emision_id: result.emision_id,
     total_emitidas: result.total_emitidas,
@@ -333,7 +333,7 @@ export async function anularEmision(emisionId: string, motivo?: string) {
     return formatResult(false, 'Error inesperado: sin resultado de anulacion')
   }
 
-  revalidatePath('/admin/finanzas/cuotas')
+  revalidatePath('/admin/[tenant]/finanzas/cuotas', 'page')
   return formatResult(
     true,
     `Emision anulada: ${result.cuotas_anuladas} cuotas anuladas` +
@@ -480,7 +480,7 @@ export async function cobrarCuota(
     }).catch(() => {})
   }
 
-  revalidatePath('/admin/finanzas/cuotas')
+  revalidatePath('/admin/[tenant]/finanzas/cuotas', 'page')
   return formatResult(true, 'Cuota cobrada correctamente', result)
 }
 
@@ -540,7 +540,7 @@ export async function cobrarCuotasMasivo(
   const exitosas = resultados.filter(r => r.ok).length
   const fallidas = resultados.filter(r => !r.ok).length
 
-  revalidatePath('/admin/finanzas/cuotas')
+  revalidatePath('/admin/[tenant]/finanzas/cuotas', 'page')
   return formatResult(
     fallidas === 0,
     fallidas === 0
@@ -601,7 +601,7 @@ export async function anularPago(pagoId: string, motivo: string) {
     }
   }
 
-  revalidatePath('/admin/finanzas/cuotas')
+  revalidatePath('/admin/[tenant]/finanzas/cuotas', 'page')
   return formatResult(true, 'Pago anulado correctamente', result)
 }
 
@@ -722,6 +722,6 @@ export async function anularCuota(cuotaId: string) {
     return formatResult(false, `Error al anular cuota: ${error.message}`)
   }
 
-  revalidatePath('/admin/finanzas/cuotas')
+  revalidatePath('/admin/[tenant]/finanzas/cuotas', 'page')
   return formatResult(true, 'Cuota anulada correctamente')
 }

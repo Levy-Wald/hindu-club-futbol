@@ -56,6 +56,10 @@ interface NuevoMovimientoDialogProps {
   productos: Producto[]
   cuentas: CuentaContable[]
   cajaPreseleccionada?: string
+  tipoInicial?: string
+  trigger?: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 export function NuevoMovimientoDialog({
@@ -66,18 +70,36 @@ export function NuevoMovimientoDialog({
   productos,
   cuentas,
   cajaPreseleccionada,
+  tipoInicial,
+  trigger,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: NuevoMovimientoDialogProps) {
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen ?? internalOpen
+  const setOpen = controlledOnOpenChange ?? setInternalOpen
+
+  const tipoLabels: Record<string, string> = {
+    ingreso: 'Nuevo ingreso',
+    egreso: 'Nuevo egreso',
+    transferencia: 'Nueva transferencia',
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button />}>
-        <Plus className="h-4 w-4 mr-1" />
-        Nuevo movimiento
-      </DialogTrigger>
+      {!controlledOnOpenChange && (
+        trigger ? (
+          <DialogTrigger render={trigger as React.ReactElement} />
+        ) : (
+          <DialogTrigger render={<Button />}>
+            <Plus className="h-4 w-4 mr-1" />
+            Nuevo movimiento
+          </DialogTrigger>
+        )
+      )}
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nuevo movimiento</DialogTitle>
+          <DialogTitle>{tipoInicial ? tipoLabels[tipoInicial] ?? 'Nuevo movimiento' : 'Nuevo movimiento'}</DialogTitle>
         </DialogHeader>
         <MovimientoForm
           cajas={cajas}
@@ -87,6 +109,7 @@ export function NuevoMovimientoDialog({
           productos={productos}
           cuentas={cuentas}
           cajaPreseleccionada={cajaPreseleccionada}
+          tipoInicial={tipoInicial}
           onSuccess={() => setOpen(false)}
         />
       </DialogContent>

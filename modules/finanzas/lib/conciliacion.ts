@@ -251,7 +251,7 @@ export async function importarExtracto(formData: FormData): Promise<ActionResult
     }
   }
 
-  revalidatePath('/admin/finanzas/conciliacion')
+  revalidatePath('/admin/[tenant]/finanzas/conciliacion', 'page')
 
   const result: ResultadoImport = {
     batch_id: batchId,
@@ -368,7 +368,7 @@ export async function autoMatchearExtracto(
     }
   }
 
-  revalidatePath('/admin/finanzas/conciliacion')
+  revalidatePath('/admin/[tenant]/finanzas/conciliacion', 'page')
   return { success: true, data: { matcheados, sin_match, multiples_candidatos } }
 }
 
@@ -428,7 +428,7 @@ export async function conciliarManual(filaId: string, movimientoCajaId: string):
 
   if (e2) return { success: false, error: e2.message }
 
-  revalidatePath('/admin/finanzas/conciliacion')
+  revalidatePath('/admin/[tenant]/finanzas/conciliacion', 'page')
   return { success: true }
 }
 
@@ -495,8 +495,8 @@ export async function crearMovimientoDesdeFila(formData: FormData): Promise<Acti
     })
     .eq('id', filaId)
 
-  revalidatePath('/admin/finanzas/conciliacion')
-  revalidatePath('/admin/finanzas/movimientos')
+  revalidatePath('/admin/[tenant]/finanzas/conciliacion', 'page')
+  revalidatePath('/admin/[tenant]/finanzas/movimientos', 'page')
   return { success: true, data: { movimiento_id: movimiento.id } }
 }
 
@@ -514,7 +514,7 @@ export async function marcarDiscrepancia(filaId: string, notas: string): Promise
 
   if (error) return { success: false, error: error.message }
 
-  revalidatePath('/admin/finanzas/conciliacion')
+  revalidatePath('/admin/[tenant]/finanzas/conciliacion', 'page')
   return { success: true }
 }
 
@@ -529,7 +529,7 @@ export async function ignorarFila(filaId: string): Promise<ActionResult> {
 
   if (error) return { success: false, error: error.message }
 
-  revalidatePath('/admin/finanzas/conciliacion')
+  revalidatePath('/admin/[tenant]/finanzas/conciliacion', 'page')
   return { success: true }
 }
 
@@ -571,7 +571,7 @@ export async function desconciliar(filaId: string): Promise<ActionResult> {
       .eq('id', fila.movimiento_caja_id)
   }
 
-  revalidatePath('/admin/finanzas/conciliacion')
+  revalidatePath('/admin/[tenant]/finanzas/conciliacion', 'page')
   return { success: true }
 }
 

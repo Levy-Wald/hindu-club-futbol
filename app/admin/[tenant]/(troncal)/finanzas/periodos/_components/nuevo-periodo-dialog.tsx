@@ -7,7 +7,13 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { abrirPeriodo } from '@/modules/finanzas/lib/actions'
@@ -61,9 +67,14 @@ export function NuevoPeriodoDialog() {
             <div className="space-y-2">
               <Label htmlFor="mes">Mes</Label>
               <Select name="mes" defaultValue={String(defaultMes)}>
-                {MESES.map((label, i) => (
-                  <option key={i + 1} value={String(i + 1)}>{label}</option>
-                ))}
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MESES.map((label, i) => (
+                    <SelectItem key={i + 1} value={String(i + 1)}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
           </div>

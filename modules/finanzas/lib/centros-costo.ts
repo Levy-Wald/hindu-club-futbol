@@ -131,7 +131,7 @@ export async function crearCentroCosto(input: CrearCentroInput) {
     return formatResult(false, `Error al crear: ${error.message}`)
   }
 
-  revalidatePath('/admin/finanzas/centros-costo')
+  revalidatePath('/admin/[tenant]/finanzas/centros-costo', 'page')
   return formatResult(true, 'Centro de costo creado', { id: data.id })
 }
 
@@ -178,7 +178,7 @@ export async function editarCentroCosto(id: string, input: EditarCentroInput) {
 
   if (error) return formatResult(false, `Error al editar: ${error.message}`)
 
-  revalidatePath('/admin/finanzas/centros-costo')
+  revalidatePath('/admin/[tenant]/finanzas/centros-costo', 'page')
   revalidatePath(`/admin/finanzas/centros-costo/${id}`)
   return formatResult(true, 'Centro actualizado')
 }
@@ -198,7 +198,7 @@ export async function darDeBajaCentroCosto(id: string) {
 
   if (error) return formatResult(false, `Error: ${error.message}`)
 
-  revalidatePath('/admin/finanzas/centros-costo')
+  revalidatePath('/admin/[tenant]/finanzas/centros-costo', 'page')
   return formatResult(true, 'Centro dado de baja')
 }
 
@@ -217,7 +217,7 @@ export async function reactivarCentroCosto(id: string) {
 
   if (error) return formatResult(false, `Error: ${error.message}`)
 
-  revalidatePath('/admin/finanzas/centros-costo')
+  revalidatePath('/admin/[tenant]/finanzas/centros-costo', 'page')
   return formatResult(true, 'Centro reactivado')
 }
 

@@ -146,7 +146,7 @@ export async function crearSuscripcion(
     origen_evento: 'crear_suscripcion',
   }).catch(() => {})
 
-  revalidatePath('/admin/finanzas/suscripciones')
+  revalidatePath('/admin/[tenant]/finanzas/suscripciones', 'page')
   revalidatePath(`/admin/personas/${personaId}`)
   return ok()
 }
@@ -204,7 +204,7 @@ export async function cancelarSuscripcion(
     }).catch(() => {})
   }
 
-  revalidatePath('/admin/finanzas/suscripciones')
+  revalidatePath('/admin/[tenant]/finanzas/suscripciones', 'page')
   revalidatePath(`/admin/personas/${sub.persona_id}`)
   return ok()
 }
@@ -220,7 +220,7 @@ export async function suspenderSuscripcion(suscripcionId: string): Promise<Actio
 
   if (error) return fail(`Error al suspender: ${error.message}`)
 
-  revalidatePath('/admin/finanzas/suscripciones')
+  revalidatePath('/admin/[tenant]/finanzas/suscripciones', 'page')
   return ok()
 }
 
@@ -239,6 +239,6 @@ export async function reactivarSuscripcion(suscripcionId: string): Promise<Actio
 
   if (error) return fail(`Error al reactivar: ${error.message}`)
 
-  revalidatePath('/admin/finanzas/suscripciones')
+  revalidatePath('/admin/[tenant]/finanzas/suscripciones', 'page')
   return ok()
 }
