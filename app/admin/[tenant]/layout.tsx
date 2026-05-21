@@ -53,6 +53,8 @@ function enrichSidebarItems(
   })
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function TenantLayout({ children, params }: LayoutProps) {
   const { tenant: tenantId } = await params
 
