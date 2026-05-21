@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import { StepInput } from './step-input'
 import { StepMapping } from './step-mapping'
@@ -14,11 +14,13 @@ import type { ParsedData, ColumnMapping, ImportRow, ImportSummary } from '../_li
 interface ImportWizardProps {
   padronId: string
   padronNombre: string
+  padronTipo: string | null
 }
 
-export type WizardStep = 'input' | 'mapping' | 'dedup' | 'confirm' | 'results'
+export type WizardStep = 'verificar' | 'input' | 'mapping' | 'dedup' | 'confirm' | 'results'
 
 const STEP_LABELS: Record<WizardStep, string> = {
+  verificar: 'Verificar',
   input: 'Datos',
   mapping: 'Mapeo',
   dedup: 'Revisión',
@@ -26,16 +28,17 @@ const STEP_LABELS: Record<WizardStep, string> = {
   results: 'Resultado',
 }
 
-const STEPS: WizardStep[] = ['input', 'mapping', 'dedup', 'confirm', 'results']
+const STEPS: WizardStep[] = ['verificar', 'input', 'mapping', 'dedup', 'confirm', 'results']
 
-export function ImportWizard({ padronId, padronNombre }: ImportWizardProps) {
-  const [step, setStep] = useState<WizardStep>('input')
+export function ImportWizard({ padronId, padronNombre, padronTipo }: ImportWizardProps) {
+  const [step, setStep] = useState<WizardStep>('verificar')
   const [parsedData, setParsedData] = useState<ParsedData | null>(null)
   const [mappings, setMappings] = useState<ColumnMapping[]>([])
   const [importRows, setImportRows] = useState<ImportRow[]>([])
   const [summary, setSummary] = useState<ImportSummary | null>(null)
 
   const currentStepIndex = STEPS.indexOf(step)
+  const tipoOk = !!padronTipo
 
   const handleDataParsed = useCallback((data: ParsedData) => {
     setParsedData(data)
@@ -73,7 +76,7 @@ export function ImportWizard({ padronId, padronNombre }: ImportWizardProps) {
       </div>
 
       {/* Step indicator */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 flex-wrap">
         {STEPS.map((s, i) => (
           <div key={s} className="flex items-center">
             <div
@@ -100,6 +103,13 @@ export function ImportWizard({ padronId, padronNombre }: ImportWizardProps) {
 
       {/* Step content */}
       <div className="min-h-[400px]">
+        {step === 'verificar' && (
+          <StepVerificar
+            padronTipo={padronTipo}
+            padronId={padronId}
+            onContinue={() => setStep('input')}
+          />
+        )}
         {step === 'input' && (
           <StepInput onDataParsed={handleDataParsed} />
         )}
@@ -131,6 +141,77 @@ export function ImportWizard({ padronId, padronNombre }: ImportWizardProps) {
         {step === 'results' && summary && (
           <StepResults summary={summary} padronId={padronId} />
         )}
+      </div>
+    </div>
+  )
+}
+
+// --- Paso 0: Verificar tipo del padrón ---
+
+const TIPO_LABELS: Record<string, string> = {
+  global: 'Global',
+  deportivo: 'Deportivo',
+  educativo: 'Educativo',
+  residencial: 'Residencial',
+  administrativo: 'Administrativo',
+  otro: 'Otro',
+}
+
+function StepVerificar({
+  padronTipo,
+  padronId,
+  onContinue,
+}: {
+  padronTipo: string | null
+  padronId: string
+  onContinue: () => void
+}) {
+  if (!padronTipo) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-start gap-3 rounded-md border border-destructive/50 bg-destructive/5 p-4">
+          <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+          <div className="space-y-2">
+            <h2 className="text-base font-medium text-destructive">
+              Este padrón no tiene tipo asignado
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Para importar datos, el padrón necesita tener un tipo definido (global, deportivo, educativo, etc.).
+              Esto permite validar correctamente los datos durante la importación.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Editá el padrón desde su página de detalle para asignarle un tipo y volvé a intentar.
+            </p>
+            <Link href={`/admin/padrones/${padronId}`}>
+              <Button variant="outline" size="sm" className="mt-2">
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Volver al padrón
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-start gap-3 rounded-md border border-success-500/50 bg-success-50 dark:bg-success-950/20 p-4">
+        <CheckCircle2 className="h-5 w-5 text-success-600 shrink-0 mt-0.5" />
+        <div className="space-y-2">
+          <h2 className="text-base font-medium">Padrón listo para importar</h2>
+          <p className="text-sm text-muted-foreground">
+            Tipo: <strong>{TIPO_LABELS[padronTipo] ?? padronTipo}</strong>
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Podés continuar con la carga de datos. El wizard te guiará paso a paso.
+          </p>
+        </div>
+      </div>
+      <div className="flex justify-end">
+        <Button onClick={onContinue}>
+          Continuar
+        </Button>
       </div>
     </div>
   )

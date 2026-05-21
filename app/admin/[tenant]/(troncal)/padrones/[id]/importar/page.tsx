@@ -13,6 +13,10 @@ export default async function ImportarPadronPage({ params }: PageProps) {
   if (!padron) notFound()
 
   return (
-    <ImportWizard padronId={padron.id} padronNombre={padron.nombre} />
+    <ImportWizard
+      padronId={padron.id}
+      padronNombre={padron.nombre}
+      padronTipo={padron.tipo}
+    />
   )
 }
