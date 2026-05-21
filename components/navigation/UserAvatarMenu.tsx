@@ -11,6 +11,7 @@ import {
   Sun,
   Moon,
   Monitor,
+  ShieldCheck,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -22,6 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useTenant } from '@/lib/contexts/tenant-context'
+import { useCapabilities } from '@/lib/permissions/capabilities-context'
 
 interface UserAvatarMenuProps {
   userEmail?: string
@@ -33,6 +35,8 @@ export function UserAvatarMenu({ userEmail, personaNombre, fotoPerfilUrl }: User
   const router = useRouter()
   const { setTheme, theme } = useTheme()
   const { tenantId } = useTenant()
+  const capabilities = useCapabilities()
+  const isSistemaAdmin = capabilities.includes('sistema.admin')
 
   async function handleLogout() {
     const supabase = createClient()
@@ -98,6 +102,15 @@ export function UserAvatarMenu({ userEmail, personaNombre, fotoPerfilUrl }: User
           <Trophy className="mr-2 h-4 w-4" />
           Mi equipo
         </DropdownMenuItem>
+        {isSistemaAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push('/admin/scl')}>
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              Panel SCL
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <div className="px-2 py-1.5">
           <p className="text-xs text-muted-foreground mb-1.5">Tema</p>
