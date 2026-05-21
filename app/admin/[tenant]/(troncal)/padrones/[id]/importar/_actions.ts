@@ -93,7 +93,7 @@ export async function ejecutarImport(
       let personaId: string
 
       if (row.action === 'crear') {
-        // Create new persona
+        // Create new persona (UPSERT: if duplicate key on documento, merge non-null fields)
         const insertData: Record<string, unknown> = {
           tenant_id: TENANT_ID,
           nombre: row.data.nombre?.trim() || 'Sin nombre',
@@ -101,8 +101,9 @@ export async function ejecutarImport(
           fuente_origen: 'sync_padron_externo',
         }
 
-        // Map optional fields
-        if (row.data.numero_documento) insertData.numero_documento = row.data.numero_documento.replace(/[\.\-\s]/g, '')
+        // Map optional fields — only include non-empty values
+        const docNum = row.data.numero_documento?.replace(/[\.\-\s]/g, '')
+        if (docNum) insertData.numero_documento = docNum
         if (row.data.tipo_documento) insertData.tipo_documento = row.data.tipo_documento
         if (row.data.email_principal) insertData.email_principal = row.data.email_principal
         if (row.data.telefono_principal) insertData.telefono_principal = row.data.telefono_principal
@@ -121,20 +122,91 @@ export async function ejecutarImport(
           insertData.metadata = { import_extra: row.unmappedData }
         }
 
-        const { data: newPersona, error: insertError } = await supabase
-          .from('personas')
-          .insert(insertData)
-          .select('id')
-          .single()
+        // Use upsert with onConflict on unique constraint (tenant_id, tipo_documento, numero_documento).
+        // When conflict occurs: fill empty fields only (COALESCE semantics), never overwrite existing data.
+        const hasDocumento = !!insertData.numero_documento
+        let resultPersona: { id: string } | null = null
+        let resultError: { message: string } | null = null
 
-        if (insertError) {
+        if (hasDocumento) {
+          // Try upsert — on conflict, update only fields that are currently NULL in DB
+          // First try insert, if it fails with duplicate key, fetch existing + merge
+          const { data, error } = await supabase
+            .from('personas')
+            .insert(insertData)
+            .select('id')
+            .single()
+
+          if (error && error.message.includes('duplicate key')) {
+            // Fetch existing persona by documento
+            const { data: existing } = await supabase
+              .from('personas')
+              .select('id, nombre, apellido, email_principal, telefono_principal, fecha_nacimiento, genero, cuil_cuit, nacionalidad, direccion_calle, direccion_numero, direccion_ciudad, direccion_provincia, direccion_codigo_postal')
+              .eq('tenant_id', TENANT_ID)
+              .eq('numero_documento', insertData.numero_documento as string)
+              .is('deleted_at', null)
+              .maybeSingle()
+
+            if (existing) {
+              // Smart merge: only fill fields that are null in DB
+              const mergeData: Record<string, unknown> = {}
+              const fillableFields = [
+                'email_principal', 'telefono_principal', 'fecha_nacimiento', 'genero',
+                'cuil_cuit', 'nacionalidad', 'direccion_calle', 'direccion_numero',
+                'direccion_ciudad', 'direccion_provincia', 'direccion_codigo_postal',
+              ] as const
+
+              for (const field of fillableFields) {
+                if ((existing as Record<string, unknown>)[field] == null && insertData[field] != null) {
+                  mergeData[field] = insertData[field]
+                }
+              }
+
+              if (Object.keys(mergeData).length > 0) {
+                await supabase
+                  .from('personas')
+                  .update(mergeData)
+                  .eq('id', existing.id)
+                  .eq('tenant_id', TENANT_ID)
+
+                summary.actualizadas++
+              }
+
+              resultPersona = { id: existing.id }
+              // Count as vinculada (existing persona found via duplicate key)
+              summary.vinculadas++
+            } else {
+              resultError = error
+            }
+          } else if (error) {
+            resultError = error
+          } else {
+            resultPersona = data
+            summary.nuevas++
+          }
+        } else {
+          // No documento — just insert normally (no conflict possible on this constraint)
+          const { data, error } = await supabase
+            .from('personas')
+            .insert(insertData)
+            .select('id')
+            .single()
+
+          if (error) {
+            resultError = error
+          } else {
+            resultPersona = data
+            summary.nuevas++
+          }
+        }
+
+        if (resultError) {
           summary.errores++
-          summary.detalleErrores.push({ row: i + 1, message: insertError.message })
+          summary.detalleErrores.push({ row: i + 1, message: resultError.message })
           continue
         }
 
-        personaId = newPersona.id
-        summary.nuevas++
+        personaId = resultPersona!.id
       } else {
         // Vincular (con o sin actualizar)
         personaId = row.matchedPersonaId!

@@ -147,6 +147,22 @@ export function StepDedup({ parsedData, mappings, padronId, onComplete, onBack }
     )
   }
 
+  // Confirm a possible match → promote to match_exacto
+  function confirmMatch(rowIndex: number) {
+    setImportRows((prev) =>
+      prev.map((r) => {
+        if (r.rowIndex !== rowIndex || !r.dedupResult) return r
+        return {
+          ...r,
+          dedupResult: {
+            ...r.dedupResult,
+            status: 'match_exacto' as const,
+          },
+        }
+      })
+    )
+  }
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-4">
@@ -213,6 +229,7 @@ export function StepDedup({ parsedData, mappings, padronId, onComplete, onBack }
                   key={row.rowIndex}
                   row={row}
                   onToggle={() => toggleRowStatus(row.rowIndex)}
+                  onConfirm={() => confirmMatch(row.rowIndex)}
                 />
               ))}
             {stats.posibles > 50 && (
@@ -303,9 +320,11 @@ function StatCard({
 function PossibleMatchCard({
   row,
   onToggle,
+  onConfirm,
 }: {
   row: ImportRow
   onToggle: () => void
+  onConfirm: () => void
 }) {
   const match = row.dedupResult?.matchedPersona
   if (!match) return null
@@ -337,10 +356,10 @@ function PossibleMatchCard({
           <Button size="sm" variant="outline" className="text-xs h-7" onClick={onToggle}>
             No es la misma
           </Button>
-          <Badge variant="secondary" className="h-7">
+          <Button size="sm" variant="default" className="text-xs h-7" onClick={onConfirm}>
             <Link2 className="h-3 w-3 mr-1" />
             Vincular
-          </Badge>
+          </Button>
         </div>
       </div>
     </div>
