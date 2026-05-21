@@ -50,7 +50,7 @@ export async function fetchEventosSemana(
        canchas!cancha_id(id, nombre)`
     )
     .eq('tenant_id', TENANT_ID)
-    .eq('activo', true)
+    .is('deleted_at', null)
     .gte('fecha', fechaInicio)
     .lte('fecha', fechaFin)
     .order('fecha', { ascending: true })

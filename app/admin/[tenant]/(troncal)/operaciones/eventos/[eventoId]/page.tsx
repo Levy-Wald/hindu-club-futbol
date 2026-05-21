@@ -35,7 +35,7 @@ export default async function HubEventoPage({
     .select('*')
     .eq('id', eventoId)
     .eq('tenant_id', tenantId)
-    .eq('activo', true)
+    .is('deleted_at', null)
     .maybeSingle()
 
   if (!evento) notFound()

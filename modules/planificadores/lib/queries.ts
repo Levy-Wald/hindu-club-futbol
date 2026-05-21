@@ -5,7 +5,6 @@ import type { EventoCalendar } from './types'
 
 /**
  * Obtiene eventos del mes con padding de 1 semana para vista calendario.
- * AP-001: eventos no tiene deleted_at, usa .eq('activo', true)
  * AP-003: queries separadas para equipos y canchas (no FK joins)
  */
 export async function obtenerEventosPorMes(
@@ -24,7 +23,7 @@ export async function obtenerEventosPorMes(
     .from('eventos')
     .select('id, titulo, fecha, hora_inicio, hora_fin, tipo_evento_slug, equipo_id, cancha_id, color, es_recurrente, evento_padre_id, serie_uuid, estado')
     .eq('tenant_id', tenant_id)
-    .eq('activo', true)
+    .is('deleted_at', null)
     .not('fecha', 'is', null)
     .gte('fecha', fechaDesde.toISOString().slice(0, 10))
     .lte('fecha', fechaHasta.toISOString().slice(0, 10))
@@ -54,7 +53,6 @@ export async function obtenerEventosPorMes(
 
 /**
  * Obtiene eventos de una semana para vista semanal.
- * AP-001: eventos no tiene deleted_at, usa .eq('activo', true)
  * AP-003: queries separadas para equipos y canchas (no FK joins)
  */
 export async function obtenerEventosPorSemana(
@@ -70,7 +68,7 @@ export async function obtenerEventosPorSemana(
     .from('eventos')
     .select('id, titulo, fecha, hora_inicio, hora_fin, tipo_evento_slug, equipo_id, cancha_id, color, es_recurrente, evento_padre_id, serie_uuid, estado')
     .eq('tenant_id', tenant_id)
-    .eq('activo', true)
+    .is('deleted_at', null)
     .not('fecha', 'is', null)
     .gte('fecha', fechaInicio.toISOString().slice(0, 10))
     .lte('fecha', fechaFin.toISOString().slice(0, 10))

@@ -6,7 +6,7 @@ import type { ConflictoOverlap } from './types'
 /**
  * S4 pre-mortem: detecta overlap de cancha en nuevo horario.
  * Retorna null si no hay conflicto.
- * AP-001: eventos usa .eq('activo', true) (no deleted_at)
+ * Uses deleted_at IS NULL (soft delete) for active events filter.
  */
 export async function detectarOverlapCancha(input: {
   cancha_id: string
@@ -30,7 +30,7 @@ export async function detectarOverlapCancha(input: {
     .eq('tenant_id', input.tenant_id)
     .eq('cancha_id', input.cancha_id)
     .eq('fecha', input.fecha)
-    .eq('activo', true)
+    .is('deleted_at', null)
     .neq('id', input.evento_id_excluir)
     .lt('hora_inicio', input.hora_fin)
     .gt('hora_fin', input.hora_inicio)

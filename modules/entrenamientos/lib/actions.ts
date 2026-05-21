@@ -37,7 +37,7 @@ export async function crearOActualizarPlanAction(input: {
     .select('id, tipo_evento_slug')
     .eq('id', input.evento_id)
     .eq('tenant_id', persona.tenant_id)
-    .eq('activo', true)
+    .is('deleted_at', null)
     .single()
 
   if (!evento) return { ok: false, error: 'Evento no encontrado' }
