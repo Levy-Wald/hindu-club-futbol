@@ -69,6 +69,16 @@ export function ProyectoForm({ proyecto, personas = [], entidades = [] }: Props)
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-lg font-bold">
+          {isEdit ? 'Editar proyecto' : 'Nuevo proyecto'}
+        </h1>
+        <Button type="submit" disabled={saving}>
+          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isEdit ? 'Guardar cambios' : 'Crear proyecto'}
+        </Button>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="sm:col-span-2">
           <Label htmlFor="nombre">Nombre *</Label>
@@ -168,10 +178,6 @@ export function ProyectoForm({ proyecto, personas = [], entidades = [] }: Props)
         </div>
       </div>
 
-      <Button type="submit" disabled={saving}>
-        {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isEdit ? 'Guardar cambios' : 'Crear proyecto'}
-      </Button>
     </form>
   )
 }

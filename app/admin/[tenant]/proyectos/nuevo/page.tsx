@@ -23,12 +23,9 @@ export default async function NuevoProyectoPage() {
   ])
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-lg font-bold">Nuevo proyecto</h1>
-      <ProyectoForm
-        personas={(personas ?? []) as { id: string; nombre: string; apellido: string }[]}
-        entidades={(entidades ?? []) as { id: string; nombre: string }[]}
-      />
-    </div>
+    <ProyectoForm
+      personas={(personas ?? []) as { id: string; nombre: string; apellido: string }[]}
+      entidades={(entidades ?? []) as { id: string; nombre: string }[]}
+    />
   )
 }

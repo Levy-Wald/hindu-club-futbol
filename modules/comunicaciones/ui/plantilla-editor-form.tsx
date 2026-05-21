@@ -219,30 +219,81 @@ export function PlantillaEditorForm({ plantilla, permisos, variablesDisponibles 
   return (
     <div className="space-y-6" data-testid="plantilla-editor">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.push('/admin/comunicaciones')}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-xl font-bold sm:text-2xl">
-            {isEdit ? 'Editar plantilla' : 'Nueva plantilla'}
-          </h1>
-          <div className="flex items-center gap-2 mt-1">
-            {esSistema && (
-              <Badge variant="outline" className="text-[10px]" data-testid="badge-sistema">
-                Plantilla del sistema
-              </Badge>
-            )}
-            {isEdit && plantilla.version && (
-              <Badge variant="secondary" className="text-[10px]">
-                v{plantilla.version}
-              </Badge>
-            )}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/admin/comunicaciones')}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-xl font-bold sm:text-2xl">
+              {isEdit ? 'Editar plantilla' : 'Nueva plantilla'}
+            </h1>
+            <div className="flex items-center gap-2 mt-1">
+              {esSistema && (
+                <Badge variant="outline" className="text-[10px]" data-testid="badge-sistema">
+                  Plantilla del sistema
+                </Badge>
+              )}
+              {isEdit && plantilla.version && (
+                <Badge variant="secondary" className="text-[10px]">
+                  v{plantilla.version}
+                </Badge>
+              )}
+            </div>
           </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button onClick={handleGuardar} disabled={isPending} size="sm" data-testid="btn-guardar">
+            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isEdit ? 'Guardar cambios' : 'Crear plantilla'}
+          </Button>
+          {isEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTestSendOpen(true)}
+            >
+              <Send className="h-4 w-4" />
+              Test send
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push('/admin/comunicaciones')}
+          >
+            Cancelar
+          </Button>
+          {isEdit && permisos.puede_duplicar && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setDuplicarSlug(slug + '-copia')
+                setDuplicarDialogOpen(true)
+              }}
+            >
+              <Copy className="h-4 w-4" />
+              Duplicar
+            </Button>
+          )}
+          {isEdit && permisos.puede_eliminar && (
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={esSistema}
+              title={esSistema ? 'Las plantillas del sistema no se pueden eliminar' : undefined}
+              onClick={() => setEliminarDialogOpen(true)}
+              data-testid="btn-eliminar"
+            >
+              <Trash2 className="h-4 w-4" />
+              Eliminar
+            </Button>
+          )}
         </div>
       </div>
 
@@ -370,56 +421,6 @@ export function PlantillaEditorForm({ plantilla, permisos, variablesDisponibles 
             </CardContent>
           </Card>
 
-          {/* Action buttons */}
-          <div className="flex flex-wrap items-center gap-3">
-            <Button onClick={handleGuardar} disabled={isPending} data-testid="btn-guardar">
-              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isEdit ? 'Guardar cambios' : 'Crear plantilla'}
-            </Button>
-
-            {isEdit && (
-              <Button
-                variant="outline"
-                onClick={() => setTestSendOpen(true)}
-              >
-                <Send className="h-4 w-4" />
-                Test send
-              </Button>
-            )}
-
-            <Button
-              variant="outline"
-              onClick={() => router.push('/admin/comunicaciones')}
-            >
-              Cancelar
-            </Button>
-
-            {isEdit && permisos.puede_duplicar && (
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setDuplicarSlug(slug + '-copia')
-                  setDuplicarDialogOpen(true)
-                }}
-              >
-                <Copy className="h-4 w-4" />
-                Duplicar
-              </Button>
-            )}
-
-            {isEdit && permisos.puede_eliminar && (
-              <Button
-                variant="destructive"
-                disabled={esSistema}
-                title={esSistema ? 'Las plantillas del sistema no se pueden eliminar' : undefined}
-                onClick={() => setEliminarDialogOpen(true)}
-                data-testid="btn-eliminar"
-              >
-                <Trash2 className="h-4 w-4" />
-                Eliminar
-              </Button>
-            )}
-          </div>
         </div>
 
         {/* Middle: Preview */}

@@ -121,7 +121,7 @@ export function AutomatizacionForm({ automatizacion }: AutomatizacionFormProps) 
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         <Button
           variant="ghost"
           size="sm"
@@ -129,9 +129,18 @@ export function AutomatizacionForm({ automatizacion }: AutomatizacionFormProps) 
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-xl font-bold sm:text-2xl">
+        <h1 className="text-xl font-bold sm:text-2xl flex-1">
           {isEdit ? 'Editar automatizacion' : 'Nueva automatizacion'}
         </h1>
+        <div className="flex items-center gap-2">
+          <Button onClick={handleGuardar} disabled={isPending} size="sm">
+            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isEdit ? 'Guardar cambios' : 'Crear automatizacion'}
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => router.push('/admin/comunicaciones')}>
+            Cancelar
+          </Button>
+        </div>
       </div>
 
       <Card className="max-w-2xl">
@@ -204,15 +213,6 @@ export function AutomatizacionForm({ automatizacion }: AutomatizacionFormProps) 
         </CardContent>
       </Card>
 
-      <div className="flex items-center gap-3">
-        <Button onClick={handleGuardar} disabled={isPending}>
-          {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-          {isEdit ? 'Guardar cambios' : 'Crear automatizacion'}
-        </Button>
-        <Button variant="outline" onClick={() => router.push('/admin/comunicaciones')}>
-          Cancelar
-        </Button>
-      </div>
     </div>
   )
 }

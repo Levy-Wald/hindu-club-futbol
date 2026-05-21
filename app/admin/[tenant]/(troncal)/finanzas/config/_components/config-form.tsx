@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
+import { Settings, Loader2 } from 'lucide-react'
 import { actualizarConfigFinanciera } from '@/modules/finanzas/lib/actions'
 
 const MONEDAS = ['ARS', 'USD', 'EUR', 'BRL', 'UYU', 'CLP']
@@ -67,6 +68,20 @@ export function ConfigFinancieraForm({ config }: ConfigFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <Settings className="h-6 w-6 text-muted-foreground" />
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold">Configuracion Financiera</h1>
+            <p className="text-sm text-muted-foreground">Parametros generales del modulo de finanzas</p>
+          </div>
+        </div>
+        <Button type="submit" disabled={pending}>
+          {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+          {pending ? 'Guardando...' : 'Guardar configuracion'}
+        </Button>
+      </div>
+
       {/* Moneda */}
       <Card>
         <CardHeader><CardTitle className="text-base">Moneda</CardTitle></CardHeader>
@@ -160,11 +175,6 @@ export function ConfigFinancieraForm({ config }: ConfigFormProps) {
         </CardContent>
       </Card>
 
-      <div className="flex justify-end">
-        <Button type="submit" disabled={pending}>
-          {pending ? 'Guardando...' : 'Guardar configuracion'}
-        </Button>
-      </div>
     </form>
   )
 }
