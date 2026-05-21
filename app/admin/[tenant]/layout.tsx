@@ -46,6 +46,9 @@ function enrichSidebarItems(
       }
     }
 
+    // DEV ONLY: mostrar capa en label — REMOVER pre-FASE C
+    enriched.label = `${enriched.label} - ${item.capa}`
+
     return enriched
   })
 }
