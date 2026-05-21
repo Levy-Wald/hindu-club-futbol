@@ -16,7 +16,7 @@ interface LayoutProps {
 function enrichSidebarItems(
   items: SidebarItem[],
   tenantId: string,
-  modulesMeta: Map<string, ModuleSidebarMeta>
+  modulesMeta: Record<string, ModuleSidebarMeta>
 ): SidebarItem[] {
   return items.map(item => {
     // Transform href to include tenant segment
@@ -30,7 +30,7 @@ function enrichSidebarItems(
 
     // Enrich from BD module metadata
     if (item.modulo_slug) {
-      const meta = modulesMeta.get(item.modulo_slug)
+      const meta = modulesMeta[item.modulo_slug]
       if (meta) {
         // T4: Apply nombre_display override from BD
         if (meta.nombre_display) {

@@ -25,7 +25,7 @@ export const getCachedTenantModulos = unstable_cache(
  * Revalidate: 10 min | Tag: sidebar-modules
  */
 export const getCachedSidebarModules = unstable_cache(
-  async (): Promise<Map<string, ModuleSidebarMeta>> => {
+  async (): Promise<Record<string, ModuleSidebarMeta>> => {
     const supabase = createServiceRoleClient()
     const { data, error } = await supabase
       .from('catalogo_modulos')
@@ -33,13 +33,13 @@ export const getCachedSidebarModules = unstable_cache(
       .not('area_sidebar_bo', 'is', null)
     if (error) {
       console.error('getCachedSidebarModules error:', error)
-      return new Map()
+      return {}
     }
-    const map = new Map<string, ModuleSidebarMeta>()
+    const record: Record<string, ModuleSidebarMeta> = {}
     for (const row of data ?? []) {
-      map.set(row.slug, row as ModuleSidebarMeta)
+      record[row.slug] = row as ModuleSidebarMeta
     }
-    return map
+    return record
   },
   ['sidebar-modules'],
   { tags: ['sidebar-modules'], revalidate: 600 }
