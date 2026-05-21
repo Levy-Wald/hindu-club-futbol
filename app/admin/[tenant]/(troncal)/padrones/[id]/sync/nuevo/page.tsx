@@ -117,9 +117,31 @@ export default function SyncNuevoPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <h1 className="text-xl font-bold">
+        <h1 className="text-xl font-bold flex-1">
           Sincronizar padrón{padron ? `: ${padron.nombre}` : ''}
         </h1>
+        <Button
+          type="button"
+          disabled={!padron?.pipeline_slug || !file || isProcessing}
+          onClick={(e) => {
+            const form = (e.target as HTMLElement).closest('.space-y-4')?.querySelector('form')
+            form?.requestSubmit()
+          }}
+        >
+          {isProcessing ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              {status === 'uploading' && 'Subiendo...'}
+              {status === 'matching' && 'Matching...'}
+              {status === 'done' && 'Redirigiendo...'}
+            </>
+          ) : (
+            <>
+              <Upload className="h-4 w-4 mr-2" />
+              Iniciar sincronización
+            </>
+          )}
+        </Button>
       </div>
 
       <Card>
@@ -157,21 +179,8 @@ export default function SyncNuevoPage() {
               </div>
             )}
 
-            <Button type="submit" disabled={!padron?.pipeline_slug || !file || isProcessing} className="w-full">
-              {isProcessing ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {status === 'uploading' && 'Subiendo y parseando archivo...'}
-                  {status === 'matching' && 'Buscando coincidencias con personas existentes...'}
-                  {status === 'done' && 'Redirigiendo a revisión...'}
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Iniciar sincronización
-                </>
-              )}
-            </Button>
+            {/* Submit hidden — action button is in the header */}
+            <button type="submit" className="hidden" />
           </form>
         </CardContent>
       </Card>

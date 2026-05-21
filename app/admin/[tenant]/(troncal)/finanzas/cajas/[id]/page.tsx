@@ -169,14 +169,20 @@ export default async function CajaDetailPage({ params }: PageProps) {
         )}
         <div className="ml-auto flex items-center gap-2">
           {!isDeleted && (
-            <CajaFormDialog
-              caja={caja}
-              entidades={entidades}
-              personas={personas ?? []}
-              cuentas={cuentas}
-              actividadesSugeridas={actividades}
-              trigger={<Button variant="outline" size="sm">Editar</Button>}
-            />
+            <>
+              <Button size="sm" render={<Link href={`/admin/finanzas/movimientos?caja=${id}`} />}>
+                <Plus className="h-4 w-4 mr-1" />
+                Nuevo movimiento
+              </Button>
+              <CajaFormDialog
+                caja={caja}
+                entidades={entidades}
+                personas={personas ?? []}
+                cuentas={cuentas}
+                actividadesSugeridas={actividades}
+                trigger={<Button variant="outline" size="sm">Editar</Button>}
+              />
+            </>
           )}
           <CajaDetailActions cajaId={caja.id} cajaName={caja.nombre} isDeleted={isDeleted} saldo={caja.saldo_actual} />
         </div>
@@ -295,14 +301,6 @@ export default async function CajaDetailPage({ params }: PageProps) {
             </div>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Boton nuevo movimiento */}
-      <div className="flex justify-end">
-        <Button render={<Link href={`/admin/finanzas/movimientos?caja=${id}`} />}>
-          <Plus className="h-4 w-4 mr-1" />
-          Nuevo movimiento
-        </Button>
       </div>
 
       {/* Tabla de movimientos */}

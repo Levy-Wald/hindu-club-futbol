@@ -16,28 +16,42 @@ export function StepResults({ summary, padronId }: StepResultsProps) {
 
   return (
     <div className="space-y-6">
-      {/* Status header */}
-      <div className="flex items-center gap-3">
-        {success && !hasErrors && (
-          <CheckCircle2 className="h-8 w-8 text-success-600" />
-        )}
-        {success && hasErrors && (
-          <AlertTriangle className="h-8 w-8 text-warning-600" />
-        )}
-        {!success && (
-          <XCircle className="h-8 w-8 text-error-600" />
-        )}
-        <div>
-          <h2 className="text-lg font-medium">
-            {success ? 'Importación completada' : 'No se importaron datos'}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {success
-              ? hasErrors
-                ? 'Se completó con algunos errores.'
-                : 'Todos los datos se procesaron correctamente.'
-              : 'Revisá los errores e intentá de nuevo.'}
-          </p>
+      {/* Status header + actions */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3">
+          {success && !hasErrors && (
+            <CheckCircle2 className="h-8 w-8 text-success-600" />
+          )}
+          {success && hasErrors && (
+            <AlertTriangle className="h-8 w-8 text-warning-600" />
+          )}
+          {!success && (
+            <XCircle className="h-8 w-8 text-error-600" />
+          )}
+          <div>
+            <h2 className="text-lg font-medium">
+              {success ? 'Importación completada' : 'No se importaron datos'}
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              {success
+                ? hasErrors
+                  ? 'Se completó con algunos errores.'
+                  : 'Todos los datos se procesaron correctamente.'
+                : 'Revisá los errores e intentá de nuevo.'}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link href={`/admin/padrones/${padronId}/importar`}>
+            <Button variant="outline" size="sm">
+              Importar más datos
+            </Button>
+          </Link>
+          <Link href={`/admin/padrones/${padronId}`}>
+            <Button size="sm">
+              Ver padrón
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -74,19 +88,6 @@ export function StepResults({ summary, padronId }: StepResultsProps) {
         </div>
       )}
 
-      {/* Actions */}
-      <div className="flex justify-between pt-4">
-        <Link href={`/admin/padrones/${padronId}/importar`}>
-          <Button variant="outline">
-            Importar más datos
-          </Button>
-        </Link>
-        <Link href={`/admin/padrones/${padronId}`}>
-          <Button>
-            Ver padrón
-          </Button>
-        </Link>
-      </div>
     </div>
   )
 }
