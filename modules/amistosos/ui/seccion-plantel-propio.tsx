@@ -5,10 +5,12 @@ export function SeccionPlantelPropio({
   eventoId,
   equipoId,
   equipoNombre,
+  tenantId,
 }: {
   eventoId: string
   equipoId: string | null
   equipoNombre: string | null
+  tenantId: string
 }) {
   return (
     <div className="border rounded-lg p-4 mb-4" data-testid="seccion-plantel-propio">
@@ -21,7 +23,7 @@ export function SeccionPlantelPropio({
             <span>{equipoNombre ?? 'Equipo'}</span>
           </div>
           <Link
-            href={`/admin/operaciones/eventos/${eventoId}/asistencia`}
+            href={`/admin/${tenantId}/operaciones/eventos/${eventoId}/asistencia`}
             className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
           >
             Gestionar convocatoria

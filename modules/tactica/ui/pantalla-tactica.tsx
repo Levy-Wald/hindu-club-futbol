@@ -23,7 +23,7 @@ export async function PantallaTactica({
     <div className="container mx-auto p-4 max-w-5xl" data-testid="pantalla-tactica">
       <div className="mb-4">
         <Link
-          href={`/admin/operaciones/eventos/${eventoId}/asistencia`}
+          href={`/admin/${tenantId}/operaciones/eventos/${eventoId}/asistencia`}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-2"
         >
           <ArrowLeft className="h-3.5 w-3.5" />

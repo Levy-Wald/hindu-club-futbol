@@ -46,6 +46,7 @@ type PendienteDrop = {
 export function CalendarioSemanal({
   eventos: eventosIniciales,
   fechaInicioStr,
+  tenantId,
   sedes = [],
   equipos = [],
 }: {
@@ -271,6 +272,7 @@ export function CalendarioSemanal({
         <ModalDetalleEvento
           evento={seleccionado}
           onClose={() => setSeleccionado(null)}
+          tenantId={tenantId}
         />
       )}
 

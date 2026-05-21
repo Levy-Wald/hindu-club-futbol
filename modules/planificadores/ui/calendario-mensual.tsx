@@ -46,6 +46,7 @@ export function CalendarioMensual({
   eventos: eventosIniciales,
   year,
   month,
+  tenantId,
 }: {
   eventos: EventoCalendar[]
   year: number
@@ -210,6 +211,7 @@ export function CalendarioMensual({
         <ModalDetalleEvento
           evento={seleccionado}
           onClose={() => setSeleccionado(null)}
+          tenantId={tenantId}
         />
       )}
 

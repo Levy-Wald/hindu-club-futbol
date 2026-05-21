@@ -6,9 +6,11 @@ import type { EventoCalendar } from '../lib/types'
 export function ModalDetalleEvento({
   evento,
   onClose,
+  tenantId,
 }: {
   evento: EventoCalendar
   onClose: () => void
+  tenantId: string
 }) {
   const r = evento.resource
   const horaStr = (d: Date) =>
@@ -67,7 +69,7 @@ export function ModalDetalleEvento({
             Cerrar
           </button>
           <Link
-            href={`/admin/operaciones/eventos/${evento.id}`}
+            href={`/admin/${tenantId}/operaciones/eventos/${evento.id}`}
             className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
             data-testid="btn-detalle-completo"
           >

@@ -2,7 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { TENANT_ID } from '@/lib/tenant'
+import { isValidTenantId } from '@/lib/tenant'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, Trophy, BarChart3, Users } from 'lucide-react'
@@ -10,9 +10,11 @@ import { ArrowLeft, Trophy, BarChart3, Users } from 'lucide-react'
 export default async function HubPartidoPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ tenant: string; id: string }>
 }) {
-  const { id } = await params
+  const { tenant: tenantId, id } = await params
+  if (!isValidTenantId(tenantId)) redirect('/login?error=tenant-not-found')
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -23,7 +25,8 @@ export default async function HubPartidoPage({
     .from('eventos')
     .select('*')
     .eq('id', id)
-    .eq('tenant_id', TENANT_ID)
+    .eq('tenant_id', tenantId)
+    .eq('activo', true)
     .maybeSingle()
 
   if (!evento) notFound()
@@ -40,7 +43,7 @@ export default async function HubPartidoPage({
 
   return (
     <div className="container mx-auto p-4 max-w-5xl">
-      <Link href="/admin/competencias/torneos">
+      <Link href={`/admin/${tenantId}/competencias/torneos`}>
         <Button variant="ghost" size="sm" className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-1" /> Volver a competencias
         </Button>
@@ -64,7 +67,7 @@ export default async function HubPartidoPage({
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div>
             <dt className="text-muted-foreground">Rival</dt>
-            <dd className="font-medium">{detalle?.rival_nombre ?? '-'}</dd>
+            <dd className="font-medium">{detalle?.rival_texto ?? '-'}</dd>
           </div>
           <div>
             <dt className="text-muted-foreground">Condicion</dt>
@@ -73,19 +76,19 @@ export default async function HubPartidoPage({
           <div>
             <dt className="text-muted-foreground">Resultado</dt>
             <dd className="font-medium">
-              {detalle?.goles_favor != null ? `${detalle.goles_favor} - ${detalle.goles_contra}` : 'Pendiente'}
+              {detalle?.marcador_local != null ? `${detalle.marcador_local} - ${detalle.marcador_visitante}` : 'Pendiente'}
             </dd>
           </div>
         </dl>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Link href={`/admin/competencias/partidos/${id}/resultado`}>
+        <Link href={`/admin/${tenantId}/competencias/partidos/${id}/resultado`}>
           <Button variant="outline" size="sm">
             <Trophy className="h-4 w-4 mr-1.5" /> Resultado
           </Button>
         </Link>
-        <Link href={`/admin/operaciones/eventos/${id}/asistencia`}>
+        <Link href={`/admin/${tenantId}/operaciones/eventos/${id}/asistencia`}>
           <Button variant="outline" size="sm">
             <Users className="h-4 w-4 mr-1.5" /> Asistencia
           </Button>

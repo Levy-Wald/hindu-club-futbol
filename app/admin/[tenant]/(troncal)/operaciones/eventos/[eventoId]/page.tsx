@@ -2,7 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { TENANT_ID } from '@/lib/tenant'
+import { isValidTenantId } from '@/lib/tenant'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, Calendar, Users, ClipboardList, Swords, Target } from 'lucide-react'
@@ -19,9 +19,11 @@ const TIPO_LABELS: Record<string, string> = {
 export default async function HubEventoPage({
   params,
 }: {
-  params: Promise<{ eventoId: string }>
+  params: Promise<{ tenant: string; eventoId: string }>
 }) {
-  const { eventoId } = await params
+  const { tenant: tenantId, eventoId } = await params
+  if (!isValidTenantId(tenantId)) redirect('/login?error=tenant-not-found')
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -32,7 +34,8 @@ export default async function HubEventoPage({
     .from('eventos')
     .select('*')
     .eq('id', eventoId)
-    .eq('tenant_id', TENANT_ID)
+    .eq('tenant_id', tenantId)
+    .eq('activo', true)
     .maybeSingle()
 
   if (!evento) notFound()
@@ -55,15 +58,15 @@ export default async function HubEventoPage({
   ])
 
   const tabs = [
-    { label: 'Asistencia', href: `/admin/operaciones/eventos/${eventoId}/asistencia`, icon: ClipboardList, show: true },
-    { label: 'Plan', href: `/admin/operaciones/eventos/${eventoId}/plan`, icon: Calendar, show: tipo === 'entrenamiento' },
-    { label: 'Tactica', href: `/admin/operaciones/eventos/${eventoId}/tactica`, icon: Target, show: ['entrenamiento', 'partido', 'amistoso'].includes(tipo) },
-    { label: 'Amistoso', href: `/admin/operaciones/eventos/${eventoId}/amistoso`, icon: Swords, show: tipo === 'amistoso' },
+    { label: 'Asistencia', href: `/admin/${tenantId}/operaciones/eventos/${eventoId}/asistencia`, icon: ClipboardList, show: true },
+    { label: 'Plan', href: `/admin/${tenantId}/operaciones/eventos/${eventoId}/plan`, icon: Calendar, show: tipo === 'entrenamiento' },
+    { label: 'Tactica', href: `/admin/${tenantId}/operaciones/eventos/${eventoId}/tactica`, icon: Target, show: ['entrenamiento', 'partido', 'amistoso'].includes(tipo) },
+    { label: 'Amistoso', href: `/admin/${tenantId}/operaciones/eventos/${eventoId}/amistoso`, icon: Swords, show: tipo === 'amistoso' },
   ].filter(t => t.show)
 
   return (
     <div className="container mx-auto p-4 max-w-5xl" data-testid="hub-evento">
-      <Link href="/admin/planificadores/semanal">
+      <Link href={`/admin/${tenantId}/planificadores/semanal`}>
         <Button variant="ghost" size="sm" className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-1" /> Volver al calendario
         </Button>
