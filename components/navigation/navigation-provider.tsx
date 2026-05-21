@@ -71,7 +71,8 @@ export function NavigationProvider({
     tenantModulos,
     tenantVerticales,
     activeSpace,
-    userAttributes
+    userAttributes,
+    allItems
   )
 
   const sidebarGroups = groupSidebarItems(filteredItems)

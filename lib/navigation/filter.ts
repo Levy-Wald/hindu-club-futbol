@@ -13,11 +13,12 @@ export function getVisibleSidebarItems(
   tenantModulos: string[],
   tenantVerticales: string[],
   espacioActivo: SpaceId,
-  userAttributes: string[] = []
+  userAttributes: string[] = [],
+  items: SidebarItem[] = SIDEBAR_CATALOG
 ): SidebarItem[] {
   const admin = isAdmin(userAttributes)
 
-  return SIDEBAR_CATALOG.filter(item => {
+  return items.filter(item => {
     if (item.espacio !== espacioActivo) return false
 
     // Proximamente items always visible (owner wants full roadmap visibility)

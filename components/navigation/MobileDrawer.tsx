@@ -46,6 +46,7 @@ export function MobileDrawer() {
     userAttributes,
     tenantModulos,
     tenantVerticales,
+    allItems,
   } = useNavigation()
   const { tenantId } = useTenant()
   const [open, setOpen] = useState(false)
@@ -56,7 +57,8 @@ export function MobileDrawer() {
     tenantModulos,
     tenantVerticales,
     mobileSpace,
-    userAttributes
+    userAttributes,
+    allItems
   )
   const groups = groupSidebarItems(items)
 
