@@ -1,7 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { MiCuentaClient } from './_components/mi-cuenta-client'
+import { GoogleCalendarCard } from './_components/google-calendar-card'
+import { MicrosoftCalendarCard } from './_components/microsoft-calendar-card'
 import { TENANT_ID } from '@/lib/tenant'
+import { getGoogleAuthUrl } from '@/lib/calendar-sync/google-client'
+import { getMicrosoftAuthUrl } from '@/lib/calendar-sync/microsoft-client'
 
 
 export default async function MiCuentaPage() {
@@ -69,6 +73,21 @@ export default async function MiCuentaPage() {
     .eq('persona_id', persona.id)
     .eq('activo', true)
 
+  // Fetch calendar integrations (Google + Microsoft)
+  const { data: calIntegraciones } = await supabase
+    .from('calendario_integraciones')
+    .select('id, proveedor, estado, google_calendar_id, microsoft_calendar_id, sync_direction, last_sync_at')
+    .eq('persona_id', persona.id)
+    .eq('tenant_id', TENANT_ID)
+    .in('proveedor', ['google', 'microsoft'])
+    .is('deleted_at', null)
+
+  const googleIntegracion = (calIntegraciones ?? []).find((c) => c.proveedor === 'google') ?? null
+  const microsoftIntegracion = (calIntegraciones ?? []).find((c) => c.proveedor === 'microsoft') ?? null
+
+  const googleAuthUrl = getGoogleAuthUrl('/admin/mi-cuenta')
+  const microsoftAuthUrl = getMicrosoftAuthUrl('/admin/mi-cuenta')
+
   // Fetch financial data in parallel
   const [cuentaCorrienteRes, cuotasRes, movimientosRes, conveniosRes] =
     await Promise.all([
@@ -117,6 +136,7 @@ export default async function MiCuentaPage() {
       : null
 
   return (
+    <div className="space-y-6">
     <MiCuentaClient
       persona={{
         id: persona.id,
@@ -145,5 +165,16 @@ export default async function MiCuentaPage() {
       movimientos={movimientosRes.data ?? []}
       convenios={conveniosRes.data ?? []}
     />
+    <GoogleCalendarCard
+      personaId={persona.id}
+      integracion={googleIntegracion}
+      googleAuthUrl={googleAuthUrl}
+    />
+    <MicrosoftCalendarCard
+      personaId={persona.id}
+      integracion={microsoftIntegracion}
+      microsoftAuthUrl={microsoftAuthUrl}
+    />
+    </div>
   )
 }
