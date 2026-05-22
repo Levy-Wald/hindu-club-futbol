@@ -1,6 +1,7 @@
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { syncGoogleEventsToClubCore } from './sync-from-cloud'
 import { syncMicrosoftEventsToClubCore } from './sync-from-microsoft'
+import { syncICloudEventsToClubCore } from './sync-from-icloud'
 import type { CalendarioIntegracion } from './types'
 
 const MAX_RETRIES = 3
@@ -23,7 +24,7 @@ export async function processCalendarSync(): Promise<{
   const { data: integraciones, error } = await supabase
     .from('calendario_integraciones')
     .select('*')
-    .in('proveedor', ['google', 'microsoft'])
+    .in('proveedor', ['google', 'microsoft', 'icloud'])
     .eq('estado', 'connected')
     .is('deleted_at', null)
     .or(`next_sync_at.is.null,next_sync_at.lte.${now}`)
@@ -42,7 +43,9 @@ export async function processCalendarSync(): Promise<{
       try {
         const result = integracion.proveedor === 'microsoft'
           ? await syncMicrosoftEventsToClubCore(integracion)
-          : await syncGoogleEventsToClubCore(integracion)
+          : integracion.proveedor === 'icloud'
+            ? await syncICloudEventsToClubCore(integracion)
+            : await syncGoogleEventsToClubCore(integracion)
 
         if (result.ok) {
           success = true
