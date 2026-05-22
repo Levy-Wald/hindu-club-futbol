@@ -30,6 +30,18 @@ export const SIDEBAR_CATALOG: SidebarItem[] = [
     orden: 20,
   },
   {
+    id: 'mi-calendario',
+    label: 'Mi calendario',
+    href: '/admin/mi-calendario',
+    icon: 'CalendarCheck',
+    capa: 'troncal',
+    estado: 'activo',
+    modulo_slug: 'eventos_calendario',
+    espacio: 'inicio',
+    grupo: 'Principal',
+    orden: 25,
+  },
+  {
     id: 'notificaciones',
     label: 'Notificaciones',
     href: '/admin/notificaciones',

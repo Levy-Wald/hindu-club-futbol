@@ -29,7 +29,7 @@ export async function detectarOverlapCancha(input: {
     .select('id, titulo, hora_inicio, hora_fin')
     .eq('tenant_id', input.tenant_id)
     .eq('cancha_id', input.cancha_id)
-    .eq('fecha', input.fecha)
+    .eq('fecha_inicio', input.fecha)
     .is('deleted_at', null)
     .neq('id', input.evento_id_excluir)
     .lt('hora_inicio', input.hora_fin)

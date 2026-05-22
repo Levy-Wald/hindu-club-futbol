@@ -1,7 +1,7 @@
 'use server'
 
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import type { InvitacionPendiente } from './types'
+import type { InvitacionPendiente, EventoInvitado } from './types'
 
 // ── Calendar: eventos por rango de fechas (todos los módulos) ──
 
@@ -16,17 +16,17 @@ export async function obtenerEventosCalendario(
   let query = supabase
     .from('eventos')
     .select(`
-      id, titulo, fecha, hora_inicio, hora_fin, tipo_evento_slug,
+      id, titulo, fecha_inicio, fecha_fin, hora_inicio, hora_fin, tipo_evento_slug,
       equipo_id, cancha_id, sede_id, color, estado,
       es_recurrente, evento_padre_id, serie_uuid, modulo_origen,
-      espacio_virtual_tipo, etiquetas
+      espacio_virtual_tipo, etiquetas, responsables_persona_id,
+      periodicidad, lugar_encuentro
     `)
     .eq('tenant_id', tenantId)
     .is('deleted_at', null)
-    .not('fecha', 'is', null)
-    .gte('fecha', fechaDesde)
-    .lte('fecha', fechaHasta)
-    .order('fecha', { ascending: true })
+    .gte('fecha_inicio', fechaDesde)
+    .lte('fecha_inicio', fechaHasta)
+    .order('fecha_inicio', { ascending: true })
     .order('hora_inicio', { ascending: true })
 
   if (filtros?.modulo_origen) query = query.eq('modulo_origen', filtros.modulo_origen)
@@ -61,6 +61,61 @@ export async function obtenerEventosCalendario(
   }))
 }
 
+// ── Mi calendario: eventos donde el usuario es responsable ──
+
+export async function obtenerEventosPersonales(
+  personaId: string,
+  tenantId: string,
+  fechaDesde: string,
+  fechaHasta: string,
+) {
+  const supabase = createServiceRoleClient()
+
+  const { data, error } = await supabase
+    .from('eventos')
+    .select(`
+      id, titulo, fecha_inicio, fecha_fin, hora_inicio, hora_fin, tipo_evento_slug,
+      equipo_id, cancha_id, sede_id, color, estado,
+      es_recurrente, evento_padre_id, serie_uuid, modulo_origen,
+      espacio_virtual_tipo, etiquetas, responsables_persona_id,
+      periodicidad, lugar_encuentro
+    `)
+    .eq('tenant_id', tenantId)
+    .is('deleted_at', null)
+    .contains('responsables_persona_id', [personaId])
+    .gte('fecha_inicio', fechaDesde)
+    .lte('fecha_inicio', fechaHasta)
+    .order('fecha_inicio', { ascending: true })
+    .order('hora_inicio', { ascending: true })
+
+  if (error) throw error
+  if (!data || data.length === 0) return []
+
+  const equipoIds = [...new Set(data.map(e => e.equipo_id).filter(Boolean))] as string[]
+  const equiposMap = new Map<string, string>()
+  if (equipoIds.length > 0) {
+    const { data: equipos } = await supabase.from('equipos').select('id, nombre').in('id', equipoIds)
+    for (const eq of equipos ?? []) equiposMap.set(eq.id, eq.nombre)
+  }
+
+  return data.map(e => ({
+    ...e,
+    equipo_nombre: e.equipo_id ? equiposMap.get(e.equipo_id) ?? null : null,
+    cancha_nombre: null as string | null,
+  }))
+}
+
+// ── Eventos por módulo ──
+
+export async function obtenerEventosPorModulo(
+  moduloOrigen: string,
+  tenantId: string,
+  fechaDesde: string,
+  fechaHasta: string,
+) {
+  return obtenerEventosCalendario(tenantId, fechaDesde, fechaHasta, { modulo_origen: moduloOrigen })
+}
+
 // ── Detalle de un evento ──
 
 export async function obtenerEventoDetalle(eventoId: string, tenantId: string) {
@@ -77,7 +132,9 @@ export async function obtenerEventoDetalle(eventoId: string, tenantId: string) {
   if (error || !evento) return null
 
   // Hydrate names
-  const [equipoRes, sedeRes, canchaRes, responsableRes] = await Promise.all([
+  const responsableIds = (evento.responsables_persona_id as string[]) ?? []
+
+  const [equipoRes, sedeRes, canchaRes, responsablesRes] = await Promise.all([
     evento.equipo_id
       ? supabase.from('equipos').select('nombre').eq('id', evento.equipo_id).maybeSingle()
       : { data: null },
@@ -87,9 +144,9 @@ export async function obtenerEventoDetalle(eventoId: string, tenantId: string) {
     evento.cancha_id
       ? supabase.from('canchas').select('nombre').eq('id', evento.cancha_id).maybeSingle()
       : { data: null },
-    evento.responsable_persona_id
-      ? supabase.from('personas').select('nombre, apellido').eq('id', evento.responsable_persona_id).maybeSingle()
-      : { data: null },
+    responsableIds.length > 0
+      ? supabase.from('personas').select('id, nombre, apellido').in('id', responsableIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; nombre: string; apellido: string }> }),
   ])
 
   return {
@@ -97,9 +154,42 @@ export async function obtenerEventoDetalle(eventoId: string, tenantId: string) {
     equipo_nombre: equipoRes?.data?.nombre ?? null,
     sede_nombre: sedeRes?.data?.nombre ?? null,
     cancha_nombre: canchaRes?.data?.nombre ?? null,
-    responsable_nombre: responsableRes?.data
-      ? `${responsableRes.data.nombre} ${responsableRes.data.apellido}`
-      : null,
+    responsables: (responsablesRes.data ?? []).map(p => ({
+      id: p.id,
+      nombre_completo: `${p.nombre} ${p.apellido}`,
+    })),
+  }
+}
+
+// ── Evento con invitados ──
+
+export async function obtenerEventoConInvitados(eventoId: string, tenantId: string) {
+  const evento = await obtenerEventoDetalle(eventoId, tenantId)
+  if (!evento) return null
+
+  const supabase = createServiceRoleClient()
+  const { data: invitados } = await supabase
+    .from('evento_invitados')
+    .select('*')
+    .eq('evento_id', eventoId)
+    .eq('tenant_id', tenantId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: true })
+
+  // Hydrate persona names for invitados
+  const personaIds = (invitados ?? []).map(i => i.persona_id).filter(Boolean) as string[]
+  const personasMap = new Map<string, string>()
+  if (personaIds.length > 0) {
+    const { data: personas } = await supabase.from('personas').select('id, nombre, apellido').in('id', personaIds)
+    for (const p of personas ?? []) personasMap.set(p.id, `${p.nombre} ${p.apellido}`)
+  }
+
+  return {
+    ...evento,
+    invitados: (invitados ?? []).map(i => ({
+      ...(i as unknown as EventoInvitado),
+      persona_nombre: i.persona_id ? personasMap.get(i.persona_id) ?? null : null,
+    })),
   }
 }
 
@@ -117,7 +207,7 @@ export async function obtenerInvitacionesPendientes(
       id,
       evento_id,
       estado_invitacion,
-      eventos!evento_id(titulo, fecha, hora_inicio, tipo_evento_slug, equipo_id)
+      eventos!evento_id(titulo, fecha_inicio, hora_inicio, tipo_evento_slug, equipo_id)
     `)
     .eq('persona_id', personaId)
     .eq('tenant_id', tenantId)
@@ -128,7 +218,6 @@ export async function obtenerInvitacionesPendientes(
 
   if (error || !data) return []
 
-  // Hydrate equipo names
   const equipoIds = [...new Set(
     data
       .map(d => (d.eventos as unknown as { equipo_id: string | null })?.equipo_id)
@@ -137,17 +226,14 @@ export async function obtenerInvitacionesPendientes(
 
   const equiposMap = new Map<string, string>()
   if (equipoIds.length > 0) {
-    const { data: equipos } = await supabase
-      .from('equipos')
-      .select('id, nombre')
-      .in('id', equipoIds)
+    const { data: equipos } = await supabase.from('equipos').select('id, nombre').in('id', equipoIds)
     for (const eq of equipos ?? []) equiposMap.set(eq.id, eq.nombre)
   }
 
   return data.map(d => {
     const ev = d.eventos as unknown as {
       titulo: string | null
-      fecha: string | null
+      fecha_inicio: string | null
       hora_inicio: string | null
       tipo_evento_slug: string
       equipo_id: string | null
@@ -156,7 +242,7 @@ export async function obtenerInvitacionesPendientes(
       evento_invitado_id: d.id,
       evento_id: d.evento_id,
       titulo: ev?.titulo ?? null,
-      fecha: ev?.fecha ?? null,
+      fecha_inicio: ev?.fecha_inicio ?? null,
       hora_inicio: ev?.hora_inicio ?? null,
       tipo_evento_slug: ev?.tipo_evento_slug ?? 'otro',
       equipo_nombre: ev?.equipo_id ? equiposMap.get(ev.equipo_id) ?? null : null,

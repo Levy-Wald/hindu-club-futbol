@@ -42,7 +42,7 @@ export async function fetchEventosSemana(
   const { data, error } = await supabase
     .from('eventos')
     .select(
-      `id, fecha, dia_semana, hora_inicio, hora_fin, tipo_evento_slug, titulo,
+      `id, fecha_inicio, dia_semana, hora_inicio, hora_fin, tipo_evento_slug, titulo,
        hora_citacion, descripcion, notas_pre, notas_post,
        partidos_detalle(rival_texto, condicion, torneo_slug, marcador_local, marcador_visitante),
        equipos!equipo_id(id, nombre, color_principal, escudo_url),
@@ -51,9 +51,9 @@ export async function fetchEventosSemana(
     )
     .eq('tenant_id', TENANT_ID)
     .is('deleted_at', null)
-    .gte('fecha', fechaInicio)
-    .lte('fecha', fechaFin)
-    .order('fecha', { ascending: true })
+    .gte('fecha_inicio', fechaInicio)
+    .lte('fecha_inicio', fechaFin)
+    .order('fecha_inicio', { ascending: true })
     .order('hora_inicio', { ascending: true })
 
   if (error) throw error
@@ -62,7 +62,7 @@ export async function fetchEventosSemana(
     const pdArr = row.partidos_detalle as unknown as PartidoDetalle[] | null
     return {
       id: row.id,
-      fecha: row.fecha,
+      fecha: row.fecha_inicio,
       dia_semana: row.dia_semana,
       hora_inicio: row.hora_inicio,
       hora_fin: row.hora_fin,

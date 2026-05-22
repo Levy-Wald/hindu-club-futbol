@@ -98,7 +98,7 @@ export function CrearEventoDialog({
       const result = await crearEventoPlanificadorAction({
         titulo: titulo.trim(),
         tipo_evento_slug: tipoSlug,
-        fecha,
+        fecha_inicio: fecha,
         hora_inicio: horaInicio,
         hora_fin: horaFin,
         sede_id: sedeId || undefined,

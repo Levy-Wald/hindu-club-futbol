@@ -40,6 +40,7 @@ interface CrearEventoDialogProps {
   defaultFecha?: string
   sedes: { id: string; nombre: string }[]
   equipos: { id: string; nombre: string }[]
+  personaId: string
   tenantId: string
 }
 
@@ -49,6 +50,7 @@ export function CrearEventoDialog({
   defaultFecha,
   sedes,
   equipos,
+  personaId,
   tenantId,
 }: CrearEventoDialogProps) {
   const [isPending, startTransition] = useTransition()
@@ -57,7 +59,8 @@ export function CrearEventoDialog({
 
   const [titulo, setTitulo] = useState('')
   const [tipoSlug, setTipoSlug] = useState('entrenamiento')
-  const [fecha, setFecha] = useState(defaultFecha ?? '')
+  const [fechaInicio, setFechaInicio] = useState(defaultFecha ?? '')
+  const [fechaFin, setFechaFin] = useState(defaultFecha ?? '')
   const [horaInicio, setHoraInicio] = useState('')
   const [horaFin, setHoraFin] = useState('')
   const [sedeId, setSedeId] = useState('')
@@ -67,7 +70,8 @@ export function CrearEventoDialog({
   function resetForm() {
     setTitulo('')
     setTipoSlug('entrenamiento')
-    setFecha(defaultFecha ?? '')
+    setFechaInicio(defaultFecha ?? '')
+    setFechaFin(defaultFecha ?? '')
     setHoraInicio('')
     setHoraFin('')
     setSedeId('')
@@ -80,8 +84,8 @@ export function CrearEventoDialog({
     e.preventDefault()
     setError(null)
 
-    if (!titulo.trim() || !fecha || !horaInicio || !horaFin) {
-      setError('Titulo, fecha, hora inicio y hora fin son obligatorios')
+    if (!titulo.trim() || !fechaInicio || !fechaFin) {
+      setError('Titulo, fecha inicio y fecha fin son obligatorios')
       return
     }
 
@@ -89,10 +93,13 @@ export function CrearEventoDialog({
       const result = await crearEventoAction({
         titulo: titulo.trim(),
         tipo_evento_slug: tipoSlug,
-        fecha,
-        hora_inicio: horaInicio,
-        hora_fin: horaFin,
+        fecha_inicio: fechaInicio,
+        fecha_fin: fechaFin,
+        hora_inicio: horaInicio || undefined,
+        hora_fin: horaFin || undefined,
         modulo_origen: 'manual',
+        periodicidad: 'nunca' as const,
+        responsables_persona_id: [personaId],
         sede_id: sedeId || undefined,
         equipo_id: equipoId || undefined,
         descripcion: descripcion.trim() || undefined,
@@ -107,9 +114,15 @@ export function CrearEventoDialog({
     })
   }
 
+  // Sync fecha_fin when fecha_inicio changes (if same day event)
+  function handleFechaInicioChange(v: string) {
+    setFechaInicio(v)
+    if (!fechaFin || fechaFin < v) setFechaFin(v)
+  }
+
   return (
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) setError(null) }}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nuevo evento</DialogTitle>
         </DialogHeader>
@@ -137,18 +150,24 @@ export function CrearEventoDialog({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="ev-fecha">Fecha *</Label>
-            <Input id="ev-fecha" type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="ev-fecha-inicio">Fecha inicio *</Label>
+              <Input id="ev-fecha-inicio" type="date" value={fechaInicio} onChange={(e) => handleFechaInicioChange(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ev-fecha-fin">Fecha fin *</Label>
+              <Input id="ev-fecha-fin" type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} min={fechaInicio} />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="ev-hora-inicio">Hora inicio *</Label>
+              <Label htmlFor="ev-hora-inicio">Hora inicio</Label>
               <Input id="ev-hora-inicio" type="time" value={horaInicio} onChange={(e) => setHoraInicio(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="ev-hora-fin">Hora fin *</Label>
+              <Label htmlFor="ev-hora-fin">Hora fin</Label>
               <Input id="ev-hora-fin" type="time" value={horaFin} onChange={(e) => setHoraFin(e.target.value)} />
             </div>
           </div>
