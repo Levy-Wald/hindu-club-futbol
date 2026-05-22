@@ -21,6 +21,12 @@ export type CalendarioIntegracion = {
   google_access_token: string | null
   google_token_expires_at: string | null
 
+  // Microsoft-specific
+  microsoft_calendar_id: string | null
+  microsoft_refresh_token: string | null
+  microsoft_access_token: string | null
+  microsoft_token_expires_at: string | null
+
   // Common
   sync_direction: SyncDirection
   last_sync_at: string | null
@@ -69,6 +75,30 @@ export type GoogleCalendarListEntry = {
   summary: string
   primary?: boolean
   accessRole: string
+}
+
+// ── Microsoft Calendar API types ──
+
+export type MicrosoftCalendarEvent = {
+  id: string
+  subject: string
+  bodyPreview?: string
+  body?: { contentType: string; content: string }
+  start: { dateTime: string; timeZone: string }
+  end: { dateTime: string; timeZone: string }
+  isAllDay?: boolean
+  attendees?: { emailAddress: { address: string; name?: string }; status: { response: string } }[]
+  location?: { displayName?: string }
+  organizer?: { emailAddress: { address: string; name?: string } }
+  lastModifiedDateTime?: string
+  isCancelled?: boolean
+}
+
+export type MicrosoftCalendarListEntry = {
+  id: string
+  name: string
+  isDefaultCalendar?: boolean
+  canEdit: boolean
 }
 
 // ── Zod schemas ──

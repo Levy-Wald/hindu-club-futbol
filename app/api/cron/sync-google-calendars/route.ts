@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { processGoogleCalendarSync } from '@/lib/calendar-sync/cron-handler'
+import { processCalendarSync } from '@/lib/calendar-sync/cron-handler'
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const result = await processGoogleCalendarSync()
+  const result = await processCalendarSync()
 
   return NextResponse.json({
     ok: true,

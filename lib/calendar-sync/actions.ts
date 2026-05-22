@@ -31,6 +31,9 @@ export async function disconnectIntegracion(
       google_access_token: null,
       google_refresh_token: null,
       google_token_expires_at: null,
+      microsoft_access_token: null,
+      microsoft_refresh_token: null,
+      microsoft_token_expires_at: null,
     })
     .eq('id', integracionId)
     .eq('tenant_id', TENANT_ID)
@@ -90,6 +93,35 @@ export async function triggerManualSync(
   // Dynamic import to avoid circular deps and keep bundle small
   const { syncGoogleEventsToClubCore } = await import('./sync-from-cloud')
   const result = await syncGoogleEventsToClubCore(integracion as CalendarioIntegracion)
+
+  if (!result.ok) {
+    return { ok: false, error: result.errors.join('; ') }
+  }
+
+  return { ok: true }
+}
+
+export async function triggerManualSyncMicrosoft(
+  personaId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient()
+
+  const { data: integracion } = await supabase
+    .from('calendario_integraciones')
+    .select('*')
+    .eq('persona_id', personaId)
+    .eq('tenant_id', TENANT_ID)
+    .eq('proveedor', 'microsoft')
+    .eq('estado', 'connected')
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  if (!integracion) {
+    return { ok: false, error: 'No hay integracion Microsoft activa' }
+  }
+
+  const { syncMicrosoftEventsToClubCore } = await import('./sync-from-microsoft')
+  const result = await syncMicrosoftEventsToClubCore(integracion as CalendarioIntegracion)
 
   if (!result.ok) {
     return { ok: false, error: result.errors.join('; ') }
