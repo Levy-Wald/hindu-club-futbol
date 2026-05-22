@@ -1,5 +1,3 @@
-'use server'
-
 import { google, type calendar_v3 } from 'googleapis'
 import type { GoogleCalendarEvent, GoogleCalendarListEntry } from './types'
 

@@ -1,5 +1,3 @@
-'use server'
-
 import { ConfidentialClientApplication } from '@azure/msal-node'
 import { Client } from '@microsoft/microsoft-graph-client'
 import type { MicrosoftCalendarEvent, MicrosoftCalendarListEntry } from './types'
