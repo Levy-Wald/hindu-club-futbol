@@ -272,13 +272,13 @@ export default async function EquipoDetallePublicoPage({
                     className="h-12 w-12 rounded-lg flex flex-col items-center justify-center text-white text-xs font-bold shrink-0"
                     style={{ backgroundColor: colorPrincipal }}
                   >
-                    {ev.fecha ? (
+                    {ev.fecha_inicio ? (
                       <>
                         <span className="text-[10px] uppercase">
-                          {new Date(ev.fecha + 'T12:00:00').toLocaleDateString('es-AR', { month: 'short' })}
+                          {new Date(ev.fecha_inicio + 'T12:00:00').toLocaleDateString('es-AR', { month: 'short' })}
                         </span>
                         <span className="text-lg leading-none">
-                          {new Date(ev.fecha + 'T12:00:00').getDate()}
+                          {new Date(ev.fecha_inicio + 'T12:00:00').getDate()}
                         </span>
                       </>
                     ) : (

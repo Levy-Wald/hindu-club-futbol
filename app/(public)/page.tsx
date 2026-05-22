@@ -248,12 +248,12 @@ function ProximosEventosSection({ eventos }: { eventos: Evento[] }) {
                   <div className="mb-3 flex items-start gap-3">
                     <div className="flex flex-col items-center rounded-lg bg-brand-500/5 px-3 py-2 dark:bg-brand-500/10">
                       <span className="text-xs font-medium uppercase text-muted-foreground">
-                        {ev.fecha
-                          ? new Date(ev.fecha + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'short' })
+                        {ev.fecha_inicio
+                          ? new Date(ev.fecha_inicio + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'short' })
                           : ''}
                       </span>
                       <span className="text-2xl font-bold text-brand-500">
-                        {ev.fecha ? new Date(ev.fecha + 'T12:00:00').getDate() : ''}
+                        {ev.fecha_inicio ? new Date(ev.fecha_inicio + 'T12:00:00').getDate() : ''}
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">

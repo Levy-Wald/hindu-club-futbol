@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { revalidatePath } from 'next/cache'
-import { EventoCreateSchema, EventoUpdateSchema } from './types'
+import { EventoCreateSchema, EventoUpdateSchema, ResponderInvitacionSchema } from './types'
 import type { EventoCreateInput, EventoUpdateInput, EstadoInvitacion } from './types'
 
 type ActionResult<T = unknown> =
@@ -25,7 +25,13 @@ async function getAuthedPersona() {
   return persona
 }
 
-// ── Crear evento universal ──
+// Normalize HH:MM → HH:MM:SS
+const normalizeHora = (h: string | undefined | null) => {
+  if (!h) return null
+  return h.length === 5 ? h + ':00' : h
+}
+
+// ── Crear evento ──
 
 export async function crearEventoAction(
   input: EventoCreateInput
@@ -39,13 +45,10 @@ export async function crearEventoAction(
   const d = parsed.data
   const tenantId = persona.tenant_id
 
-  // Compute dia_semana
-  const fechaDate = new Date(d.fecha + 'T00:00:00')
+  // Compute dia_semana from fecha_inicio
+  const fechaDate = new Date(d.fecha_inicio + 'T00:00:00')
   const jsDay = fechaDate.getDay()
   const diaSemana = jsDay === 0 ? 7 : jsDay
-
-  // Normalize hora to HH:MM:SS
-  const normalizeHora = (h: string) => h.length === 5 ? h + ':00' : h
 
   const service = createServiceRoleClient()
   const { data, error } = await service
@@ -54,7 +57,8 @@ export async function crearEventoAction(
       tenant_id: tenantId,
       titulo: d.titulo,
       tipo_evento_slug: d.tipo_evento_slug,
-      fecha: d.fecha,
+      fecha_inicio: d.fecha_inicio,
+      fecha_fin: d.fecha_fin,
       hora_inicio: normalizeHora(d.hora_inicio),
       hora_fin: normalizeHora(d.hora_fin),
       dia_semana: diaSemana,
@@ -65,12 +69,21 @@ export async function crearEventoAction(
       cancha_id: d.cancha_id ?? null,
       espacio_id: d.espacio_id ?? null,
       descripcion: d.descripcion?.trim() || null,
-      responsable_persona_id: d.responsable_persona_id ?? persona.id,
+      responsables_persona_id: d.responsables_persona_id,
+      visible_para_atributos: d.visible_para_atributos ?? null,
       espacio_virtual_tipo: d.espacio_virtual_tipo ?? null,
       espacio_virtual_link: d.espacio_virtual_link ?? null,
       etiquetas: d.etiquetas ?? [],
       color: d.color ?? null,
+      periodicidad: d.periodicidad ?? 'nunca',
+      fecha_fin_recurrencia: d.fecha_fin_recurrencia ?? null,
+      portada_url: d.portada_url ?? null,
+      lugar_encuentro: d.lugar_encuentro ?? null,
+      codigo_acceso: d.codigo_acceso ?? null,
+      contacto: d.contacto ?? null,
+      estado: 'programado',
       created_by: persona.id,
+      updated_by: persona.id,
     })
     .select('id')
     .single()
@@ -103,9 +116,9 @@ export async function editarEventoAction(
     changes.hora_fin = changes.hora_fin + ':00'
   }
 
-  // Recompute dia_semana if fecha changed
-  if (changes.fecha) {
-    const fechaDate = new Date(changes.fecha as string + 'T00:00:00')
+  // Recompute dia_semana if fecha_inicio changed
+  if (changes.fecha_inicio) {
+    const fechaDate = new Date(changes.fecha_inicio as string + 'T00:00:00')
     const jsDay = fechaDate.getDay()
     changes.dia_semana = jsDay === 0 ? 7 : jsDay
   }
@@ -146,6 +159,41 @@ export async function eliminarEventoAction(
   return { ok: true, data: null }
 }
 
+// ── Agregar invitado a evento ──
+
+export async function agregarInvitadoAction(input: {
+  evento_id: string
+  persona_id?: string
+  email_externo?: string
+}): Promise<ActionResult<{ id: string }>> {
+  const persona = await getAuthedPersona()
+  if (!persona) return { ok: false, error: 'No autenticado' }
+
+  if (!input.persona_id && !input.email_externo) {
+    return { ok: false, error: 'Se requiere persona_id o email_externo' }
+  }
+  if (input.persona_id && input.email_externo) {
+    return { ok: false, error: 'Solo uno: persona_id o email_externo' }
+  }
+
+  const service = createServiceRoleClient()
+  const { data, error } = await service
+    .from('evento_invitados')
+    .insert({
+      tenant_id: persona.tenant_id,
+      evento_id: input.evento_id,
+      persona_id: input.persona_id ?? null,
+      email_externo: input.email_externo ?? null,
+      estado_invitacion: 'pendiente',
+      origen: 'manual',
+    })
+    .select('id')
+    .single()
+
+  if (error || !data) return { ok: false, error: error?.message ?? 'Error agregando invitado' }
+  return { ok: true, data: { id: data.id } }
+}
+
 // ── Responder invitación ──
 
 export async function responderInvitacionAction(input: {
@@ -155,11 +203,14 @@ export async function responderInvitacionAction(input: {
   const persona = await getAuthedPersona()
   if (!persona) return { ok: false, error: 'No autenticado' }
 
+  const parsed = ResponderInvitacionSchema.safeParse({ estado: input.estado })
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
+
   const supabase = await createClient()
   const { error } = await supabase
     .from('evento_invitados')
     .update({
-      estado_invitacion: input.estado,
+      estado_invitacion: parsed.data.estado,
       respuesta_at: new Date().toISOString(),
     })
     .eq('id', input.evento_invitado_id)

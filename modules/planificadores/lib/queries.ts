@@ -21,13 +21,12 @@ export async function obtenerEventosPorMes(
 
   const { data: eventos } = await supabase
     .from('eventos')
-    .select('id, titulo, fecha, hora_inicio, hora_fin, tipo_evento_slug, equipo_id, cancha_id, color, es_recurrente, evento_padre_id, serie_uuid, estado')
+    .select('id, titulo, fecha_inicio, hora_inicio, hora_fin, tipo_evento_slug, equipo_id, cancha_id, color, es_recurrente, evento_padre_id, serie_uuid, estado')
     .eq('tenant_id', tenant_id)
     .is('deleted_at', null)
-    .not('fecha', 'is', null)
-    .gte('fecha', fechaDesde.toISOString().slice(0, 10))
-    .lte('fecha', fechaHasta.toISOString().slice(0, 10))
-    .order('fecha', { ascending: true })
+    .gte('fecha_inicio', fechaDesde.toISOString().slice(0, 10))
+    .lte('fecha_inicio', fechaHasta.toISOString().slice(0, 10))
+    .order('fecha_inicio', { ascending: true })
     .order('hora_inicio', { ascending: true })
 
   if (!eventos || eventos.length === 0) return []
@@ -66,13 +65,12 @@ export async function obtenerEventosPorSemana(
 
   const { data: eventos } = await supabase
     .from('eventos')
-    .select('id, titulo, fecha, hora_inicio, hora_fin, tipo_evento_slug, equipo_id, cancha_id, color, es_recurrente, evento_padre_id, serie_uuid, estado')
+    .select('id, titulo, fecha_inicio, hora_inicio, hora_fin, tipo_evento_slug, equipo_id, cancha_id, color, es_recurrente, evento_padre_id, serie_uuid, estado')
     .eq('tenant_id', tenant_id)
     .is('deleted_at', null)
-    .not('fecha', 'is', null)
-    .gte('fecha', fechaInicio.toISOString().slice(0, 10))
-    .lte('fecha', fechaFin.toISOString().slice(0, 10))
-    .order('fecha', { ascending: true })
+    .gte('fecha_inicio', fechaInicio.toISOString().slice(0, 10))
+    .lte('fecha_inicio', fechaFin.toISOString().slice(0, 10))
+    .order('fecha_inicio', { ascending: true })
     .order('hora_inicio', { ascending: true })
 
   if (!eventos || eventos.length === 0) return []
@@ -97,7 +95,7 @@ export async function obtenerEventosPorSemana(
 
 function mapEventos(
   eventos: Array<{
-    id: string; titulo: string | null; fecha: string; hora_inicio: string | null;
+    id: string; titulo: string | null; fecha_inicio: string; hora_inicio: string | null;
     hora_fin: string | null; tipo_evento_slug: string; equipo_id: string | null;
     cancha_id: string | null; color: string | null; es_recurrente: boolean | null;
     evento_padre_id: string | null; serie_uuid: string | null; estado: string;
@@ -111,8 +109,8 @@ function mapEventos(
     return {
       id: e.id,
       titulo: e.titulo ?? '(sin título)',
-      start: new Date(`${e.fecha}T${horaInicio}`),
-      end: new Date(`${e.fecha}T${horaFin}`),
+      start: new Date(`${e.fecha_inicio}T${horaInicio}`),
+      end: new Date(`${e.fecha_inicio}T${horaFin}`),
       resource: {
         tipo_evento_slug: e.tipo_evento_slug,
         equipo_id: e.equipo_id,
@@ -123,7 +121,7 @@ function mapEventos(
         es_recurrente: e.es_recurrente ?? false,
         evento_padre_id: e.evento_padre_id,
         serie_uuid: e.serie_uuid,
-        fecha: e.fecha,
+        fecha: e.fecha_inicio,
         estado: e.estado,
       },
     }

@@ -74,12 +74,13 @@ export async function moverEventoAction(input: {
         sede_id: evento.sede_id,
         cancha_id: evento.cancha_id,
         instructor_principal_id: evento.instructor_principal_id,
-        responsable_persona_id: evento.responsable_persona_id,
+        responsables_persona_id: evento.responsables_persona_id,
         estado: evento.estado,
         color: evento.color,
         icono: evento.icono,
         modulo_origen: evento.modulo_origen,
-        fecha: input.nueva_fecha,
+        fecha_inicio: input.nueva_fecha,
+        fecha_fin: input.nueva_fecha,
         hora_inicio: input.nueva_hora_inicio,
         hora_fin: input.nueva_hora_fin,
         es_recurrente: false,
@@ -102,7 +103,8 @@ export async function moverEventoAction(input: {
     const { error } = await adminSupabase
       .from('eventos')
       .update({
-        fecha: input.nueva_fecha,
+        fecha_inicio: input.nueva_fecha,
+        fecha_fin: input.nueva_fecha,
         hora_inicio: input.nueva_hora_inicio,
         hora_fin: input.nueva_hora_fin,
       })
@@ -116,7 +118,8 @@ export async function moverEventoAction(input: {
   const { error } = await adminSupabase
     .from('eventos')
     .update({
-      fecha: input.nueva_fecha,
+      fecha_inicio: input.nueva_fecha,
+      fecha_fin: input.nueva_fecha,
       hora_inicio: input.nueva_hora_inicio,
       hora_fin: input.nueva_hora_fin,
     })

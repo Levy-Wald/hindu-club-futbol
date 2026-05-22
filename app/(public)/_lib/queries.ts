@@ -59,12 +59,12 @@ export async function fetchEquipoPublico(id: string) {
   const hoy = new Date().toISOString().split('T')[0]
   const { data: eventos } = await supabase
     .from('eventos')
-    .select('id, fecha, dia_semana, hora_inicio, hora_fin, tipo_evento_slug, titulo, sede_id')
+    .select('id, fecha_inicio, dia_semana, hora_inicio, hora_fin, tipo_evento_slug, titulo, sede_id')
     .eq('equipo_id', id)
     .eq('tenant_id', TENANT_ID)
-    .eq('activo', true)
-    .gte('fecha', hoy)
-    .order('fecha')
+    .is('deleted_at', null)
+    .gte('fecha_inicio', hoy)
+    .order('fecha_inicio')
     .limit(10)
 
   return { ...equipo, miembros: miembros ?? [], eventos: eventos ?? [] }
@@ -135,15 +135,15 @@ export async function fetchProximosEventos() {
   const { data } = await supabase
     .from('eventos')
     .select(`
-      id, fecha, hora_inicio, hora_fin, tipo_evento_slug, titulo,
+      id, fecha_inicio, hora_inicio, hora_fin, tipo_evento_slug, titulo,
       equipo:equipos!equipo_id(id, nombre, escudo_url, color_principal,
         categoria:categorias_equipo!categoria_id(nombre_display)
       )
     `)
     .eq('tenant_id', TENANT_ID)
-    .eq('activo', true)
-    .gte('fecha', hoy)
-    .order('fecha')
+    .is('deleted_at', null)
+    .gte('fecha_inicio', hoy)
+    .order('fecha_inicio')
     .limit(6)
   return data ?? []
 }

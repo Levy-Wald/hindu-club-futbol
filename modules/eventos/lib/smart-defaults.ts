@@ -41,7 +41,8 @@ const equiposDefaults: DefaultsFactory = async (equipoId, tenantId) => {
     tipo_evento_slug: 'entrenamiento',
     equipo_id: equipoId,
     sede_id: equipo.sede_principal_id ?? undefined,
-    responsable_persona_id: dt?.persona_id ?? undefined,
+    responsables_persona_id: dt?.persona_id ? [dt.persona_id] : undefined,
+    modulo_origen: 'equipos',
     metadata: { disciplina_slug: equipo.disciplina_slug },
   }
 }

@@ -9,10 +9,12 @@ import { FiltrosCalendario } from './filtros-calendario'
 export function ToolbarCalendario({
   sedes,
   equipos,
+  personaId,
   tenantId,
 }: {
   sedes: { id: string; nombre: string }[]
   equipos: { id: string; nombre: string }[]
+  personaId: string
   tenantId: string
 }) {
   const [crearOpen, setCrearOpen] = useState(false)
@@ -32,6 +34,7 @@ export function ToolbarCalendario({
         onOpenChange={setCrearOpen}
         sedes={sedes}
         equipos={equipos}
+        personaId={personaId}
         tenantId={tenantId}
       />
     </>

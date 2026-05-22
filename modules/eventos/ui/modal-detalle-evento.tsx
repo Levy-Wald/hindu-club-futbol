@@ -32,7 +32,12 @@ export function ModalDetalleEvento({
         <dl className="space-y-2 text-sm">
           <div className="flex gap-2">
             <dt className="font-medium text-muted-foreground w-28">Fecha</dt>
-            <dd>{new Date(evento.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}</dd>
+            <dd>
+              {new Date(evento.fecha_inicio + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+              {evento.fecha_fin !== evento.fecha_inicio && (
+                <> - {new Date(evento.fecha_fin + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}</>
+              )}
+            </dd>
           </div>
           <div className="flex gap-2">
             <dt className="font-medium text-muted-foreground w-28">Horario</dt>

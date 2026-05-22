@@ -52,8 +52,8 @@ export function CalendarioGlobal({
   const eventos = useMemo(() => {
     return eventosIniciales.map(e => ({
       ...e,
-      start: new Date(`${e.fecha}T${e.hora_inicio ?? '00:00:00'}`),
-      end: new Date(`${e.fecha}T${e.hora_fin ?? e.hora_inicio ?? '00:00:00'}`),
+      start: new Date(`${e.fecha_inicio}T${e.hora_inicio ?? '00:00:00'}`),
+      end: new Date(`${e.fecha_fin}T${e.hora_fin ?? e.hora_inicio ?? '00:00:00'}`),
     }))
   }, [eventosIniciales])
 
