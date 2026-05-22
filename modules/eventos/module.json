@@ -1,0 +1,22 @@
+{
+  "slug": "eventos",
+  "name": "Eventos (backbone)",
+  "version": "2.0.0",
+  "category": "core",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": ["equipos", "notificaciones"],
+  "owns_tables": [],
+  "owns_catalogs": [],
+  "permissions_required": ["eventos.puede_gestionar"],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": ["/admin/calendario"],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null,
+  "notes": "ADR-042 backbone module — lib (types, actions, queries, smart-defaults) + UI (calendar, crear dialog, filtros). Table ownership stays in eventos_calendario."
+}
