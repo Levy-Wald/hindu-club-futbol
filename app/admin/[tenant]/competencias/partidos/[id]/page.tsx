@@ -26,7 +26,7 @@ export default async function HubPartidoPage({
     .select('*')
     .eq('id', id)
     .eq('tenant_id', tenantId)
-    .eq('activo', true)
+    .is('deleted_at', null)
     .maybeSingle()
 
   if (!evento) notFound()

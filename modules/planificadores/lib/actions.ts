@@ -33,13 +33,12 @@ export async function moverEventoAction(input: {
 
   const adminSupabase = createServiceRoleClient()
 
-  // AP-001: usar .eq('activo', true), no deleted_at
   const { data: evento } = await adminSupabase
     .from('eventos')
     .select('*')
     .eq('id', input.evento_id)
     .eq('tenant_id', persona.tenant_id)
-    .eq('activo', true)
+    .is('deleted_at', null)
     .single()
   if (!evento) return { ok: false, error: 'Evento no encontrado' }
 

@@ -44,7 +44,7 @@ export async function crearOActualizarEsquemaAction(input: {
     .select('equipo_id')
     .eq('id', input.evento_id)
     .eq('tenant_id', tenant_id)
-    .eq('activo', true)
+    .is('deleted_at', null)
     .single()
 
   if (!evento?.equipo_id) return { ok: false, error: 'Evento sin equipo' }

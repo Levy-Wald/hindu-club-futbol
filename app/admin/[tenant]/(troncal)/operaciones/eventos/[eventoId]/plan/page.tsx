@@ -31,7 +31,7 @@ export default async function PlanEntrenamientoPage({ params }: Props) {
     .select('id, titulo, tipo_evento_slug')
     .eq('id', eventoId)
     .eq('tenant_id', tenant_id)
-    .eq('activo', true)
+    .is('deleted_at', null)
     .maybeSingle()
 
   if (!evento) redirect('/admin/operaciones/eventos')

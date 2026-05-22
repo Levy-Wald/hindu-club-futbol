@@ -40,7 +40,7 @@ export async function actualizarLogisticaAction(input: {
     .eq('id', input.evento_id)
     .eq('tenant_id', tenant_id)
     .eq('tipo_evento_slug', 'amistoso')
-    .eq('activo', true)
+    .is('deleted_at', null)
     .single()
 
   if (!evento) return { ok: false, error: 'Evento amistoso no encontrado' }
