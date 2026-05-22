@@ -175,7 +175,7 @@ export function CrearEventoDialog({
           {sedes.length > 0 && (
             <div className="space-y-2">
               <Label htmlFor="ev-sede">Sede</Label>
-              <Select value={sedeId} onValueChange={(v) => setSedeId(v ?? '')}>
+              <Select value={sedeId || undefined} onValueChange={(v) => setSedeId(v ?? '')}>
                 <SelectTrigger id="ev-sede">
                   <SelectValue placeholder="Sin sede" />
                 </SelectTrigger>
@@ -191,7 +191,7 @@ export function CrearEventoDialog({
           {equipos.length > 0 && (
             <div className="space-y-2">
               <Label htmlFor="ev-equipo">Equipo</Label>
-              <Select value={equipoId} onValueChange={(v) => setEquipoId(v ?? '')}>
+              <Select value={equipoId || undefined} onValueChange={(v) => setEquipoId(v ?? '')}>
                 <SelectTrigger id="ev-equipo">
                   <SelectValue placeholder="Sin equipo" />
                 </SelectTrigger>
