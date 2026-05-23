@@ -27,12 +27,6 @@ export type CalendarioIntegracion = {
   microsoft_access_token: string | null
   microsoft_token_expires_at: string | null
 
-  // iCloud-specific
-  icloud_email: string | null
-  icloud_app_password: string | null
-  icloud_calendar_url: string | null
-  icloud_calendar_etag: string | null
-
   // Common
   sync_direction: SyncDirection
   last_sync_at: string | null
@@ -105,21 +99,6 @@ export type MicrosoftCalendarListEntry = {
   name: string
   isDefaultCalendar?: boolean
   canEdit: boolean
-}
-
-// ── iCloud CalDAV types ──
-
-export type ICloudCalendarEvent = {
-  uid: string
-  summary: string
-  description?: string
-  dtstart: string       // ISO datetime or date
-  dtend: string         // ISO datetime or date
-  isAllDay: boolean
-  location?: string
-  lastModified?: string // ISO datetime
-  etag?: string
-  status?: string       // CONFIRMED, TENTATIVE, CANCELLED
 }
 
 // ── Zod schemas ──
