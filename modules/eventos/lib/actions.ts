@@ -220,7 +220,7 @@ export async function crearEventoConInvitacionesAction(input: {
       await crearNotificacion({
         tenant_id: tenantId,
         destinatario_persona_id: inv.persona_id,
-        tipo: 'invitacion_evento' as never,
+        tipo: 'invitacion_evento' ,
         titulo: `Invitacion a: ${d.titulo}`,
         mensaje: `Fuiste invitado al evento "${d.titulo}" el ${d.fecha_inicio}. Acepta o rechaza la invitacion.`,
         link_accion: `/admin/${tenantId}/calendario`,
@@ -375,7 +375,7 @@ export async function aceptarInvitacionAction(
     await crearNotificacion({
       tenant_id: inv.tenant_id,
       destinatario_persona_id: inv.persona_id,
-      tipo: 'evento_confirmado' as never,
+      tipo: 'evento_confirmado' ,
       titulo: 'Invitacion aceptada',
       mensaje: 'Confirmaste tu asistencia al evento.',
       link_accion: `/admin/${inv.tenant_id}/calendario`,
@@ -427,7 +427,7 @@ export async function rechazarInvitacionAction(
     await crearNotificacion({
       tenant_id: inv.tenant_id,
       destinatario_persona_id: inv.persona_id,
-      tipo: 'evento_rechazado' as never,
+      tipo: 'evento_rechazado' ,
       titulo: 'Invitacion rechazada',
       mensaje: 'Rechazaste la invitacion al evento.',
       link_accion: `/admin/${inv.tenant_id}/calendario`,
@@ -586,7 +586,7 @@ export async function agregarInvitadoAction(input: {
     await crearNotificacion({
       tenant_id: persona.tenant_id,
       destinatario_persona_id: input.persona_id,
-      tipo: 'invitacion_evento' as never,
+      tipo: 'invitacion_evento' ,
       titulo: `Invitacion a: ${ev?.titulo ?? 'Evento'}`,
       mensaje: 'Fuiste invitado a un evento. Acepta o rechaza la invitacion.',
       link_accion: `/admin/${persona.tenant_id}/calendario`,
