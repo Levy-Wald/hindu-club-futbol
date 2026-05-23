@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { revalidatePath } from 'next/cache'
 import { EventoCreateSchema, EventoUpdateSchema, ResponderInvitacionSchema } from './types'
-import type { EventoCreateInput, EventoUpdateInput, EstadoInvitacion, InvitadoInput } from './types'
+import type { EventoCreateInput, EventoUpdateInput, EstadoInvitacion, InvitadoInput, CalendarioTipo, SyncResult } from './types'
 import { crearNotificacion } from '@/modules/notificaciones/lib/crear'
 import { randomBytes } from 'crypto'
 
@@ -627,4 +627,24 @@ export async function responderInvitacionAction(input: {
 
   revalidatePath(`/admin/${persona.tenant_id}/calendario`)
   return { ok: true, data: null }
+}
+
+// ── Sincronizar evento a calendarios externos (SKELETON — post-FASE A) ──
+//
+// Post-FASE A implementación:
+//   1. Buscar evento + invitaciones con persona_id
+//   2. Por cada calendarioTipo: validar credenciales (env vars)
+//   3. Google Calendar: OAuth 2.0 → calendar.events.insert/patch
+//   4. Outlook: Microsoft Graph API → /me/events
+//   5. iCloud: CalDAV API → PUT .ics
+//   6. Guardar external_event_id en evento_invitados
+//   7. Insertar registro en evento_calendario_sincronizacion
+//   8. Retry logic para failed syncs (exponential backoff)
+
+export async function sincronizarEventoACalendarios(
+  _eventoId: string,
+  _calendariosTipo?: CalendarioTipo[]
+): Promise<SyncResult> {
+  // A4.2: NOP — estructura lista, sin credenciales hasta FASE 16
+  return { success: true, syncedTo: [] }
 }

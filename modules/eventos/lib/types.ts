@@ -96,6 +96,46 @@ export type EventoInvitado = {
   created_at: string
   updated_at: string
   deleted_at: string | null
+  // Sync fields (post-FASE A — NULL in A4.2)
+  google_calendar_event_id: string | null
+  outlook_calendar_event_id: string | null
+  icloud_calendar_event_id: string | null
+  synced_to_google_at: string | null
+  synced_to_outlook_at: string | null
+  synced_to_icloud_at: string | null
+  sync_status_google: SyncStatus | null
+  sync_status_outlook: SyncStatus | null
+  sync_status_icloud: SyncStatus | null
+}
+
+export type SyncStatus = 'pending' | 'synced' | 'failed' | 'skipped'
+
+export type CalendarioTipo = 'google' | 'outlook' | 'icloud'
+
+export type SyncIntent = 'push' | 'pull' | 'update' | 'delete'
+
+export type SyncResult = {
+  success: boolean
+  syncedTo: CalendarioTipo[]
+  errors?: string[]
+}
+
+export type EventoCalendarioSincronizacion = {
+  id: string
+  tenant_id: string
+  evento_id: string
+  invitacion_id: string | null
+  calendario_tipo: CalendarioTipo
+  sync_intent: SyncIntent
+  sync_status: 'pending' | 'success' | 'failed' | 'retry' | 'aborted'
+  error_message: string | null
+  external_event_id: string | null
+  attempted_at: string
+  completed_at: string | null
+  retry_count: number
+  next_retry_at: string | null
+  created_at: string
+  updated_at: string
 }
 
 // ── Invitado input for crear evento ──
