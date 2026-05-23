@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useMemo } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -19,10 +19,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Combobox } from '@/components/ui/combobox'
 import { crearEventoConInvitacionesAction } from '../lib/actions'
 import type { InvitadoInput } from '../lib/types'
 import { useRouter } from 'next/navigation'
-import { Checkbox } from '@/components/ui/checkbox'
 import { X, Plus, Shuffle, Calendar } from 'lucide-react'
 
 const TIPOS_EVENTO = [
@@ -49,7 +50,6 @@ const PERIODICIDADES = [
 
 const DIAS_SEMANA = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom']
 
-// Generate time options every 15 min
 function generateTimeOptions(): string[] {
   const opts: string[] = []
   for (let h = 0; h < 24; h++) {
@@ -69,6 +69,7 @@ interface CrearEventoDialogProps {
   equipos: { id: string; nombre: string }[]
   personas: { id: string; nombre: string; apellido: string }[]
   entidades: { id: string; nombre: string }[]
+  espacios: { id: string; nombre: string }[]
   personaId: string
   tenantId: string
 }
@@ -81,6 +82,7 @@ export function CrearEventoDialog({
   equipos,
   personas,
   entidades,
+  espacios,
   personaId,
   tenantId,
 }: CrearEventoDialogProps) {
@@ -96,7 +98,6 @@ export function CrearEventoDialog({
   const [fechaFin, setFechaFin] = useState(defaultFecha ?? '')
   const [descripcion, setDescripcion] = useState('')
   const [sedeId, setSedeId] = useState('')
-  const [equipoId, setEquipoId] = useState('')
   const [lugarEncuentro, setLugarEncuentro] = useState('')
 
   // Horarios
@@ -117,6 +118,24 @@ export function CrearEventoDialog({
   const [invitados, setInvitados] = useState<InvitadoInput[]>([])
   const [emailExternoInput, setEmailExternoInput] = useState('')
 
+  // Combobox search states
+  const [equipoSearch, setEquipoSearch] = useState('')
+  const [personaSearch, setPersonaSearch] = useState('')
+  const [entidadSearch, setEntidadSearch] = useState('')
+
+  // Espacios filtered by sede
+  const espaciosFiltrados = useMemo(() => {
+    if (!sedeId) return espacios
+    // All espacios are passed from server; filter would need sede_id on espacios
+    // For now show all — server already filters by tenant
+    return espacios
+  }, [sedeId, espacios])
+
+  const espacioOptions = useMemo(() =>
+    espaciosFiltrados.map(e => ({ value: e.id, label: e.nombre })),
+    [espaciosFiltrados]
+  )
+
   function resetForm() {
     setTitulo('')
     setTipoSlug('entrenamiento')
@@ -124,7 +143,6 @@ export function CrearEventoDialog({
     setFechaFin(defaultFecha ?? '')
     setDescripcion('')
     setSedeId('')
-    setEquipoId('')
     setLugarEncuentro('')
     setHoraConvocatoria('')
     setHoraInicio('')
@@ -136,6 +154,9 @@ export function CrearEventoDialog({
     setCodigoGenerado('')
     setInvitados([])
     setEmailExternoInput('')
+    setEquipoSearch('')
+    setPersonaSearch('')
+    setEntidadSearch('')
     setError(null)
     setSuccessInfo(null)
   }
@@ -158,19 +179,22 @@ export function CrearEventoDialog({
   }
 
   // Invitados helpers
-  function addInvitadoPersona(personaIdToAdd: string) {
-    if (invitados.some(i => i.tipo === 'persona' && i.ref_id === personaIdToAdd)) return
-    setInvitados(prev => [...prev, { tipo: 'persona', ref_id: personaIdToAdd }])
+  function addInvitadoEquipo(equipoId: string) {
+    if (!equipoId || invitados.some(i => i.tipo === 'equipo' && i.ref_id === equipoId)) return
+    setInvitados(prev => [...prev, { tipo: 'equipo', ref_id: equipoId }])
+    setEquipoSearch('')
   }
 
-  function addInvitadoEquipo(equipoIdToAdd: string) {
-    if (invitados.some(i => i.tipo === 'equipo' && i.ref_id === equipoIdToAdd)) return
-    setInvitados(prev => [...prev, { tipo: 'equipo', ref_id: equipoIdToAdd }])
+  function addInvitadoPersona(personaId: string) {
+    if (!personaId || invitados.some(i => i.tipo === 'persona' && i.ref_id === personaId)) return
+    setInvitados(prev => [...prev, { tipo: 'persona', ref_id: personaId }])
+    setPersonaSearch('')
   }
 
-  function addInvitadoEntidad(entidadIdToAdd: string) {
-    if (invitados.some(i => i.tipo === 'entidad' && i.ref_id === entidadIdToAdd)) return
-    setInvitados(prev => [...prev, { tipo: 'entidad', ref_id: entidadIdToAdd }])
+  function addInvitadoEntidad(entidadId: string) {
+    if (!entidadId || invitados.some(i => i.tipo === 'entidad' && i.ref_id === entidadId)) return
+    setInvitados(prev => [...prev, { tipo: 'entidad', ref_id: entidadId }])
+    setEntidadSearch('')
   }
 
   function addEmailExterno() {
@@ -200,6 +224,28 @@ export function CrearEventoDialog({
     return ''
   }
 
+  // Combobox options (filtered out already-selected)
+  const equipoOptions = useMemo(() =>
+    equipos
+      .filter(eq => !invitados.some(i => i.tipo === 'equipo' && i.ref_id === eq.id))
+      .map(eq => ({ value: eq.id, label: eq.nombre })),
+    [equipos, invitados]
+  )
+
+  const personaOptions = useMemo(() =>
+    personas
+      .filter(p => !invitados.some(i => i.tipo === 'persona' && i.ref_id === p.id))
+      .map(p => ({ value: p.id, label: `${p.nombre} ${p.apellido}` })),
+    [personas, invitados]
+  )
+
+  const entidadOptions = useMemo(() =>
+    entidades
+      .filter(e => !invitados.some(i => i.tipo === 'entidad' && i.ref_id === e.id))
+      .map(e => ({ value: e.id, label: e.nombre })),
+    [entidades, invitados]
+  )
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
@@ -224,7 +270,6 @@ export function CrearEventoDialog({
           fecha_fin_recurrencia: periodicidad !== 'nunca' && fechaFinRecurrencia ? fechaFinRecurrencia : undefined,
           responsables_persona_id: [personaId],
           sede_id: sedeId || undefined,
-          equipo_id: equipoId || undefined,
           descripcion: descripcion.trim() || undefined,
           lugar_encuentro: lugarEncuentro.trim() || undefined,
         },
@@ -242,7 +287,6 @@ export function CrearEventoDialog({
         link: result.data.link_registro,
       })
 
-      // Auto-close after showing success briefly
       setTimeout(() => {
         resetForm()
         onOpenChange(false)
@@ -373,12 +417,12 @@ export function CrearEventoDialog({
               )}
             </fieldset>
 
-            {/* Location */}
+            {/* Location: Sede + Lugar de encuentro (espacios) */}
             <div className="grid grid-cols-2 gap-3">
               {sedes.length > 0 && (
                 <div className="space-y-2">
                   <Label>Sede</Label>
-                  <Select value={sedeId || undefined} onValueChange={(v) => setSedeId(v ?? '')}>
+                  <Select value={sedeId || undefined} onValueChange={(v) => { setSedeId(v ?? ''); setLugarEncuentro('') }}>
                     <SelectTrigger><SelectValue placeholder="Sin sede" /></SelectTrigger>
                     <SelectContent>
                       {sedes.map((s) => <SelectItem key={s.id} value={s.id}>{s.nombre}</SelectItem>)}
@@ -386,22 +430,20 @@ export function CrearEventoDialog({
                   </Select>
                 </div>
               )}
-              {equipos.length > 0 && (
-                <div className="space-y-2">
-                  <Label>Equipo</Label>
-                  <Select value={equipoId || undefined} onValueChange={(v) => setEquipoId(v ?? '')}>
-                    <SelectTrigger><SelectValue placeholder="Sin equipo" /></SelectTrigger>
-                    <SelectContent>
-                      {equipos.map((eq) => <SelectItem key={eq.id} value={eq.id}>{eq.nombre}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Lugar de encuentro</Label>
-              <Input value={lugarEncuentro} onChange={e => setLugarEncuentro(e.target.value)} placeholder="Ej: Cancha 1, Pileta..." />
+              <div className="space-y-2">
+                <Label>Lugar de encuentro</Label>
+                {espacioOptions.length > 0 ? (
+                  <Combobox
+                    value={lugarEncuentro}
+                    onChange={setLugarEncuentro}
+                    options={espacioOptions}
+                    placeholder="Buscar espacio..."
+                    allowCreate={true}
+                  />
+                ) : (
+                  <Input value={lugarEncuentro} onChange={e => setLugarEncuentro(e.target.value)} placeholder="Ej: Cancha 1, Pileta..." />
+                )}
+              </div>
             </div>
 
             {/* Codigo de acceso */}
@@ -424,7 +466,7 @@ export function CrearEventoDialog({
               )}
             </fieldset>
 
-            {/* Invitados */}
+            {/* Invitados — with Combobox autocomplete */}
             <fieldset className="border rounded-md p-3 space-y-3">
               <legend className="text-sm font-medium px-1">Invitados ({invitados.length})</legend>
 
@@ -432,14 +474,17 @@ export function CrearEventoDialog({
               {equipos.length > 0 && (
                 <div className="space-y-1">
                   <Label className="text-xs">Equipos</Label>
-                  <Select value={undefined} onValueChange={v => v && addInvitadoEquipo(v)}>
-                    <SelectTrigger><SelectValue placeholder="Agregar equipo..." /></SelectTrigger>
-                    <SelectContent>
-                      {equipos.filter(eq => !invitados.some(i => i.tipo === 'equipo' && i.ref_id === eq.id)).map(eq => (
-                        <SelectItem key={eq.id} value={eq.id}>{eq.nombre}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Combobox
+                    value={equipoSearch}
+                    onChange={(v) => {
+                      const match = equipoOptions.find(o => o.value === v)
+                      if (match) { addInvitadoEquipo(match.value); return }
+                      setEquipoSearch(v)
+                    }}
+                    options={equipoOptions}
+                    placeholder="Buscar equipo..."
+                    allowCreate={false}
+                  />
                 </div>
               )}
 
@@ -447,14 +492,17 @@ export function CrearEventoDialog({
               {personas.length > 0 && (
                 <div className="space-y-1">
                   <Label className="text-xs">Personas</Label>
-                  <Select value={undefined} onValueChange={v => v && addInvitadoPersona(v)}>
-                    <SelectTrigger><SelectValue placeholder="Agregar persona..." /></SelectTrigger>
-                    <SelectContent className="max-h-48">
-                      {personas.filter(p => !invitados.some(i => i.tipo === 'persona' && i.ref_id === p.id)).map(p => (
-                        <SelectItem key={p.id} value={p.id}>{p.nombre} {p.apellido}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Combobox
+                    value={personaSearch}
+                    onChange={(v) => {
+                      const match = personaOptions.find(o => o.value === v)
+                      if (match) { addInvitadoPersona(match.value); return }
+                      setPersonaSearch(v)
+                    }}
+                    options={personaOptions}
+                    placeholder="Buscar persona..."
+                    allowCreate={false}
+                  />
                 </div>
               )}
 
@@ -462,14 +510,17 @@ export function CrearEventoDialog({
               {entidades.length > 0 && (
                 <div className="space-y-1">
                   <Label className="text-xs">Entidades</Label>
-                  <Select value={undefined} onValueChange={v => v && addInvitadoEntidad(v)}>
-                    <SelectTrigger><SelectValue placeholder="Agregar entidad..." /></SelectTrigger>
-                    <SelectContent>
-                      {entidades.filter(e => !invitados.some(i => i.tipo === 'entidad' && i.ref_id === e.id)).map(e => (
-                        <SelectItem key={e.id} value={e.id}>{e.nombre}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Combobox
+                    value={entidadSearch}
+                    onChange={(v) => {
+                      const match = entidadOptions.find(o => o.value === v)
+                      if (match) { addInvitadoEntidad(match.value); return }
+                      setEntidadSearch(v)
+                    }}
+                    options={entidadOptions}
+                    placeholder="Buscar entidad..."
+                    allowCreate={false}
+                  />
                 </div>
               )}
 

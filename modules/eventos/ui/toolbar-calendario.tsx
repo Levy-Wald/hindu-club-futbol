@@ -11,6 +11,7 @@ export function ToolbarCalendario({
   equipos,
   personas,
   entidades,
+  espacios,
   personaId,
   tenantId,
 }: {
@@ -18,6 +19,7 @@ export function ToolbarCalendario({
   equipos: { id: string; nombre: string }[]
   personas: { id: string; nombre: string; apellido: string }[]
   entidades: { id: string; nombre: string }[]
+  espacios: { id: string; nombre: string }[]
   personaId: string
   tenantId: string
 }) {
@@ -40,6 +42,7 @@ export function ToolbarCalendario({
         equipos={equipos}
         personas={personas}
         entidades={entidades}
+        espacios={espacios}
         personaId={personaId}
         tenantId={tenantId}
       />

@@ -138,6 +138,26 @@ export type EventoCalendarioSincronizacion = {
   updated_at: string
 }
 
+// ── Control de acceso (skeleton — post-FASE A) ──
+
+export type EventoAccesoTipo = 'invitado' | 'visitante' | 'padre' | 'personal'
+
+export type EventoAccesoRegistro = {
+  id: string
+  tenant_id: string
+  evento_id: string
+  persona_id: string | null
+  documento_numero: string | null
+  codigo_acceso: string | null
+  tipo_acceso: EventoAccesoTipo
+  timestamp_entrada: string
+  timestamp_salida: string | null
+  metadata: Record<string, unknown> | null
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+}
+
 // ── Invitado input for crear evento ──
 
 export type InvitadoInput = {

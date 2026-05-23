@@ -195,6 +195,18 @@ export const SIDEBAR_CATALOG: SidebarItem[] = [
     grupo: 'Control de acceso',
     orden: 60,
   },
+  {
+    id: 'control-acceso-eventos',
+    label: 'Control de Acceso Eventos',
+    href: '/admin/control-acceso',
+    icon: 'ShieldCheck',
+    capa: 'cross_vertical',
+    estado: 'activo',
+    modulo_slug: 'eventos_calendario',
+    espacio: 'personas',
+    grupo: 'Control de acceso',
+    orden: 61,
+  },
 
   // — GRUPO: Datos medicos —
   {

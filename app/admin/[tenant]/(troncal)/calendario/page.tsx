@@ -40,7 +40,7 @@ export default async function CalendarioPage(props: {
 
   const service = createServiceRoleClient()
 
-  const [eventos, sedesRes, equiposRes, personasRes, entidadesRes] = await Promise.all([
+  const [eventos, sedesRes, equiposRes, personasRes, entidadesRes, espaciosRes] = await Promise.all([
     obtenerEventosCalendario(
       tenantId,
       fechaDesde.toISOString().slice(0, 10),
@@ -51,12 +51,14 @@ export default async function CalendarioPage(props: {
     service.from('equipos').select('id, nombre').eq('tenant_id', tenantId).is('deleted_at', null).order('nombre'),
     service.from('personas').select('id, nombre, apellido').eq('tenant_id', tenantId).is('deleted_at', null).order('apellido').limit(500),
     service.from('entidades').select('id, nombre').eq('tenant_id', tenantId).is('deleted_at', null).order('nombre'),
+    service.from('espacios').select('id, nombre').eq('tenant_id', tenantId).is('deleted_at', null).order('nombre'),
   ])
 
   const sedes = (sedesRes.data ?? []) as { id: string; nombre: string }[]
   const equipos = (equiposRes.data ?? []) as { id: string; nombre: string }[]
   const personas = (personasRes.data ?? []) as { id: string; nombre: string; apellido: string }[]
   const entidades = (entidadesRes.data ?? []) as { id: string; nombre: string }[]
+  const espacios = (espaciosRes.data ?? []) as { id: string; nombre: string }[]
 
   // Fetch invitation statuses for the current user
   const eventoIds = eventos.map(e => e.id)
@@ -76,6 +78,7 @@ export default async function CalendarioPage(props: {
         equipos={equipos}
         personas={personas}
         entidades={entidades}
+        espacios={espacios}
         personaId={persona.id}
         tenantId={tenantId}
       />

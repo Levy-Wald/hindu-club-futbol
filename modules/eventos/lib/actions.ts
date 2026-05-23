@@ -103,6 +103,7 @@ export async function crearEventoAction(
   if (error || !data) return { ok: false, error: error?.message ?? 'Error creando evento' }
 
   revalidatePath(`/admin/${tenantId}/calendario`)
+  revalidatePath(`/admin/${tenantId}/mi-calendario`)
   return { ok: true, data: { id: data.id } }
 }
 
@@ -234,6 +235,7 @@ export async function crearEventoConInvitacionesAction(input: {
   }
 
   revalidatePath(`/admin/${tenantId}/calendario`)
+  revalidatePath(`/admin/${tenantId}/mi-calendario`)
 
   return {
     ok: true,
@@ -512,6 +514,7 @@ export async function editarEventoAction(
   if (error || !data) return { ok: false, error: error?.message ?? 'Evento no encontrado' }
 
   revalidatePath(`/admin/${persona.tenant_id}/calendario`)
+  revalidatePath(`/admin/${persona.tenant_id}/mi-calendario`)
   return { ok: true, data: { id: data.id } }
 }
 
@@ -533,6 +536,7 @@ export async function eliminarEventoAction(
   if (error) return { ok: false, error: error.message }
 
   revalidatePath(`/admin/${persona.tenant_id}/calendario`)
+  revalidatePath(`/admin/${persona.tenant_id}/mi-calendario`)
   return { ok: true, data: null }
 }
 
@@ -626,6 +630,7 @@ export async function responderInvitacionAction(input: {
   if (error) return { ok: false, error: error.message }
 
   revalidatePath(`/admin/${persona.tenant_id}/calendario`)
+  revalidatePath(`/admin/${persona.tenant_id}/mi-calendario`)
   return { ok: true, data: null }
 }
 
