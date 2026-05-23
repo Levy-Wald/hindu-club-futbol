@@ -22,7 +22,8 @@ import { Badge } from '@/components/ui/badge'
 import { crearEventoConInvitacionesAction } from '../lib/actions'
 import type { InvitadoInput } from '../lib/types'
 import { useRouter } from 'next/navigation'
-import { X, Plus, Shuffle } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { X, Plus, Shuffle, Calendar } from 'lucide-react'
 
 const TIPOS_EVENTO = [
   { slug: 'entrenamiento', nombre: 'Entrenamiento' },
@@ -510,6 +511,30 @@ export function CrearEventoDialog({
               <Label>Descripcion</Label>
               <Textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} rows={2} />
             </div>
+
+            {/* Sync calendarios externos (disabled until post-FASE A) */}
+            <fieldset className="border rounded-md p-3 space-y-3 opacity-50 cursor-not-allowed">
+              <legend className="text-sm font-medium px-1 flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5" />
+                Calendarios externos
+                <Badge variant="outline" className="text-[10px] ml-1">proximamente</Badge>
+              </legend>
+              <p className="text-xs text-muted-foreground">Sincronizacion disponible despues de Fase A</p>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox disabled checked={false} />
+                  Sincronizar a Google Calendar
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox disabled checked={false} />
+                  Sincronizar a Outlook
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox disabled checked={false} />
+                  Sincronizar a iCloud
+                </label>
+              </div>
+            </fieldset>
 
             {/* Actions */}
             <div className="flex justify-end gap-2 pt-2">
