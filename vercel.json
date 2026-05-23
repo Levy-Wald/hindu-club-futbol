@@ -27,10 +27,6 @@
     {
       "path": "/api/cron/cuota-vencida-7d",
       "schedule": "10 12 * * *"
-    },
-    {
-      "path": "/api/cron/sync-google-calendars",
-      "schedule": "*/10 * * * *"
     }
   ]
 }
