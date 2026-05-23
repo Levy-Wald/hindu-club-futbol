@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { obtenerEventosCalendario } from '@/modules/eventos/lib/queries'
+import { obtenerEventosCalendario, obtenerMisInvitaciones } from '@/modules/eventos/lib/queries'
 import { CalendarioGlobal } from '@/modules/eventos/ui/calendario-global'
 import { ToolbarCalendario } from '@/modules/eventos/ui/toolbar-calendario'
+import type { EstadoInvitacion } from '@/modules/eventos/lib/types'
 
 export default async function CalendarioPage(props: {
   params: Promise<{ tenant: string }>
@@ -26,7 +27,6 @@ export default async function CalendarioPage(props: {
   const year = parseInt(searchParams.year ?? String(now.getFullYear()))
   const month = parseInt(searchParams.month ?? String(now.getMonth() + 1))
 
-  // Date range: month with 1 week padding
   const fechaDesde = new Date(year, month - 1, 1)
   fechaDesde.setDate(fechaDesde.getDate() - 7)
   const fechaHasta = new Date(year, month, 0)
@@ -40,7 +40,7 @@ export default async function CalendarioPage(props: {
 
   const service = createServiceRoleClient()
 
-  const [eventos, sedesRes, equiposRes] = await Promise.all([
+  const [eventos, sedesRes, equiposRes, personasRes, entidadesRes] = await Promise.all([
     obtenerEventosCalendario(
       tenantId,
       fechaDesde.toISOString().slice(0, 10),
@@ -49,17 +49,38 @@ export default async function CalendarioPage(props: {
     ),
     service.from('sedes').select('id, nombre').eq('tenant_id', tenantId).is('deleted_at', null).order('nombre'),
     service.from('equipos').select('id, nombre').eq('tenant_id', tenantId).is('deleted_at', null).order('nombre'),
+    service.from('personas').select('id, nombre, apellido').eq('tenant_id', tenantId).is('deleted_at', null).order('apellido').limit(500),
+    service.from('entidades').select('id, nombre').eq('tenant_id', tenantId).is('deleted_at', null).order('nombre'),
   ])
 
   const sedes = (sedesRes.data ?? []) as { id: string; nombre: string }[]
   const equipos = (equiposRes.data ?? []) as { id: string; nombre: string }[]
+  const personas = (personasRes.data ?? []) as { id: string; nombre: string; apellido: string }[]
+  const entidades = (entidadesRes.data ?? []) as { id: string; nombre: string }[]
+
+  // Fetch invitation statuses for the current user
+  const eventoIds = eventos.map(e => e.id)
+  const invitacionesMap = await obtenerMisInvitaciones(persona.id, tenantId, eventoIds)
+
+  // Merge invitation status into events
+  const eventosConInvitacion = eventos.map(e => ({
+    ...e,
+    mi_invitacion: (invitacionesMap.get(e.id) ?? null) as EstadoInvitacion | null,
+  }))
 
   return (
     <div className="container mx-auto p-4 space-y-4">
       <h1 className="text-2xl font-bold">Calendario</h1>
-      <ToolbarCalendario sedes={sedes} equipos={equipos} personaId={persona.id} tenantId={tenantId} />
+      <ToolbarCalendario
+        sedes={sedes}
+        equipos={equipos}
+        personas={personas}
+        entidades={entidades}
+        personaId={persona.id}
+        tenantId={tenantId}
+      />
       <CalendarioGlobal
-        eventos={eventos}
+        eventos={eventosConInvitacion}
         year={year}
         month={month}
         tenantId={tenantId}

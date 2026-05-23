@@ -33,7 +33,7 @@ export default async function MiCalendarioPage(props: {
 
   const service = createServiceRoleClient()
 
-  const [eventos, sedesRes, equiposRes] = await Promise.all([
+  const [eventos, sedesRes, equiposRes, personasRes, entidadesRes] = await Promise.all([
     obtenerEventosPersonales(
       persona.id,
       tenantId,
@@ -42,16 +42,20 @@ export default async function MiCalendarioPage(props: {
     ),
     service.from('sedes').select('id, nombre').eq('tenant_id', tenantId).is('deleted_at', null).order('nombre'),
     service.from('equipos').select('id, nombre').eq('tenant_id', tenantId).is('deleted_at', null).order('nombre'),
+    service.from('personas').select('id, nombre, apellido').eq('tenant_id', tenantId).is('deleted_at', null).order('apellido').limit(500),
+    service.from('entidades').select('id, nombre').eq('tenant_id', tenantId).is('deleted_at', null).order('nombre'),
   ])
 
   const sedes = (sedesRes.data ?? []) as { id: string; nombre: string }[]
   const equipos = (equiposRes.data ?? []) as { id: string; nombre: string }[]
+  const personas = (personasRes.data ?? []) as { id: string; nombre: string; apellido: string }[]
+  const entidades = (entidadesRes.data ?? []) as { id: string; nombre: string }[]
 
   return (
     <div className="container mx-auto p-4 space-y-4">
       <h1 className="text-2xl font-bold">Mi Calendario</h1>
       <p className="text-sm text-muted-foreground">Eventos donde sos responsable</p>
-      <ToolbarCalendario sedes={sedes} equipos={equipos} personaId={persona.id} tenantId={tenantId} />
+      <ToolbarCalendario sedes={sedes} equipos={equipos} personas={personas} entidades={entidades} personaId={persona.id} tenantId={tenantId} />
       <CalendarioGlobal
         eventos={eventos}
         year={year}

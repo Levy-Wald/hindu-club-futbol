@@ -57,14 +57,22 @@ export function CalendarioGlobal({
     }))
   }, [eventosIniciales])
 
-  const eventPropGetter = useCallback((event: EventoCalendarioItem & { start: Date; end: Date }) => ({
-    style: {
-      backgroundColor: event.color ?? COLORES_TIPO[event.tipo_evento_slug] ?? '#6b7280',
-      border: 'none',
-      borderRadius: '4px',
-      fontSize: '12px',
-    },
-  }), [])
+  const eventPropGetter = useCallback((event: EventoCalendarioItem & { start: Date; end: Date }) => {
+    const isPending = event.mi_invitacion === 'pendiente'
+    const isRejected = event.mi_invitacion === 'rechazado'
+    const baseColor = event.color ?? COLORES_TIPO[event.tipo_evento_slug] ?? '#6b7280'
+
+    return {
+      style: {
+        backgroundColor: isRejected ? '#d1d5db' : isPending ? '#e5e7eb' : baseColor,
+        border: isPending ? '1px dashed #9ca3af' : 'none',
+        borderRadius: '4px',
+        fontSize: '12px',
+        opacity: isRejected ? 0.3 : isPending ? 0.6 : 1,
+        textDecoration: isRejected ? 'line-through' : 'none',
+      },
+    }
+  }, [])
 
   const handleNavigate = useCallback((date: Date) => {
     const newYear = date.getFullYear()

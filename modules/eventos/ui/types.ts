@@ -1,3 +1,5 @@
+import type { EstadoInvitacion } from '../lib/types'
+
 export type EventoCalendarioItem = {
   id: string
   titulo: string | null
@@ -22,4 +24,6 @@ export type EventoCalendarioItem = {
   lugar_encuentro: string | null
   equipo_nombre: string | null
   cancha_nombre: string | null
+  // A4.2: invitation state for the current user
+  mi_invitacion?: EstadoInvitacion | null
 }

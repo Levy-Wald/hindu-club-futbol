@@ -6,7 +6,9 @@ export type EstadoEvento = 'programado' | 'en_curso' | 'completado' | 'cancelado
 
 export type EspacioVirtualTipo = 'zoom' | 'meet' | 'teams' | 'discord' | 'custom'
 
-export type Periodicidad = 'diario' | 'semanal' | 'quincenal' | 'mensual' | 'anual' | 'nunca'
+export type Periodicidad = 'sin_repeticion' | 'diario' | 'dias_semana' | 'quincenal' | 'mensual' | 'anual' | 'semanal' | 'nunca'
+
+export type InvitadoTipo = 'persona' | 'equipo' | 'entidad' | 'email_externo'
 
 export type Evento = {
   id: string
@@ -40,6 +42,7 @@ export type Evento = {
   evento_padre_id: string | null
   serie_uuid: string | null
   periodicidad: Periodicidad
+  dias_semana: boolean[] | null
   fecha_fin_recurrencia: string | null
   color: string | null
   icono: string | null
@@ -80,15 +83,50 @@ export type EventoInvitado = {
   entidad_id: string | null
   equipo_id: string | null
   email_externo: string | null
+  invitado_tipo: InvitadoTipo
+  invitado_ref_id: string | null
   rol_invitacion: string
   origen: string
   estado_invitacion: EstadoInvitacion
   respuesta_at: string | null
+  token_respuesta: string | null
+  token_expira_at: string | null
   marca_asistencia: boolean
   metadata: Record<string, unknown>
   created_at: string
   updated_at: string
   deleted_at: string | null
+}
+
+// ── Invitado input for crear evento ──
+
+export type InvitadoInput = {
+  tipo: InvitadoTipo
+  ref_id?: string   // UUID of persona/equipo/entidad
+  email?: string    // for email_externo or to resolve persona email
+}
+
+// ── Código de acceso ──
+
+export type EventoCodigoAcceso = {
+  id: string
+  tenant_id: string
+  evento_id: string
+  codigo: string
+  tipo_generacion: 'automatico' | 'manual'
+  generado_por: string | null
+  activo: boolean
+  created_at: string
+}
+
+// ── Link de registro ──
+
+export type EventoLinkRegistro = {
+  id: string
+  tenant_id: string
+  evento_id: string
+  link_uuid: string
+  created_at: string
 }
 
 // ── Smart defaults ──
@@ -135,7 +173,8 @@ export const EventoCreateSchema = z.object({
   espacio_virtual_link: z.string().max(500).optional(),
   etiquetas: z.array(z.string()).optional(),
   color: z.string().max(20).optional(),
-  periodicidad: z.enum(['diario', 'semanal', 'quincenal', 'mensual', 'anual', 'nunca']).default('nunca'),
+  periodicidad: z.enum(['sin_repeticion', 'diario', 'dias_semana', 'quincenal', 'mensual', 'anual', 'semanal', 'nunca']).default('nunca'),
+  dias_semana: z.array(z.boolean()).length(7).optional(),
   fecha_fin_recurrencia: z.string().regex(dateRegex).optional(),
   portada_url: z.string().max(500).optional(),
   lugar_encuentro: z.string().max(500).optional(),
@@ -168,7 +207,8 @@ export const EventoUpdateSchema = z.object({
   notas_post: z.string().max(2000).optional().nullable(),
   etiquetas: z.array(z.string()).optional(),
   color: z.string().max(20).optional().nullable(),
-  periodicidad: z.enum(['diario', 'semanal', 'quincenal', 'mensual', 'anual', 'nunca']).optional(),
+  periodicidad: z.enum(['sin_repeticion', 'diario', 'dias_semana', 'quincenal', 'mensual', 'anual', 'semanal', 'nunca']).optional(),
+  dias_semana: z.array(z.boolean()).length(7).optional().nullable(),
   fecha_fin_recurrencia: z.string().regex(dateRegex).optional().nullable(),
   portada_url: z.string().max(500).optional().nullable(),
   lugar_encuentro: z.string().max(500).optional().nullable(),
@@ -181,6 +221,17 @@ export type EventoUpdateInput = z.infer<typeof EventoUpdateSchema>
 export const ResponderInvitacionSchema = z.object({
   estado: z.enum(['aceptado', 'rechazado', 'tentativa']),
 })
+
+// ── Invitados Zod schema ──
+
+export const InvitadoInputSchema = z.object({
+  tipo: z.enum(['persona', 'equipo', 'entidad', 'email_externo']),
+  ref_id: z.string().uuid().optional(),
+  email: z.string().email().optional(),
+}).refine(
+  (d) => d.tipo === 'email_externo' ? !!d.email : !!d.ref_id,
+  { message: 'ref_id requerido para persona/equipo/entidad, email para email_externo' }
+)
 
 // ── Hydrated types for UI ──
 

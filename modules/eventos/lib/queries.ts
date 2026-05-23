@@ -1,7 +1,7 @@
 'use server'
 
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import type { InvitacionPendiente, EventoInvitado } from './types'
+import type { InvitacionPendiente, EventoInvitado, EstadoInvitacion } from './types'
 
 // ── Calendar: eventos por rango de fechas (todos los módulos) ──
 
@@ -249,4 +249,141 @@ export async function obtenerInvitacionesPendientes(
       estado_invitacion: d.estado_invitacion as InvitacionPendiente['estado_invitacion'],
     }
   })
+}
+
+// ── Invitation statuses for calendar (for graying) ──
+
+export async function obtenerMisInvitaciones(
+  personaId: string,
+  tenantId: string,
+  eventoIds: string[]
+): Promise<Map<string, EstadoInvitacion>> {
+  if (eventoIds.length === 0) return new Map()
+
+  const supabase = createServiceRoleClient()
+  const { data } = await supabase
+    .from('evento_invitados')
+    .select('evento_id, estado_invitacion')
+    .eq('persona_id', personaId)
+    .eq('tenant_id', tenantId)
+    .in('evento_id', eventoIds)
+    .is('deleted_at', null)
+
+  const map = new Map<string, EstadoInvitacion>()
+  for (const d of data ?? []) {
+    map.set(d.evento_id, d.estado_invitacion as EstadoInvitacion)
+  }
+  return map
+}
+
+// ── Report: Admin - event summary with invitation counts ──
+
+export async function obtenerReporteEventosAdmin(
+  tenantId: string,
+  fechaDesde: string,
+  fechaHasta: string,
+) {
+  const supabase = createServiceRoleClient()
+
+  const { data: eventos } = await supabase
+    .from('eventos')
+    .select('id, titulo, fecha_inicio, fecha_fin, tipo_evento_slug, responsables_persona_id, estado')
+    .eq('tenant_id', tenantId)
+    .is('deleted_at', null)
+    .gte('fecha_inicio', fechaDesde)
+    .lte('fecha_inicio', fechaHasta)
+    .order('fecha_inicio', { ascending: false })
+
+  if (!eventos || eventos.length === 0) return []
+
+  const eventoIds = eventos.map(e => e.id)
+
+  const { data: invitaciones } = await supabase
+    .from('evento_invitados')
+    .select('evento_id, estado_invitacion')
+    .in('evento_id', eventoIds)
+    .is('deleted_at', null)
+
+  // Aggregate counts per evento
+  const counts = new Map<string, { total: number; confirmados: number; pendientes: number; rechazados: number }>()
+  for (const inv of invitaciones ?? []) {
+    if (!counts.has(inv.evento_id)) {
+      counts.set(inv.evento_id, { total: 0, confirmados: 0, pendientes: 0, rechazados: 0 })
+    }
+    const c = counts.get(inv.evento_id)!
+    c.total++
+    if (inv.estado_invitacion === 'aceptado') c.confirmados++
+    else if (inv.estado_invitacion === 'pendiente') c.pendientes++
+    else if (inv.estado_invitacion === 'rechazado') c.rechazados++
+  }
+
+  return eventos.map(e => ({
+    ...e,
+    invitaciones: counts.get(e.id) ?? { total: 0, confirmados: 0, pendientes: 0, rechazados: 0 },
+  }))
+}
+
+// ── Report: Confirmed attendees for an event ──
+
+export async function obtenerConfirmadosEvento(eventoId: string, tenantId: string) {
+  const supabase = createServiceRoleClient()
+
+  const { data } = await supabase
+    .from('evento_invitados')
+    .select('id, persona_id, email_externo, invitado_tipo, estado_invitacion, respuesta_at')
+    .eq('evento_id', eventoId)
+    .eq('tenant_id', tenantId)
+    .eq('estado_invitacion', 'aceptado')
+    .is('deleted_at', null)
+
+  if (!data || data.length === 0) return []
+
+  const personaIds = data.map(d => d.persona_id).filter(Boolean) as string[]
+  const personasMap = new Map<string, { nombre: string; apellido: string; numero_documento: string | null }>()
+  if (personaIds.length > 0) {
+    const { data: personas } = await supabase
+      .from('personas')
+      .select('id, nombre, apellido, numero_documento')
+      .in('id', personaIds)
+    for (const p of personas ?? []) personasMap.set(p.id, p)
+  }
+
+  return data.map(d => ({
+    ...d,
+    persona: d.persona_id ? personasMap.get(d.persona_id) ?? null : null,
+  }))
+}
+
+// ── Report: External visitors for security ──
+
+export async function obtenerVisitantesExternos(tenantId: string, fechaDesde: string) {
+  const supabase = createServiceRoleClient()
+
+  const { data } = await supabase
+    .from('evento_invitados')
+    .select(`
+      id, email_externo, estado_invitacion,
+      eventos!evento_id(id, titulo, fecha_inicio, codigo_acceso)
+    `)
+    .eq('tenant_id', tenantId)
+    .eq('invitado_tipo', 'email_externo')
+    .is('deleted_at', null)
+
+  if (!data) return []
+
+  return data
+    .filter(d => {
+      const ev = d.eventos as unknown as { fecha_inicio: string } | null
+      return ev && ev.fecha_inicio >= fechaDesde
+    })
+    .map(d => {
+      const ev = d.eventos as unknown as { id: string; titulo: string; fecha_inicio: string; codigo_acceso: string | null }
+      return {
+        email: d.email_externo,
+        estado: d.estado_invitacion,
+        evento_titulo: ev?.titulo,
+        evento_fecha: ev?.fecha_inicio,
+        codigo_acceso: ev?.codigo_acceso,
+      }
+    })
 }
