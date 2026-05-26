@@ -70,6 +70,19 @@ FASE A EN PROGRESO:
   - Sidebar: Atributos custom en Configuración
 \- FASE A: COMPLETA — todos los sprints cerrados
 
+POST-FASE A — EVENTOS AVANZADOS:
+\- Sprint A4.2 (Invitaciones): CERRADO (v0.35.0-a4.2-invitaciones-completo, v0.35.1-a4.2-ui-fixes)
+  - Tablas nuevas: evento_codigos_acceso, evento_link_registro, evento_calendario_sincronizacion, evento_acceso_registro
+  - Columnas nuevas en evento_invitados: invitado_tipo, invitado_ref_id, token_respuesta, token_expira_at, 9 campos sync (google/outlook/icloud)
+  - Columna nueva en eventos: dias_semana boolean[]
+  - Server actions: crearEventoConInvitacionesAction, aceptarInvitacionAction, rechazarInvitacionAction, generarCodigoAccesoAction, sincronizarEventoACalendarios (skeleton)
+  - Queries reportes: obtenerReporteEventosAdmin, obtenerConfirmadosEvento, obtenerVisitantesExternos, obtenerMisInvitaciones
+  - Paginas nuevas: /evento/[id]/aceptar/[token], /evento/[id]/rechazar/[token], /admin/[tenant]/control-acceso (skeleton)
+  - UI: Combobox autocomplete invitados, espacios dinamicos por sede, calendario graying
+  - 54 unit tests (EventoCreateSchema, EventoUpdateSchema, InvitadoInputSchema, ResponderInvitacionSchema)
+  - NotificacionTipo expandido: invitacion_evento, evento_confirmado, evento_rechazado, evento_recordatorio, evento_cancelado
+  - Sidebar: Control de Acceso Eventos (ShieldCheck)
+
 FASES SIGUIENTES:
 \- FASE B (Cerrar vertical CCBP): planificada, RFC-003 vigente
 \- FASE C (Demo a Hindu): planificada
@@ -109,7 +122,7 @@ Datos productivos (tenant Hindu):
 ESTADO DEL CÓDIGO  
 \==================
 
-Repo: limpio, branch main al día. Tag: v0.27.13-fase-a-sprint-6.
+Repo: limpio, branch main al día. Tag: v0.35.1-a4.2-ui-fixes.
 
 Módulos en \`modules/\` (19 con código):
 \- Productivos: personas, equipos, comunicaciones, finanzas (parcial), cuotas, suscripciones, competencias, partidos, asistencias, reservas, acceso, pre\_inscripciones, entrenamientos, tactica, amistosos, utileria, planificadores, espacios, pim

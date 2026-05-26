@@ -91,6 +91,13 @@ Cerradas en producción. Reubicadas en la taxonomía RFC-004 según corresponda.
 | A5 | Comunicaciones cierre: Tiptap editor + variables sidebar + test send + versionado plantillas + automatizaciones CRUD + workflow editor dnd-kit | ✅ DONE | v0.27.12-fase-a-sprint-5 | 3h | 4 tablas nuevas, @tiptap/react, dnd-kit, isomorphic-dompurify |
 | A6 | Proyectos & Tareas: 4 tablas + Kanban + Lista + Calendario + tab Proyectos en persona + comentarios + miembros + presupuesto | ✅ DONE | v0.27.13-fase-a-sprint-6 | 3h | dnd-kit, react-big-calendar, fn_presupuesto_consumido |
 
+### Post-FASE A — Sprints Eventos Avanzados
+
+| ID | Tema | Estado | Tag | Costo | Notas |
+|---|---|---|---|---|---|
+| A4.2 | Invitaciones + confirmaciones + notificaciones: evento_invitados expandido, tokens accept/reject, código acceso, link registro, graying calendario, notificaciones, reportes admin/DT/seguridad/planificador | ✅ DONE | v0.35.0-a4.2-invitaciones-completo | ~6h | 54 unit tests, 3 tablas nuevas (evento_codigos_acceso, evento_link_registro, evento_calendario_sincronizacion), 9 campos sync-ready |
+| A4.2-FIX | Hotfix UI: Combobox autocomplete invitados, espacios dinámicos, revalidatePath mi-calendario, control de acceso skeleton | ✅ DONE | v0.35.1-a4.2-ui-fixes | ~2h | tabla evento_acceso_registro, página /control-acceso disabled, sidebar item |
+
 **Costo restante FASE A**: 0 — todos los sprints DONE
 **Tag de cierre FASE A**: `v0.29.0-fase-a-completa` (aplicado 17-may-2026)
 

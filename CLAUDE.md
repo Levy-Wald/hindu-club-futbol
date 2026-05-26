@@ -2,8 +2,8 @@
 
 ## Estado actual
 
-- **Tag actual:** `v0.30.20-b13.2-routing-tenant` (2026-05-20)
-- **Tags vigentes:** v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.5 (Tramo 4), v0.30.14 (B12.3), v0.30.15 (B12.4), v0.30.16 (B12.5), v0.30.17 (B12.6+B12.7), v0.30.18 (B13.0), v0.30.19 (B13.1), v0.30.20 (B13.2)
+- **Tag actual:** `v0.35.1-a4.2-ui-fixes` (2026-05-23)
+- **Tags vigentes:** v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.5 (Tramo 4), v0.30.14 (B12.3), v0.30.15 (B12.4), v0.30.16 (B12.5), v0.30.17 (B12.6+B12.7), v0.30.18 (B13.0), v0.30.19 (B13.1), v0.30.20 (B13.2), v0.35.0 (A4.2 invitaciones), v0.35.1 (A4.2 UI fixes)
 - **FASE 1-5 cerradas**, **FASE A COMPLETA**, **FASE B COMPLETA** (B1-B6 DONE)
 - **Tramo 2 (Hardening) CERRADO** (H1-H4 DONE)
 - **Tramo 4 (Hardening post-B) CERRADO** (H5-H7 DONE)
@@ -11,10 +11,11 @@
 - **B13.0 CERRADO** (loading skeletons, error boundaries, cache headers, middleware opt, audit 89 modulos)
 - **B13.1 CERRADO** (cache layer unstable_cache, dynamic imports xlsx/jspdf, next/image, font preconnect, asset cache headers)
 - **B13.2 CERRADO** (ruteo dinamico [tenant], panel SCL, TENANT_ID centralizado en lib/tenant.ts, middleware backwards-compat)
+- **A4.2 CERRADO** (invitaciones + confirmaciones + notificaciones + sync-ready + UI fixes + control acceso skeleton)
 - **Proximo:** B13.3+ (fixes por modulo de auditoria Yair) → FASE C (demo a Hindu, 0h Code)
-- **DB:** 170+ tablas, 401 RLS policies, 137 funciones, 28 vistas, 102 triggers, 25 modulos roadmap
+- **DB:** 175+ tablas, 415+ RLS policies, 137 funciones, 28 vistas, 105+ triggers, 25 modulos roadmap
 - **UI:** 96 paginas, ~215 server actions, ~196 componentes custom, 103 sidebar items, 5 espacios
-- **Tests E2E:** 102+ specs (Playwright), 65 unit tests (Vitest)
+- **Tests E2E:** 102+ specs (Playwright), 119+ unit tests (Vitest)
 - **CI:** GitHub Actions (lint + typecheck + unit + build)
 - **Hindu:** 2,390 personas, 7 equipos, 61 com_envios, 18 plantillas sistema, 42+ modulos activos
 - **Arquitectura:** 4 capas — Troncal + Cross-vertical + Vertical + Conectores (RFC-004)
