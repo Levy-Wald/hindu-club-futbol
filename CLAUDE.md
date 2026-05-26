@@ -1,6 +1,6 @@
 # CLAUDE.md — Contexto Operativo para IA Ejecutora
 
-**Producto:** Hindu Club Fútbol / SaaS Modular Vertical (SMV) / Bundle ClubCore  
+**Producto:** Hindu Club Fútbol / **Plataforma SaaS Multimodal** / Vertical CCBP  
 **Propietario:** Servicios cLevel SRL (CUIT en trámite IGJ)  
 **Repo:** github.com/yamiro12/hindu-club-futbol  
 **URL producción:** https://hindu-club.vercel.app  
@@ -12,31 +12,64 @@
 
 | Campo | Valor |
 |---|---|
-| Tag actual | `v0.30.24.1-docs-reorg` |
-| Último sprint cerrado | Reorganización física de docs (PR #7) |
+| Tag actual | `v0.30.24.2-docs-sync` |
+| Último sprint cerrado | Reorganización + actualización de docs (PR #7 + PR #8) |
 | Próximo sprint | **B18** — Sidebar Back Office universal (7 espacios cross-vertical) |
-| Fase actual | **B** — Backend Multi-tenant + UI Operativa (~90% completa) |
+| Roadmap | 17 fases por dependencias (`docs/ROADMAP.md` v2.0). Fase A y Fase B completas. Próxima: Fase 6 Portal Cliente. |
 | Score arquitectónico | **7.8/10** (auditoría 26-may-2026) |
 | Cliente activo | Hindu Club Fútbol (2.390 socios cargados, en validación post-FASE 15) |
+| Vertical activa | **CCBP** (Clubes, Countries y Barrios Privados) |
+| Verticales catalogadas | Arq, Abog, Pub, Retail |
 
 ---
 
-## Métricas técnicas reales
+## Arquitectura — modelo conceptual canónico
+
+**4 capas** (definidas en ADR-031, ver `docs/ARCHITECTURE.md` v3 + `docs/GLOSSARY.md`):
+
+- **Capa 0 — Troncal:** CRM, ERP, PIM, Plataforma. Universal, siempre activa.
+- **Capa 1 — Módulos:** 18 built-in, portables, declaran contrato en `module.json`.
+- **Capa 2 — Verticales:** presets (CCBP, Arq, Abog, Pub, Retail). Configuración, no código.
+- **Capa 3 — Conectores:** integraciones externas (Resend, MercadoPago, WhatsApp — todos mock hasta FASE 16).
+
+**Vocabulario canónico:** si hay ambigüedad terminológica entre dos términos, **`docs/GLOSSARY.md` gana**.
+
+---
+
+## Métricas técnicas (al 26-may-2026)
 
 | Métrica | Valor |
 |---|---|
-| Tablas Supabase | **169** |
-| Políticas RLS | **355** |
-| Funciones SQL | **126** |
-| Triggers | **97** |
+| Módulos físicos en `modules/` | **29** (22 DONE, 2 PARCIAL, 4 HUÉRFANO, 1 NO UI) |
+| Módulos built-in canónicos | **18** |
+| Tablas Supabase | **140** (snapshot al 6-may en `DATA-MODEL.md`; auditoría 26-may registra ~169) |
+| Políticas RLS | **355** (auditoría 26-may) |
+| Funciones SQL | **~45** (snapshot `DATA-MODEL.md`; auditoría 26-may registra ~126) |
+| Triggers | **97** (auditoría 26-may) |
+| Vistas | **27** |
 | LOC totales | **~128.764** |
 | Archivos código | **834** |
-| Módulos catalogados | **91** |
-| Módulos implementados | **37** |
-| ADRs vigentes | ADR-001 a ADR-061 (consolidados + individuales) |
-| RFCs | RFC-001 a RFC-005 |
 | Tests unit passing | **137** |
 | Tests E2E | Playwright (varios suites) |
+
+> Las cifras de tablas/funciones tienen dos snapshots: `DATA-MODEL.md` (6-may) y la auditoría 26-may. La discrepancia se debe a sprints B13-B17 que sumaron tablas/funciones. Para snapshot vivo, ver Supabase directamente.
+
+---
+
+## Stack técnico vigente
+
+| Capa | Tecnología |
+|---|---|
+| Runtime | Node.js 20 LTS |
+| Framework | **Next.js 15** (App Router + RSC) |
+| UI | **React 19** + **Tailwind 4** + **shadcn v4** sobre **base-ui** (NO Radix) |
+| Lenguaje | TypeScript 5.x estricto |
+| Backend | Supabase (Postgres 15 + Auth + RLS + Storage + Edge Fn) |
+| Tests E2E | Playwright |
+| Tests unit | Vitest |
+| Deploy | Vercel (auto-deploy en push a `main`) |
+| Package manager | pnpm 9.x |
+| CI | GitHub Actions |
 
 ---
 
@@ -46,18 +79,23 @@
 
 1. Leer este `CLAUDE.md` completo.
 2. Leer `docs/00-START-HERE.md` (ruta A para IA).
-3. Leer `docs/CURRENT-STATE.md` para entender qué cambió.
-4. Leer el prompt específico del sprint (lo pega Yair manualmente).
-5. Confirmar que el branch correcto está creado (`feature/<sprint-name>`).
+3. Para vocabulario, consultar `docs/GLOSSARY.md` (fuente de verdad terminológica).
+4. Para arquitectura, consultar `docs/ARCHITECTURE.md` + `docs/SYSTEM-DESIGN.md`.
+5. Para roadmap, consultar `docs/ROADMAP.md`.
+6. Leer `docs/CURRENT-STATE.md` para entender qué cambió desde el último cierre.
+7. Leer el prompt específico del sprint (lo pega Yair manualmente).
+8. Confirmar branch correcto (`feature/<sprint-name>`).
 
 ### Durante el desarrollo
 
 1. **Scope sagrado:** no resolver problemas fuera del sprint. Anotar y diferir.
-2. **Migraciones SQL:** siempre con RLS habilitado al crear tablas nuevas.
+2. **Migraciones SQL:** siempre con RLS habilitado al crear tablas nuevas. Ver `docs/POSTGRES.md` para patrones.
 3. **Multi-tenancy:** toda query nueva debe respetar `tenant_id` via RLS.
 4. **TypeScript estricto:** no agregar `any`. Si hace falta, abrir issue.
-5. **Tests:** todo módulo nuevo necesita al menos un test unit y un E2E happy path.
+5. **Tests:** todo módulo nuevo necesita al menos un test unit y un E2E happy path. Ver `docs/E2E-TESTING.md`.
 6. **i18n:** copy en español rioplatense (voseo). Inglés solo en variables de código.
+7. **Performance:** Android baja gama es target obligatorio. Ver `docs/PERFORMANCE.md` para restricciones.
+8. **UI:** patrones canónicos en `docs/UI-UX.md` + `docs/UI-UX-PATTERNS.md`. Sistema de diseño en `docs/DESIGN-SYSTEM.md`.
 
 ### Antes de cerrar el sprint
 
@@ -68,7 +106,7 @@
 5. `pnpm test:e2e` — happy paths del sprint pasan.
 6. Verificar producción post-deploy:
    - Visitar https://hindu-club.vercel.app y probar el flujo cambiado.
-   - Confirmar que no se rompió nada que funcionaba antes.
+   - Confirmar que no se rompió nada previo.
 
 ### Al cerrar el sprint
 
@@ -76,44 +114,58 @@
 2. Push a branch.
 3. Tag semver: `vX.Y.Z-<descripcion>`.
 4. PR a `main` con descripción completa (qué hace, qué tocó, qué quedó pendiente).
-5. Avisar a Yair en el chat con el link del PR + checklist de validaciones.
+5. Avisar a Yair en chat con link del PR + checklist de validaciones.
+6. Si el sprint generó un nuevo componente operativo, actualizar `docs/RUNBOOK.md`.
+7. Si se canonizó una decisión, agregar ADR en `docs/adr/` (numeración correlativa).
 
 ---
 
-## Paths críticos
-
-### Documentación canónica
+## Documentación canónica — paths críticos
 
 | Path | Qué contiene |
 |---|---|
 | `docs/00-START-HERE.md` | Entry point único |
-| `docs/MASTER-PROJECT.md` | Modelo conceptual completo |
-| `docs/CURRENT-STATE.md` | Estado actual del producto |
-| `docs/SPRINT-PLAN.md` | Roadmap estratégico (13 tramos) |
-| `docs/DATA-MODEL.md` | 169 tablas en capas |
-| `docs/MODULE-CATALOG.md` | 91 módulos catalogados |
+| **`docs/ARCHITECTURE.md`** | **Canónico v3 (Sprint H4)** |
+| **`docs/SYSTEM-DESIGN.md`** | **Diseño de sistema v2.0 (post RFC-004)** |
+| **`docs/ROADMAP.md`** | **Roadmap v2.0 (17 fases por dependencias)** |
+| **`docs/GLOSSARY.md`** | **Vocabulario canónico (este documento gana ante ambigüedad)** |
+| `docs/MODULE-CATALOG.md` | Catálogo de módulos físicos |
+| `docs/DATA-MODEL.md` | Modelo de datos por familia |
+| `docs/POSTGRES.md` | Schema SQL, funciones, RLS, migraciones |
+| `docs/SECURITY.md` | Políticas y controles de seguridad |
+| `docs/PERFORMANCE.md` | Objetivos y restricciones (Android baja gama) |
+| `docs/UI-UX.md` + `UI-UX-PATTERNS.md` | Estándares de interfaz |
+| `docs/DESIGN-SYSTEM.md` | Tokens, componentes base |
+| `docs/BRAND-PLATFORM.md` | Marca del producto raíz |
+| `docs/RUNBOOK.md` | Manual operativo en producción |
+| `docs/API.md` | API REST v1 |
+| `docs/E2E-TESTING.md` | Setup tests E2E |
+| `docs/SYSTEM-PROMPTS.md` | Specs formales de agentes IA del sistema |
+| `docs/VISUAL-GALLERY.md` | Índice de capturas visuales |
+| `docs/MENORES-TUTORES.md` | Spec de negocio (menores + tutores) |
+| `docs/CURRENT-STATE.md` | Estado actual concreto |
 | `docs/DECISIONS.md` | ADR-001 a ADR-046 consolidados |
 | `docs/adr/` | ADRs individuales (ADR-047+) |
 | `docs/rfcs/` | RFC-001 a RFC-005 |
 | `docs/audits/` | Auditorías técnicas |
 | `docs/cierres/` | Cierres ejecutivos de fases |
 | `docs/sprints/` | Historial sprints A1-A6 + B-series |
-| `docs/templates/` | Templates (RFC, post-mortem, prompt, E2E checklist, skill challenge) |
+| `docs/templates/` | Templates (RFC, post-mortem, prompt, E2E checklist) |
 
 ### Drive del proyecto
 
-**Drive raíz del proyecto SMV/ClubCore/Hindu:**  
+**Drive raíz:**  
 `https://drive.google.com/drive/folders/1cZVm440-tL7qgCmqe6ONDu26qvyprj98`
 
-**Estructura del Drive (carpetas raíz):**
+**Carpetas principales:**
 
 - `_Arquitectura/` — RFCs y documentos arquitectónicos
 - `_Auditorias/` — auditorías técnicas
 - `_Cierre Ejecutivo/` — cierres de fases
 - `_Decisiones/` — ADRs subidos como copia desde repo
 - `_Materiales-Comerciales/` — pitch, propuestas
-- `_Roadmap/` — SPRINT-PLAN v3.0, ROADMAP post-B17, PLAN-DEUDA-TECNICA
-- `_Sprints/` — prompts de sprints (Fase B, Fase C, etc.)
+- `_Roadmap/` — ROADMAP v2.0, post-B17, deuda técnica
+- `_Sprints/` — prompts de sprints
 - `_Verticales/` — documentación específica por vertical
 - `_Archivo/` — material histórico
 
@@ -126,35 +178,31 @@
 
 ---
 
-## Stack técnico vigente
-
-| Capa | Tecnología | Notas |
-|---|---|---|
-| Runtime | Node.js 20 | LTS |
-| Framework | Next.js 14 | App Router, RSC, Edge |
-| Lenguaje | TypeScript 5.x | `strict: true` (con 541 errores clasificados, 0% lógica) |
-| Backend | Supabase | Postgres 15 + Auth + RLS + Edge Fn |
-| UI | React 18 + Tailwind 3.x + shadcn/ui 4.x | |
-| Tests E2E | Playwright | |
-| Tests unit | Vitest | 1 suite preexistente con alias `@/` roto |
-| Deploy | Vercel | Auto-deploy en push a `main` |
-| Package manager | pnpm 9.x | |
-| CI | GitHub Actions | `.github/workflows/ci.yml` |
-
----
-
-## Decisiones arquitectónicas vinculantes (ADRs clave)
+## Decisiones arquitectónicas clave (ADRs)
 
 | ADR | Decisión |
 |---|---|
-| ADR-039 | Sidebar Back Office Universal — 7 espacios cross-vertical |
+| **ADR-031** | **Modelo de 4 capas: Troncal / Módulos / Verticales / Conectores** |
+| ADR-035 | Mock-first universal (no smoke tests contra producción Hindu) |
+| ADR-039 | Sidebar BO Universal — 7 espacios cross-vertical |
+| ADR-040, 041, 044 | Reorganización modular post-RFC-004 |
 | ADR-042 (FORMAL) | Nav Universal arquitectura definitiva |
 | ADR-048 | Roles y permisos multi-tenant |
 | ADR-052 | Auditoría inmutable de operaciones críticas |
-| ADR-058 | Estrategia de migraciones SQL versionadas |
+| ADR-058 | Migraciones SQL versionadas + reversibles |
 | ADR-061 | Estrategia de degradación graceful en Edge Functions |
 
-Lista completa: `docs/DECISIONS.md` (consolidado) + `docs/adr/` (individuales).
+Lista completa: `docs/DECISIONS.md` (consolidado ADR-001 a ADR-046) + `docs/adr/` (individuales).
+
+---
+
+## RFCs vigentes
+
+| RFC | Tema |
+|---|---|
+| RFC-001 a RFC-003 | (ver `docs/rfcs/`) |
+| **RFC-004** | **Reorganización modular en 4 capas — supersedes modelo vertical único** |
+| RFC-005 | (ver `docs/rfcs/`) |
 
 ---
 
@@ -162,11 +210,11 @@ Lista completa: `docs/DECISIONS.md` (consolidado) + `docs/adr/` (individuales).
 
 | Bloqueante | Impacta | ETA estimada |
 |---|---|---|
-| CUIT SCL en trámite IGJ | Pre-launch productivo, F4 Zoho, Sprint 9 | Depende IGJ |
-| Resend (transactional email) | Confirmaciones, recovery de password | Setup post-CUIT |
-| MercadoPago integración | Cuotas con cobro automático | Setup post-CUIT |
-| CUIT Hindu Club | Facturación Hindu | Cliente |
-| Dominios Hindu | Email + portal cliente para Hindu | Cliente |
+| CUIT SCL en trámite IGJ | Pre-launch productivo, F4 Zoho | Depende IGJ |
+| Resend (transactional email) | Confirmaciones, recovery de password | Setup post-CUIT (FASE 16) |
+| MercadoPago integración | Cuotas con cobro automático | Setup post-CUIT (FASE 16) |
+| CUIT Hindu Club | Facturación Hindu | Cliente debe gestionar |
+| Dominios Hindu | Email + portal cliente para Hindu | Cliente debe gestionar |
 
 **Mientras tanto:** ADR-035 mock-first universal vigente. Smoke tests contra mocks, no contra producción real.
 
@@ -184,13 +232,7 @@ Lista completa: `docs/DECISIONS.md` (consolidado) + `docs/adr/` (individuales).
 
 - **Local ↔ GitHub:** manual (git add + commit + push) o vía Code al cierre de sprint.
 - **GitHub ↔ Drive:** **no es automático**. Algunos docs viven en ambos (ej. ADRs), otros en uno solo.
-- **Después de cada merge a main:** Yair corre `git checkout main && git pull origin main` en su local para sincronizar.
-
-### Token MCP Vercel
-
-- Token actual configurado para sesión Yair tiene scope a team `team_clOmQCObDDN8okRHBc4wRhZ9`.
-- Sesión Claude Code: pendiente reconfigurar con token full-account scope.
-- Mientras tanto, Code declara estado "no verificado" per ADR-039 cuando llama Vercel MCP.
+- **Después de cada merge a main:** correr `git checkout main && git pull origin main` en local para sincronizar.
 
 ---
 
