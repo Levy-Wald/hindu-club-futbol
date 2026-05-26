@@ -1,199 +1,215 @@
-# CLAUDE.md — Instrucciones para el agente
+# CLAUDE.md — Contexto Operativo para IA Ejecutora
+
+**Producto:** Hindu Club Fútbol / SaaS Modular Vertical (SMV) / Bundle ClubCore  
+**Propietario:** Servicios cLevel SRL (CUIT en trámite IGJ)  
+**Repo:** github.com/yamiro12/hindu-club-futbol  
+**URL producción:** https://hindu-club.vercel.app  
+**Última actualización:** 26-may-2026
+
+---
 
 ## Estado actual
 
-- **Tag actual:** `v0.35.1-a4.2-ui-fixes` (2026-05-23)
-- **Tags vigentes:** v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.5 (Tramo 4), v0.30.14 (B12.3), v0.30.15 (B12.4), v0.30.16 (B12.5), v0.30.17 (B12.6+B12.7), v0.30.18 (B13.0), v0.30.19 (B13.1), v0.30.20 (B13.2), v0.35.0 (A4.2 invitaciones), v0.35.1 (A4.2 UI fixes)
-- **FASE 1-5 cerradas**, **FASE A COMPLETA**, **FASE B COMPLETA** (B1-B6 DONE)
-- **Tramo 2 (Hardening) CERRADO** (H1-H4 DONE)
-- **Tramo 4 (Hardening post-B) CERRADO** (H5-H7 DONE)
-- **B7-FIX a B12.7 CERRADOS** (smoke fixes + capabilities + nav + sidebar + mi-cuenta + avatar dropdown completo)
-- **B13.0 CERRADO** (loading skeletons, error boundaries, cache headers, middleware opt, audit 89 modulos)
-- **B13.1 CERRADO** (cache layer unstable_cache, dynamic imports xlsx/jspdf, next/image, font preconnect, asset cache headers)
-- **B13.2 CERRADO** (ruteo dinamico [tenant], panel SCL, TENANT_ID centralizado en lib/tenant.ts, middleware backwards-compat)
-- **A4.2 CERRADO** (invitaciones + confirmaciones + notificaciones + sync-ready + UI fixes + control acceso skeleton)
-- **Proximo:** B13.3+ (fixes por modulo de auditoria Yair) → FASE C (demo a Hindu, 0h Code)
-- **DB:** 175+ tablas, 415+ RLS policies, 137 funciones, 28 vistas, 105+ triggers, 25 modulos roadmap
-- **UI:** 96 paginas, ~215 server actions, ~196 componentes custom, 103 sidebar items, 5 espacios
-- **Tests E2E:** 102+ specs (Playwright), 119+ unit tests (Vitest)
-- **CI:** GitHub Actions (lint + typecheck + unit + build)
-- **Hindu:** 2,390 personas, 7 equipos, 61 com_envios, 18 plantillas sistema, 42+ modulos activos
-- **Arquitectura:** 4 capas — Troncal + Cross-vertical + Vertical + Conectores (RFC-004)
-- **61 ADRs** documentados (001-061)
+| Campo | Valor |
+|---|---|
+| Tag actual | `v0.30.24.1-docs-reorg` |
+| Último sprint cerrado | Reorganización física de docs (PR #7) |
+| Próximo sprint | **B18** — Sidebar Back Office universal (7 espacios cross-vertical) |
+| Fase actual | **B** — Backend Multi-tenant + UI Operativa (~90% completa) |
+| Score arquitectónico | **7.8/10** (auditoría 26-may-2026) |
+| Cliente activo | Hindu Club Fútbol (2.390 socios cargados, en validación post-FASE 15) |
 
-## Bloqueos operativos vigentes
+---
 
-Estos items NO estan disponibles y NO deben asumirse como funcionales:
+## Métricas técnicas reales
 
-- **Resend:** sin API key, sin dominio verificado. Emails en modo mock (ADR-035)
-- **MercadoPago:** sin credenciales empresa. Cobros en modo mock
-- **CUIT / datos fiscales Hindu:** no disponibles. AFIP postergado
-- **Dominios Hindu:** sin acceso DNS. SPF/DKIM/DMARC pendientes post-demo
-- **Mails institucionales Hindu:** no disponibles. Se usan mails personales
+| Métrica | Valor |
+|---|---|
+| Tablas Supabase | **169** |
+| Políticas RLS | **355** |
+| Funciones SQL | **126** |
+| Triggers | **97** |
+| LOC totales | **~128.764** |
+| Archivos código | **834** |
+| Módulos catalogados | **91** |
+| Módulos implementados | **37** |
+| ADRs vigentes | ADR-001 a ADR-061 (consolidados + individuales) |
+| RFCs | RFC-001 a RFC-005 |
+| Tests unit passing | **137** |
+| Tests E2E | Playwright (varios suites) |
 
-Todo servicio externo opera en modo mock-first universal (ADR-035).
-El switch a produccion real se centraliza en FASE 16 (post-demo).
+---
 
-## Lectura obligatoria antes de cualquier cambio
+## Reglas vinculantes para cualquier IA que ejecute en este repo
 
-1. `/docs/MASTER-PROJECT.md` — Modelo de datos y reglas fundamentales
-2. `/docs/CURRENT-STATE.md` — Inventario real del proyecto
-3. `/docs/ARCHITECTURE.md` — Convenciones tecnicas, patrones, anti-patrones
-4. `/docs/SPRINT-PLAN.md` — Sprint actual y cola
-5. `/docs/PROMPT-ENVELOPE.md` — Reglas del prompt (R-PE1 a R-PE10)
-6. `/docs/ROADMAP.md` — 17 fases ordenadas por dependencias
-7. `/docs/GLOSSARY.md` — Definiciones canonicas
+### Antes de tocar código
 
-Drive del proyecto: https://drive.google.com/drive/folders/10cjNwByn0wzcs1ibn4p6ZvZC2Xxau4Gv
+1. Leer este `CLAUDE.md` completo.
+2. Leer `docs/00-START-HERE.md` (ruta A para IA).
+3. Leer `docs/CURRENT-STATE.md` para entender qué cambió.
+4. Leer el prompt específico del sprint (lo pega Yair manualmente).
+5. Confirmar que el branch correcto está creado (`feature/<sprint-name>`).
 
-## Comandos principales
+### Durante el desarrollo
 
-```bash
-pnpm run build          # Next.js build (gate de cierre de sprint)
-pnpm tsc --noEmit       # Type check
-pnpm run test:e2e       # Playwright E2E tests contra produccion
-pnpm run test:unit      # Vitest unit tests
-pnpm run lint           # ESLint
-```
+1. **Scope sagrado:** no resolver problemas fuera del sprint. Anotar y diferir.
+2. **Migraciones SQL:** siempre con RLS habilitado al crear tablas nuevas.
+3. **Multi-tenancy:** toda query nueva debe respetar `tenant_id` via RLS.
+4. **TypeScript estricto:** no agregar `any`. Si hace falta, abrir issue.
+5. **Tests:** todo módulo nuevo necesita al menos un test unit y un E2E happy path.
+6. **i18n:** copy en español rioplatense (voseo). Inglés solo en variables de código.
 
-## Principios arquitectonicos
+### Antes de cerrar el sprint
 
-1. **Multi-tenancy estricto:** RLS en todas las tablas operativas + filtro en codigo
-2. **Mock-first universal (ADR-035):** todo servicio externo en mock hasta demo aprobada
-3. **Fuente unica de verdad:** ADR-024, roles en `personas_equipos.rol_equipo_slug`
-4. **Audit log obligatorio** en datos sensibles (salud, credenciales)
-5. **Idempotencia** en operaciones criticas (emisiones, imports, apply)
-6. **Snapshot al momento** (no recalculo): canon guardado por venta, plantel guardado por solicitud
-7. **Pre-mortem (R-PE9)** para sprints de alto riesgo
-8. **Aislamiento financiero (ADR-025):** ventas de concesionarios NO tocan movimientos_caja
-9. **Server actions para mutaciones, API routes solo query-only**
+1. `pnpm typecheck` — sin errores nuevos.
+2. `pnpm lint` — sin errores nuevos.
+3. `pnpm build` — verde.
+4. `pnpm test` — verde.
+5. `pnpm test:e2e` — happy paths del sprint pasan.
+6. Verificar producción post-deploy:
+   - Visitar https://hindu-club.vercel.app y probar el flujo cambiado.
+   - Confirmar que no se rompió nada que funcionaba antes.
 
-## Aprendizajes canonizados (FASE 2)
+### Al cerrar el sprint
 
-Errores recurrentes detectados durante FASE 2 que están ahora
-canonizados como ADRs. Code consulta antes de cada sprint:
+1. Commit con mensaje semántico: `feat(scope): descripción`.
+2. Push a branch.
+3. Tag semver: `vX.Y.Z-<descripcion>`.
+4. PR a `main` con descripción completa (qué hace, qué tocó, qué quedó pendiente).
+5. Avisar a Yair en el chat con el link del PR + checklist de validaciones.
 
-- **ADR-036** — Permission slugs SIEMPRE en dot-notation
-  (`tenant.admin`, no `admin_tenant`). Validar contra catalogo_atributos.
-- **ADR-037** — Data que se filtra frecuentemente vive en columnas
-  nativas, no en metadata jsonb. Antes de agregar a metadata,
-  evaluar si necesita filtros, joins o índice.
-- **ADR-038** — Sprints que tocan triggers/jobs/flujos asincrónicos
-  requieren al menos 1 E2E real con fixture + asserts en DB +
-  cleanup garantizado con try/finally. Tests cosméticos no alcanzan.
+---
 
-Ver detalles completos en /docs/DECISIONS.md.
+## Paths críticos
 
-## Roles operativos
+### Documentación canónica
 
-- **Arquitecto** (chat web Claude): diseno, decisiones, ADRs, specs de sprint
-- **Code** (CLI Claude Code): implementacion segun specs, actualiza CURRENT-STATE
-- **Yair**: dueno operativo, decide producto, aprueba cambios estructurales
+| Path | Qué contiene |
+|---|---|
+| `docs/00-START-HERE.md` | Entry point único |
+| `docs/MASTER-PROJECT.md` | Modelo conceptual completo |
+| `docs/CURRENT-STATE.md` | Estado actual del producto |
+| `docs/SPRINT-PLAN.md` | Roadmap estratégico (13 tramos) |
+| `docs/DATA-MODEL.md` | 169 tablas en capas |
+| `docs/MODULE-CATALOG.md` | 91 módulos catalogados |
+| `docs/DECISIONS.md` | ADR-001 a ADR-046 consolidados |
+| `docs/adr/` | ADRs individuales (ADR-047+) |
+| `docs/rfcs/` | RFC-001 a RFC-005 |
+| `docs/audits/` | Auditorías técnicas |
+| `docs/cierres/` | Cierres ejecutivos de fases |
+| `docs/sprints/` | Historial sprints A1-A6 + B-series |
+| `docs/templates/` | Templates (RFC, post-mortem, prompt, E2E checklist, skill challenge) |
 
-## Naming conventions
+### Drive del proyecto
 
-- **Tablas:** `snake_case`, plural. Modulos con prefijo: `rrhh_*`, `com_*`, `utl_*`, `concesion_*`
-- **Funciones SQL:** `fn_` para operaciones, `sync_` para sincronizadores, `trg_` para triggers
-- **Vistas:** prefijo `v_`
-- **Atributos en catalogo:** `snake_case`
-- **Migrations:** `YYYYMMDD_descripcion_snake.sql`
-- **Server actions:** `camelCase` en `modules/<slug>/lib/actions.ts` o `_actions.ts` (troncal)
-- **Componentes:** `PascalCase` en archivos `kebab-case.tsx`
+**Drive raíz del proyecto SMV/ClubCore/Hindu:**  
+`https://drive.google.com/drive/folders/1cZVm440-tL7qgCmqe6ONDu26qvyprj98`
 
-## Reglas de operacion
+**Estructura del Drive (carpetas raíz):**
 
-- Toda solicitud respeta `PROMPT-ENVELOPE.md`
-- Al terminar cualquier cambio, actualizar `CURRENT-STATE.md`
-- Cambios estructurales (modelos, capas) requieren aprobacion del arquitecto
-- UI: botones siempre arriba, mobile-first, shadcn v4 con `render` prop
-- PostgREST FK joins devuelven arrays: usar `as unknown as Type`
-- `TENANT_ID` importado de `@/lib/tenant` (centralizado, ya no hardcoded en cada archivo)
-- Ruteo: `app/admin/[tenant]/...` — panel SCL en `app/admin/scl/`
-- Auth: usar `getUser()` no `getSession()` en layouts/pages (migrado en Sprint 14k.8)
-- Trigger: `trg_set_updated_at()` (NO `set_updated_at()`)
-- `catalogo_modulos.activo_global` (NO `.activo`)
+- `_Arquitectura/` — RFCs y documentos arquitectónicos
+- `_Auditorias/` — auditorías técnicas
+- `_Cierre Ejecutivo/` — cierres de fases
+- `_Decisiones/` — ADRs subidos como copia desde repo
+- `_Materiales-Comerciales/` — pitch, propuestas
+- `_Roadmap/` — SPRINT-PLAN v3.0, ROADMAP post-B17, PLAN-DEUDA-TECNICA
+- `_Sprints/` — prompts de sprints (Fase B, Fase C, etc.)
+- `_Verticales/` — documentación específica por vertical
+- `_Archivo/` — material histórico
 
-## Verificacion de produccion
+**Documentos ejecutivos vivos en raíz Drive:**
 
-**NUNCA afirmar el estado de un servicio en produccion sin haberlo
-verificado via el MCP correspondiente.**
+- `00-MASTER-INDEX-v2.2.md`
+- `BOOT-CONTINUIDAD-26-MAY-2026-v3.md`
+- `COMO-SEGUIMOS-v1.1.md`
+- `CURRENT-STATE-v3.2-26-MAY-2026.md`
 
-Tu build local, tu `vercel deploy` CLI, tu `npm run build`, tu `curl
-localhost` NO son produccion. Son tu entorno local.
+---
 
-Para verificar produccion, usar:
-- **Vercel deploys** -> MCP `claude.ai Vercel` (tool `list_deployments`)
-- **Supabase DB** -> MCP `claude.ai Supabase` (tool `execute_sql`)
-- **Paginas web de Vercel** -> MCP `claude.ai Vercel` (tool
-  `web_fetch_vercel_url`)
+## Stack técnico vigente
 
-Si un MCP no responde o no esta disponible, declarar explicitamente
-"estado de X no verificado via MCP" en el reporte de cierre. No
-inferir el estado a partir de tu CLI local. Esto se canoniza en
-ADR-039.
+| Capa | Tecnología | Notas |
+|---|---|---|
+| Runtime | Node.js 20 | LTS |
+| Framework | Next.js 14 | App Router, RSC, Edge |
+| Lenguaje | TypeScript 5.x | `strict: true` (con 541 errores clasificados, 0% lógica) |
+| Backend | Supabase | Postgres 15 + Auth + RLS + Edge Fn |
+| UI | React 18 + Tailwind 3.x + shadcn/ui 4.x | |
+| Tests E2E | Playwright | |
+| Tests unit | Vitest | 1 suite preexistente con alias `@/` roto |
+| Deploy | Vercel | Auto-deploy en push a `main` |
+| Package manager | pnpm 9.x | |
+| CI | GitHub Actions | `.github/workflows/ci.yml` |
 
-Patron observado 2 veces (Sprint 2.4-FIX y Sprint 3.1) y prohibido
-desde DOCS-5: reportar "Vercel deploy ERROR" cuando via MCP el deploy
-esta READY. Cero tolerancia.
+---
 
-## Glosario rapido
+## Decisiones arquitectónicas vinculantes (ADRs clave)
 
-Ver `/docs/GLOSSARY.md` para definiciones completas. Terminos clave:
-persona (no usuario), atributo (no rol), tenant (no cliente), emision
-(no facturacion), concesionario (aislado del plan de cuentas), canon
-(comision mensual), plantel snapshot (captura al momento), mock-first
-(ADR-035, todo en mock hasta demo), lote (grupo de envios masivos),
-segmento (filtro de personas para envio masivo).
+| ADR | Decisión |
+|---|---|
+| ADR-039 | Sidebar Back Office Universal — 7 espacios cross-vertical |
+| ADR-042 (FORMAL) | Nav Universal arquitectura definitiva |
+| ADR-048 | Roles y permisos multi-tenant |
+| ADR-052 | Auditoría inmutable de operaciones críticas |
+| ADR-058 | Estrategia de migraciones SQL versionadas |
+| ADR-061 | Estrategia de degradación graceful en Edge Functions |
 
-## Modelo operativo Yair / Arquitecto
+Lista completa: `docs/DECISIONS.md` (consolidado) + `docs/adr/` (individuales).
 
-Canonizado el 12-may-2026. Define quién decide qué en el proyecto.
+---
 
-### Roles
+## Bloqueantes activos
 
-- **Yair Levy Wald:** dueño de producto. Decide visión, scope,
-  modelo de negocio, aprobación de RFCs, cambios estructurales,
-  decisiones legales/comerciales.
-- **Arquitecto (Claude Opus en chat web):** orquestador técnico.
-  Decide orden de sprints, alcance, modelo de datos, patrones de
-  código, naming, tests, anti-patrones, renumeraciones internas,
-  ADRs menores. Verifica producción vía MCP en cada cierre.
-- **Implementador (Claude Code en CLI):** ejecuta los prompts que
-  arma el arquitecto. Reporta cierre con formato canonizado
-  (R-PE10). NUNCA afirma estado de producción sin verificar vía
-  MCP (ADR-039, AP-001, AP-002).
+| Bloqueante | Impacta | ETA estimada |
+|---|---|---|
+| CUIT SCL en trámite IGJ | Pre-launch productivo, F4 Zoho, Sprint 9 | Depende IGJ |
+| Resend (transactional email) | Confirmaciones, recovery de password | Setup post-CUIT |
+| MercadoPago integración | Cuotas con cobro automático | Setup post-CUIT |
+| CUIT Hindu Club | Facturación Hindu | Cliente |
+| Dominios Hindu | Email + portal cliente para Hindu | Cliente |
 
-### Qué decide el Arquitecto sin consultar
+**Mientras tanto:** ADR-035 mock-first universal vigente. Smoke tests contra mocks, no contra producción real.
 
-- Orden de sprints (respetando dependencias del RFC vigente)
-- Tamaño y alcance de cada sprint
-- Modelo de datos (tablas, columnas, índices, RLS)
-- Patrones de código y naming
-- Cómo testear (E2E vs unit, con o sin fixture)
-- Si requiere pre-mortem (R-PE9)
-- Renumeración cuando hay desincronización docs
-- Anti-patrones (AP-NNN) y ADRs menores
-- Cuándo cortar el día y cuándo seguir
+---
 
-### Qué requiere validación de Yair
+## Reglas estrictas de operación
 
-- Visión de producto / scope macro
-- Modelo de negocio
-- Roadmap a alto nivel (fases nuevas, repriorización)
-- Aprobación de RFCs antes del sprint asociado
-- Decisiones legales / comerciales / contractuales
-- Cuando hay 2+ opciones con tradeoff serio
-- Reasignaciones de roles / responsabilidades
+### Datos productivos (CRÍTICO)
 
-### Disciplinas operativas no opcionales
+- **NUNCA** correr smoke tests, blasts, ni queries destructivas contra las **2.390 personas reales de Hindu** cargadas en Supabase.
+- **NUNCA** pedir más datos al usuario hasta que pase la FASE 15 de validación.
+- Usar `tenant_id` de prueba (`tenant_demo_xxx`) para tests.
 
-1. Envelope canónico (R-PE1 a R-PE10) en cada prompt
-2. Verificación vía MCP antes/después de cada sprint
-3. Pre-mortem si sprint grande/riesgoso (R-PE9)
-4. Docs vivos actualizados en CADA sprint
-5. ADRs para decisiones que el equipo debe conocer
-6. Anti-patrones AP-NNN cuando bug en prod enseña algo
-7. RFCs antes de sprints grandes o sistemas nuevos
-8. Cierre ejecutivo al Drive en días significativos
+### Sincronización local ↔ GitHub ↔ Drive
 
-Detalles operativos en `docs/RUNBOOK.md` sección "Modelo operativo".
+- **Local ↔ GitHub:** manual (git add + commit + push) o vía Code al cierre de sprint.
+- **GitHub ↔ Drive:** **no es automático**. Algunos docs viven en ambos (ej. ADRs), otros en uno solo.
+- **Después de cada merge a main:** Yair corre `git checkout main && git pull origin main` en su local para sincronizar.
+
+### Token MCP Vercel
+
+- Token actual configurado para sesión Yair tiene scope a team `team_clOmQCObDDN8okRHBc4wRhZ9`.
+- Sesión Claude Code: pendiente reconfigurar con token full-account scope.
+- Mientras tanto, Code declara estado "no verificado" per ADR-039 cuando llama Vercel MCP.
+
+---
+
+## Convenciones de naming
+
+- **Sprints:** letra + número (`A1`, `A2`, ..., `B17`, `B18`, ..., `C0`, `C1`, ...).
+- **Branches:** `feature/<descripción-corta>` (`feature/b18-sidebar-universal`).
+- **Tags:** `v<major>.<minor>.<patch>-<descripcion>` (`v0.30.25-b18-sidebar-universal`).
+- **PRs:** título idéntico al tag, descripción explica qué se hizo + qué se validó.
+- **Commits:** Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`).
+- **ADRs:** `ADR-NNN-titulo-corto.md` en `docs/adr/`.
+- **RFCs:** `RFC-NNN-titulo-corto.md` en `docs/rfcs/`.
+
+---
+
+## Contacto humano
+
+**Yair Ricardo Levy Wald** — CEO Servicios cLevel SRL, owner del producto.  
+Email: yair@levywald.com  
+Tel: +54 9 11 5014 8932
+
+**Para urgencias técnicas de Code:** parar y avisar via PR comment o chat. **No improvisar fuera de scope.**

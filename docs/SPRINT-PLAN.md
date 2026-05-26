@@ -1,406 +1,250 @@
-# SPRINT-PLAN v2.1 — Lista operativa de sprints
+# SPRINT PLAN — v3.0
 
-**Versión**: 2.1 (post RFC-005)  
-**Fecha**: 14 de mayo de 2026  
-**Status**: Accepted  
-**Path esperado en repo**: `docs/SPRINT-PLAN.md`  
-**Referencias**: RFC-004, RFC-005, ROADMAP-MASTER v2.0, MODULE-CATALOG  
-**Supersedes**: SPRINT-PLAN v2.0 (13 de mayo de 2026)
+**Última actualización:** 26-may-2026 (sincronizado con Drive v3.0 del 18-may-2026)  
+**Drive doc id:** `1nxKznU-hVjZ3gDq-oO5TRHSYXpGkgLmTeY80E80G9Pc`  
+**Reemplaza:** v2.1 (14-may-2026) en el repo.
 
----
+Este es el **plan estratégico global** del producto. Cubre desde el estado actual hasta producto comercial completo.
 
-## Propósito
+**Jerarquía de roadmaps vigentes:**
 
-Lista operativa de todos los sprints del proyecto, con su estado, dependencias, tag aplicado o esperado, costo y tema. Sirve como tablero único para saber qué sprint corre ahora, qué viene después, qué está cerrado y dónde está la deuda.
-
-Esta versión 2.1 incorpora:
-- Sprints ejecutados fuera del plan original entre 13-may y 14-may (A1.1, A2 expansiones, A3.1-A3.6).
-- Los 13 tramos canonizados en RFC-005 hasta el 100% del proyecto.
-- Estado real verificado vía MCP Supabase + Vercel al 14-may-2026.
+1. **Estratégico GLOBAL (este documento):** SPRINT-PLAN v3.0 + RFC-005 v2.0. 13 tramos T1-T13.
+2. **Táctico CORTO PLAZO:** ROADMAP post-B17 (21-may) en Drive `_Roadmap/`. Sustituye PARCIALMENTE al v3.0 en Tramo 5.
+3. **Deuda técnica:** PLAN-DEUDA-TECNICA-POST-AUDIT en Drive `_Roadmap/`.
 
 ---
 
-## Convenciones
+## Resumen ejecutivo
 
-**Estado**:
-- ✅ DONE — cerrado, en producción con tag
-- 🔄 IN PROGRESS — en ejecución actual
-- ⏳ NEXT — próximo a arrancar
-- 📋 PLANNED — planificado, documentado
-- 🚧 BLOCKED — bloqueado por dependencia
-- 🗑️ CANCELLED — descartado o absorbido por otro sprint
-- 💡 PROPOSED — propuesto, requiere RFC formal antes de ejecutar
-
-**Costo**: estimación en horas Code (rango orientativo, sujeto a ajuste pre-sprint)  
-**Tag**: tag de Git aplicado o esperado al cierre  
-
----
-
-## Historial — FASES 1 a 5 (modelo anterior)
-
-Cerradas en producción. Reubicadas en la taxonomía RFC-004 según corresponda.
-
-| Sprint | Tema | Estado | Tag | Capa actual |
-|---|---|---|---|---|
-| 1.x | Init + personas + tenants | ✅ | varios | Troncal |
-| 2.x | Comunicaciones + plantillas | ✅ | varios | Troncal |
-| 3.x | Asistencias + pre-inscripciones | ✅ | varios | Cross-vertical |
-| 3.4 | Visitantes externos (RFC-001) | ✅ | varios | Cross-vertical |
-| 4.1 | Planificador mensual | ✅ | v0.14.0 | Vertical CCBP |
-| 4.2 | Planificador semanal | ✅ | v0.15.0 | Vertical CCBP |
-| 4.3 | Entrenamientos | ✅ | v0.16.0 | Vertical CCBP |
-| 4.4 | Amistosos | ✅ | v0.17.0 | Vertical CCBP |
-| 4.5 | Acceso físico | ✅ | v0.18.0 | Cross-vertical |
-| 4.6 | Reservas de canchas | ✅ | v0.19.0 | Cross-vertical |
-| 5.1 | Modelo torneos + wizard | ✅ | v0.20.0 | Vertical CCBP |
-| 5.2 | Inscripciones externas + CSV | ✅ | v0.21.0 | Vertical CCBP |
-| 5.3 | Fixture auto-generador | ✅ | v0.22.0 | Vertical CCBP |
-| 5.4 | Tabla posiciones | ✅ | v0.23.0 | Vertical CCBP |
-| 5.5 | Carga resultados | ✅ | v0.24.0 | Vertical CCBP |
-| 5.6 | Stats dashboards | ✅ | v0.25.0 | Vertical CCBP |
-
----
-
-## TRAMO 1 — FASE A (Cerrar troncal mínimo) — ✅ DONE
-
-### Ejecutado al 14-may
-
-| ID | Tema | Estado | Tag | Costo | Notas |
-|---|---|---|---|---|---|
-| A1 | Fix Base Operativa + Espacios | ✅ DONE | v0.27.0 | 12-15h | + tabla `espacios` + sidebar 4 capas |
-| A1.1 | Hotfix wire creation modals + sidebar Operaciones | ✅ DONE | v0.27.1 | 2h | Botones de creación con onClick reales |
-| A2 (parte 1) | Catálogo productos + variantes + categorías + marcas + galería + modos operación | ✅ DONE | v0.27.2 | 4h | |
-| A2 (parte 2) | Ampliar productos +10 campos (EAN, descripciones, material, color, medida, origen, bulto, peso) | ✅ DONE | v0.27.2 | 2h | |
-| A2.1 | Unificación productos: merge productos_servicios + tipo_uso + contabilidad | ✅ DONE | v0.27.2 | 3h | Fix FKs a movimientos_caja y cuotas_planes |
-| A2.2 | Proveedores + responsables (N:M con polimorfismo) | ✅ DONE | v0.27.2 | 3h | producto_proveedores + producto_responsables |
-| A2.5 | Listas precios múltiples ARS/USD con TC | ✅ DONE | v0.27.3 | 4h | **Funcionalmente cubre D3 (PIM N2 oficial)** |
-| A2.6 | Depósitos + stock por depósito + movimientos | ✅ DONE | v0.27.4 | 5h | **Funcionalmente cubre D4 (PIM N3 oficial)**. Hotfix drift TS↔BD post-tag. |
-| A3.1 | Refactor modules/finanzas + drop 6 vistas fin_* huérfanas | ✅ DONE | v0.27.5 | 3h | Consolida en modules/finanzas, drop fin_categorias_movimiento, elimina /finanzas/productos/ duplicado |
-| A3.2 | Cajas con dimensiones (tipo_fiscal, entidad, actividad, datos bancarios) | ✅ DONE | v0.27.6 | 4h | + soft-delete + 7 columnas dimensionales |
-| A3.3 | Sync PIM ↔ Finanzas (cuentas auto-resueltas según tipo_uso) | ✅ DONE | v0.27.7 | 2h | Helper resolverCuentasMovimiento |
-| A3.4 | UIs faltantes: plan cuentas CRUD, períodos, config financiera, cotizaciones, convenios, cuenta corriente | ✅ DONE | v0.27.8 | 4h | |
-| A3.5 | 4 reportes contables (Libro Mayor, Balance, EERR, Cobranzas) + 3 vistas BD + export PDF/XLSX | ✅ DONE | v0.27.9 | 5h | |
-| A3.6 | Conciliación bancaria: importador CSV/XLSX + UI matcheo + auto-match sign-aware + FK reversa + reporte | ✅ DONE | v0.28.0 | 5h | Consolidación cuotas_emitidas vs fin_cuotas_emitidas resuelta (solo cuotas_emitidas existe) |
-
-### Cerrado — Sprints v2 FASE A
-
-| ID | Tema | Estado | Tag esperado | Costo | Notas |
-|---|---|---|---|---|---|
-| A2 v2 | Cierre formal PIM N1: smoke + datos demo en variantes + tag explícito | ✅ DONE | v0.27.10-fase-a-sprint-2 | <1h | Cierre administrativo, 9 variantes demo cargadas |
-| A4 v2 | Completar CRM: atributos_custom_definicion + atributos_custom_valores + vinculos_cross + UI vínculos entidades | ✅ DONE | v0.27.11-fase-a-sprint-4 | 3h | 3 tablas nuevas, config page, tabs en persona + entidad |
-| A5 | Comunicaciones cierre: Tiptap editor + variables sidebar + test send + versionado plantillas + automatizaciones CRUD + workflow editor dnd-kit | ✅ DONE | v0.27.12-fase-a-sprint-5 | 3h | 4 tablas nuevas, @tiptap/react, dnd-kit, isomorphic-dompurify |
-| A6 | Proyectos & Tareas: 4 tablas + Kanban + Lista + Calendario + tab Proyectos en persona + comentarios + miembros + presupuesto | ✅ DONE | v0.27.13-fase-a-sprint-6 | 3h | dnd-kit, react-big-calendar, fn_presupuesto_consumido |
-
-### Post-FASE A — Sprints Eventos Avanzados
-
-| ID | Tema | Estado | Tag | Costo | Notas |
-|---|---|---|---|---|---|
-| A4.2 | Invitaciones + confirmaciones + notificaciones: evento_invitados expandido, tokens accept/reject, código acceso, link registro, graying calendario, notificaciones, reportes admin/DT/seguridad/planificador | ✅ DONE | v0.35.0-a4.2-invitaciones-completo | ~6h | 54 unit tests, 3 tablas nuevas (evento_codigos_acceso, evento_link_registro, evento_calendario_sincronizacion), 9 campos sync-ready |
-| A4.2-FIX | Hotfix UI: Combobox autocomplete invitados, espacios dinámicos, revalidatePath mi-calendario, control de acceso skeleton | ✅ DONE | v0.35.1-a4.2-ui-fixes | ~2h | tabla evento_acceso_registro, página /control-acceso disabled, sidebar item |
-
-**Costo restante FASE A**: 0 — todos los sprints DONE
-**Tag de cierre FASE A**: `v0.29.0-fase-a-completa` (aplicado 17-may-2026)
-
----
-
-## TRAMO 2 — Hardening post-FASE-A (★ RFC-005)
-
-| ID | Tema | Estado | Tag esperado | Costo | Depende de |
-|---|---|---|---|---|---|
-| H1 | Drift check TS↔BD en todos los módulos A2.x/A3.x | ✅ DONE | v0.29.1-hardening-h1 | <1h | Cero drift, 16 tablas auditadas, ADR-047 draft |
-| H2 | Tests E2E + unit tests del ERP modular | ✅ DONE | v0.29.2-hardening-h2 | <1h | 6 E2E + 30 unit tests, 0 bugs |
-| H3 | Backfill datos demo sintéticos | ✅ DONE | v0.29.3-hardening-h3 | <1h | 7 productos, 20 variantes, 20 precios, 20 stock, 30 movs, 26 cotiz, 5 convenios, 20 conciliacion |
-| H4 | Docs canónicos v2 (ARCHITECTURE v3, DATA-MODEL, MODULE-CATALOG, ADR-INDEX, ADRs 047-052) | ✅ DONE | v0.29.5-hardening-post-fase-a | <1h | ARCHITECTURE v3, DATA-MODEL, MODULE-CATALOG, ADR-INDEX, 6 ADRs, cierre Tramo 2 |
-
-**Subtotal**: ~12-16h Code  
-**Tag de cierre**: `v0.29.5-hardening-post-fase-a`
-
----
-
-## TRAMO 3 — FASE B (Cerrar vertical CCBP) — ✅ DONE
-
-| ID | Tema | Estado | Tag esperado | Costo | RFC |
-|---|---|---|---|---|---|
-| B1 | Salud / Lesiones operativas | ✅ DONE | v0.28.1-fase-b-sprint-1 | 5h | RFC-003 |
-| B2 | Historial / Trayectoria deportiva | ✅ DONE | v0.28.2-fase-b-sprint-2 | 4h | RFC-003 |
-| B3 | Scouting + 11 dimensiones | ✅ DONE | v0.28.3-fase-b-sprint-3 | 8h | RFC-003 |
-| B4 | Reportes deportivos | ✅ DONE | v0.28.4-fase-b-sprint-4 | 6h | RFC-003 |
-| B5 | Activar Socios (suscripciones_membresía cross-vertical) | ✅ DONE | v0.29.0-fase-b-sprint-5 | 5h | — |
-| B6 | Cuerpo Técnico + Diagramación visual del club | ✅ DONE | v0.30.0-fase-b-completa | 6h | — |
-
-**Subtotal**: ~34h Code
-**Tag de cierre**: `v0.30.0-fase-b-completa` (aplicado 18-may-2026)
-**Costo restante FASE B**: 0 — todos los sprints DONE
-
----
-
-## TRAMO 4 — Hardening post-FASE-B (★ RFC-005) ✅ DONE
-
-| ID | Tema | Estado | Tag esperado | Costo |
-|---|---|---|---|---|
-| H5 | Tests E2E end-to-end CCBP completo | ✅ DONE | v0.30.1-hardening-h5 | 3-4h |
-| H6 | Smoke tests automáticos pre-deploy en CI | ✅ DONE | v0.30.2-hardening-h6 | 2-3h |
-| H7 | Performance audit | ✅ DONE | v0.30.5-hardening-post-fase-b | 2h |
-
-**Subtotal**: ~7-9h Code
-**Tag de cierre**: `v0.30.5-hardening-post-fase-b` (aplicado 18-may-2026)
-**Cierre formal**: `v0.30.5-tramo-4-cierre-formal`
-
----
-
-## Bloque B12.3-B12.7 — Smoke fixes pre-FASE C ✅ DONE
-
-| ID | Tema | Estado | Tag | Costo |
-|---|---|---|---|---|
-| B12.3 | Auditoría 100% módulos sidebar + 4 fixes user-facing | ✅ DONE | v0.30.14-cierre-pre-fase-c | 3h |
-| B12.4 | UX feedback: modal próximamente, tabs mi-equipo, rename Inicio | ✅ DONE | v0.30.15-fix-b12-feedback | 2h |
-| B12.5 | Fix real mi-cuenta (4 columnas DB) + avatar dropdown | ✅ DONE | v0.30.16-fix-avatar-mi-cuenta | 1h |
-| B12.6 | Reset avatar dropdown — fix DropdownMenuTrigger children | ✅ DONE | — | 1h |
-| B12.7 | Fix DropdownMenuItem children (mismo bug) | ✅ DONE | v0.30.17-fix-dropdown-items | 30m |
-
-**Subtotal**: ~7.5h Code
-**Tag de cierre**: `v0.30.17-fix-dropdown-items` (19-may-2026)
-**Smoke visual**: confirmado por Yair en producción
-
----
-
-## TRAMO 5 — FASE C Demo Hindu
-
-| ID | Tema | Estado | Duración |
-|---|---|---|---|
-| C1 | Reset DB de Hindu + backup pre-reset | 📋 PLANNED | 1 día |
-| C2 | Carga inicial vía importadores (por Yair) | 📋 PLANNED | 2-3 días |
-| C3 | Operación real del staff de Hindu | 📋 PLANNED | 5-7 días |
-| C4 | Recopilación feedback + priorización | 📋 PLANNED | 1-2 días |
-| C5 | Decisión binaria: aprobado / requiere B' | 📋 PLANNED | 1 día |
-
-**Duración**: ~10-14 días calendarios (no Code)  
-**Cierre**: documento `cierre-fase-c-demo-hindu.md` en Drive `_Cierre Ejecutivo/`.
-
----
-
-## TRAMO 6 — FASE B' Correcciones eventuales
-
-Solo se activa si C5 dice "requiere correcciones". Sprints variables según priorización de feedback. Tag de cierre: `v0.30.9-fase-b-prima-completa`.
-
----
-
-## TRAMO 7 — FASE D Cross-vertical extra
-
-| ID | Tema | Estado | Tag esperado | Costo | Nota |
-|---|---|---|---|---|---|
-| D1 | Documentos / Firma digital | 📋 PLANNED | v0.31.0-fase-d-sprint-1 | 8h | Versionado + audit trail |
-| D2 | Tickets / Solicitudes universalizado | 📋 PLANNED | v0.32.0-fase-d-sprint-2 | 6h | SLA + routing rules |
-| D3 | Pricing avanzado (PIM N2) | 🔄 PARCIAL | v0.33.0-fase-d-sprint-3 | 1-2h | **Ya funcional vía A2.5**, queda formalización |
-| D4 | Stock & Movimientos (PIM N3) | 🔄 PARCIAL | v0.34.0-fase-d-sprint-4 | 1-2h | **Ya funcional vía A2.6**, queda formalización |
-| D5 | Consolidación tablas paralelas (utileria_items + concesion_productos → productos) | 📋 PLANNED | v0.35.0-fase-d-sprint-5 | 8-10h | Riesgo alto, ADR pre-sprint |
-| D6 | Mapa visual generalizado (mapa_visual_espacios cross-vertical) | 📋 PLANNED | v0.40.0-fase-d-completa | 8h | Generalización B6 |
-
-**Subtotal**: ~32-36h Code  
-**Tag de cierre**: `v0.40.0-fase-d-completa`
-
----
-
-## TRAMO 8 — Plataforma SaaS comercial-técnica (★ RFC-005)
-
-| ID | Tema | Estado | Tag esperado | Costo |
-|---|---|---|---|---|
-| P1 | Multi-tenancy real (planes_comerciales + suscripciones + límites) | 📋 PLANNED | v0.40.1-saas-p1 | 6-8h |
-| P2 | Self-service onboarding (signup + wizard + plantillas seed por vertical) | 📋 PLANNED | v0.40.2-saas-p2 | 5-6h |
-| P3 | Marketplace de módulos (UI + ModuloGuard wrapper) | 📋 PLANNED | v0.40.3-saas-p3 | 6-8h |
-| P4 | Billing interno (plataforma cobra a tenants) | 📋 PLANNED | v0.40.4-saas-p4 | 5-6h |
-| P5 | Admin global super-admin (panel monitoreo MRR/churn cross-tenant) | 📋 PLANNED | v0.40.5-saas-p5 | 4-5h |
-| P6 | Tenant impersonation (super-admin entra como cualquier tenant para soporte) | 📋 PLANNED | v0.41.0-saas-comercial-completa | 2-3h |
-
-**Subtotal**: ~28-36h Code  
-**Tag de cierre**: `v0.41.0-saas-comercial-completa`
-
----
-
-## TRAMO 9 — FASE E Verticales nuevos
-
-### Vertical E1 — Estudios de Arquitectura
-
-| ID | Tema | Estado | Tag esperado | Costo |
-|---|---|---|---|---|
-| E1.1 | Mini-troncal proyectos_obra + etapas | 📋 PLANNED | v0.41.1-fase-e1-sprint-1 | 8h |
-| E1.2 | Cronograma de obra + avances con fotos | 📋 PLANNED | v0.42.0-fase-e1-sprint-2 | 6h |
-| E1.3 | Subcontratistas + planos | 📋 PLANNED | v0.43.0-fase-e1-sprint-3 | 6h |
-| E1.4 | Pedidos de materiales | 📋 PLANNED | v0.44.0-fase-e1-sprint-4 | 5h |
-
-**Cierre E1**: `v0.45.0-vertical-arq-completa`. Costo ~25h.
-
-### Vertical E2 — Estudios de Abogacía
-
-| ID | Tema | Estado | Tag esperado | Costo |
-|---|---|---|---|---|
-| E2.1 | Mini-troncal casos / expedientes | 📋 PLANNED | v0.46.0-fase-e2-sprint-1 | 6h |
-| E2.2 | Audiencias + plazos procesales | 📋 PLANNED | v0.47.0-fase-e2-sprint-2 | 6h |
-| E2.3 | Honorarios / cuota litis | 📋 PLANNED | v0.48.0-fase-e2-sprint-3 | 5h |
-| E2.4 | Documentación procesal + poderes | 📋 PLANNED | v0.49.0-fase-e2-sprint-4 | 6h |
-
-**Cierre E2**: `v0.50.0-vertical-abog-completa`. Costo ~23h.
-
-### Vertical E3 — Agencias de Publicidad
-
-| ID | Tema | Estado | Tag esperado | Costo |
-|---|---|---|---|---|
-| E3.1 | Mini-troncal cuentas / campañas | 📋 PLANNED | v0.51.0-fase-e3-sprint-1 | 6h |
-| E3.2 | Briefings | 📋 PLANNED | v0.52.0-fase-e3-sprint-2 | 5h |
-| E3.3 | Calendarios editoriales | 📋 PLANNED | v0.53.0-fase-e3-sprint-3 | 5h |
-| E3.4 | Reportes de performance | 📋 PLANNED | v0.54.0-fase-e3-sprint-4 | 5h |
-
-**Cierre E3**: `v0.55.0-vertical-pub-completa`. Costo ~21h.
-
-### Vertical E4 — Retailers PyME
-
-| ID | Tema | Estado | Tag esperado | Costo |
-|---|---|---|---|---|
-| E4.1 | Mini-troncal sucursales + empleados | 📋 PLANNED | v0.56.0-fase-e4-sprint-1 | 6h |
-| E4.2 | Promociones + listas de precios (consume Pricing N2) | 📋 PLANNED | v0.57.0-fase-e4-sprint-2 | 8h |
-| E4.3 | Vidriera digital / catálogo público | 📋 PLANNED | v0.58.0-fase-e4-sprint-3 | 6h |
-| E4.4 | eCommerce sync (Tiendanube/Shopify, consume conector K7) | 📋 PLANNED | v0.59.0-fase-e4-sprint-4 | 10h | 
-| E4.5 | Programa de fidelidad | 📋 PLANNED | v0.60.0-vertical-retail-completa | 5h |
-
-**Cierre E4**: `v0.60.0-vertical-retail-completa`. Costo ~35h.
-
-**Subtotal FASE E**: ~104h Code
-
----
-
-## TRAMO 10 — Conectores Capa 3 (★ RFC-005)
-
-Pueden ejecutarse en paralelo con Tramo 8 o Tramo 9 según demanda real. No es necesario hacer los 11 de corrido.
-
-| ID | Conector | Reemplaza mock | Tag esperado | Costo |
-|---|---|---|---|---|
-| K1 | Resend (email transaccional) | `com_envios` email | v0.42.0-conector-resend | 5h |
-| K2 | WhatsApp Business API | `com_envios` whatsapp | v0.42.1-conector-whatsapp | 8h |
-| K3 | MercadoPago (cobros AR) | `cuotas_pagos` ARS | v0.42.2-conector-mercadopago | 6h |
-| K4 | AFIP (facturación electrónica AR) | `tipos_comprobante` con CAE | v0.42.3-conector-afip | 8h |
-| K5 | Stripe (cobros internacionales) | `cuotas_pagos` USD | v0.42.4-conector-stripe | 5h |
-| K6 | Google Calendar / Outlook | `eventos` calendario externo | v0.42.5-conector-calendar | 5h |
-| K7 | Tiendanube / Shopify | productos + stock + ventas | v0.42.6-conector-ecommerce | 8h |
-| K8 | Cloudflare R2 (storage alternativo) | uploads | v0.42.7-conector-r2 | 3h |
-| K9 | Google Document AI (OCR) | upload manual D1 | v0.42.8-conector-ocr | 4h |
-| K10 | Sales Layer / Plytix / Akeneo (PIM enterprise) | PIM N1+N2+N3 | v0.42.9-conector-pim-ent | 6h |
-| K11 | Slack / Discord / Teams (notif internas) | `notificaciones` externo | v0.42.10-conector-chatops | 4h |
-
-**Subtotal**: ~62h Code  
-Cada conector tiene su ADR + flag `activo_por_tenant`.
-
----
-
-## TRAMO 11 — API pública + Agent layer (★ RFC-005, PROPUESTO)
-
-**Status**: 💡 PROPOSED. Requiere RFC-005a formal antes de ejecutar.
-
-| ID | Tema | Estado | Tag esperado | Costo |
-|---|---|---|---|---|
-| API1 | Auth API (OAuth2 + JWT + scopes + rate limit) | 💡 PROPOSED | v0.50.0-api-publica-auth | 6h |
-| API2 | API REST pública v1 (endpoints 9 bloques troncales) | 💡 PROPOSED | v0.50.1-api-publica-v1 | 12h |
-| API3 | Webhooks salientes | 💡 PROPOSED | v0.50.2-api-publica-webhooks | 6h |
-| API4 | Capability catalog (OpenAPI 3.1 + `/capabilities`) | 💡 PROPOSED | v0.50.3-api-publica-catalog | 4h |
-| API5 | SDKs oficiales TypeScript + Python | 💡 PROPOSED | v0.50.4-api-publica-sdk | 6h |
-| API6 | Docs viva tipo Stripe/Twilio | 💡 PROPOSED | v0.50.5-api-publica-docs | 5h |
-| AG1 | Agent Connector (bots externos → API interna) | 💡 PROPOSED | v0.51.0-agent-layer | 8h |
-
-**Subtotal estimado**: ~47h Code  
-**Pre-requisito**: RFC-005a aprobado.
-
----
-
-## TRAMO 12 — Plataforma técnica madura (★ RFC-005)
-
-| ID | Tema | Estado | Tag esperado | Costo |
-|---|---|---|---|---|
-| T1 | Observability (Sentry + structured logs + métricas + alertas) | 📋 PLANNED | v0.65.0-observability | 6h |
-| T2 | Backups + DR | 📋 PLANNED | v0.66.0-backups-dr | 5h |
-| T3 | Multi-region (replicas EU/US) | 📋 PLANNED | v0.67.0-multi-region | 8h |
-| T4 | Performance + caching | 📋 PLANNED | v0.68.0-performance | 8h |
-| T5 | Seguridad + pentesting + SOC2 readiness | 📋 PLANNED | v0.69.0-security | 6h |
-| T6 | CI/CD endurecido + canary deploys | 📋 PLANNED | v0.70.0-plataforma-madura | 5h |
-
-**Subtotal**: ~38h Code  
-**Tag de cierre**: `v0.70.0-plataforma-madura`
-
----
-
-## TRAMO 13 — IA nativa (★ RFC-005, opcional)
-
-| ID | Tema | Estado | Tag esperado | Costo |
-|---|---|---|---|---|
-| AI1 | Asistente embebido por vertical (Claude API + RAG) | 📋 PLANNED | v0.75.0-ai-asistente | 8h |
-| AI2 | Auto-clasificación tickets (D2) con ML | 📋 PLANNED | v0.76.0-ai-tickets | 5h |
-| AI3 | Sugerencias scouting (B3) con embeddings | 📋 PLANNED | v0.77.0-ai-scouting | 6h |
-| AI4 | Análisis predictivo churn socios (B5) | 📋 PLANNED | v0.78.0-ai-churn | 5h |
-| AI5 | OCR documentos (D1) con Document AI | 📋 PLANNED | v0.80.0-ia-nativa | 4h |
-
-**Subtotal**: ~28h Code  
-**Tag de cierre**: `v0.80.0-ia-nativa`
-
----
-
-## Resumen de costos por tramo
-
-| Tramo | Sprints | Costo Code | Calendario aprox |
-|---|---|---|---|
-| 1 — Cerrar FASE A | 4 pendientes | 23-30h | — |
-| 2 — Hardening post-A | 4 | 12-16h | — |
-| 3 — FASE B CCBP | 6 | 34h | — |
-| 4 — Hardening post-B | 3 | 7-9h | — |
-| 5 — FASE C Demo | 5 actividades | 0h Code | 10-14 días |
-| 6 — FASE B' eventual | variable | variable | — |
-| 7 — FASE D Cross-vertical | 6 (D3+D4 parciales) | 32-36h | — |
-| 8 — SaaS comercial | 6 | 28-36h | — |
-| 9 — FASE E Verticales | 17 (4 verticales) | 104h | — |
-| 10 — Conectores Capa 3 | 11 | 62h | — |
-| 11 — API + Agent | 7 propuestos | 47h | — |
-| 12 — Plataforma madura | 6 | 38h | — |
-| 13 — IA nativa | 5 | 28h | — |
-| **TOTAL** | **~80 sprints** | **~415-490h Code** | — |
-
----
-
-## Sprint en curso
-
-**Tramo 2 cerrado**: H4 DONE. Tag `v0.29.5-hardening-post-fase-a`.
-
-**Próximo a arrancar**: Tramo 3 — FASE B sprint B1 (Salud / Lesiones operativas).
-
-**Estado BD verificado al 14-may-2026 vía MCP**:
-- 163 tablas públicas
-- 27 vistas (incluye `v_productos_catalogo`, `v_libro_mayor`, `v_balance_cuentas`, `v_estado_cobranzas`, `v_cuenta_corriente_persona`)
-- 130 triggers
-- ~30-40 RPCs custom + 99 utilitarias (citext, gtrgm)
-- 46.624 filas en `audit_log`
-- 2.390 personas, 64 atributos catalogados, 5 padrones, 3 import_pipelines, 102 cuotas emitidas, 51 suscripciones activas
-
----
-
-## Deuda registrada
-
-Cosas planificadas pero no urgentes ahora:
-
-| Deuda | Sprint donde se resuelve |
+| Concepto | Valor |
 |---|---|
-| Renombre físico modules/utileria → inventario | D5 |
-| Renombre físico modules/concesiones → pos | D5 |
-| Renombre físico modules/reservas → reservas_espacios | D5 |
-| Consolidación 3 tablas paralelas de productos | D5 |
-| Módulo huérfano: disciplinas | TBD |
-| Módulo huérfano: proveedores (¿absorber en entidades?) | TBD |
-| Módulo huérfano: talles (¿es necesario?) | TBD |
-| Nombre del producto raíz (no "ClubCore") | post FASE C |
-| ~~Padrón "e" en Hindu~~ | ✅ Resuelto en H3 (soft-delete activo=false) |
-| ~~`productos_variantes` con 0 filas~~ | ✅ Resuelto en A2 v2 + H3 (29 filas) |
+| Tramos definidos | **13** (T1-T13) |
+| Horas Code estimadas restantes | **~410-470h** |
+| Fase actual | **B** (Backend Multi-tenant + UI Operativa) ~90% |
+| Próximo sprint | **B18** — Sidebar BO Universal 7 espacios |
+| Cliente piloto | Hindu Club Fútbol (2.390 socios) |
 
 ---
 
-## Última actualización
+## Estructura por fases
 
-14 de mayo de 2026. Versión 2.1.
+| Fase | Nombre | Sprints | Estado | Tramos |
+|---|---|---|---|---|
+| **A** | MVP funcional + datos reales | A1-A6 | ✅ Cerrada | T1-T2 |
+| **B** | Backend multi-tenant + UI operativa | B0-B18 | 🟡 90% | T3-T4 |
+| **C** | Portal Cliente Completo | C0-C5 | ⚪ Pendiente | T5-T8 |
+| **D** | Operación + documentación + ventas | D1-D... | ⚪ Pendiente | T9-T13 |
 
-Próxima revisión: al cierre de cada tramo (mínimo) o al cierre de cada FASE (canónico).
+---
 
-**Fin del SPRINT-PLAN v2.1.**
+## Tramos T1-T13 (planeación detallada)
+
+### T1 — Bootstrap producto (✅ cerrado)
+
+- Schema Postgres inicial.
+- Setup Next.js + Supabase + Vercel.
+- Auth básico.
+- **Sprints:** A1-A3.
+
+### T2 — Datos reales + UI primera versión (✅ cerrado)
+
+- Carga de 2.390 socios de Hindu.
+- UI BO inicial.
+- **Sprints:** A4-A6.
+
+### T3 — Multi-tenancy + RLS hardening (✅ cerrado)
+
+- Migración a arquitectura multi-tenant con `tenant_id`.
+- 355 RLS policies aplicadas.
+- Auditoría RLS coverage.
+- **Sprints:** B0-B12.
+
+### T4 — Módulos productivos + UI consolidación (🟡 90%)
+
+- 37 módulos productivos sobre 91 catalogados.
+- Action bars universales (B15).
+- Diagnósticos y refactores (B13, B17).
+- **Sprints:** B13-B17.
+- **Próximo:** B18 (sidebar BO universal 7 espacios).
+
+### T5 — Portal Cliente Completo (⚪ próxima fase grande)
+
+> **Nota:** Este tramo fue redefinido por el ROADMAP post-B17 (21-may).  
+> El v3.0 original lo planteaba como "C0 Onboarding 2-3h".  
+> El post-B17 lo redefine como "Portal Cliente Completo 40-56h en 8 sub-sprints".
+
+Sub-sprints C0:
+
+1. **C0.1** — Layout PC mobile-first base.
+2. **C0.2** — Login / signup socio.
+3. **C0.3** — Dashboard socio (estado cuotas + eventos).
+4. **C0.4** — Pago de cuotas (mock primero, MercadoPago después).
+5. **C0.5** — Inscripción a eventos.
+6. **C0.6** — Perfil socio + dependientes.
+7. **C0.7** — Notificaciones in-app.
+8. **C0.8** — Recovery de password + flujos secundarios.
+
+**Estimación:** 40-56h Code.
+
+### T6 — Comunicación y notificaciones (⚪)
+
+- Resend integrado (transactional email).
+- Templates de email.
+- Comunicados masivos desde BO.
+- **Bloqueante:** setup Resend (post-CUIT SCL).
+
+### T7 — Pagos productivos (⚪)
+
+- MercadoPago integrado real.
+- Conciliación automática.
+- Reportes de cobranza.
+- **Bloqueante:** CUIT SCL + CUIT Hindu.
+
+### T8 — Reportes + Dashboards (⚪)
+
+- Dashboards de tesorería, socios activos/inactivos, eventos.
+- Exportaciones (CSV, PDF).
+- Reportes programados.
+
+### T9 — Auditoría completa + compliance (⚪)
+
+- Audit trail inmutable extendido.
+- Logs accesibles desde BO.
+- Compliance datos personales (Ley 25.326 AR).
+- DPA con subprocesadores.
+
+### T10 — Onboarding self-service (⚪)
+
+- Wizard de creación de tenant nuevo (cliente puede onboardear solo).
+- Carga inicial CSV con validaciones.
+- Templates de configuración por tipo de club.
+
+### T11 — Marketing site + ventas (⚪)
+
+- Site institucional ClubCore (separado de este repo).
+- Demo interactiva.
+- Material comercial.
+
+### T12 — Segundo cliente ClubCore (⚪)
+
+- Onboarding tenant nuevo en producción.
+- Validación que el modelo escala.
+- Iteración sobre fricciones detectadas.
+
+### T13 — Bundle AsocCore (segunda vertical) (⚪)
+
+- Reutilización del 80% del catálogo ClubCore.
+- 20% módulos nuevos específicos asociaciones.
+- Primer cliente AsocCore.
+
+---
+
+## Tramos del ROADMAP post-B17 (táctico corto plazo)
+
+El ROADMAP post-B17 introduce **numeración propia** que **se solapa** con T1-T13 pero es más granular para el corto plazo. **Tabla de mapeo:**
+
+| Tramo post-B17 | Equivalente v3.0 | Contenido |
+|---|---|---|
+| T0 | — | B17 cierre + auditoría |
+| T1 | T4 final | B18 Sidebar BO Universal |
+| T2 | T4 → T5 transición | Nav Universal + QA Round + C0 prep |
+| T3 | T5 | C0 Portal Cliente Completo (C0.1-C0.8) |
+| T4 | T6-T7 | Comunicación + Pagos productivos |
+| T5 | T8 | Reportes + Dashboards |
+| T6 | T9+ | Compliance + onboarding + ventas |
+
+**Al hablar de "Tramo X", aclarar siempre cuál numeración se usa.**
+
+---
+
+## Próximo sprint: B18
+
+**Nombre:** B18 — Sidebar BO Universal (7 espacios cross-vertical)  
+**Estimación:** 8-12h Code  
+**ADR referencia:** ADR-039 + ADR-042 (FORMAL)  
+**Tag esperado al cierre:** `v0.30.25-b18-sidebar-universal-7-espacios`
+
+**Estado de preparación:**
+
+- ✅ Prompt detallado en Drive `_Sprints/Fase-B-C/PROMPT-B18.md`.
+- ✅ BD preparada: columnas `area_sidebar_bo`, `sub_area_sidebar_bo`, `nombre_display`, `prioridad_fase_c`, `interfaz_primaria` ya existen.
+- ✅ ADR-039 vigente.
+- ✅ Sidebar viejo identificado para reemplazo.
+
+**Después de B18:**
+
+1. **QA Round dedicado** (6-10h) — validación cruzada de todo el sidebar.
+2. **C0 Portal Cliente Completo** (40-56h en 8 sub-sprints).
+
+---
+
+## Sprints históricos cerrados
+
+### Fase A (cerrada)
+
+- **A1-A2:** Setup inicial, schema, primeras tablas.
+- **A3:** Auth básico.
+- **A4:** Carga de socios Hindu (2.390 personas).
+- **A5:** UI BO primera versión.
+- **A6:** Estabilización post-carga.
+
+### Fase B (90% cerrada)
+
+- **B0:** Refactor a multi-tenant. Tag `v0.20.0-multitenant`.
+- **B1-B6:** Módulos personas + cuotas + eventos.
+- **B7-B10:** Módulos contabilidad + reportes.
+- **B11-B12:** RLS hardening completo (355 políticas).
+- **B13:** Auditoría matriz + refactor UI.
+- **B14:** Action bars iniciales.
+- **B15:** Inventario action bars + estandarización.
+- **B16:** Pre-mortem fase B17.
+- **B17:** Diagnóstico cross-módulo. Cierre con tag `v0.30.24-b17`.
+- **Docs reorg:** PR #7. Tag `v0.30.24.1-docs-reorg`.
+
+Historial completo: `docs/sprints/B-series/`.
+
+---
+
+## Capacidad y velocidad real
+
+| Métrica | Valor histórico |
+|---|---|
+| Horas Code por semana | ~15-25h (variable) |
+| Tiempo promedio por sprint B | 6-12h Code |
+| Sprints completados Fase B | 17 (B0-B17) + docs reorg |
+| Tasa de regresiones | Baja (1-2 hotfixes post-merge) |
+| Cobertura de tests E2E | Happy paths principales cubiertos |
+
+**Proyección honesta:**
+
+- **B18 + QA Round:** 1-2 semanas.
+- **C0 Portal Cliente (8 sub-sprints):** 4-8 semanas.
+- **T6-T8 (comunicación + pagos + reportes):** bloqueado por CUIT + integraciones.
+- **Producto comercial completo (T1-T13):** 6-12 meses adicionales según ritmo.
+
+---
+
+## Riesgos del plan
+
+| Riesgo | Mitigación |
+|---|---|
+| CUIT SCL en trámite IGJ se demora | Avanzar todo lo no-bloqueado mientras tanto |
+| Resend / MercadoPago integración lenta | Mock-first universal (ADR-035) |
+| Hindu detecta bugs en producción | Tener QA Round antes de habilitar producción real |
+| Code se desvía de scope | CLAUDE.md raíz + 12 puntos de checklist obligatorio |
+| Documentación desactualizada | Auditorías cada 4-6 semanas + sync post-cierre fase |
+
+---
+
+## Documentos relacionados
+
+- `MASTER-PROJECT.md` — modelo conceptual.
+- `CURRENT-STATE.md` — estado actual concreto.
+- `MODULE-CATALOG.md` — 91 módulos catalogados.
+- `DATA-MODEL.md` — 169 tablas.
+- `DECISIONS.md` + `adr/` — ADRs vinculantes.
+- `audits/AUDIT-ARQUITECTONICA-2026-05-26.md` — auditoría arquitectónica más reciente.
+
+---
+
+**Fuente de verdad final:** Drive doc `1nxKznU-hVjZ3gDq-oO5TRHSYXpGkgLmTeY80E80G9Pc` (SPRINT-PLAN v3.0). Este archivo es la copia consolidada en repo.

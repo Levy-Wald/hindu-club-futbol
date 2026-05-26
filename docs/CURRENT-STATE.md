@@ -1,335 +1,271 @@
-CURRENT-STATE — Estado actual de la plataforma  
-\====================================================
+# CURRENT STATE — Estado actual del producto
 
-Versión: 2.0 (re-escrito post RFC-004, inicio de FASE A)  
-Fecha: 20 de mayo de 2026
-Status: Accepted  
-Supersedes: CURRENT-STATE.md v1 (estado al cierre FASE 5 del modelo viejo)  
-Path esperado en repo: docs/CURRENT-STATE.md
+**Última actualización:** 26-may-2026  
+**Tag asociado:** `v0.30.24.1-docs-reorg`  
+**Versión documento:** v3.2
 
-PROPÓSITO  
-\=========
+Este documento describe **qué está hecho hoy, qué falta y qué está bloqueado**. Lectura estimada: 20 min.
 
-Documento de "source of truth" del estado real del proyecto. Cualquier persona, IA o empresa que entra al proyecto lee este doc primero después del RFC-004 para saber dónde estamos parados HOY.
+---
 
-Se actualiza al cierre de CADA sprint con métricas verificables (no estimaciones).
+## TL;DR
 
-METADATA DEL PROYECTO  
-\======================
+| Item | Estado |
+|---|---|
+| **Fase actual** | B (Backend Multi-tenant + UI Operativa) — 90% completa |
+| **Último sprint cerrado** | Reorganización física de docs (PR #7) |
+| **Próximo sprint** | B18 — Sidebar BO Universal 7 espacios |
+| **Cliente productivo** | Hindu Club Fútbol (2.390 socios cargados) |
+| **URL producción** | https://hindu-club.vercel.app |
+| **Score arquitectónico** | 7.8/10 (auditoría 26-may-2026) |
+| **Bloqueante crítico** | CUIT SCL en trámite IGJ (legal, no técnico) |
 
-Nombre del producto raíz: Plataforma SaaS Multimodal (provisorio, decisión H1 pendiente)  
-Nombre del bundle del vertical CCBP: ClubCore  
-Cliente piloto: Hindu Club Fútbol (tenant\_id 11111111-1111-1111-1111-111111111111)
+---
 
-Owner: Yair Levy Wald (Levy Wald CMO SRL)  
-Stakeholders: Kate (socia 20%), Juan Marco Lavagno (padrón operator de Hindu)
+## Métricas técnicas (validadas 26-may-2026)
 
-Stack:  
-\- Frontend: Next.js 14 (App Router), React 18, TypeScript, Tailwind v3, shadcn/ui v4  
-\- Backend: Supabase (PostgreSQL \+ Auth \+ Storage \+ Realtime \+ Edge Functions)  
-\- Hosting: Vercel  
-\- Repo: github.com/yamiro12/hindu-club-futbol  
-\- Local: /Users/yamirolw/hindu-v2  
-\- Supabase project\_id: hkoizqbptwhnepzbmjql  
-\- Vercel project\_id: prj\_sH5WIGNfNGo5tXxyTVvQaEfBDyBk  
-\- App prod: https://hindu-club.vercel.app
+### Base de datos (Supabase)
 
-ESTADO AL 15 DE MAYO DE 2026 (POST SPRINT A4 v2 — FASE A COMPLETA)
-\==============================================
+| Métrica | Valor |
+|---|---|
+| Tablas totales | **169** |
+| Tablas con RLS habilitado | 159 (10 pendientes — Tier 1 deuda) |
+| Políticas RLS activas | **355** |
+| Funciones SQL | **126** |
+| Triggers | **97** |
+| Migraciones SQL aplicadas | Varias (ver `supabase/migrations/`) |
+| Edge Functions | Configuradas en `supabase/functions/` |
 
-FASE CONCLUIDAS (modelo viejo):
-\- FASE 1-5: cerradas en producción
-\- Hindu en producción con 2.395 personas, 8 equipos, 280 eventos, 98 partidos, 102 cuotas, 1.381 envíos
+### Código
 
-TRAMO 2 (Hardening post-FASE-A): CERRADO
-\- H1 (drift check): 0 drift, 16 tablas auditadas
-\- H2 (tests): 6 E2E + 30 unit tests
-\- H3 (backfill demo): 7 productos, 20 variantes, 20 precios, 30 movs stock, 26 cotizaciones, 5 convenios, 20 conciliación
-\- H4 (docs canónicos v2): ARCHITECTURE v3, DATA-MODEL, MODULE-CATALOG, 6 ADRs (047-052)
+| Métrica | Valor |
+|---|---|
+| LOC totales | **~128.764** |
+| Archivos | **834** |
+| Módulos en `modules/` | **37** (productivos) sobre **91** catalogados |
+| Errores TypeScript estricto | 541 (47% falsos positivos + 53% triviales + 0% lógica) |
+| Tests unit passing | **137** |
+| Tests E2E | Playwright (varios suites) |
+| Test suite con alias roto | 1 (preexistente, no bloqueante) |
 
-FASE A EN PROGRESO:
-\- Sprint A1: CERRADO (v0.27.0)
-\- Sprint A2 (PIM N1): CERRADO (v0.27.4)
-\- Sprint A3 (Finanzas): CERRADO (A3.1-A3.6, v0.27.5-v0.28.0)
-\- Sprint A2 v2 (cierre formal PIM): CERRADO (v0.27.10)
-\- Sprint A5 (Comunicaciones cierre): CERRADO (v0.27.12-fase-a-sprint-5)
-  - Tiptap rich text editor, variables sidebar, test send, versionado, automatizaciones + workflow
-\- Sprint A6 (Proyectos & Tareas): CERRADO (v0.27.13-fase-a-sprint-6)
-  - 4 tablas: proyectos, proyecto_tareas, proyecto_miembros, proyecto_comentarios
-  - Catálogo catalogo_estados_tarea (5 estados)
-  - Kanban con dnd-kit, Lista filtrable, Calendario react-big-calendar
-  - Comentarios thread, Equipo (miembros N:M con roles)
-  - Integración movimientos_caja.proyecto_id + fn_presupuesto_consumido
-  - Tab Proyectos en persona, sidebar Proyectos activo
-  - Trigger anti-ciclo subtareas, mutex cliente persona/entidad
-\- Sprint A4 v2 (CRM atributos custom + vínculos entidades): CERRADO (v0.27.11-fase-a-sprint-4)
-  - 3 tablas: atributos_custom_definicion, atributos_custom_valores, vinculos_cross
-  - Página configuración /configuracion/atributos-custom
-  - Tab atributos custom en persona + entidad
-  - Tab vínculos entidades (persona-entidad, entidad-entidad) en persona + entidad
-  - Sidebar: Atributos custom en Configuración
-\- FASE A: COMPLETA — todos los sprints cerrados
+### Deploy
 
-POST-FASE A — EVENTOS AVANZADOS:
-\- Sprint A4.2 (Invitaciones): CERRADO (v0.35.0-a4.2-invitaciones-completo, v0.35.1-a4.2-ui-fixes)
-  - Tablas nuevas: evento_codigos_acceso, evento_link_registro, evento_calendario_sincronizacion, evento_acceso_registro
-  - Columnas nuevas en evento_invitados: invitado_tipo, invitado_ref_id, token_respuesta, token_expira_at, 9 campos sync (google/outlook/icloud)
-  - Columna nueva en eventos: dias_semana boolean[]
-  - Server actions: crearEventoConInvitacionesAction, aceptarInvitacionAction, rechazarInvitacionAction, generarCodigoAccesoAction, sincronizarEventoACalendarios (skeleton)
-  - Queries reportes: obtenerReporteEventosAdmin, obtenerConfirmadosEvento, obtenerVisitantesExternos, obtenerMisInvitaciones
-  - Paginas nuevas: /evento/[id]/aceptar/[token], /evento/[id]/rechazar/[token], /admin/[tenant]/control-acceso (skeleton)
-  - UI: Combobox autocomplete invitados, espacios dinamicos por sede, calendario graying
-  - 54 unit tests (EventoCreateSchema, EventoUpdateSchema, InvitadoInputSchema, ResponderInvitacionSchema)
-  - NotificacionTipo expandido: invitacion_evento, evento_confirmado, evento_rechazado, evento_recordatorio, evento_cancelado
-  - Sidebar: Control de Acceso Eventos (ShieldCheck)
+| Métrica | Valor |
+|---|---|
+| Status producción | ✅ READY |
+| URL | https://hindu-club.vercel.app |
+| Team Vercel | `team_clOmQCObDDN8okRHBc4wRhZ9` |
+| CI / Actions | Verde en main |
+| Deploys recientes | Auto-deploy en cada push a main |
 
-FASES SIGUIENTES:
-\- FASE B (Cerrar vertical CCBP): planificada, RFC-003 vigente
-\- FASE C (Demo a Hindu): planificada
-\- FASE D (Cross-vertical extra): planificada (D3+D4 adelantados en A2.5/A2.6)
-\- FASE E (Otros verticales): planificada
+---
 
-MÉTRICAS DE BASE DE DATOS (verificadas vía Supabase MCP el 13 de mayo de 2026\)  
-\==============================================================================
+## Qué funciona hoy (productivo en `hindu-club.vercel.app`)
 
-Tablas: \~163 (+ catalogo\_tipos\_espacio, catalogo\_modulos\_pricing, espacios en Sprint A1)
-Funciones SQL: 134
-Triggers: 539
-RLS policies: 385 (+ 2 catalogs RLS in A1)
-Catálogos seedeados: 17+
-Migrations consolidadas: 1 (20260504220000\_clubcore\_init) + 2 Sprint A1 migrations
+### Back Office (BO)
 
-Datos productivos (tenant Hindu):  
-\- personas: 2.395  
-\- equipos: 8  
-\- personas\_equipos: 212  
-\- sedes: 2  
-\- espacios: 0 (tabla creada en Sprint A1, canchas deprecated a favor de espacios)
-\- canchas: deprecated (tabla existe, espacio\_id added, se migra gradualmente)  
-\- eventos: 280 (182 entrenamientos \+ 98 partidos)  
-\- partidos\_detalle: 98  
-\- partido\_stats\_jugador: 0 (creada en 5.5, pendiente datos)  
-\- cuotas\_emitidas: 102  
-\- fin\_cuotas\_emitidas: 102 (duplicación pendiente resolver en A3)  
-\- com\_envios: 1.381  
-\- com\_plantillas: 148  
-\- com\_mensajes: \~3.000+  
-\- reservas\_canchas: 0  
-\- pre\_inscripciones: variado  
-\- utileria\_items: \~variado  
-\- concesion\_productos: \~variado
+| Módulo | Status | Notas |
+|---|---|---|
+| **Auth + Login** | ✅ | Funcional, falta MFA |
+| **Listado de personas** | ✅ | 2.390 socios cargados, búsqueda funcional |
+| **Detalle de persona** | ✅ | Edición + historial |
+| **Gestión de cuotas** | ✅ | Generación masiva + ajustes individuales |
+| **Eventos básicos** | ✅ | Crear + listar |
+| **Contabilidad básica** | 🟡 | Plan de cuentas + asientos manuales. Falta automatización. |
+| **Reportes** | 🟡 | Listas básicas. Faltan dashboards. |
+| **Usuarios y roles BO** | ✅ | Multi-rol funcional |
+| **Configuración tenant** | 🟡 | Parcial. Falta wizard onboarding. |
+| **Audit trail** | ✅ | Inmutable, accesible via SQL. Falta UI. |
+| **Sidebar BO** | ⚠️ | Antiguo, será refactorizado en B18 a 7 espacios universales |
 
-ESTADO DEL CÓDIGO  
-\==================
+### Portal del Cliente (PC)
 
-Repo: limpio, branch main al día. Tag: v0.35.1-a4.2-ui-fixes.
+| Módulo | Status | Notas |
+|---|---|---|
+| **Login socio** | 🟡 | Parcial. Será completado en C0.2. |
+| **Dashboard socio** | ⚪ | Pendiente (C0.3) |
+| **Pago de cuotas** | ⚪ | Pendiente (C0.4) — bloqueado por MercadoPago + CUIT |
+| **Inscripción a eventos** | ⚪ | Pendiente (C0.5) |
+| **Perfil + dependientes** | ⚪ | Pendiente (C0.6) |
+| **Notificaciones** | ⚪ | Pendiente (C0.7) |
 
-Módulos en \`modules/\` (19 con código):
-\- Productivos: personas, equipos, comunicaciones, finanzas (parcial), cuotas, suscripciones, competencias, partidos, asistencias, reservas, acceso, pre\_inscripciones, entrenamientos, tactica, amistosos, utileria, planificadores, espacios, pim
-\- Huérfanos: socios, disciplinas, eventos\_calendario, proveedores, talles
-\- A crear (FASE A): proyectos
+### Multi-tenancy
 
-Módulo PIM (Sprint A2, modules/pim/):
-\- lib/tipos.ts — Tipos: Producto, ProductoVariante, ProductoProveedor, ListaPrecios, StockEspacio, MovimientoStock
-\- lib/queries.ts — Queries: listarProductos, productoDetalle, variantesDeProducto, proveedoresDeProducto, listasDePrecios, stockDeProducto, listarMovimientos, espaciosTipoDeposito
-\- lib/actions.ts — Actions: crearProducto, editarProducto, eliminarProducto, crearVariante, editarVariante, eliminarVariante, agregarProveedor, eliminarProveedor, establecerProveedorPrincipal, crearListaPrecios, editarListaPrecios, eliminarListaPrecios, agregarPrecio, editarPrecio, eliminarPrecio, configurarMinMaxStock
-\- lib/stock.ts — Action: aplicarMovimientoStockAction (transaccional: pre-check → insert movimiento → upsert stock)
-\- ui/ — Componentes: producto-form, variante-form, variante-row, proveedor-form, proveedor-row, lista-precios-form, precio-form, stock-row, movimiento-stock-form
+- ✅ Schema unificado con `tenant_id` en todas las tablas productivas.
+- ✅ 355 políticas RLS validadas.
+- ⚠️ 10 tablas pendientes de habilitar RLS (Tier 1 deuda técnica, ~30 min fix).
+- ✅ Auth JWT propaga `tenant_id` correctamente.
+- ✅ Tests E2E validan aislamiento entre tenants demo.
 
-Páginas 404 resueltas en Sprint A1 (8 rutas):
-\- /admin/operaciones/eventos/\[eventoId\] — Hub evento con tabs condicionales
-\- /admin/competencias/partidos/\[id\] — Hub partido
-\- /admin/comunicaciones/plantillas/\[id\] — Hub plantilla
-\- /admin/concesiones/\[id\]/punto-venta/\[pdv\] — Hub PDV
-\- /admin/entidades — Renombrado desde /externos
-\- /admin/finanzas/cuotas/emitir — Placeholder (Sprint A3)
-\- /admin/finanzas/movimientos/nuevo — Placeholder (Sprint A3)
-\- /admin/finanzas/transferencias/nueva — Placeholder (Sprint A3)
+---
 
-Páginas nuevas en Sprint A1 (11 total):
-\- /admin/configuracion/sedes — Listado de sedes con conteo de espacios
-\- /admin/configuracion/sedes/\[id\] — Detalle sede con espacios
-\- /admin/configuracion/espacios — Listado global de espacios
-\- /admin/marketplace — Marketplace de módulos por capa
-\- + 7 hubs/placeholders listados arriba
+## Qué falta (próximos 6-12 meses)
 
-Páginas nuevas/modificadas en Sprint A2 (PIM):
-\- /admin/productos — Listado de productos (existente, ahora con módulo PIM)
-\- /admin/productos/\[id\] — Hub producto con tabs: General, Variantes, Stock, Precios, Proveedores
-\- /admin/productos/movimientos — Listado global de movimientos de stock
+### Inmediato (Fase B cierre)
 
-Bugs UX resueltos en Sprint A1:
-\- Planificador: selectable + onSelectSlot + botón +Nuevo evento
-\- Sidebar: reorganizado por secciones (Troncal, Cross-vertical, CCBP)
-\- Scouting: ocultado de sidebar hasta B3
-\- externos renombrado a entidades
+| Sprint | Descripción | ETA |
+|---|---|---|
+| **B18** | Sidebar BO Universal (7 espacios cross-vertical) | 1-2 semanas |
+| **QA Round** | Validación cruzada post-B18 | +1 semana |
 
-ESTADO DE LA DOCUMENTACIÓN  
-\============================
+### Corto plazo (Fase C — Portal Cliente)
 
-Repo /docs/ (al cierre del commit 19cc5dd):
+| Sub-sprint | Descripción | ETA acumulada |
+|---|---|---|
+| C0.1 | Layout PC mobile-first | +2 sem |
+| C0.2 | Login + signup socio | +3 sem |
+| C0.3 | Dashboard socio | +4 sem |
+| C0.4 | Pago de cuotas | +5 sem (bloqueado MP) |
+| C0.5 | Inscripción eventos | +6 sem |
+| C0.6 | Perfil + dependientes | +7 sem |
+| C0.7 | Notificaciones in-app | +8 sem |
+| C0.8 | Recovery + flujos secundarios | +9 sem |
 
-Vigente (productivo):  
-\- /docs/rfcs/RFC-001 a RFC-004 (4 RFCs)  
-\- /docs/DECISIONS.md (ADR-001 a ADR-046, 46 ADRs)  
-\- /docs/PROMPT-TEMPLATE.md (formato canónico, 18 bloques)  
-\- /docs/MODULE-CATALOG.md (mapa de \~30 módulos por capa)  
-\- /docs/ROADMAP.md (v2, FASE A→E)  
-\- /docs/SPRINT-PLAN.md (v2, A1-A6, B1-B6, C, D, E)  
-\- /docs/MASTER-MODEL-CCBP.md (renombrado, D1-D60 reglas de negocio)  
-\- /docs/ARCHITECTURE.md (vigente, pendiente expansión con 4 capas)  
-\- /docs/GLOSSARY.md (vigente, pendiente expansión con términos nuevos)  
-\- /docs/DATA-MODEL.md (vigente, pendiente actualización con tablas nuevas)  
-\- /docs/UI-UX.md (vigente, complementado por UI-UX-PATTERNS.md futuro)  
-\- /docs/DESIGN-SYSTEM.md (vigente, expandido en Tanda 2 a aplicar)  
-\- /docs/RUNBOOK.md (vigente, pendiente addendum protocolo cierre)  
-\- /docs/SYSTEM-DESIGN.md (vigente, pendiente actualización con 4 capas)  
-\- /docs/API.md, PERFORMANCE.md, SECURITY.md, POSTGRES.md, E2E-TESTING.md (vigentes intactos)  
-\- /docs/MENORES-TUTORES.md, POST-MORTEM-TEMPLATE.md, RFC-TEMPLATE.md, SKILL-CHALLENGE.md, SYSTEM-PROMPTS.md (vigentes)  
-\- /docs/E2E-CHECKLIST-TEMPLATE.md (vigente)  
-\- /docs/pre-mortems/PM-SPRINT-3.4.md (histórico)  
-\- /docs/verticales/ccbp/BRAND-CCBP-HINDU.md (movido, vigente)
+### Mediano plazo (Fase D — Operación + ventas)
 
-Archivado en /docs/archive/ (no eliminado):  
-\- PROPUESTA-ARQUITECTONICA.md  
-\- REPORTE-CLEANUP-POST-SPRINT11.md  
-\- PROMPT-ENVELOPE-v1.md (reemplazado por PROMPT-TEMPLATE.md)  
-\- ROADMAP-v1.md (reemplazado por v2)  
-\- SPRINT-PLAN-v1.md (reemplazado por v2)
+- Onboarding self-service para tenants nuevos.
+- Documentación operativa profunda.
+- Marketing site institucional.
+- Sales playbook.
+- Segundo cliente ClubCore.
+- Segunda vertical (AsocCore).
 
-Pendiente de incorporar (Tandas 2-4 del plan de re-documentación):  
-\- BRAND-PLATFORM.md (Tanda 2\)  
-\- DESIGN-SYSTEM.md v2 (Tanda 2\)  
-\- VISUAL-GALLERY.md (Tanda 2\)  
-\- UI-UX-PATTERNS.md (Tanda 2\)  
-\- ARCHITECTURE-ADDENDUM (Tanda 3, append a ARCHITECTURE.md)  
-\- GLOSSARY-ADDENDUM (Tanda 3, append a GLOSSARY.md)  
-\- RUNBOOK-ADDENDUM (Tanda 3, append a RUNBOOK.md)  
-\- SYSTEM-DESIGN.md v2 (Tanda 3, reemplazo)  
-\- SPRINT-A1 a SPRINT-A6 prompts (Tanda 4\)
+---
 
-ESTADO DEL DRIVE (Plataforma SaaS Multimodal)  
-\==============================================
+## Bloqueantes activos
 
-Carpeta raíz: 6\_SaaS\_Troncal\_Multimodal  
-Estructura:  
-\- 00 \- MASTER INDEX (entrada general)  
-\- \_Arquitectura/ (RFCs, ARCHITECTURE, DATA-MODEL, MODULE-CATALOG, BRAND, DESIGN, UI/UX, VISUAL)  
-\- \_Roadmap/ (ROADMAP-MASTER, SPRINT-PLAN)  
-\- \_Decisiones/ (ADRs bundle)  
-\- \_Sprints/ (prompts ejecutables sprint por sprint)  
-\- \_Cierre Ejecutivo/ (cierres post-sprint, futuro)  
-\- \_Verticales/ (linkers a docs por vertical, futuro)
+| Bloqueante | Impacta | ETA fix |
+|---|---|---|
+| **CUIT SCL en trámite IGJ** | Pre-launch productivo, todo lo legal/fiscal | Depende IGJ |
+| **Resend (transactional email)** | Confirmaciones, recovery password, comunicados | Setup post-CUIT |
+| **MercadoPago integración** | C0.4 Pago de cuotas productivo | Setup post-CUIT |
+| **CUIT Hindu Club** | Facturación a Hindu | Cliente debe gestionar |
+| **Dominios Hindu** | Email + portal cliente con dominio propio | Cliente debe gestionar |
 
-Drive carpeta vieja ClubCore (vertical CCBP histórico): vigente, mantiene cierres de FASES 1-5 y RFCs vigentes.
+**Mientras tanto:** ADR-035 mock-first universal vigente — todo se desarrolla contra mocks.
 
-ESTADO DEL DEPLOY  
-\==================
+---
 
-Vercel:  
-\- Project ID: prj\_sH5WIGNfNGo5tXxyTVvQaEfBDyBk  
-\- Team ID: team\_clOmQCObDDN8okRHBc4wRhZ9  
-\- Último deploy READY: \~confirmar vía MCP en Sprint A1 PARTE 1  
-\- URL prod: https://hindu-club.vercel.app  
-\- Estado: operativo
+## Deuda técnica resumida (auditoría 26-may-2026)
 
-Supabase:  
-\- Project ID: hkoizqbptwhnepzbmjql  
-\- Estado: operativo  
-\- DB activa, RLS aplicado, mock-first vigente
+**Score:** 7.8/10 (sólido).  
+**Total acciones identificadas:** 14, en 4 tiers.
 
-PROTOCOLO MOCK-FIRST (ADR-035, vigente hasta FASE C)  
-\======================================================
+### Tier 1 — Crítico, ~4-6h fix
 
-Servicios externos pagos NO contratados aún:  
-\- Resend (email): mocked  
-\- BAPI (WhatsApp): mocked  
-\- MercadoPago: mocked  
-\- AFIP: mocked  
-\- Cualquier conector del marketplace: mocked
+| Acción | Estimación |
+|---|---|
+| Fix vitest alias `@/` | 15 min |
+| Eliminar dead deps `react-hook-form` | 10 min |
+| Habilitar RLS en 10 tablas faltantes | 30 min |
+| Drop `eventos_backup_20260522` | 5 min |
+| Fix 541 errores TS strict (mecánicos) | ~10h fix |
 
-Yair NO tiene credenciales operativas de:  
-\- CUIT / datos fiscales de Hindu Club Fútbol  
-\- Dominios propios de Hindu  
-\- Emails oficiales de Hindu
+### Tier 2-4
 
-Cualquier sprint que requiera credenciales externas está bloqueado o se mockea.
+- Refactor de patrones detectados (ver `audits/AUDIT-PATRONES-ARQUITECTONICOS-2026-05-26.md`).
+- Mejoras de testing (ver `audits/AUDIT-TESTING-CODEHEALTH-2026-05-26.md`).
 
-REGLAS OPERATIVAS VIGENTES  
-\============================
+**Detalle completo:** `docs/audits/AUDIT-ARQUITECTONICA-2026-05-26.md`.
 
-1\. Mock-first universal (ADR-035) hasta FASE C aprobada.  
-2\. Reportar vía MCP, no CLI local (ADR-039). Code reporta vía Supabase MCP, GitHub MCP, Vercel MCP.  
-3\. Soft-delete vía deleted\_at (ADR-030). No DELETE real.  
-4\. Permission slugs en dot-notation (ADR-036). Match exacto contra catálogo.  
-5\. Columnas nativas indexables \> metadata jsonb (ADR-037).  
-6\. E2E con fixture \+ cleanup obligatorio try/finally (ADR-038).  
-7\. No cargar más data productiva de Hindu hasta FASE C.  
-8\. No tests masivos contra personas reales de Hindu.
+---
 
-CI/CD
-\=====
+## Estado del repo (organización física)
 
-\- GitHub Actions workflow: `.github/workflows/ci.yml`
-\- 3 jobs: lint-and-typecheck, unit-tests, build
-\- Triggers: push a main, PRs a main
-\- E2E NO en CI (ADR-053) — se corren localmente
-\- Badge CI en README.md
+### Raíz
 
-PERFORMANCE (H7 Audit)
-\======================
+```
+app/  components/  lib/  modules/  styles/  public/
+tests/  supabase/  scripts/  eslint-rules/
+docs/  CLAUDE.md  README.md
+package.json  tsconfig.json  next.config.ts  middleware.ts
+playwright.config.ts  vercel.json  pnpm-lock.yaml
+.gitignore  .env.example
+```
 
-\- pg_stat_statements: 501 queries, top queries son infra Supabase (no app)
-\- 0 indices faltantes detectados (347 existentes cubren todo)
-\- 7 vistas criticas: todas sub-2ms
-\- Bundle: 7.8MB JS, 171 chunks, max 440KB
-\- Estado: ACEPTABLE, riesgo BAJO para demo
+### `docs/` (post-Paso 1 reorg)
 
-ESTADO ACTUAL
-\=============
+```
+docs/
+├── 00-START-HERE.md         (próximo)
+├── MASTER-PROJECT.md        (próximo)
+├── CURRENT-STATE.md         (este archivo)
+├── SPRINT-PLAN.md           (sincronizado v3.0)
+├── DATA-MODEL.md            (sincronizado 169 tablas)
+├── MODULE-CATALOG.md        (sincronizado 37/91)
+├── DECISIONS.md             (ADR-001 a ADR-046)
+├── adr/                     (ADR-047+ individuales)
+├── rfcs/                    (RFC-001 a RFC-005)
+├── audits/                  (4 auditorías 26-may)
+├── cierres/                 (cierres ejecutivos fases)
+├── sprints/                 (A1-A6 + B-series)
+├── templates/               (RFC, post-mortem, prompt, E2E checklist, skill challenge)
+├── pre-mortems/
+├── navigation/              (especificación Nav Universal)
+├── verticales/ccbp/         (docs específicos ClubCore)
+└── archive/                 (histórico)
+```
 
-Tramo 4 (Hardening post-FASE-B) CERRADO. Bloque B12.3-B12.7 CERRADO. Sistema listo para FASE C.
-Tags vigentes: v0.29.0 (FASE A), v0.30.0 (FASE B), v0.30.5 (Tramo 4), v0.30.14 (B12.3), v0.30.15 (B12.4), v0.30.16 (B12.5), v0.30.17 (B12.6+B12.7).
+---
 
-B12.3 (v0.30.14-cierre-pre-fase-c, 19-may-2026):
-- +25 modulos RFC-005 v2.0 en catalogo_modulos (conectores, verticales, plataforma, API, IA)
-- SIDEBAR_CATALOG reescrito: 103 items, 5 espacios (incl. Plataforma)
-- Fix dropdown-menu hydration (@radix-ui/react-dropdown-menu)
-- Fix mi-cuenta (.single() -> .maybeSingle() con deleted_at)
-- Fix mi-equipo (refactor a lista N equipos)
-- Fix tarjeta-jugador (removido render prop DialogTrigger)
-- 2 migrations retroactivas sincronizadas con DB
+## Cambios recientes (últimos 30 días)
 
-B12.4 (v0.30.15-fix-b12-feedback, 19-may-2026):
-- B12.4.1: Audit sidebar 103 items — 7 items sin pagina real marcados como proximamente
-- B12.4.2: Patron modal-proximamente — items 'proximamente' abren modal en vez de navegar a 404
-- B12.4.3: Verificado fix mi-cuenta (ya corregido en B12.3)
-- B12.4.4: Mi Equipo con tabs entre equipos (shadcn Tabs, 1 equipo = directo, 2+ = tabs)
-- B12.4.5: Espacio 'Mi Dia' renombrado a 'Inicio', orden: Inicio/Operacion/Gestion/Plataforma/Setup
+| Fecha | Cambio |
+|---|---|
+| 26-may | Reorganización física docs (PR #7) — tag `v0.30.24.1-docs-reorg` |
+| 26-may | Auditoría arquitectónica completa — 4 docs en `audits/` |
+| 22-may | B17 cierre — tag `v0.30.24-b17` |
+| 21-may | ROADMAP post-B17 creado en Drive |
+| 18-may | SPRINT-PLAN v3.0 + RFC-005 v2.0 (FUENTE DE VERDAD) |
+| 14-may | Pre-mortem fase B17 |
 
-B12.5 (v0.30.16-fix-avatar-mi-cuenta, 19-may-2026):
-- B12.5.1: Fix mi-cuenta — columnas inexistentes (foto_url→foto_perfil_url, dni→numero_documento, email→email_principal, telefono→telefono_principal). Verificado via MCP contra user real.
-- B12.5.2: Avatar dropdown enriquecido — agregados links Mi cuenta y Mi equipo al dropdown del TopBar
-- B12.5.3: Build OK, verificación MCP, tag v0.30.16
+---
 
-B12.6+B12.7 (v0.30.17-fix-dropdown-items, 19-may-2026):
-- B12.6: Fix DropdownMenuTrigger — wrapper no pasaba {children} al Radix primitive (botón avatar invisible)
-- B12.6: Nuevo UserAvatarMenu.tsx — avatar con foto real, dropdown con Mi perfil/Mi cuenta/Mi equipo, theme switcher, cerrar sesión
-- B12.6: TopBar simplificado — ThemeToggle movido al dropdown, layout pasa foto_perfil_url
-- B12.7: Fix DropdownMenuItem — mismo bug (children desestructurado pero no pasado). Items del dropdown vacíos.
-- B12.7: Auditoría completa 12 wrappers dropdown-menu: solo Trigger e Item tenían el bug.
-- Smoke visual confirmado por Yair: avatar visible, dropdown abre, items visibles y clickeables.
+## Drive del proyecto
 
-PRÓXIMOS PASOS INMEDIATOS
-\==========================
+**Raíz:** https://drive.google.com/drive/folders/1cZVm440-tL7qgCmqe6ONDu26qvyprj98
 
-1\. B13 — Auditoría módulo por módulo (smoke cada pantalla activa).
-2\. FASE C — Demo a Hindu (validacion humana, 0h Code).
+**Documentos vivos en raíz:**
 
-ÚLTIMA ACTUALIZACIÓN
-\=====================
+- `00-MASTER-INDEX-v2.2.md`
+- `BOOT-CONTINUIDAD-26-MAY-2026-v3.md`
+- `COMO-SEGUIMOS-v1.1.md`
+- `CURRENT-STATE-v3.2-26-MAY-2026.md`
 
-19 de mayo de 2026\. Versión 2.9 (cierre B12.7 + tag v0.30.17).
-Próxima revisión: al cierre de FASE C.
+**Carpetas principales:**
 
-Quien actualiza este doc: Claude Code en el cierre de cada sprint (PROMPT-TEMPLATE PARTE 10.1). El arquitecto verifica vía MCP.  
+- `_Arquitectura/` (RFCs)
+- `_Auditorias/`
+- `_Cierre Ejecutivo/`
+- `_Decisiones/` (ADRs copia desde repo)
+- `_Materiales-Comerciales/`
+- `_Roadmap/` (SPRINT-PLAN v3.0, post-B17, deuda técnica)
+- `_Sprints/` (prompts de sprints)
+- `_Verticales/`
+- `_Archivo/`
+
+---
+
+## Persona / Contacto
+
+| Rol | Persona |
+|---|---|
+| **CEO + Product Owner** | Yair Ricardo Levy Wald |
+| **Arquitecto (IA)** | Claude Opus 4.x (Chat Agencia FC) |
+| **Ejecutor código (IA)** | Claude Code (sesiones por sprint) |
+| **Legal** | Kate Feldman (CPACF) |
+
+**Email:** yair@levywald.com  
+**Tel:** +54 9 11 5014 8932
+
+---
+
+## Para profundizar
+
+- **Modelo conceptual:** `MASTER-PROJECT.md`
+- **Roadmap táctico:** `SPRINT-PLAN.md`
+- **Modelo de datos:** `DATA-MODEL.md`
+- **Catálogo de módulos:** `MODULE-CATALOG.md`
+- **Decisiones técnicas:** `DECISIONS.md` + `adr/`
+- **Auditorías:** `audits/`
+- **Entry point para nuevos:** `00-START-HERE.md`
