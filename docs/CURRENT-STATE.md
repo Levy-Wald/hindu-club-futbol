@@ -1,10 +1,12 @@
 # CURRENT STATE — Estado actual del producto
 
 **Última actualización:** 26-may-2026  
-**Tag asociado:** `v0.30.24.1-docs-reorg`  
-**Versión documento:** v3.2
+**Tag asociado:** `v0.30.24.2-docs-sync` (próximo `v0.30.24.3-docs-alignment`)  
+**Versión documento:** v3.3
 
-Este documento describe **qué está hecho hoy, qué falta y qué está bloqueado**. Lectura estimada: 20 min.
+Este documento describe **qué está hecho hoy, qué falta y qué está bloqueado** en la Plataforma SaaS Multimodal. Lectura estimada: 20 min.
+
+> **Vocabulario:** este doc usa los términos canónicos definidos en `docs/GLOSSARY.md`. Si hay ambigüedad, GLOSSARY gana.
 
 ---
 
@@ -12,41 +14,56 @@ Este documento describe **qué está hecho hoy, qué falta y qué está bloquead
 
 | Item | Estado |
 |---|---|
-| **Fase actual** | B (Backend Multi-tenant + UI Operativa) — 90% completa |
-| **Último sprint cerrado** | Reorganización física de docs (PR #7) |
-| **Próximo sprint** | B18 — Sidebar BO Universal 7 espacios |
+| **Producto** | Plataforma SaaS Multimodal |
+| **Vertical activa** | CCBP (Clubes, Countries y Barrios Privados) |
 | **Cliente productivo** | Hindu Club Fútbol (2.390 socios cargados) |
 | **URL producción** | https://hindu-club.vercel.app |
+| **Tag actual** | `v0.30.24.2-docs-sync` |
+| **Próximo sprint** | B18 — Sidebar BO Universal 7 espacios |
+| **Roadmap (ROADMAP.md v2.0)** | Fases A y B completas. Próxima: Fase 6 (Portal Cliente Completo). |
 | **Score arquitectónico** | 7.8/10 (auditoría 26-may-2026) |
 | **Bloqueante crítico** | CUIT SCL en trámite IGJ (legal, no técnico) |
 
 ---
 
-## Métricas técnicas (validadas 26-may-2026)
+## Modelo conceptual (resumen)
 
-### Base de datos (Supabase)
+**4 capas** definidas en ADR-031:
+
+- **Capa 0 — Troncal:** CRM, ERP, PIM, Plataforma. Universal.
+- **Capa 1 — Módulos:** 18 built-in, portables, declaran contrato en `module.json`.
+- **Capa 2 — Verticales:** presets (CCBP activo, Arq/Abog/Pub/Retail catalogados).
+- **Capa 3 — Conectores:** Resend, MercadoPago, WhatsApp (todos mock hasta FASE 16).
+
+Detalle completo: `docs/ARCHITECTURE.md` (canónico v3) + `docs/SYSTEM-DESIGN.md` (v2.0 post RFC-004).
+
+---
+
+## Métricas técnicas
+
+### Snapshot al 6-may-2026 (DATA-MODEL.md + MODULE-CATALOG.md)
 
 | Métrica | Valor |
 |---|---|
-| Tablas totales | **169** |
-| Tablas con RLS habilitado | 159 (10 pendientes — Tier 1 deuda) |
+| Tablas Supabase | **140** |
+| Vistas SQL | **27** |
+| Funciones SQL | **~45** |
+| Módulos físicos en `modules/` | **29** (22 DONE, 2 PARCIAL, 4 HUÉRFANO, 1 NO UI) |
+| Módulos built-in canónicos | **18** |
+
+### Snapshot al 26-may-2026 (auditoría arquitectónica)
+
+| Métrica | Valor |
+|---|---|
+| Tablas Supabase | **~169** (creció ~29 tablas en 20 días por sprints B13-B17) |
 | Políticas RLS activas | **355** |
-| Funciones SQL | **126** |
+| Funciones SQL | **~126** (creció por funciones helper de sprints recientes) |
 | Triggers | **97** |
-| Migraciones SQL aplicadas | Varias (ver `supabase/migrations/`) |
-| Edge Functions | Configuradas en `supabase/functions/` |
-
-### Código
-
-| Métrica | Valor |
-|---|---|
 | LOC totales | **~128.764** |
-| Archivos | **834** |
-| Módulos en `modules/` | **37** (productivos) sobre **91** catalogados |
-| Errores TypeScript estricto | 541 (47% falsos positivos + 53% triviales + 0% lógica) |
+| Archivos código | **834** |
 | Tests unit passing | **137** |
-| Tests E2E | Playwright (varios suites) |
-| Test suite con alias roto | 1 (preexistente, no bloqueante) |
+
+> **Discrepancia explicada:** los docs canónicos (`DATA-MODEL.md`, `POSTGRES.md`) reflejan el schema al 6-may. La auditoría 26-may registró el snapshot vivo actual. Para snapshot del día, consultar Supabase directamente.
 
 ### Deploy
 
@@ -62,13 +79,14 @@ Este documento describe **qué está hecho hoy, qué falta y qué está bloquead
 
 ## Qué funciona hoy (productivo en `hindu-club.vercel.app`)
 
-### Back Office (BO)
+### Back Office (BO) — Capa 0 Troncal + Módulos Capa 1
 
-| Módulo | Status | Notas |
+| Área | Status | Notas |
 |---|---|---|
 | **Auth + Login** | ✅ | Funcional, falta MFA |
 | **Listado de personas** | ✅ | 2.390 socios cargados, búsqueda funcional |
 | **Detalle de persona** | ✅ | Edición + historial |
+| **Familias y dependientes** | ✅ | Vínculos tutor-menor (ver `docs/MENORES-TUTORES.md`) |
 | **Gestión de cuotas** | ✅ | Generación masiva + ajustes individuales |
 | **Eventos básicos** | ✅ | Crear + listar |
 | **Contabilidad básica** | 🟡 | Plan de cuentas + asientos manuales. Falta automatización. |
@@ -76,18 +94,19 @@ Este documento describe **qué está hecho hoy, qué falta y qué está bloquead
 | **Usuarios y roles BO** | ✅ | Multi-rol funcional |
 | **Configuración tenant** | 🟡 | Parcial. Falta wizard onboarding. |
 | **Audit trail** | ✅ | Inmutable, accesible via SQL. Falta UI. |
-| **Sidebar BO** | ⚠️ | Antiguo, será refactorizado en B18 a 7 espacios universales |
+| **Sidebar BO** | ⚠️ | Antiguo, será refactorizado en B18 a 7 espacios universales (ADR-039) |
 
-### Portal del Cliente (PC)
+### Portal del Cliente (PC) — Pendiente Fase 6 ROADMAP
 
-| Módulo | Status | Notas |
+| Módulo PC | Status | Fase ROADMAP |
 |---|---|---|
-| **Login socio** | 🟡 | Parcial. Será completado en C0.2. |
-| **Dashboard socio** | ⚪ | Pendiente (C0.3) |
-| **Pago de cuotas** | ⚪ | Pendiente (C0.4) — bloqueado por MercadoPago + CUIT |
-| **Inscripción a eventos** | ⚪ | Pendiente (C0.5) |
-| **Perfil + dependientes** | ⚪ | Pendiente (C0.6) |
-| **Notificaciones** | ⚪ | Pendiente (C0.7) |
+| Layout PC mobile-first | ⚪ | Fase 6 |
+| Login + signup socio | 🟡 Parcial | Fase 6 |
+| Dashboard socio | ⚪ | Fase 6 |
+| Pago de cuotas | 🔴 Bloqueado (MercadoPago) | Fase 6 + 7 |
+| Inscripción a eventos | ⚪ | Fase 6 |
+| Perfil + dependientes | ⚪ | Fase 6 |
+| Notificaciones | ⚪ | Fase 6 |
 
 ### Multi-tenancy
 
@@ -99,36 +118,30 @@ Este documento describe **qué está hecho hoy, qué falta y qué está bloquead
 
 ---
 
-## Qué falta (próximos 6-12 meses)
+## Qué falta — según ROADMAP.md v2.0 (17 fases)
 
-### Inmediato (Fase B cierre)
+El roadmap canónico (`docs/ROADMAP.md`) ordena por **dependencias técnicas y comerciales**, no por calendario.
 
-| Sprint | Descripción | ETA |
+### Fases cerradas
+
+- ✅ **Fases 1-5** — Bootstrap, schema inicial, datos reales, UI primera versión, multi-tenancy.
+- ✅ **Fase A** — MVP funcional con datos reales (Hindu cargado).
+- ✅ **Fase B** — Backend multi-tenant + UI operativa.
+
+### En curso / próximas
+
+| Fase | Descripción | Estado |
 |---|---|---|
-| **B18** | Sidebar BO Universal (7 espacios cross-vertical) | 1-2 semanas |
-| **QA Round** | Validación cruzada post-B18 | +1 semana |
+| **B18 (cierre Fase B)** | Sidebar BO Universal 7 espacios cross-vertical | Próximo sprint |
+| **QA Round** | Validación cruzada post-B18 | Después de B18 |
+| **Fase 6** | Portal Cliente Completo (~40-56h en 8 sub-sprints) | Próxima fase mayor |
+| **Fase 7-8** | Comunicaciones avanzadas | Bloqueado por Resend |
+| **Fase 9** | IA (agentes, asistentes — ver `docs/SYSTEM-PROMPTS.md`) | Catalogado |
+| **Fase 10-15** | Verticales nuevas (Arq, Abog, Pub, Retail) | Post-Hindu validado |
+| **Fase 16** | Producción real (Resend + MercadoPago salen de mock) | Bloqueado por CUIT |
+| **Fase 17** | Billing + marketplace de módulos | Final |
 
-### Corto plazo (Fase C — Portal Cliente)
-
-| Sub-sprint | Descripción | ETA acumulada |
-|---|---|---|
-| C0.1 | Layout PC mobile-first | +2 sem |
-| C0.2 | Login + signup socio | +3 sem |
-| C0.3 | Dashboard socio | +4 sem |
-| C0.4 | Pago de cuotas | +5 sem (bloqueado MP) |
-| C0.5 | Inscripción eventos | +6 sem |
-| C0.6 | Perfil + dependientes | +7 sem |
-| C0.7 | Notificaciones in-app | +8 sem |
-| C0.8 | Recovery + flujos secundarios | +9 sem |
-
-### Mediano plazo (Fase D — Operación + ventas)
-
-- Onboarding self-service para tenants nuevos.
-- Documentación operativa profunda.
-- Marketing site institucional.
-- Sales playbook.
-- Segundo cliente ClubCore.
-- Segunda vertical (AsocCore).
+Detalle por fase: `docs/ROADMAP.md`.
 
 ---
 
@@ -136,9 +149,9 @@ Este documento describe **qué está hecho hoy, qué falta y qué está bloquead
 
 | Bloqueante | Impacta | ETA fix |
 |---|---|---|
-| **CUIT SCL en trámite IGJ** | Pre-launch productivo, todo lo legal/fiscal | Depende IGJ |
+| **CUIT SCL en trámite IGJ** | Pre-launch productivo, FASE 16 entera | Depende IGJ |
 | **Resend (transactional email)** | Confirmaciones, recovery password, comunicados | Setup post-CUIT |
-| **MercadoPago integración** | C0.4 Pago de cuotas productivo | Setup post-CUIT |
+| **MercadoPago integración** | Pago de cuotas productivo (Fase 6.4 + Fase 7) | Setup post-CUIT |
 | **CUIT Hindu Club** | Facturación a Hindu | Cliente debe gestionar |
 | **Dominios Hindu** | Email + portal cliente con dominio propio | Cliente debe gestionar |
 
@@ -159,65 +172,36 @@ Este documento describe **qué está hecho hoy, qué falta y qué está bloquead
 | Eliminar dead deps `react-hook-form` | 10 min |
 | Habilitar RLS en 10 tablas faltantes | 30 min |
 | Drop `eventos_backup_20260522` | 5 min |
-| Fix 541 errores TS strict (mecánicos) | ~10h fix |
+| Fix 541 errores TS strict (mecánicos, 0% lógica) | ~10h fix |
 
 ### Tier 2-4
 
-- Refactor de patrones detectados (ver `audits/AUDIT-PATRONES-ARQUITECTONICOS-2026-05-26.md`).
-- Mejoras de testing (ver `audits/AUDIT-TESTING-CODEHEALTH-2026-05-26.md`).
+- Refactor de patrones detectados (`docs/audits/AUDIT-PATRONES-ARQUITECTONICOS-2026-05-26.md`).
+- Mejoras de testing (`docs/audits/AUDIT-TESTING-CODEHEALTH-2026-05-26.md`).
 
 **Detalle completo:** `docs/audits/AUDIT-ARQUITECTONICA-2026-05-26.md`.
 
 ---
 
-## Estado del repo (organización física)
-
-### Raíz
-
-```
-app/  components/  lib/  modules/  styles/  public/
-tests/  supabase/  scripts/  eslint-rules/
-docs/  CLAUDE.md  README.md
-package.json  tsconfig.json  next.config.ts  middleware.ts
-playwright.config.ts  vercel.json  pnpm-lock.yaml
-.gitignore  .env.example
-```
-
-### `docs/` (post-Paso 1 reorg)
-
-```
-docs/
-├── 00-START-HERE.md         (próximo)
-├── MASTER-PROJECT.md        (próximo)
-├── CURRENT-STATE.md         (este archivo)
-├── SPRINT-PLAN.md           (sincronizado v3.0)
-├── DATA-MODEL.md            (sincronizado 169 tablas)
-├── MODULE-CATALOG.md        (sincronizado 37/91)
-├── DECISIONS.md             (ADR-001 a ADR-046)
-├── adr/                     (ADR-047+ individuales)
-├── rfcs/                    (RFC-001 a RFC-005)
-├── audits/                  (4 auditorías 26-may)
-├── cierres/                 (cierres ejecutivos fases)
-├── sprints/                 (A1-A6 + B-series)
-├── templates/               (RFC, post-mortem, prompt, E2E checklist, skill challenge)
-├── pre-mortems/
-├── navigation/              (especificación Nav Universal)
-├── verticales/ccbp/         (docs específicos ClubCore)
-└── archive/                 (histórico)
-```
-
----
-
 ## Cambios recientes (últimos 30 días)
 
-| Fecha | Cambio |
-|---|---|
-| 26-may | Reorganización física docs (PR #7) — tag `v0.30.24.1-docs-reorg` |
-| 26-may | Auditoría arquitectónica completa — 4 docs en `audits/` |
-| 22-may | B17 cierre — tag `v0.30.24-b17` |
-| 21-may | ROADMAP post-B17 creado en Drive |
-| 18-may | SPRINT-PLAN v3.0 + RFC-005 v2.0 (FUENTE DE VERDAD) |
-| 14-may | Pre-mortem fase B17 |
+| Fecha | Cambio | Tag |
+|---|---|---|
+| 26-may | PR #9 docs alignment con sistema canónico | `v0.30.24.3-docs-alignment` (próximo) |
+| 26-may | PR #8 docs content update (resultó parcialmente desalineado) | `v0.30.24.2-docs-sync` |
+| 26-may | PR #7 reorganización física de docs | `v0.30.24.1-docs-reorg` |
+| 26-may | Auditoría arquitectónica completa — 4 docs en `audits/` | — |
+| 22-may | B17 cierre | `v0.30.24-b17` |
+| 21-may | ROADMAP post-B17 creado en Drive | — |
+| 18-may | RFC-005 v2.0 (FUENTE DE VERDAD estratégica) | — |
+| 15-may | ARCHITECTURE.md v3 canónico (Sprint H4 Hardening) | — |
+| 13-may | ROADMAP.md v2.0 + SYSTEM-DESIGN.md v2.0 + GLOSSARY actualizado (post RFC-004) | — |
+| 13-may | BRAND-PLATFORM.md + DESIGN-SYSTEM.md v2.0 + UI-UX-PATTERNS.md + VISUAL-GALLERY.md | — |
+| 11-may | UI-UX.md + PERFORMANCE.md + SECURITY.md + E2E-TESTING.md | — |
+| 12-may | SYSTEM-PROMPTS.md | — |
+| 7-may | API.md | — |
+| 6-may | DATA-MODEL.md + POSTGRES.md snapshot | — |
+| 5-may | MENORES-TUTORES.md | — |
 
 ---
 
@@ -225,7 +209,7 @@ docs/
 
 **Raíz:** https://drive.google.com/drive/folders/1cZVm440-tL7qgCmqe6ONDu26qvyprj98
 
-**Documentos vivos en raíz:**
+**Documentos vivos en raíz Drive:**
 
 - `00-MASTER-INDEX-v2.2.md`
 - `BOOT-CONTINUIDAD-26-MAY-2026-v3.md`
@@ -239,7 +223,7 @@ docs/
 - `_Cierre Ejecutivo/`
 - `_Decisiones/` (ADRs copia desde repo)
 - `_Materiales-Comerciales/`
-- `_Roadmap/` (SPRINT-PLAN v3.0, post-B17, deuda técnica)
+- `_Roadmap/` (ROADMAP v2.0, post-B17, deuda técnica)
 - `_Sprints/` (prompts de sprints)
 - `_Verticales/`
 - `_Archivo/`
@@ -251,7 +235,7 @@ docs/
 | Rol | Persona |
 |---|---|
 | **CEO + Product Owner** | Yair Ricardo Levy Wald |
-| **Arquitecto (IA)** | Claude Opus 4.x (Chat Agencia FC) |
+| **Arquitecto (IA)** | Claude Opus 4.x |
 | **Ejecutor código (IA)** | Claude Code (sesiones por sprint) |
 | **Legal** | Kate Feldman (CPACF) |
 
@@ -262,10 +246,14 @@ docs/
 
 ## Para profundizar
 
-- **Modelo conceptual:** `MASTER-PROJECT.md`
-- **Roadmap táctico:** `SPRINT-PLAN.md`
-- **Modelo de datos:** `DATA-MODEL.md`
-- **Catálogo de módulos:** `MODULE-CATALOG.md`
-- **Decisiones técnicas:** `DECISIONS.md` + `adr/`
-- **Auditorías:** `audits/`
-- **Entry point para nuevos:** `00-START-HERE.md`
+- **Modelo conceptual:** `docs/ARCHITECTURE.md` (v3) + `docs/SYSTEM-DESIGN.md` (v2.0)
+- **Roadmap táctico:** `docs/ROADMAP.md` (v2.0)
+- **Modelo de datos:** `docs/DATA-MODEL.md` + `docs/POSTGRES.md`
+- **Catálogo de módulos:** `docs/MODULE-CATALOG.md`
+- **Vocabulario:** `docs/GLOSSARY.md` (canónico)
+- **Decisiones técnicas:** `docs/DECISIONS.md` + `docs/adr/`
+- **Operación en producción:** `docs/RUNBOOK.md`
+- **Seguridad:** `docs/SECURITY.md`
+- **Performance:** `docs/PERFORMANCE.md`
+- **Auditorías:** `docs/audits/`
+- **Entry point para nuevos:** `docs/00-START-HERE.md`
