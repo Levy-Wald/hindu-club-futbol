@@ -1,0 +1,31 @@
+{
+  "slug": "salud-lesiones",
+  "name": "Salud — Lesiones",
+  "version": "0.1.0",
+  "category": "ccbp",
+  "portable": false,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": ["salud"],
+  "soft_depends_on_modules": ["equipos"],
+  "owns_tables": [
+    "personas_lesiones",
+    "tipos_lesion"
+  ],
+  "owns_catalogs": [
+    "tipos_lesion"
+  ],
+  "permissions_required": [
+    "ccbp.salud.write"
+  ],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": [
+    "/admin/personas/[id] (tab salud — lesiones)",
+    "/admin/equipos/[id] (panel lesiones)"
+  ],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

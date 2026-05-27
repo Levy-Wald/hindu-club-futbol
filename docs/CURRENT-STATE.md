@@ -1,8 +1,8 @@
 # CURRENT STATE — Estado actual del producto
 
-**Última actualización:** 26-may-2026  
-**Tag asociado:** `v0.30.24.2-docs-sync` (próximo `v0.30.24.3-docs-alignment`)  
-**Versión documento:** v3.3
+**Última actualización:** 26-may-2026
+**Tag asociado:** `v0.30.24.4-final-alignment`
+**Versión documento:** v3.4
 
 Este documento describe **qué está hecho hoy, qué falta y qué está bloqueado** en la Plataforma SaaS Multimodal. Lectura estimada: 20 min.
 
@@ -16,7 +16,7 @@ Este documento describe **qué está hecho hoy, qué falta y qué está bloquead
 |---|---|
 | **Producto** | Plataforma SaaS Multimodal |
 | **Vertical activa** | CCBP (Clubes, Countries y Barrios Privados) |
-| **Cliente productivo** | Hindu Club Fútbol (2.390 socios cargados) |
+| **Cliente productivo** | Hindu Club Fútbol (2.739 personas cargadas) |
 | **URL producción** | https://hindu-club.vercel.app |
 | **Tag actual** | `v0.30.24.2-docs-sync` |
 | **Próximo sprint** | B18 — Sidebar BO Universal 7 espacios |
@@ -48,22 +48,26 @@ Detalle completo: `docs/ARCHITECTURE.md` (canónico v3) + `docs/SYSTEM-DESIGN.md
 | Tablas Supabase | **140** |
 | Vistas SQL | **27** |
 | Funciones SQL | **~45** |
-| Módulos físicos en `modules/` | **29** (22 DONE, 2 PARCIAL, 4 HUÉRFANO, 1 NO UI) |
+| Módulos físicos en `modules/` | **29** (snapshot original pre-audit) |
 | Módulos built-in canónicos | **18** |
 
-### Snapshot al 26-may-2026 (auditoría arquitectónica)
+### Snapshot al 26-may-2026 (snapshot vivo Supabase + audit + module catalog sync)
 
 | Métrica | Valor |
 |---|---|
-| Tablas Supabase | **~169** (creció ~29 tablas en 20 días por sprints B13-B17) |
+| Tablas Supabase | **175** (165 con RLS, 10 sin RLS — deuda Tier 1) |
 | Políticas RLS activas | **355** |
 | Funciones SQL | **~126** (creció por funciones helper de sprints recientes) |
 | Triggers | **97** |
 | LOC totales | **~128.764** |
 | Archivos código | **834** |
 | Tests unit passing | **137** |
+| Módulos físicos en `modules/` | **37** (30 DONE, 2 PARCIAL, 4 HUÉRFANO, 1 NO UI) |
+| Módulos con `module.json` formal | **34** de 37 |
+| Personas Hindu (tabla personas) | **2.739** (socios activos, dependientes, contactos, padrones) |
+| Rows en audit_log | **47.017** |
 
-> **Discrepancia explicada:** los docs canónicos (`DATA-MODEL.md`, `POSTGRES.md`) reflejan el schema al 6-may. La auditoría 26-may registró el snapshot vivo actual. Para snapshot del día, consultar Supabase directamente.
+> **Discrepancia 6-may vs 26-may explicada:** los docs canónicos (`DATA-MODEL.md`, `POSTGRES.md`) reflejan el schema al 6-may (140 tablas). El snapshot vivo 26-may registra 175 tablas (+35 por sprints B13-B17 + A4.2). `DATA-MODEL.md` fue actualizado con las cifras vivas y la lista de 10 tablas sin RLS. Para snapshot del día, consultar Supabase directamente.
 
 ### Deploy
 
@@ -84,7 +88,7 @@ Detalle completo: `docs/ARCHITECTURE.md` (canónico v3) + `docs/SYSTEM-DESIGN.md
 | Área | Status | Notas |
 |---|---|---|
 | **Auth + Login** | ✅ | Funcional, falta MFA |
-| **Listado de personas** | ✅ | 2.390 socios cargados, búsqueda funcional |
+| **Listado de personas** | ✅ | 2.739 personas cargadas, búsqueda funcional |
 | **Detalle de persona** | ✅ | Edición + historial |
 | **Familias y dependientes** | ✅ | Vínculos tutor-menor (ver `docs/MENORES-TUTORES.md`) |
 | **Gestión de cuotas** | ✅ | Generación masiva + ajustes individuales |

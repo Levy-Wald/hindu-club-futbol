@@ -14,7 +14,7 @@
 | comunicaciones | Motor Comunicaciones | com_plantillas, com_envios, com_mensajes, com_jobs_log | PARCIAL (~60%) |
 | eventos_calendario | Eventos & Calendario | eventos, evento_asistencias, evento_invitados | DONE |
 | notificaciones | Auditoria & Seguridad | notificaciones | DONE |
-| atributos-custom | Plataforma | atributos_custom_definicion, atributos_custom_valores, vinculos_cross | DONE (pendiente module.json) |
+| atributos-custom | Plataforma | atributos_custom_definicion, atributos_custom_valores, vinculos_cross | DONE |
 | eventos | Plataforma | UI backbone (ADR-042) — tablas en eventos_calendario | DONE |
 | proyectos | Plataforma | proyectos, proyecto_tareas, proyecto_miembros, proyecto_comentarios | DONE |
 
@@ -36,7 +36,7 @@
 | nominas_externas | nominas_externas, nomina_externa_items | DONE |
 | espacios | espacios | DONE |
 | solicitudes | solicitudes | DONE |
-| membresias | suscripciones, v_resumen_membresias, v_socios_activos | DONE (pendiente module.json) |
+| membresias | suscripciones, v_resumen_membresias, v_socios_activos | DONE |
 | socios | suscripciones (compartida con cobranza) | HUERFANO hasta B5 (convertir en suscripciones_membresia) |
 | proveedores | producto_proveedores (compartida con PIM) | HUERFANO (posible absorcion en entidades) |
 
@@ -56,10 +56,10 @@
 | planificadores | (usa eventos + calendario) | DONE |
 | salud | personas_datos_medicos, personas_lesiones, personas_autorizaciones, personas_documentos_medicos, personas_contactos_emergencia, personas_obra_social | DONE (UI parcial, B1 completa) |
 | scouting | scouting_fichas | NO UI (tabla existe, B3 construye UI) |
-| diagramacion-club | diagramacion_club, espacios, sedes | DONE (pendiente module.json) |
-| historial-deportivo | persona_logros, persona_trayectoria_clubes | DONE (pendiente module.json) |
-| reportes-deportivos | v_comparativa_equipos, v_performance_jugadores, v_stats_equipo | PARCIAL (read-only, sin module.json) |
-| salud-lesiones | personas_lesiones, tipos_lesion, v_personas_lesionadas_activas | DONE (pendiente module.json) |
+| diagramacion-club | diagramacion_club, espacios, sedes | DONE |
+| historial-deportivo | persona_logros, persona_trayectoria_clubes | DONE |
+| reportes-deportivos | v_comparativa_equipos, v_performance_jugadores, v_stats_equipo | DONE (read-only por diseno) |
+| salud-lesiones | personas_lesiones, tipos_lesion, v_personas_lesionadas_activas | DONE |
 | disciplinas | personas_disciplinas, catalogo_disciplinas | HUERFANO (sin UI conectada) |
 | talles | personas_talles, catalogo_tipos_talle | HUERFANO (validar uso post FASE C) |
 
@@ -69,8 +69,8 @@
 
 | Estado | Cantidad | Modulos |
 |---|---|---|
-| DONE | 29 | pim, finanzas, eventos_calendario, notificaciones, atributos-custom, eventos, proyectos, asistencias, reservas, concesiones, utileria, acceso, pre_inscripciones, rrhh, nominas_externas, espacios, solicitudes, membresias, equipos, entrenamientos, amistosos, tactica, competencias, torneos, partidos, planificadores, diagramacion-club, historial-deportivo, salud-lesiones |
-| PARCIAL | 3 | comunicaciones (~60%), salud (UI parcial), reportes-deportivos (read-only) |
+| DONE | 30 | pim, finanzas, eventos_calendario, notificaciones, atributos-custom, eventos, proyectos, asistencias, reservas, concesiones, utileria, acceso, pre_inscripciones, rrhh, nominas_externas, espacios, solicitudes, membresias, equipos, entrenamientos, amistosos, tactica, competencias, torneos, partidos, planificadores, diagramacion-club, historial-deportivo, reportes-deportivos, salud-lesiones |
+| PARCIAL | 2 | comunicaciones (~60%), salud (UI parcial) |
 | HUERFANO | 4 | socios, proveedores, disciplinas, talles |
 | NO UI | 1 | scouting (tabla existe) |
 
@@ -85,7 +85,7 @@
 | talles | Necesidad incierta | Validar uso post FASE C |
 | socios | Huerfano hasta B5 | Convertir en suscripciones_membresia (B5) |
 
-Deuda formal pendiente: 6 modulos productivos sin module.json declarado — atributos-custom, diagramacion-club, historial-deportivo, membresias, reportes-deportivos, salud-lesiones. Todos tienen codigo operativo + tablas declaradas en schema interno. Crear module.json formal queda como deuda menor para proximo sprint de hardening.
+Los 6 modulos que estaban sin module.json (atributos-custom, diagramacion-club, historial-deportivo, membresias, reportes-deportivos, salud-lesiones) fueron formalizados el 26-may-2026 con module.json v0.1.0 basado en evidencia del codigo.
 
 ---
 

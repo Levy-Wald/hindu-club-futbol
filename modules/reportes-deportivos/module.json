@@ -1,0 +1,24 @@
+{
+  "slug": "reportes-deportivos",
+  "name": "Reportes Deportivos",
+  "version": "0.1.0",
+  "category": "ccbp",
+  "portable": false,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": [],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": ["equipos", "partidos"],
+  "owns_tables": [],
+  "owns_catalogs": [],
+  "permissions_required": [],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": [
+    "/admin/reportes-deportivos"
+  ],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null,
+  "notes": "Read-only module — consumes views v_stats_equipo, v_performance_jugadores, v_comparativa_equipos. Does not own tables."
+}
