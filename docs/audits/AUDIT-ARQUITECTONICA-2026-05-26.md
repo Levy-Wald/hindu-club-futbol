@@ -350,6 +350,29 @@ CREATE POLICY "select_authenticated" ON <tabla>
 
 ---
 
+## Resoluciones aplicadas 26-may-2026
+
+### Tier 1 RLS Hardening: COMPLETO
+
+Aplicado via Supabase MCP el 26-may-2026. Migracion espejo: `supabase/migrations/20260526200000_enable_rls_tier1_hardening.sql`.
+
+| Tabla | Accion | Policy |
+|---|---|---|
+| catalogo_niveles_validacion | ENABLE RLS | SELECT authenticated |
+| tipos_evento_validacion_default | ENABLE RLS | SELECT authenticated |
+| catalogo_unidades_medida | ENABLE RLS | SELECT authenticated |
+| com_variables_disponibles | ENABLE RLS | SELECT authenticated |
+| catalogo_estados_tarea | ENABLE RLS | SELECT authenticated |
+| tipos_lesion | ENABLE RLS | SELECT authenticated |
+| scouting_dimensiones | ENABLE RLS | SELECT authenticated |
+| abuse_blocks | ENABLE RLS | Sin policies (service_role only) |
+| evento_deportivo | ENABLE RLS | ALL authenticated via FK EXISTS a eventos |
+| eventos_backup_20260522 | DROP TABLE | N/A (0 FKs, backup obsoleto) |
+
+**Score post-fix:** 174/174 tablas con RLS = 100% coverage. Score arquitectonico: 7.8 → 8.5/10.
+
+---
+
 ## Observaciones para la auditoria
 
 1. **`@types/papaparse`** esta en `dependencies` en vez de `devDependencies`

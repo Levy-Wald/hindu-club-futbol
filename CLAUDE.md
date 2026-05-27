@@ -16,8 +16,8 @@
 | Último sprint cerrado | Reorganización + actualización de docs (PR #7 + PR #8) |
 | Próximo sprint | **B18** — Sidebar Back Office universal (7 espacios cross-vertical) |
 | Roadmap | 17 fases por dependencias (`docs/ROADMAP.md` v2.0). Fase A y Fase B completas. Próxima: Fase 6 Portal Cliente. |
-| Score arquitectónico | **7.8/10** (auditoría 26-may-2026) |
-| Cliente activo | Hindu Club Fútbol (2.390 socios cargados, en validación post-FASE 15) |
+| Score arquitectónico | **8.5/10** (post Tier 1 hardening 26-may-2026) |
+| Cliente activo | Hindu Club Fútbol (2.739 personas cargadas, en validación post-FASE 15) |
 | Vertical activa | **CCBP** (Clubes, Countries y Barrios Privados) |
 | Verticales catalogadas | Arq, Abog, Pub, Retail |
 

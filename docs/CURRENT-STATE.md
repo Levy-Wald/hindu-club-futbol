@@ -18,10 +18,10 @@ Este documento describe **qué está hecho hoy, qué falta y qué está bloquead
 | **Vertical activa** | CCBP (Clubes, Countries y Barrios Privados) |
 | **Cliente productivo** | Hindu Club Fútbol (2.739 personas cargadas) |
 | **URL producción** | https://hindu-club.vercel.app |
-| **Tag actual** | `v0.30.24.2-docs-sync` |
+| **Tag actual** | `v0.30.24.5-tier1-hardening` |
 | **Próximo sprint** | B18 — Sidebar BO Universal 7 espacios |
 | **Roadmap (ROADMAP.md v2.0)** | Fases A y B completas. Próxima: Fase 6 (Portal Cliente Completo). |
-| **Score arquitectónico** | 7.8/10 (auditoría 26-may-2026) |
+| **Score arquitectónico** | 8.5/10 (post Tier 1 hardening 26-may-2026) |
 | **Bloqueante crítico** | CUIT SCL en trámite IGJ (legal, no técnico) |
 
 ---
@@ -55,7 +55,7 @@ Detalle completo: `docs/ARCHITECTURE.md` (canónico v3) + `docs/SYSTEM-DESIGN.md
 
 | Métrica | Valor |
 |---|---|
-| Tablas Supabase | **175** (165 con RLS, 10 sin RLS — deuda Tier 1) |
+| Tablas Supabase | **174** (174 con RLS = 100% coverage) |
 | Políticas RLS activas | **355** |
 | Funciones SQL | **~126** (creció por funciones helper de sprints recientes) |
 | Triggers | **97** |
@@ -115,8 +115,8 @@ Detalle completo: `docs/ARCHITECTURE.md` (canónico v3) + `docs/SYSTEM-DESIGN.md
 ### Multi-tenancy
 
 - ✅ Schema unificado con `tenant_id` en todas las tablas productivas.
-- ✅ 355 políticas RLS validadas.
-- ⚠️ 10 tablas pendientes de habilitar RLS (Tier 1 deuda técnica, ~30 min fix).
+- ✅ 355+ políticas RLS validadas (+ 8 nuevas del Tier 1 hardening).
+- ✅ 174/174 tablas con RLS habilitada (100% coverage post hardening 26-may).
 - ✅ Auth JWT propaga `tenant_id` correctamente.
 - ✅ Tests E2E validan aislamiento entre tenants demo.
 
@@ -165,7 +165,7 @@ Detalle por fase: `docs/ROADMAP.md`.
 
 ## Deuda técnica resumida (auditoría 26-may-2026)
 
-**Score:** 7.8/10 (sólido).  
+**Score:** 8.5/10 (post Tier 1 hardening).  
 **Total acciones identificadas:** 14, en 4 tiers.
 
 ### Tier 1 — Crítico, ~4-6h fix
@@ -174,8 +174,8 @@ Detalle por fase: `docs/ROADMAP.md`.
 |---|---|
 | Fix vitest alias `@/` | 15 min |
 | Eliminar dead deps `react-hook-form` | 10 min |
-| Habilitar RLS en 10 tablas faltantes | 30 min |
-| Drop `eventos_backup_20260522` | 5 min |
+| ~~Habilitar RLS en 10 tablas faltantes~~ | ~~30 min~~ ✅ CERRADO 26-may |
+| ~~Drop `eventos_backup_20260522`~~ | ~~5 min~~ ✅ CERRADO 26-may |
 | Fix 541 errores TS strict (mecánicos, 0% lógica) | ~10h fix |
 
 ### Tier 2-4
