@@ -4,7 +4,7 @@
 > Actualizado: 26 de mayo de 2026 (snapshot vivo via Supabase list_tables)
 > Fuente: inventario real via MCP Supabase
 
-Total: 175 tablas (165 con RLS, 10 sin RLS — ver deuda al final), 27 vistas (a verificar contra snapshot vivo), ~45 funciones SQL custom. Snapshot vivo ejecutado el 26-may-2026 via Supabase list_tables. Para snapshot del dia, consultar Supabase directamente.
+Total: 174 tablas (174 con RLS = 100% coverage), 27 vistas (a verificar contra snapshot vivo), ~45 funciones SQL custom. Snapshot vivo ejecutado el 26-may-2026 via Supabase list_tables. Tier 1 RLS hardening aplicado el 26-may-2026 (migración enable_rls_tier1_hardening). Para snapshot del dia, consultar Supabase directamente.
 
 ---
 
@@ -418,19 +418,19 @@ Las tablas de salud estan integradas en la familia de personas:
 
 ---
 
-## Tablas sin RLS (Deuda Tier 1 — auditoria 26-may-2026)
+## Tablas sin RLS (Deuda Tier 1 — auditoria 26-may-2026) — CERRADA
 
-Al 26-may-2026, 10 tablas tienen RLS deshabilitada y estan expuestas a roles anon y authenticated. Esto es deuda critica documentada que se resuelve en el proximo sprint de hardening (NO en este PR — habilitar RLS sin policies bloquea acceso a tablas legitimas):
+~~Al 26-may-2026, 10 tablas tenian RLS deshabilitada.~~ **RESUELTO el 26-may-2026** via migracion `enable_rls_tier1_hardening` aplicada en Supabase MCP:
 
-1. catalogo_niveles_validacion
-2. tipos_evento_validacion_default
-3. abuse_blocks
-4. catalogo_unidades_medida
-5. com_variables_disponibles
-6. catalogo_estados_tarea
-7. tipos_lesion
-8. scouting_dimensiones
-9. eventos_backup_20260522 (tambien es backup obsoleto — drop pendiente)
-10. evento_deportivo
+1. ~~catalogo_niveles_validacion~~ → RLS + SELECT authenticated
+2. ~~tipos_evento_validacion_default~~ → RLS + SELECT authenticated
+3. ~~abuse_blocks~~ → RLS sin policies (service_role only)
+4. ~~catalogo_unidades_medida~~ → RLS + SELECT authenticated
+5. ~~com_variables_disponibles~~ → RLS + SELECT authenticated
+6. ~~catalogo_estados_tarea~~ → RLS + SELECT authenticated
+7. ~~tipos_lesion~~ → RLS + SELECT authenticated
+8. ~~scouting_dimensiones~~ → RLS + SELECT authenticated
+9. ~~eventos_backup_20260522~~ → DROP (0 FKs, backup obsoleto)
+10. ~~evento_deportivo~~ → RLS heredando de eventos via FK EXISTS
 
-SQL de remediation listo en docs/audits/AUDIT-ARQUITECTONICA-2026-05-26.md (debe ir acompanado de policies segun naturaleza de cada tabla — catalogos tipicamente "SELECT para todos los autenticados", tablas operativas tipicamente filtro por tenant_id).
+**Estado post-fix:** 174/174 tablas con RLS = 100% coverage. Migracion espejo en `supabase/migrations/20260526200000_enable_rls_tier1_hardening.sql`.
