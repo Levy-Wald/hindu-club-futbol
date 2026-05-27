@@ -1,6 +1,6 @@
 # ADR-055: Arquitectura de capabilities multivertical para SaaS Modular Vertical
 
-**Status**: Accepted
+**Status**: Superseded by ADR-062
 **Date**: 2026-05-18
 **Context**: Sprint B8 (FASE B' extendido)
 

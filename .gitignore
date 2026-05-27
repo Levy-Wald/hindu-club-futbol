@@ -42,6 +42,13 @@ yarn-error.log*
 /SPRINT-*.md
 AGENTS.md
 
+# handoffs y borradores temporales
+*_handoff*
+*_v1.*_actualizada*
+*_actualizado*
+*_Ficha_Tecnica_*
+*_Cambios_aplicados_*
+
 # vercel
 .vercel
 

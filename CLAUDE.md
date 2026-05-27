@@ -4,7 +4,7 @@
 **Propietario:** Servicios cLevel SRL (CUIT en trámite IGJ)  
 **Repo:** github.com/yamiro12/hindu-club-futbol  
 **URL producción:** https://hindu-club.vercel.app  
-**Última actualización:** 26-may-2026
+**Última actualización:** 27-may-2026
 
 ---
 
@@ -12,9 +12,9 @@
 
 | Campo | Valor |
 |---|---|
-| Tag actual | `v0.30.24.2-docs-sync` |
-| Último sprint cerrado | Reorganización + actualización de docs (PR #7 + PR #8) |
-| Próximo sprint | **B18** — Sidebar Back Office universal (7 espacios cross-vertical) |
+| Tag actual | `v0.35.3-loading-selectivo` |
+| Último sprint cerrado | A4.5 (paridad eventos planificadores) + D (loading selectivo) |
+| Próximo sprint | **C0** — Cierre fase pre-launch |
 | Roadmap | 17 fases por dependencias (`docs/ROADMAP.md` v2.0). Fase A y Fase B completas. Próxima: Fase 6 Portal Cliente. |
 | Score arquitectónico | **8.5/10** (post Tier 1 hardening 26-may-2026) |
 | Cliente activo | Hindu Club Fútbol (2.739 personas cargadas, en validación post-FASE 15) |
@@ -60,15 +60,15 @@
 
 | Capa | Tecnología |
 |---|---|
-| Runtime | Node.js 20 LTS |
-| Framework | **Next.js 15** (App Router + RSC) |
+| Runtime | Node.js 24.x LTS |
+| Framework | **Next.js 16.2.x** (App Router + RSC) |
 | UI | **React 19** + **Tailwind 4** + **shadcn v4** sobre **base-ui** (NO Radix) |
 | Lenguaje | TypeScript 5.x estricto |
 | Backend | Supabase (Postgres 15 + Auth + RLS + Storage + Edge Fn) |
 | Tests E2E | Playwright |
 | Tests unit | Vitest |
 | Deploy | Vercel (auto-deploy en push a `main`) |
-| Package manager | pnpm 9.x |
+| Package manager | pnpm 10.x |
 | CI | GitHub Actions |
 
 ---
@@ -144,6 +144,8 @@
 | `docs/VISUAL-GALLERY.md` | Índice de capturas visuales |
 | `docs/MENORES-TUTORES.md` | Spec de negocio (menores + tutores) |
 | `docs/CURRENT-STATE.md` | Estado actual concreto |
+| `docs/CONVENTIONS.md` | Convenciones operativas (tags, versionado Drive, etc.) |
+| `docs/HANDOFF.md` | Checklist de continuidad entre sesiones IA |
 | `docs/DECISIONS.md` | ADR-001 a ADR-046 consolidados |
 | `docs/adr/` | ADRs individuales (ADR-047+) |
 | `docs/rfcs/` | RFC-001 a RFC-005 |
@@ -190,7 +192,8 @@
 | ADR-048 | Roles y permisos multi-tenant |
 | ADR-052 | Auditoría inmutable de operaciones críticas |
 | ADR-058 | Migraciones SQL versionadas + reversibles |
-| ADR-061 | Estrategia de degradación graceful en Edge Functions |
+| ADR-061 | Drift TS-BD silenciado Supabase |
+| ADR-062 | Modelado subtipos CCBP (supersedes ADR-055) |
 
 Lista completa: `docs/DECISIONS.md` (consolidado ADR-001 a ADR-046) + `docs/adr/` (individuales).
 
