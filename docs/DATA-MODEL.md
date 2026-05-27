@@ -1,9 +1,10 @@
 # Modelo de datos
 
 > Generado: 15 de mayo de 2026 (Sprint H4, Tramo 2 Hardening)
+> Actualizado: 26 de mayo de 2026 (snapshot vivo via Supabase list_tables)
 > Fuente: inventario real via MCP Supabase
 
-Total: 140 tablas, 27 vistas, ~45 funciones SQL custom.
+Total: 175 tablas (165 con RLS, 10 sin RLS — ver deuda al final), 27 vistas (a verificar contra snapshot vivo), ~45 funciones SQL custom. Snapshot vivo ejecutado el 26-may-2026 via Supabase list_tables. Para snapshot del dia, consultar Supabase directamente.
 
 ---
 
@@ -414,3 +415,22 @@ Las tablas de salud estan integradas en la familia de personas:
 | trg_audit_log_personas | Audit log para cambios en personas |
 | trg_audit_log_tenants | Audit log para cambios en tenants |
 | trg_categorias_no_ciclo | Previene ciclos en categorias jerarquicas |
+
+---
+
+## Tablas sin RLS (Deuda Tier 1 — auditoria 26-may-2026)
+
+Al 26-may-2026, 10 tablas tienen RLS deshabilitada y estan expuestas a roles anon y authenticated. Esto es deuda critica documentada que se resuelve en el proximo sprint de hardening (NO en este PR — habilitar RLS sin policies bloquea acceso a tablas legitimas):
+
+1. catalogo_niveles_validacion
+2. tipos_evento_validacion_default
+3. abuse_blocks
+4. catalogo_unidades_medida
+5. com_variables_disponibles
+6. catalogo_estados_tarea
+7. tipos_lesion
+8. scouting_dimensiones
+9. eventos_backup_20260522 (tambien es backup obsoleto — drop pendiente)
+10. evento_deportivo
+
+SQL de remediation listo en docs/audits/AUDIT-ARQUITECTONICA-2026-05-26.md (debe ir acompanado de policies segun naturaleza de cada tabla — catalogos tipicamente "SELECT para todos los autenticados", tablas operativas tipicamente filtro por tenant_id).

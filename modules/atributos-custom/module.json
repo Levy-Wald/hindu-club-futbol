@@ -1,0 +1,29 @@
+{
+  "slug": "atributos-custom",
+  "name": "Atributos Custom",
+  "version": "0.1.0",
+  "category": "troncal",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas", "entidades"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": [],
+  "owns_tables": [
+    "atributos_custom_definicion",
+    "atributos_custom_valores",
+    "vinculos_cross"
+  ],
+  "owns_catalogs": [],
+  "permissions_required": [],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": [
+    "/admin/configuracion/atributos-custom",
+    "/admin/personas/[id] (tab atributos)",
+    "/admin/entidades/[id] (tab atributos)"
+  ],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

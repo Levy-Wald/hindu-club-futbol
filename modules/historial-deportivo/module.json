@@ -1,0 +1,28 @@
+{
+  "slug": "historial-deportivo",
+  "name": "Historial Deportivo",
+  "version": "0.1.0",
+  "category": "ccbp",
+  "portable": false,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": [],
+  "owns_tables": [
+    "persona_logros",
+    "persona_trayectoria_clubes"
+  ],
+  "owns_catalogs": [],
+  "permissions_required": [],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": [
+    "/admin/personas/[id]/historial"
+  ],
+  "api_endpoints": [
+    "/api/historial-deportivo/[personaId]"
+  ],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

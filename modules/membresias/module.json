@@ -1,0 +1,30 @@
+{
+  "slug": "membresias",
+  "name": "Membresias",
+  "version": "0.1.0",
+  "category": "cross-vertical",
+  "portable": true,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": ["personas"],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": ["equipos"],
+  "owns_tables": [
+    "suscripciones"
+  ],
+  "owns_catalogs": [],
+  "permissions_required": [
+    "cobranza.write"
+  ],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": [
+    "/admin/membresias",
+    "/admin/membresias/dashboard"
+  ],
+  "api_endpoints": [
+    "/api/dashboard/mi-membresia"
+  ],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}

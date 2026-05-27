@@ -319,6 +319,37 @@ hindu-v2/
 
 ---
 
+## Validacion 26-may post-actions — Tablas sin RLS
+
+SQL para habilitar RLS en las 10 tablas pendientes. **Cada ALTER TABLE debe ir acompanado de al menos una policy** (sino la tabla queda inaccesible para todos los roles):
+
+```sql
+-- Catalogos (tipicamente SELECT para authenticated)
+ALTER TABLE catalogo_niveles_validacion ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tipos_evento_validacion_default ENABLE ROW LEVEL SECURITY;
+ALTER TABLE catalogo_unidades_medida ENABLE ROW LEVEL SECURITY;
+ALTER TABLE com_variables_disponibles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE catalogo_estados_tarea ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tipos_lesion ENABLE ROW LEVEL SECURITY;
+ALTER TABLE scouting_dimensiones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evento_deportivo ENABLE ROW LEVEL SECURITY;
+
+-- Operativa (filtro por tenant_id)
+ALTER TABLE abuse_blocks ENABLE ROW LEVEL SECURITY;
+
+-- Backup obsoleto (DROP preferido sobre habilitar RLS)
+-- DROP TABLE IF EXISTS eventos_backup_20260522;
+```
+
+**Nota:** no ejecutar sin crear policies primero. Template de policy para catalogos:
+
+```sql
+CREATE POLICY "select_authenticated" ON <tabla>
+  FOR SELECT TO authenticated USING (true);
+```
+
+---
+
 ## Observaciones para la auditoria
 
 1. **`@types/papaparse`** esta en `dependencies` en vez de `devDependencies`

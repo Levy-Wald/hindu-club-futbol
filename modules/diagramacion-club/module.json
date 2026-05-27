@@ -1,0 +1,25 @@
+{
+  "slug": "diagramacion-club",
+  "name": "Diagramacion del Club",
+  "version": "0.1.0",
+  "category": "ccbp",
+  "portable": false,
+  "owner": "clubcore-team",
+  "license": "proprietary",
+  "depends_on_troncal": [],
+  "depends_on_modules": [],
+  "soft_depends_on_modules": ["espacios"],
+  "owns_tables": [
+    "diagramacion_club"
+  ],
+  "owns_catalogs": [],
+  "permissions_required": [],
+  "events_emits": [],
+  "events_consumes": [],
+  "ui_routes": [
+    "/admin/club/mapa"
+  ],
+  "api_endpoints": [],
+  "replaceable_by_external": false,
+  "external_adapter_interface": null
+}
