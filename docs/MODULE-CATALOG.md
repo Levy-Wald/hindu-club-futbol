@@ -1,7 +1,7 @@
 # Catalogo de modulos
 
-> Generado: 15 de mayo de 2026 (Sprint H4, Tramo 2 Hardening)
-> Total: 29 modulos fisicos en `modules/`
+> Generado: 26 de mayo de 2026 (post audit + module catalog sync)
+> Total: 37 modulos fisicos en `modules/`
 
 ---
 
@@ -14,8 +14,11 @@
 | comunicaciones | Motor Comunicaciones | com_plantillas, com_envios, com_mensajes, com_jobs_log | PARCIAL (~60%) |
 | eventos_calendario | Eventos & Calendario | eventos, evento_asistencias, evento_invitados | DONE |
 | notificaciones | Auditoria & Seguridad | notificaciones | DONE |
+| atributos-custom | Plataforma | atributos_custom_definicion, atributos_custom_valores, vinculos_cross | DONE (pendiente module.json) |
+| eventos | Plataforma | UI backbone (ADR-042) — tablas en eventos_calendario | DONE |
+| proyectos | Plataforma | proyectos, proyecto_tareas, proyecto_miembros, proyecto_comentarios | DONE |
 
-**Nota**: CRM (personas, entidades, padrones, imports) vive en troncal (`app/admin/(troncal)/`) sin modulo en `modules/`. Cobranza recurrente (cuotas, emisiones, suscripciones) tambien esta en troncal. Proyectos & Tareas pendiente (A6).
+**Nota**: CRM (personas, entidades, padrones, imports) vive en troncal (`app/admin/(troncal)/`) sin modulo en `modules/`. Cobranza recurrente (cuotas, emisiones, suscripciones) tambien esta en troncal. Proyectos & Tareas — en produccion en Capa 0 Troncal (modulo proyectos).
 
 ---
 
@@ -33,6 +36,7 @@
 | nominas_externas | nominas_externas, nomina_externa_items | DONE |
 | espacios | espacios | DONE |
 | solicitudes | solicitudes | DONE |
+| membresias | suscripciones, v_resumen_membresias, v_socios_activos | DONE (pendiente module.json) |
 | socios | suscripciones (compartida con cobranza) | HUERFANO hasta B5 (convertir en suscripciones_membresia) |
 | proveedores | producto_proveedores (compartida con PIM) | HUERFANO (posible absorcion en entidades) |
 
@@ -52,6 +56,10 @@
 | planificadores | (usa eventos + calendario) | DONE |
 | salud | personas_datos_medicos, personas_lesiones, personas_autorizaciones, personas_documentos_medicos, personas_contactos_emergencia, personas_obra_social | DONE (UI parcial, B1 completa) |
 | scouting | scouting_fichas | NO UI (tabla existe, B3 construye UI) |
+| diagramacion-club | diagramacion_club, espacios, sedes | DONE (pendiente module.json) |
+| historial-deportivo | persona_logros, persona_trayectoria_clubes | DONE (pendiente module.json) |
+| reportes-deportivos | v_comparativa_equipos, v_performance_jugadores, v_stats_equipo | PARCIAL (read-only, sin module.json) |
+| salud-lesiones | personas_lesiones, tipos_lesion, v_personas_lesionadas_activas | DONE (pendiente module.json) |
 | disciplinas | personas_disciplinas, catalogo_disciplinas | HUERFANO (sin UI conectada) |
 | talles | personas_talles, catalogo_tipos_talle | HUERFANO (validar uso post FASE C) |
 
@@ -61,8 +69,8 @@
 
 | Estado | Cantidad | Modulos |
 |---|---|---|
-| DONE | 22 | pim, finanzas, eventos_calendario, notificaciones, asistencias, reservas, concesiones, utileria, acceso, pre_inscripciones, rrhh, nominas_externas, espacios, solicitudes, equipos, entrenamientos, amistosos, tactica, competencias, torneos, partidos, planificadores |
-| PARCIAL | 2 | comunicaciones (~60%), salud (UI parcial) |
+| DONE | 29 | pim, finanzas, eventos_calendario, notificaciones, atributos-custom, eventos, proyectos, asistencias, reservas, concesiones, utileria, acceso, pre_inscripciones, rrhh, nominas_externas, espacios, solicitudes, membresias, equipos, entrenamientos, amistosos, tactica, competencias, torneos, partidos, planificadores, diagramacion-club, historial-deportivo, salud-lesiones |
+| PARCIAL | 3 | comunicaciones (~60%), salud (UI parcial), reportes-deportivos (read-only) |
 | HUERFANO | 4 | socios, proveedores, disciplinas, talles |
 | NO UI | 1 | scouting (tabla existe) |
 
@@ -76,6 +84,8 @@
 | proveedores | Posible duplicado con entidades | Decidir absorcion en entidades |
 | talles | Necesidad incierta | Validar uso post FASE C |
 | socios | Huerfano hasta B5 | Convertir en suscripciones_membresia (B5) |
+
+Deuda formal pendiente: 6 modulos productivos sin module.json declarado — atributos-custom, diagramacion-club, historial-deportivo, membresias, reportes-deportivos, salud-lesiones. Todos tienen codigo operativo + tablas declaradas en schema interno. Crear module.json formal queda como deuda menor para proximo sprint de hardening.
 
 ---
 
@@ -93,6 +103,13 @@
 | entrenamientos | equipos, eventos_calendario |
 | amistosos | equipos, eventos_calendario, partidos |
 | salud | (solo troncal: personas) |
+| salud-lesiones | salud, equipos |
 | scouting | equipos |
 | comunicaciones | (solo troncal: personas) |
 | finanzas | pim (productos para tipo_uso → cuentas) |
+| eventos | eventos_calendario (tablas), equipos, notificaciones |
+| proyectos | (solo troncal: personas) |
+| membresias | (solo troncal: personas, suscripciones) |
+| historial-deportivo | (solo troncal: personas) |
+| diagramacion-club | espacios |
+| reportes-deportivos | equipos, partidos |
