@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import { TENANT_ID } from '@/lib/tenant'
 import { canVerPlanificador } from '@/modules/planificadores/lib/permisos'
 import { obtenerEventosPorMes } from '@/modules/planificadores/lib/queries'
 import { CalendarioMensual } from '@/modules/planificadores/ui/calendario-mensual'
@@ -32,8 +34,17 @@ export default async function PlanificadorMensualPage(props: {
   const now = new Date()
   const year = parseInt(searchParams.year ?? String(now.getFullYear()))
   const month = parseInt(searchParams.month ?? String(now.getMonth() + 1))
+  const tenant_id = persona.tenant_id ?? TENANT_ID
+  const service = createServiceRoleClient()
 
-  const eventos = await obtenerEventosPorMes(year, month, persona.tenant_id)
+  const [eventos, sedesResult, equiposResult, personasResult, entidadesResult, espaciosResult] = await Promise.all([
+    obtenerEventosPorMes(year, month, tenant_id),
+    service.from('sedes').select('id, nombre').eq('tenant_id', tenant_id).is('deleted_at', null).order('nombre'),
+    service.from('equipos').select('id, nombre').eq('tenant_id', tenant_id).is('deleted_at', null).order('nombre'),
+    service.from('personas').select('id, nombre, apellido').eq('tenant_id', tenant_id).is('deleted_at', null).order('apellido').limit(500),
+    service.from('entidades').select('id, nombre').eq('tenant_id', tenant_id).is('deleted_at', null).order('nombre'),
+    service.from('espacios').select('id, nombre').eq('tenant_id', tenant_id).is('deleted_at', null).order('nombre'),
+  ])
 
   return (
     <div className="container mx-auto p-4">
@@ -46,7 +57,12 @@ export default async function PlanificadorMensualPage(props: {
         year={year}
         month={month}
         personaId={persona.id}
-        tenantId={persona.tenant_id}
+        tenantId={tenant_id}
+        sedes={sedesResult.data ?? []}
+        equipos={(equiposResult.data ?? []) as { id: string; nombre: string }[]}
+        personas={(personasResult.data ?? []) as { id: string; nombre: string; apellido: string }[]}
+        entidades={(entidadesResult.data ?? []) as { id: string; nombre: string }[]}
+        espacios={(espaciosResult.data ?? []) as { id: string; nombre: string }[]}
       />
     </div>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
-import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
+import { Calendar, dateFnsLocalizer, type SlotInfo } from 'react-big-calendar'
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop'
 import { format, parse, startOfWeek, getDay } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -10,6 +10,7 @@ import { moverEventoAction } from '../lib/actions'
 import { ModalDetalleEvento } from './modal-detalle-evento'
 import { ModalMoverRecurrente } from './modal-mover-recurrente'
 import { WarningOverlap } from './warning-overlap'
+import { CrearEventoDialog } from '@/modules/eventos/ui/crear-evento-dialog'
 import type { EventoCalendar, ConflictoOverlap, MoverEventoScope } from '../lib/types'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
@@ -46,13 +47,24 @@ export function CalendarioMensual({
   eventos: eventosIniciales,
   year,
   month,
+  personaId,
   tenantId,
+  sedes = [],
+  equipos = [],
+  personas = [],
+  entidades = [],
+  espacios = [],
 }: {
   eventos: EventoCalendar[]
   year: number
   month: number
   personaId: string
   tenantId: string
+  sedes?: { id: string; nombre: string }[]
+  equipos?: { id: string; nombre: string }[]
+  personas?: { id: string; nombre: string; apellido: string }[]
+  entidades?: { id: string; nombre: string }[]
+  espacios?: { id: string; nombre: string }[]
 }) {
   const router = useRouter()
   const [eventos, setEventos] = useState(eventosIniciales)
@@ -61,6 +73,8 @@ export function CalendarioMensual({
   const [conflictoInfo, setConflictoInfo] = useState<{ drop: PendienteDrop; conflicto: ConflictoOverlap; scope: MoverEventoScope } | null>(null)
   const [moviendo, setMoviendo] = useState(false)
   const [isTouch, setIsTouch] = useState(false)
+  const [crearEventoOpen, setCrearEventoOpen] = useState(false)
+  const [nuevoEventoFecha, setNuevoEventoFecha] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     setIsTouch(isTouchDevice())
@@ -159,6 +173,16 @@ export function CalendarioMensual({
     router.push(`/admin/planificadores/mensual?year=${newYear}&month=${newMonth}`)
   }, [router])
 
+  const handleSelectSlot = useCallback((slotInfo: SlotInfo) => {
+    setNuevoEventoFecha(format(slotInfo.start, 'yyyy-MM-dd'))
+    setCrearEventoOpen(true)
+  }, [])
+
+  const handleNuevoEvento = useCallback(() => {
+    setNuevoEventoFecha(format(new Date(), 'yyyy-MM-dd'))
+    setCrearEventoOpen(true)
+  }, [])
+
   const messages = useMemo(() => ({
     today: 'Hoy',
     previous: 'Anterior',
@@ -175,6 +199,31 @@ export function CalendarioMensual({
 
   return (
     <div data-testid="calendario-mensual">
+      <div className="flex items-center justify-end mb-3">
+        <button
+          type="button"
+          onClick={handleNuevoEvento}
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          data-testid="btn-nuevo-evento-planificador"
+        >
+          + Nuevo evento
+        </button>
+      </div>
+
+      <CrearEventoDialog
+        open={crearEventoOpen}
+        onOpenChange={(v) => { setCrearEventoOpen(v); if (!v) setNuevoEventoFecha(undefined) }}
+        defaultFecha={nuevoEventoFecha}
+        moduloOrigen="planificadores"
+        sedes={sedes}
+        equipos={equipos}
+        personas={personas}
+        entidades={entidades}
+        espacios={espacios}
+        personaId={personaId}
+        tenantId={tenantId}
+      />
+
       {isTouch && (
         <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-md text-sm text-blue-700 dark:text-blue-300">
           Para mover eventos, usá la versión de escritorio.
@@ -198,6 +247,8 @@ export function CalendarioMensual({
         defaultDate={defaultDate}
         onEventDrop={isTouch ? undefined : handleEventDrop}
         draggableAccessor={() => !isTouch}
+        selectable
+        onSelectSlot={handleSelectSlot}
         onSelectEvent={(event) => setSeleccionado(event as EventoCalendar)}
         eventPropGetter={eventPropGetter}
         onNavigate={handleNavigate}

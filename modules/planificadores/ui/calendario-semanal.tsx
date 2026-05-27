@@ -10,7 +10,7 @@ import { moverEventoAction } from '../lib/actions'
 import { ModalDetalleEvento } from './modal-detalle-evento'
 import { ModalMoverRecurrente } from './modal-mover-recurrente'
 import { WarningOverlap } from './warning-overlap'
-import { CrearEventoDialog } from './crear-evento-dialog'
+import { CrearEventoDialog } from '@/modules/eventos/ui/crear-evento-dialog'
 import type { EventoCalendar, ConflictoOverlap, MoverEventoScope } from '../lib/types'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
@@ -46,9 +46,13 @@ type PendienteDrop = {
 export function CalendarioSemanal({
   eventos: eventosIniciales,
   fechaInicioStr,
+  personaId,
   tenantId,
   sedes = [],
   equipos = [],
+  personas = [],
+  entidades = [],
+  espacios = [],
 }: {
   eventos: EventoCalendar[]
   fechaInicioStr: string // 'yyyy-MM-dd' — constructed to Date on client to avoid timezone shift
@@ -56,6 +60,9 @@ export function CalendarioSemanal({
   tenantId: string
   sedes?: { id: string; nombre: string }[]
   equipos?: { id: string; nombre: string }[]
+  personas?: { id: string; nombre: string; apellido: string }[]
+  entidades?: { id: string; nombre: string }[]
+  espacios?: { id: string; nombre: string }[]
 }) {
   const fechaInicio = useMemo(() => new Date(`${fechaInicioStr}T12:00:00`), [fechaInicioStr])
   const router = useRouter()
@@ -225,8 +232,14 @@ export function CalendarioSemanal({
         defaultFecha={nuevoEventoSlot ? format(nuevoEventoSlot.start, 'yyyy-MM-dd') : undefined}
         defaultHoraInicio={nuevoEventoSlot ? format(nuevoEventoSlot.start, 'HH:mm') : undefined}
         defaultHoraFin={nuevoEventoSlot ? format(nuevoEventoSlot.end, 'HH:mm') : undefined}
+        moduloOrigen="planificadores"
         sedes={sedes}
         equipos={equipos}
+        personas={personas}
+        entidades={entidades}
+        espacios={espacios}
+        personaId={personaId}
+        tenantId={tenantId}
       />
 
       {isTouch && (

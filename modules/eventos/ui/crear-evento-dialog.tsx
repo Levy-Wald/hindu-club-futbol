@@ -65,6 +65,9 @@ interface CrearEventoDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultFecha?: string
+  defaultHoraInicio?: string
+  defaultHoraFin?: string
+  moduloOrigen?: string
   sedes: { id: string; nombre: string }[]
   equipos: { id: string; nombre: string }[]
   personas: { id: string; nombre: string; apellido: string }[]
@@ -78,6 +81,9 @@ export function CrearEventoDialog({
   open,
   onOpenChange,
   defaultFecha,
+  defaultHoraInicio,
+  defaultHoraFin,
+  moduloOrigen,
   sedes,
   equipos,
   personas,
@@ -102,8 +108,8 @@ export function CrearEventoDialog({
 
   // Horarios
   const [horaConvocatoria, setHoraConvocatoria] = useState('')
-  const [horaInicio, setHoraInicio] = useState('')
-  const [horaFin, setHoraFin] = useState('')
+  const [horaInicio, setHoraInicio] = useState(defaultHoraInicio ?? '')
+  const [horaFin, setHoraFin] = useState(defaultHoraFin ?? '')
 
   // Recurrence
   const [periodicidad, setPeriodicidad] = useState('nunca')
@@ -264,7 +270,7 @@ export function CrearEventoDialog({
           fecha_fin: fechaFin,
           hora_inicio: horaInicio || undefined,
           hora_fin: horaFin || undefined,
-          modulo_origen: 'manual',
+          modulo_origen: moduloOrigen ?? 'manual',
           periodicidad: periodicidad as 'nunca',
           dias_semana: periodicidad === 'dias_semana' ? diasSemana : undefined,
           fecha_fin_recurrencia: periodicidad !== 'nunca' && fechaFinRecurrencia ? fechaFinRecurrencia : undefined,
