@@ -37,11 +37,10 @@ export default async function PlanificadorMensualPage(props: {
   const tenant_id = persona.tenant_id ?? TENANT_ID
   const service = createServiceRoleClient()
 
-  const [eventos, sedesResult, equiposResult, personasResult, entidadesResult, espaciosResult] = await Promise.all([
+  const [eventos, sedesResult, equiposResult, entidadesResult, espaciosResult] = await Promise.all([
     obtenerEventosPorMes(year, month, tenant_id),
     service.from('sedes').select('id, nombre').eq('tenant_id', tenant_id).is('deleted_at', null).order('nombre'),
     service.from('equipos').select('id, nombre').eq('tenant_id', tenant_id).is('deleted_at', null).order('nombre'),
-    service.from('personas').select('id, nombre, apellido').eq('tenant_id', tenant_id).is('deleted_at', null).order('apellido').limit(500),
     service.from('entidades').select('id, nombre').eq('tenant_id', tenant_id).is('deleted_at', null).order('nombre'),
     service.from('espacios').select('id, nombre').eq('tenant_id', tenant_id).is('deleted_at', null).order('nombre'),
   ])
@@ -60,7 +59,6 @@ export default async function PlanificadorMensualPage(props: {
         tenantId={tenant_id}
         sedes={sedesResult.data ?? []}
         equipos={(equiposResult.data ?? []) as { id: string; nombre: string }[]}
-        personas={(personasResult.data ?? []) as { id: string; nombre: string; apellido: string }[]}
         entidades={(entidadesResult.data ?? []) as { id: string; nombre: string }[]}
         espacios={(espaciosResult.data ?? []) as { id: string; nombre: string }[]}
       />

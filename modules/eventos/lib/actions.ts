@@ -43,6 +43,32 @@ function generateCodigoAcceso(): string {
   return randomBytes(6).toString('base64url').slice(0, 10).toUpperCase()
 }
 
+// ── Buscar personas para combobox de invitados (server-side) ──
+
+export async function buscarPersonasEvento(
+  tenantId: string,
+  query: string
+): Promise<{ ok: true; data: { id: string; nombre: string; apellido: string; numero_documento: string | null }[] } | { ok: false; data: [] }> {
+  if (!query || query.trim().length < 2) {
+    return { ok: true, data: [] }
+  }
+
+  const supabase = await createClient()
+  const q = query.trim()
+
+  const { data, error } = await supabase
+    .from('personas')
+    .select('id, nombre, apellido, numero_documento')
+    .eq('tenant_id', tenantId)
+    .is('deleted_at', null)
+    .or(`nombre.ilike.%${q}%,apellido.ilike.%${q}%,numero_documento.ilike.%${q}%`)
+    .order('apellido')
+    .limit(25)
+
+  if (error) return { ok: false, data: [] }
+  return { ok: true, data: data ?? [] }
+}
+
 // ── Crear evento (basic, no invitados) ──
 
 export async function crearEventoAction(

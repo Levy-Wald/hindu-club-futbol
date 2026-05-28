@@ -9,7 +9,6 @@ import { FiltrosCalendario } from './filtros-calendario'
 export function ToolbarCalendario({
   sedes,
   equipos,
-  personas,
   entidades,
   espacios,
   personaId,
@@ -17,7 +16,6 @@ export function ToolbarCalendario({
 }: {
   sedes: { id: string; nombre: string }[]
   equipos: { id: string; nombre: string }[]
-  personas: { id: string; nombre: string; apellido: string }[]
   entidades: { id: string; nombre: string }[]
   espacios: { id: string; nombre: string }[]
   personaId: string
@@ -40,7 +38,6 @@ export function ToolbarCalendario({
         onOpenChange={setCrearOpen}
         sedes={sedes}
         equipos={equipos}
-        personas={personas}
         entidades={entidades}
         espacios={espacios}
         personaId={personaId}

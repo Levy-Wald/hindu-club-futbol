@@ -51,7 +51,6 @@ export function CalendarioMensual({
   tenantId,
   sedes = [],
   equipos = [],
-  personas = [],
   entidades = [],
   espacios = [],
 }: {
@@ -62,7 +61,6 @@ export function CalendarioMensual({
   tenantId: string
   sedes?: { id: string; nombre: string }[]
   equipos?: { id: string; nombre: string }[]
-  personas?: { id: string; nombre: string; apellido: string }[]
   entidades?: { id: string; nombre: string }[]
   espacios?: { id: string; nombre: string }[]
 }) {
@@ -217,7 +215,6 @@ export function CalendarioMensual({
         moduloOrigen="planificadores"
         sedes={sedes}
         equipos={equipos}
-        personas={personas}
         entidades={entidades}
         espacios={espacios}
         personaId={personaId}

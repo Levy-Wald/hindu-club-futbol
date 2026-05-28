@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useMemo } from 'react'
+import { useState, useTransition, useMemo, useRef, useCallback } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Combobox } from '@/components/ui/combobox'
-import { crearEventoConInvitacionesAction } from '../lib/actions'
+import { crearEventoConInvitacionesAction, buscarPersonasEvento } from '../lib/actions'
 import type { InvitadoInput } from '../lib/types'
 import { useRouter } from 'next/navigation'
 import { X, Plus, Shuffle, Calendar } from 'lucide-react'
@@ -70,7 +70,6 @@ interface CrearEventoDialogProps {
   moduloOrigen?: string
   sedes: { id: string; nombre: string }[]
   equipos: { id: string; nombre: string }[]
-  personas: { id: string; nombre: string; apellido: string }[]
   entidades: { id: string; nombre: string }[]
   espacios: { id: string; nombre: string }[]
   personaId: string
@@ -86,7 +85,6 @@ export function CrearEventoDialog({
   moduloOrigen,
   sedes,
   equipos,
-  personas,
   entidades,
   espacios,
   personaId,
@@ -129,6 +127,29 @@ export function CrearEventoDialog({
   const [personaSearch, setPersonaSearch] = useState('')
   const [entidadSearch, setEntidadSearch] = useState('')
 
+  // Server-side persona search
+  const [personaResults, setPersonaResults] = useState<{ id: string; nombre: string; apellido: string }[]>([])
+  const [personaSearching, setPersonaSearching] = useState(false)
+  const personaDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Labels for invitados (persona names resolved at selection time)
+  const [invitadoLabels, setInvitadoLabels] = useState<Record<string, string>>({})
+
+  const handlePersonaSearchChange = useCallback((query: string) => {
+    setPersonaSearch(query)
+    if (personaDebounceRef.current) clearTimeout(personaDebounceRef.current)
+    if (query.trim().length < 2) {
+      setPersonaResults([])
+      return
+    }
+    setPersonaSearching(true)
+    personaDebounceRef.current = setTimeout(async () => {
+      const res = await buscarPersonasEvento(tenantId, query)
+      setPersonaResults(res.data)
+      setPersonaSearching(false)
+    }, 250)
+  }, [tenantId])
+
   // Espacios filtered by sede
   const espaciosFiltrados = useMemo(() => {
     if (!sedeId) return espacios
@@ -163,6 +184,8 @@ export function CrearEventoDialog({
     setEquipoSearch('')
     setPersonaSearch('')
     setEntidadSearch('')
+    setPersonaResults([])
+    setInvitadoLabels({})
     setError(null)
     setSuccessInfo(null)
   }
@@ -191,10 +214,12 @@ export function CrearEventoDialog({
     setEquipoSearch('')
   }
 
-  function addInvitadoPersona(personaId: string) {
+  function addInvitadoPersona(personaId: string, label: string) {
     if (!personaId || invitados.some(i => i.tipo === 'persona' && i.ref_id === personaId)) return
     setInvitados(prev => [...prev, { tipo: 'persona', ref_id: personaId }])
+    setInvitadoLabels(prev => ({ ...prev, [personaId]: label }))
     setPersonaSearch('')
+    setPersonaResults([])
   }
 
   function addInvitadoEntidad(entidadId: string) {
@@ -218,8 +243,7 @@ export function CrearEventoDialog({
   function getInvitadoLabel(inv: InvitadoInput): string {
     if (inv.tipo === 'email_externo') return inv.email ?? ''
     if (inv.tipo === 'persona') {
-      const p = personas.find(p => p.id === inv.ref_id)
-      return p ? `${p.nombre} ${p.apellido}` : inv.ref_id ?? ''
+      return invitadoLabels[inv.ref_id ?? ''] ?? inv.ref_id ?? ''
     }
     if (inv.tipo === 'equipo') {
       return equipos.find(e => e.id === inv.ref_id)?.nombre ?? inv.ref_id ?? ''
@@ -239,10 +263,10 @@ export function CrearEventoDialog({
   )
 
   const personaOptions = useMemo(() =>
-    personas
+    personaResults
       .filter(p => !invitados.some(i => i.tipo === 'persona' && i.ref_id === p.id))
       .map(p => ({ value: p.id, label: `${p.nombre} ${p.apellido}` })),
-    [personas, invitados]
+    [personaResults, invitados]
   )
 
   const entidadOptions = useMemo(() =>
@@ -494,23 +518,21 @@ export function CrearEventoDialog({
                 </div>
               )}
 
-              {/* Personas */}
-              {personas.length > 0 && (
-                <div className="space-y-1">
-                  <Label className="text-xs">Personas</Label>
-                  <Combobox
-                    value={personaSearch}
-                    onChange={(v) => {
-                      const match = personaOptions.find(o => o.value === v)
-                      if (match) { addInvitadoPersona(match.value); return }
-                      setPersonaSearch(v)
-                    }}
-                    options={personaOptions}
-                    placeholder="Buscar persona..."
-                    allowCreate={false}
-                  />
-                </div>
-              )}
+              {/* Personas (server-side search) */}
+              <div className="space-y-1">
+                <Label className="text-xs">Personas</Label>
+                <Combobox
+                  value={personaSearch}
+                  onChange={(v) => {
+                    const match = personaOptions.find(o => o.value === v)
+                    if (match) { addInvitadoPersona(match.value, match.label); return }
+                    handlePersonaSearchChange(v)
+                  }}
+                  options={personaOptions}
+                  placeholder={personaSearching ? 'Buscando...' : 'Buscar persona (min 2 caracteres)...'}
+                  allowCreate={false}
+                />
+              </div>
 
               {/* Entidades */}
               {entidades.length > 0 && (
