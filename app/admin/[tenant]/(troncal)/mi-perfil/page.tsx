@@ -6,6 +6,8 @@ import { fetchCatalogoAtributos, fetchCatalogoVinculos, fetchPadrones, fetchEsta
 import { fetchMiPersonaCompleta } from './_lib/queries'
 import { fetchMiEquipo } from '../mi-equipo/_lib/queries'
 import { TarjetaJugadorMiPerfil } from './_components/tarjeta-mi-perfil'
+import { createClient } from '@/lib/supabase/server'
+import { TENANT_ID } from '@/lib/tenant'
 
 export default async function MiPerfilPage() {
   const persona = await fetchMiPersonaCompleta()
@@ -14,7 +16,7 @@ export default async function MiPerfilPage() {
     redirect('/login')
   }
 
-  const [catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio, categoriasEquipo, miEquipo] = await Promise.all([
+  const [catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio, categoriasEquipo, miEquipo, tenantBranding] = await Promise.all([
     fetchCatalogoAtributos(),
     fetchCatalogoVinculos(),
     fetchPadrones(),
@@ -22,6 +24,15 @@ export default async function MiPerfilPage() {
     fetchTiposSocio(),
     fetchCategoriasEquipo(),
     fetchMiEquipo(),
+    (async () => {
+      const supabase = await createClient()
+      const { data } = await supabase
+        .from('tenant_config_publica')
+        .select('logo_url, nombre_display, color_primario, color_secundario')
+        .eq('tenant_id', TENANT_ID)
+        .maybeSingle()
+      return data
+    })(),
   ])
 
   return (
@@ -45,6 +56,12 @@ export default async function MiPerfilPage() {
             <TarjetaJugadorMiPerfil
               persona={persona}
               asignaciones={miEquipo.asignaciones as never[]}
+              tenant={tenantBranding ? {
+                logo_url: tenantBranding.logo_url,
+                nombre_display: tenantBranding.nombre_display,
+                color_primario: tenantBranding.color_primario,
+                color_secundario: tenantBranding.color_secundario,
+              } : undefined}
             />
           ) : null}
         </div>

@@ -12,12 +12,9 @@ interface Equipo {
   nombre: string
   disciplina_slug: string
   modalidad: string | null
-  color_principal?: string | null
-  color_secundario?: string | null
-  escudo_url?: string | null
-  torneo?: string | null
   categorias_equipo?: { nombre_display: string } | null
   categoria?: { nombre_display: string } | null
+  torneo?: string | null
 }
 
 interface Asignacion {
@@ -26,6 +23,13 @@ interface Asignacion {
   dorsal: number | null
   posicion: string | null
   equipo: Equipo | null
+}
+
+interface TenantBranding {
+  logo_url: string | null
+  nombre_display: string | null
+  color_primario: string | null
+  color_secundario: string | null
 }
 
 interface TarjetaJugadorMiPerfilProps {
@@ -38,6 +42,7 @@ interface TarjetaJugadorMiPerfilProps {
     altura_cm?: number | null
   }
   asignaciones: Asignacion[]
+  tenant?: TenantBranding
 }
 
 const DISCIPLINA_LABELS: Record<string, string> = {
@@ -69,7 +74,7 @@ function formatFecha(fecha: string): string {
   return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
-export function TarjetaJugadorMiPerfil({ persona, asignaciones }: TarjetaJugadorMiPerfilProps) {
+export function TarjetaJugadorMiPerfil({ persona, asignaciones, tenant }: TarjetaJugadorMiPerfilProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const [downloading, setDownloading] = useState(false)
 
@@ -77,10 +82,11 @@ export function TarjetaJugadorMiPerfil({ persona, asignaciones }: TarjetaJugador
 
   const edad = persona.fecha_nacimiento ? calcularEdad(persona.fecha_nacimiento) : null
 
-  // Get primary team for colors (first assignment)
-  const primaryEquipo = asignaciones[0]?.equipo
-  const colorPrincipal = primaryEquipo?.color_principal || '#1a1a2e'
-  const colorSecundario = primaryEquipo?.color_secundario || '#e2e8f0'
+  // Tenant colors (primary source) with fallback to team colors
+  const colorPrimario = tenant?.color_primario || '#1a1a2e'
+  const colorSecundario = tenant?.color_secundario || '#e2e8f0'
+  const logoUrl = tenant?.logo_url || null
+  const tenantNombre = tenant?.nombre_display || null
 
   // Collect unique disciplines
   const disciplinas = [...new Set(asignaciones.map((a) => a.equipo?.disciplina_slug).filter(Boolean))] as string[]
@@ -141,6 +147,13 @@ export function TarjetaJugadorMiPerfil({ persona, asignaciones }: TarjetaJugador
     }
   }
 
+  // Build info items — always show if value exists (even 0)
+  const infoItems: { label: string; value: string }[] = []
+  if (edad != null) infoItems.push({ label: 'Edad', value: `${edad} años` })
+  if (persona.fecha_nacimiento) infoItems.push({ label: 'Nacimiento', value: formatFecha(persona.fecha_nacimiento) })
+  if (persona.altura_cm != null) infoItems.push({ label: 'Altura', value: `${persona.altura_cm} cm` })
+  if (persona.peso_kg != null) infoItems.push({ label: 'Peso', value: `${persona.peso_kg} kg` })
+
   return (
     <Dialog>
       <DialogTrigger>
@@ -159,7 +172,7 @@ export function TarjetaJugadorMiPerfil({ persona, asignaciones }: TarjetaJugador
             ref={cardRef}
             className="w-[320px] rounded-2xl overflow-hidden relative select-none"
             style={{
-              background: `linear-gradient(145deg, ${colorPrincipal} 0%, ${colorPrincipal}dd 60%, ${colorPrincipal}99 100%)`,
+              background: `linear-gradient(145deg, ${colorPrimario} 0%, ${colorPrimario}dd 60%, ${colorPrimario}99 100%)`,
             }}
           >
             {/* Decorative shapes */}
@@ -168,25 +181,25 @@ export function TarjetaJugadorMiPerfil({ persona, asignaciones }: TarjetaJugador
               style={{ backgroundColor: colorSecundario }}
             />
             <div
-              className="absolute bottom-0 left-0 w-44 h-44 opacity-8 rounded-tr-[60px]"
+              className="absolute bottom-0 left-0 w-44 h-44 opacity-[0.08] rounded-tr-[60px]"
               style={{ backgroundColor: colorSecundario }}
             />
             <div
-              className="absolute top-16 left-4 w-2 h-16 opacity-20 rounded-full"
+              className="absolute top-20 left-4 w-1.5 h-14 opacity-20 rounded-full"
               style={{ backgroundColor: colorSecundario }}
             />
 
             {/* Content */}
             <div className="relative z-10 flex flex-col p-6">
-              {/* Top: escudo + dorsal */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  {primaryEquipo?.escudo_url ? (
-                    <img src={primaryEquipo.escudo_url} alt="" className="h-8 w-8 object-contain" />
-                  ) : null}
-                  {asignaciones.length > 1 && (
-                    <span className="text-[10px] font-medium text-white/50 uppercase tracking-wider">
-                      {asignaciones.length} equipos
+              {/* Top: logo tenant + nombre club + dorsal */}
+              <div className="flex items-start justify-between mb-5">
+                <div className="flex items-center gap-2.5">
+                  {logoUrl && (
+                    <img src={logoUrl} alt="" className="h-10 w-10 object-contain rounded" />
+                  )}
+                  {tenantNombre && (
+                    <span className="text-[11px] font-bold text-white/70 uppercase tracking-wider leading-tight max-w-[140px]">
+                      {tenantNombre}
                     </span>
                   )}
                 </div>
@@ -203,8 +216,8 @@ export function TarjetaJugadorMiPerfil({ persona, asignaciones }: TarjetaJugador
               {/* Foto + nombre */}
               <div className="flex items-center gap-4 mb-5">
                 <div
-                  className="w-20 h-20 rounded-xl border-3 flex items-center justify-center overflow-hidden shrink-0"
-                  style={{ borderColor: `${colorSecundario}88` }}
+                  className="w-20 h-20 rounded-xl flex items-center justify-center overflow-hidden shrink-0"
+                  style={{ border: `3px solid ${colorSecundario}88` }}
                 >
                   {persona.foto_perfil_url ? (
                     <img src={persona.foto_perfil_url} alt="" className="w-full h-full object-cover" />
@@ -215,35 +228,31 @@ export function TarjetaJugadorMiPerfil({ persona, asignaciones }: TarjetaJugador
                   )}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-base font-bold text-white leading-tight truncate">
-                    {persona.nombre}
-                  </h3>
                   <h2 className="text-xl font-black text-white uppercase leading-tight truncate">
                     {persona.apellido}
                   </h2>
+                  <h3 className="text-base font-bold text-white/90 leading-tight truncate">
+                    {persona.nombre}
+                  </h3>
                 </div>
               </div>
 
               {/* Info grid: edad, nacimiento, peso, altura */}
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-5">
-                {edad != null && (
-                  <InfoItem label="Edad" value={`${edad} años`} color={colorSecundario} />
-                )}
-                {persona.fecha_nacimiento && (
-                  <InfoItem label="Nacimiento" value={formatFecha(persona.fecha_nacimiento)} color={colorSecundario} />
-                )}
-                {persona.altura_cm && (
-                  <InfoItem label="Altura" value={`${persona.altura_cm} cm`} color={colorSecundario} />
-                )}
-                {persona.peso_kg && (
-                  <InfoItem label="Peso" value={`${persona.peso_kg} kg`} color={colorSecundario} />
-                )}
-              </div>
+              {infoItems.length > 0 && (
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 mb-5">
+                  {infoItems.map((item) => (
+                    <div key={item.label}>
+                      <span className="text-[9px] font-semibold text-white/40 uppercase tracking-widest block">{item.label}</span>
+                      <p className="text-[13px] font-bold text-white/90 leading-tight">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Separator */}
-              <div className="h-px w-full opacity-20 mb-4" style={{ backgroundColor: colorSecundario }} />
+              <div className="h-px w-full mb-4" style={{ backgroundColor: `${colorSecundario}33` }} />
 
-              {/* Deportivo: disciplinas + categorías */}
+              {/* Disciplinas */}
               {disciplinas.length > 0 && (
                 <div className="mb-3">
                   <span className="text-[9px] font-semibold text-white/40 uppercase tracking-widest">
@@ -254,7 +263,7 @@ export function TarjetaJugadorMiPerfil({ persona, asignaciones }: TarjetaJugador
                       <span
                         key={d}
                         className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase"
-                        style={{ backgroundColor: `${colorSecundario}cc`, color: colorPrincipal }}
+                        style={{ backgroundColor: `${colorSecundario}cc`, color: colorPrimario }}
                       >
                         {DISCIPLINA_LABELS[d] || d}
                       </span>
@@ -263,6 +272,7 @@ export function TarjetaJugadorMiPerfil({ persona, asignaciones }: TarjetaJugador
                 </div>
               )}
 
+              {/* Categorías */}
               {categorias.length > 0 && (
                 <div className="mb-3">
                   <span className="text-[9px] font-semibold text-white/40 uppercase tracking-widest">
@@ -281,7 +291,7 @@ export function TarjetaJugadorMiPerfil({ persona, asignaciones }: TarjetaJugador
                 </div>
               )}
 
-              {/* Equipos list */}
+              {/* Equipos */}
               <div className="mb-3">
                 <span className="text-[9px] font-semibold text-white/40 uppercase tracking-widest">
                   {asignaciones.length === 1 ? 'Equipo' : 'Equipos'}
@@ -289,7 +299,7 @@ export function TarjetaJugadorMiPerfil({ persona, asignaciones }: TarjetaJugador
                 <div className="flex flex-col gap-1 mt-1">
                   {asignaciones.map((a) => (
                     <div key={a.id} className="flex items-center gap-2 text-[11px] text-white/80">
-                      <span className="w-1 h-1 rounded-full shrink-0" style={{ backgroundColor: colorSecundario }} />
+                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: colorSecundario }} />
                       <span className="font-medium truncate">{a.equipo?.nombre ?? '—'}</span>
                       {a.posicion && (
                         <span className="text-white/50">· {a.posicion}</span>
@@ -312,7 +322,8 @@ export function TarjetaJugadorMiPerfil({ persona, asignaciones }: TarjetaJugador
                     {torneos.map((t) => (
                       <span
                         key={t}
-                        className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/10 text-white/70 border border-white/10"
+                        className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-white/70"
+                        style={{ border: `1px solid ${colorSecundario}44`, backgroundColor: `${colorSecundario}15` }}
                       >
                         {t}
                       </span>
@@ -336,16 +347,5 @@ export function TarjetaJugadorMiPerfil({ persona, asignaciones }: TarjetaJugador
         </div>
       </DialogContent>
     </Dialog>
-  )
-}
-
-function InfoItem({ label, value, color }: { label: string; value: string; color: string }) {
-  return (
-    <div>
-      <span className="text-[9px] font-semibold text-white/40 uppercase tracking-widest">{label}</span>
-      <p className="text-sm font-bold text-white/90 leading-tight" style={{ textShadow: `0 0 20px ${color}33` }}>
-        {value}
-      </p>
-    </div>
   )
 }
