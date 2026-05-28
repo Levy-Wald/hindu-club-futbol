@@ -310,9 +310,9 @@ Si `metadata->>'mock' = 'true'` → es modo mock. **No hay envío real.**
 
 Esto NO es un bug. Por ADR-035 (mock-first universal), todo envío
 externo (email vía Resend, WhatsApp Cloud, MercadoPago) está en mock
-hasta FASE 16.
+hasta F5.
 
-El switch a producción real es Sprint de FASE 16 que requiere:
+El switch a producción real es F5 que requiere:
 - Configurar API keys reales en Vercel (Resend, MercadoPago, etc.)
 - Cambiar env var `COMUNICACIONES_MODE=production` (y equivalentes).
 - Verificar dominios verificados (SPF/DKIM/DMARC para email).
@@ -1495,17 +1495,17 @@ PASO F.4 — Cierre ejecutivo de fase
 \- Lista de aprendizajes y mejoras al proceso
 
 PASO F.5 — Tag de fase  
-\- git tag v\[X.Y.Z\]-fase-\[A/B/C/D/E\]-completa  
+\- git tag v\[X.Y.Z\]-\[fase\]-completa  
 \- git push origin main \--tags
 
 PASO F.6 — Decisión binaria de avance  
 \- Si la fase está aprobada: pasar a la siguiente fase  
-\- Si hay deuda crítica: crear una "FASE \[X\]'" (sprint correctivo) antes de pasar
+\- Si hay deuda crítica: crear una fase correctiva (sprint correctivo) antes de pasar
 
-PROTOCOLO ESPECIAL — FASE C (DEMO A HINDU)  
+PROTOCOLO ESPECIAL — F4 (VALIDACIÓN HINDU)
 \============================================
 
-FASE C es distinta a las otras: no hay sprints técnicos sino actividades de validación.
+F4 es distinta a las otras: no hay sprints técnicos sino actividades de validación.
 
 C.1 — Reset DB  
 \- Backup completo de la DB actual  
@@ -1526,11 +1526,11 @@ C.4 — Recopilación de feedback
 \- Lista de mejoras de UX
 
 C.5 — Decisión binaria  
-\- Producto APROBADO: avanzar a FASE D  
-\- Producto REQUIERE FASE B': crear sprints correctivos antes de FASE D
+\- Producto APROBADO: avanzar a F6
+\- Producto REQUIERE F2': crear sprints correctivos antes de F6
 
 C.6 — Documento de validación  
-\- Crear "VALIDACION-FASE-C" en Drive \`\_Cierre Ejecutivo/\`  
+\- Crear "VALIDACION-F4" en Drive \`\_Cierre Ejecutivo/\`  
 \- Firmas (formales o no) de Yair y stakeholders de Hindu  
 \- Decisión escrita  
 \- Próximo paso

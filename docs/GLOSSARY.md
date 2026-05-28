@@ -42,7 +42,7 @@ una decisión técnica con contexto, alternativas y justificación.
 **Mock-first.** Principio (ADR-035) por el cual todo integrador externo
 (Resend, MercadoPago, WhatsApp, AFIP) se desarrolla primero con un adapter
 mock que simula la operación sin credenciales reales. El switch a producción
-ocurre en FASE 16.
+ocurre en F5.
 
 **Foundation.** Nombre informal de los Sprints 15a, 15b y 15c que
 establecieron la base arquitectónica modular: manifiestos `module.json`,
@@ -355,12 +355,12 @@ Filtrable por torneo. UI en `/admin/competencias/stats/jugadores`. Sprint FASE 5
 
 **Perfil de jugador (stats).** Dashboard individual con stats totales (6 cards:
 PJ, goles, asistencias, TA, TR, minutos) + tabla de últimos partidos + sección
-mock de stats avanzadas con badge "Próximamente — FASE 16". UI en
+mock de stats avanzadas con badge "Próximamente — F5". UI en
 `/admin/competencias/stats/jugadores/[persona_id]`. Sprint FASE 5.6.
 
 **Stats avanzadas (mock).** Columnas en `partido_stats_jugador` (tiros, pases,
 duelos_ganados, duelos_perdidos, xG) que existen en DB pero se muestran con
-badge "Próximamente — FASE 16" en UI. Se activarán con datos reales en FASE 16+.
+badge "Próximamente — F5" en UI. Se activarán con datos reales en F5+.
 
 **Scouting.** Ficha de evaluación de un jugador (propio o externo). Vive en
 `scouting_fichas`.
@@ -746,7 +746,7 @@ PIM Nivel 3 (Stock & Movimientos)
 Módulo cross-vertical opcional. Motor central de movimientos de stock (entrada/salida/transferencia/ajuste/reserva). Ubicaciones físicas, lotes, series. Construido en Sprint D4.
 
 Bloque del troncal  
-Una de las 9 unidades funcionales del troncal universal (ver troncal). Cada bloque tiene un sprint de cierre específico en FASE A.
+Una de las 9 unidades funcionales del troncal universal (ver troncal). Cada bloque tiene un sprint de cierre específico en F1.
 
 Bundle de vertical  
 Paquete comercial que combina el troncal \+ un vertical \+ algunos cross-verticals \+ conectores básicos. Ejemplo: ClubCore es el bundle del vertical CCBP. Otros bundles futuros: paquete Arq, paquete Abog, etc.
@@ -781,8 +781,8 @@ Contenedor de trabajo agrupado, con responsable, cliente (opcional, persona o en
 Tarea (en Proyectos & Tareas)  
 Unidad de trabajo dentro de un proyecto, asignable a una persona, con estado configurable (backlog/en curso/review/hecho), prioridad, fecha límite. Tabla proyecto\_tareas.
 
-Sprint  
-Unidad de trabajo del desarrollo. En el nuevo modelo: A1-A6 (FASE A), B1-B6 (FASE B), D1-D6 (FASE D), E\[N\].M (FASE E, sprints por vertical).
+Sprint
+Unidad de trabajo del desarrollo. En el nuevo modelo: A1-A6 (F1), B1-B6 (F2), D1-D6 (F6), F8.\[N\].M (F8, sprints por vertical).
 
 Tag (de sprint)  
 Identificador de git aplicado al cierre de cada sprint. Formato: v\[X.Y.Z\]-\[fase\]-sprint\[N\]. Ejemplo: v0.27.0-fase-a-sprint-1.
@@ -802,13 +802,16 @@ Hitos comerciales del ROADMAP independientes del orden de fases técnicas:
 \- H2: Pricing del marketplace de módulos (pendiente)  
 \- H3: Materiales de venta por vertical (pendiente)
 
-FASE A, B, C, D, E  
-Las 5 fases macro del plan de ejecución según ADR-044:  
-\- FASE A: Cerrar troncal mínimo (Sprints A1-A6)  
-\- FASE B: Cerrar vertical CCBP (Sprints B1-B6)  
-\- FASE C: Demo a Hindu (validación end-to-end)  
-\- FASE D: Cross-vertical extra (Sprints D1-D6)  
-\- FASE E: Abrir otros verticales (E1 a E4 con sus sub-sprints)
+F0–F10
+Las once fases del roadmap según ADR-065. Las principales:
+\- F0: Base / Infra
+\- F1: Troncal núcleo ERP+CRM (Sprints A1-A6)
+\- F2: Vertical CCBP (Sprints B1-B6)
+\- F4: Validación Hindu (demo real 30–60 días)
+\- F5: Switch a producción (conectores reales)
+\- F6: Premium ERP (Sprints D1-D6)
+\- F8: Verticales nuevas (F8.1 a F8.5 con sus sub-sprints)
+\- Ver `docs/PHASES.md` para la lista completa y Rosetta Stone del vocabulario anterior.
 
 TÉRMINOS PROHIBIDOS (recordatorio de BRAND-PLATFORM)  
 \=====================================================

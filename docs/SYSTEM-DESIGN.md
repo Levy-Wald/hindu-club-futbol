@@ -46,7 +46,7 @@ La Plataforma SaaS Multimodal es un sistema multi-tenant que soporta múltiples 
                          │  
                          ↓  
 ┌─────────────────────────────────────────────────────────────┐  
-│  Conectores externos (Capa 3, mock-first hasta FASE C)     │  
+│  Conectores externos (Capa 3, mock-first hasta F5)     │  
 │  \- Email (Resend), WhatsApp (BAPI), SMS                    │  
 │  \- Pago (MercadoPago, Stripe)                              │  
 │  \- Fiscal (AFIP)                                            │  
@@ -169,7 +169,7 @@ Reglas:
 FLUJO DE PAGO Y COBRANZA  
 \==========================
 
-(Mock-first hasta FASE C, después se activan conectores reales)
+(Mock-first hasta F5, después se activan conectores reales)
 
 Cobranza recurrente (bloque 5 del troncal):  
 1\. Tenant configura plan de cobranza: monto, periodicidad, día de cobro  
@@ -235,7 +235,7 @@ Estrategias:
 \- Server-side rendering con preload de data crítica  
 \- Lazy loading de módulos no críticos  
 \- Índices PG en columnas de queries frecuentes  
-\- Vista materializadas para reportes pesados (futuro FASE B4)  
+\- Vista materializadas para reportes pesados (futuro F2 reportes deportivos)  
 \- Cache de Next.js para queries no-cambiantes
 
 Ver docs/PERFORMANCE.md para detalles.
@@ -255,7 +255,7 @@ Métricas:
 \- Performance de queries lentas  
 \- Errores 5xx por endpoint
 
-Alertas (post FASE C):  
+Alertas (post F4):  
 \- Webhooks a Slack para errores críticos  
 \- Resumen diario al admin del tenant
 
@@ -273,7 +273,7 @@ Patrón general (mock-first):
 
 Tablas de conectores:  
 \- \`tenant\_conectores\`: qué conectores tiene activos cada tenant  
-\- \`conector\_credenciales\`: credenciales encriptadas por tenant (mock-first hasta FASE C)  
+\- \`conector\_credenciales\`: credenciales encriptadas por tenant (mock-first hasta F5)  
 \- \`conector\_logs\`: histórico de llamadas a conectores
 
 DECISIONES PENDIENTES  
@@ -283,16 +283,16 @@ Hito H1 — Nombre del producto raíz
 Hito H2 — Pricing del marketplace de módulos  
 Hito H3 — Materiales de venta por vertical
 
-Mock-first se levanta gradualmente desde FASE C en adelante, conector por conector según contrate Yair.
+Mock-first se levanta gradualmente desde F5 en adelante, conector por conector según contrate Yair.
 
 ROADMAP RESUMIDO  
 \=================
 
-FASE A (en curso planificación, próximo Sprint A1)  
-FASE B (post FASE A)  
-FASE C (Demo a Hindu, post FASE B)  
-FASE D (Cross-vertical extra, post FASE C)  
-FASE E (Otros verticales, post FASE D)
+F1 (en curso planificación, próximo Sprint A1)
+F2 (post F1)
+F4 (Validación Hindu, post F2)
+F6 (Premium ERP, post F4)
+F8 (Otros verticales, post F6)
 
 Ver docs/ROADMAP.md y docs/SPRINT-PLAN.md para detalle.
 
@@ -300,4 +300,4 @@ Ver docs/ROADMAP.md y docs/SPRINT-PLAN.md para detalle.
 \=====================
 
 13 de mayo de 2026\. Versión 2.0.  
-Próxima revisión: al cierre de FASE A.  
+Próxima revisión: al cierre de F1.  

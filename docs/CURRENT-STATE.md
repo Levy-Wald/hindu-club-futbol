@@ -20,7 +20,7 @@ Este documento describe **qué está hecho hoy, qué falta y qué está bloquead
 | **URL producción** | https://hindu-club.vercel.app |
 | **Tag actual** | `v0.30.24.5-tier1-hardening` |
 | **Próximo sprint** | B18 — Sidebar BO Universal 7 espacios |
-| **Roadmap (ROADMAP.md v2.0)** | Fases A y B completas. Próxima: Fase 6 (Portal Cliente Completo). |
+| **Roadmap** | F0, F1 y F2 completas. Próxima: F3 (Portal Cliente). Ver `docs/PHASES.md`. |
 | **Score arquitectónico** | 8.5/10 (post Tier 1 hardening 26-may-2026) |
 | **Bloqueante crítico** | CUIT SCL en trámite IGJ (legal, no técnico) |
 
@@ -33,7 +33,7 @@ Este documento describe **qué está hecho hoy, qué falta y qué está bloquead
 - **Capa 0 — Troncal:** CRM, ERP, PIM, Plataforma. Universal.
 - **Capa 1 — Módulos:** 18 built-in, portables, declaran contrato en `module.json`.
 - **Capa 2 — Verticales:** presets (CCBP activo, Arq/Abog/Pub/Retail catalogados).
-- **Capa 3 — Conectores:** Resend, MercadoPago, WhatsApp (todos mock hasta FASE 16).
+- **Capa 3 — Conectores:** Resend, MercadoPago, WhatsApp (todos mock hasta F5).
 
 Detalle completo: `docs/ARCHITECTURE.md` (canónico v3) + `docs/SYSTEM-DESIGN.md` (v2.0 post RFC-004).
 
@@ -100,17 +100,17 @@ Detalle completo: `docs/ARCHITECTURE.md` (canónico v3) + `docs/SYSTEM-DESIGN.md
 | **Audit trail** | ✅ | Inmutable, accesible via SQL. Falta UI. |
 | **Sidebar BO** | ⚠️ | Antiguo, será refactorizado en B18 a 7 espacios universales (ADR-039) |
 
-### Portal del Cliente (PC) — Pendiente Fase 6 ROADMAP
+### Portal del Cliente (PC) — Pendiente F3
 
-| Módulo PC | Status | Fase ROADMAP |
+| Módulo PC | Status | Fase |
 |---|---|---|
-| Layout PC mobile-first | ⚪ | Fase 6 |
-| Login + signup socio | 🟡 Parcial | Fase 6 |
-| Dashboard socio | ⚪ | Fase 6 |
-| Pago de cuotas | 🔴 Bloqueado (MercadoPago) | Fase 6 + 7 |
-| Inscripción a eventos | ⚪ | Fase 6 |
-| Perfil + dependientes | ⚪ | Fase 6 |
-| Notificaciones | ⚪ | Fase 6 |
+| Layout PC mobile-first | ⚪ | F3 |
+| Login + signup socio | 🟡 Parcial | F3 |
+| Dashboard socio | ⚪ | F3 |
+| Pago de cuotas | 🔴 Bloqueado (MercadoPago) | F3 + F5 |
+| Inscripción a eventos | ⚪ | F3 |
+| Perfil + dependientes | ⚪ | F3 |
+| Notificaciones | ⚪ | F3 |
 
 ### Multi-tenancy
 
@@ -122,28 +122,28 @@ Detalle completo: `docs/ARCHITECTURE.md` (canónico v3) + `docs/SYSTEM-DESIGN.md
 
 ---
 
-## Qué falta — según ROADMAP.md v2.0 (17 fases)
+## Qué falta — según nomenclatura F0–F10
 
-El roadmap canónico (`docs/ROADMAP.md`) ordena por **dependencias técnicas y comerciales**, no por calendario.
+El roadmap canónico (`docs/PHASES.md` + `docs/ROADMAP.md`) ordena por **dependencias técnicas y comerciales**, no por calendario.
 
 ### Fases cerradas
 
-- ✅ **Fases 1-5** — Bootstrap, schema inicial, datos reales, UI primera versión, multi-tenancy.
-- ✅ **Fase A** — MVP funcional con datos reales (Hindu cargado).
-- ✅ **Fase B** — Backend multi-tenant + UI operativa.
+- ✅ **F0** — Base / Infra (auth, tenant routing, layout, front público).
+- ✅ **F1** — Troncal núcleo ERP+CRM.
+- ✅ **F2** — Vertical CCBP (Hindu deportivo).
 
 ### En curso / próximas
 
 | Fase | Descripción | Estado |
 |---|---|---|
-| **B18 (cierre Fase B)** | Sidebar BO Universal 7 espacios cross-vertical | Próximo sprint |
-| **QA Round** | Validación cruzada post-B18 | Después de B18 |
-| **Fase 6** | Portal Cliente Completo (~40-56h en 8 sub-sprints) | Próxima fase mayor |
-| **Fase 7-8** | Comunicaciones avanzadas | Bloqueado por Resend |
-| **Fase 9** | IA (agentes, asistentes — ver `docs/SYSTEM-PROMPTS.md`) | Catalogado |
-| **Fase 10-15** | Verticales nuevas (Arq, Abog, Pub, Retail) | Post-Hindu validado |
-| **Fase 16** | Producción real (Resend + MercadoPago salen de mock) | Bloqueado por CUIT |
-| **Fase 17** | Billing + marketplace de módulos | Final |
+| **F3** | Portal Cliente (front del socio mobile) | Próxima fase mayor |
+| **F4** | Validación Hindu (demo real 30–60 días) | Post-F3 |
+| **F5** | Switch a producción (Resend, MercadoPago, AFIP, WhatsApp) | Bloqueado por CUIT |
+| **F6** | Premium ERP (documentos, BI, stock mejoras) | Post-F5 |
+| **F7** | Premium Socio (engagement y revenue) | Post-F5 |
+| **F8** | Verticales nuevas (Arq, Retail, Country, Abog, Pub) | Post-Hindu validado |
+| **F9** | IA embebida (F9.1) + Plataforma SaaS marketplace (F9.2) | Catalogado |
+| **F10** | Backlog futuro / sin priorizar | — |
 
 Detalle por fase: `docs/ROADMAP.md`.
 
@@ -153,9 +153,9 @@ Detalle por fase: `docs/ROADMAP.md`.
 
 | Bloqueante | Impacta | ETA fix |
 |---|---|---|
-| **CUIT SCL en trámite IGJ** | Pre-launch productivo, FASE 16 entera | Depende IGJ |
+| **CUIT SCL en trámite IGJ** | Pre-launch productivo, F5 entera | Depende IGJ |
 | **Resend (transactional email)** | Confirmaciones, recovery password, comunicados | Setup post-CUIT |
-| **MercadoPago integración** | Pago de cuotas productivo (Fase 6.4 + Fase 7) | Setup post-CUIT |
+| **MercadoPago integración** | Pago de cuotas productivo (F3 + F5) | Setup post-CUIT |
 | **CUIT Hindu Club** | Facturación a Hindu | Cliente debe gestionar |
 | **Dominios Hindu** | Email + portal cliente con dominio propio | Cliente debe gestionar |
 

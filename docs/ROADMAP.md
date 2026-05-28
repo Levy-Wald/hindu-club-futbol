@@ -25,13 +25,13 @@ VISIÓN GENERAL
 
 Hay 5 fases macro. Cada una con un objetivo claro y un criterio de cierre verificable.
 
-FASE A — Cerrar troncal mínimo (objetivo: 9 bloques del troncal funcionando)  
-FASE B — Cerrar vertical CCBP (objetivo: Hindu Club Fútbol con producto completo)  
-FASE C — Demo a Hindu (objetivo: validación end-to-end con cliente real)  
-FASE D — Cross-vertical extra (objetivo: nivelar capacidades para vender a otros verticales)  
-FASE E — Abrir otros verticales (objetivo: clientes pagando en cada vertical)
+F1 — Cerrar troncal mínimo (objetivo: 9 bloques del troncal funcionando)
+F2 — Cerrar vertical CCBP (objetivo: Hindu Club Fútbol con producto completo)
+F4 — Validación Hindu (objetivo: validación end-to-end con cliente real)
+F6 — Premium ERP (objetivo: nivelar capacidades para vender a otros verticales)
+F8 — Abrir otros verticales (objetivo: clientes pagando en cada vertical)
 
-FASE A — CERRAR TRONCAL MÍNIMO  
+F1 — CERRAR TRONCAL MÍNIMO
 \================================
 
 Objetivo: tener los 9 bloques del troncal universal (ADR-041) funcionando con UI completa, listos para soportar cualquier vertical.
@@ -49,7 +49,7 @@ Tema: sidebar reorganizado, planificador con creación, hub eventos, espacios ge
 Capas: BD (espacios), Código, UI/UX (sidebar \+ hub eventos), Estilos  
 Tag esperado: v0.27.0-fase-a-sprint-1  
 Costo estimado: 12-15h  
-Dependencias: FASE 5 cerrada (vigente)
+Dependencias: F0 cerrada (vigente)
 
 SPRINT A2 — PIM Nivel 1  
 Tema: catálogo unificado con variantes \+ categorías jerárquicas \+ vista v\_productos\_catalogo \+ esqueleto inactivo de Niveles 2/3.  
@@ -86,7 +86,7 @@ Tag esperado: v0.27.0-fase-a-sprint-6
 Costo estimado: 12-15h  
 Dependencias: A1, A4 (personas/entidades pulidas para tab "Proyectos")
 
-FASE B — CERRAR VERTICAL CCBP  
+F2 — CERRAR VERTICAL CCBP
 \================================
 
 Objetivo: dejar el vertical CCBP 100% productivo para Hindu y vendible a otros clubes/countries/barrios privados.
@@ -99,11 +99,11 @@ Criterio de cierre:
 Sprints (6 sprints, costo \~30 horas Code):
 
 SPRINT B1 — Salud / Lesiones operativas  
-Tema: activar tabla personas\_lesiones, UI de carga y listado, notificación automática al CT, indicador "LESIONADO" en convocatoria. Prompt ya armado (originalmente FASE 6.1, retomado en FASE B).  
+Tema: activar tabla personas\_lesiones, UI de carga y listado, notificación automática al CT, indicador "LESIONADO" en convocatoria. Prompt ya armado (originalmente FASE 6.1, retomado en F2).  
 Capas: BD (atributos \+ plantillas), Código, UI/UX, Estilos  
 Tag esperado: v0.28.0-fase-b-sprint-1  
 Costo estimado: 5h  
-Dependencias: FASE A cerrada  
+Dependencias: F1 cerrada  
 RFC: RFC-003
 
 SPRINT B2 — Historial / Trayectoria deportiva  
@@ -146,7 +146,7 @@ Dependencias: A1 (espacios), B1-B5
 
 PARALELIZACIÓN: B1-B4 pueden correr secuencialmente. B5 y B6 pueden correr en paralelo si hay capacidad.
 
-FASE C — DEMO A HINDU  
+F4 — VALIDACIÓN HINDU
 \========================
 
 Objetivo: validación end-to-end del producto completo con Hindu Club Fútbol en modo mock.
@@ -156,7 +156,7 @@ Criterio de cierre:
 \- Yair y staff de Hindu cargan datos desde cero usando importadores y UI  
 \- Workflow operativo real de Hindu corre durante una semana sin bloqueantes  
 \- Lista de bugs/mejoras recibida y priorizada  
-\- Decisión binaria: producto APROBADO para servicios externos (FASE D-E) o requiere FASE B' (correcciones)
+\- Decisión binaria: producto APROBADO para servicios externos (F6-F8) o requiere F2' (correcciones)
 
 Actividades (no son sprints técnicos):  
 \- Reset de DB del proyecto Hindu  
@@ -166,9 +166,9 @@ Actividades (no son sprints técnicos):
 \- Yair y arquitecto recopilan feedback diario  
 \- Cierre formal con documento de validación
 
-NO se construyen features nuevas en FASE C. Solo bugs críticos si bloquean validación.
+NO se construyen features nuevas en F4. Solo bugs críticos si bloquean validación.
 
-FASE D — CROSS-VERTICAL EXTRA  
+F6 — PREMIUM ERP
 \================================
 
 Objetivo: nivelar los módulos cross-vertical que más demandan los 5 verticales en hoja de ruta, antes de abrir el primero.
@@ -220,7 +220,7 @@ Tag esperado: v0.36.0-fase-d-sprint-6
 Costo estimado: 8h  
 Dependencias: B6 (versión CCBP-específica, ahora generalizada)
 
-FASE E — ABRIR OTROS VERTICALES  
+F8 — ABRIR OTROS VERTICALES
 \=================================
 
 Objetivo: vender la plataforma a verticales adicionales y validar la arquitectura multi-vertical con clientes reales.
@@ -233,24 +233,24 @@ Criterio de cierre por vertical:
 
 Verticales en orden comercial sugerido:
 
-VERTICAL E1 — Estudios de Arquitectura (cliente piloto: prima de Yair)  
-Sprints: E1.1 (mini-troncal proyectos\_obra), E1.2 (cronograma \+ avances), E1.3 (subcontratistas \+ planos), E1.4 (pedidos materiales)  
-Tag al cierre: v0.45.0-fase-e1-completa  
+VERTICAL F8.1 — Estudios de Arquitectura (cliente piloto: prima de Yair)  
+Sprints: F8.1.1 (mini-troncal proyectos\_obra), F8.1.2 (cronograma \+ avances), F8.1.3 (subcontratistas \+ planos), F8.1.4 (pedidos materiales)
+Tag al cierre: v0.45.0-f8-1-completa  
 Costo estimado: 25-30h
 
-VERTICAL E2 — Estudios de Abogacía (cliente piloto: Kate, esposa de Yair)  
-Sprints: E2.1 (mini-troncal casos), E2.2 (audiencias \+ plazos), E2.3 (honorarios), E2.4 (documentación procesal)  
-Tag al cierre: v0.50.0-fase-e2-completa  
+VERTICAL F8.4 — Estudios de Abogacía (cliente piloto: Kate, esposa de Yair)
+Sprints: F8.4.1 (mini-troncal casos), F8.4.2 (audiencias \+ plazos), F8.4.3 (honorarios), F8.4.4 (documentación procesal)
+Tag al cierre: v0.50.0-f8-4-completa  
 Costo estimado: 20-25h
 
-VERTICAL E3 — Agencias de Publicidad  
-Sprints: E3.1 (mini-troncal cuentas), E3.2 (briefings), E3.3 (calendarios editoriales), E3.4 (reportes performance)  
-Tag al cierre: v0.55.0-fase-e3-completa  
+VERTICAL F8.5 — Agencias de Publicidad
+Sprints: F8.5.1 (mini-troncal cuentas), F8.5.2 (briefings), F8.5.3 (calendarios editoriales), F8.5.4 (reportes performance)
+Tag al cierre: v0.55.0-f8-5-completa  
 Costo estimado: 20-25h
 
-VERTICAL E4 — Retailers PyME (cliente piloto: Pergamino)  
-Sprints: E4.1 (mini-troncal sucursales), E4.2 (promociones \+ listas de precios), E4.3 (vidriera digital), E4.4 (ecommerce sync), E4.5 (programa fidelidad)  
-Tag al cierre: v0.60.0-fase-e4-completa  
+VERTICAL F8.2 — Retailers PyME (cliente piloto: Pergamino)
+Sprints: F8.2.1 (mini-troncal sucursales), F8.2.2 (promociones \+ listas de precios), F8.2.3 (vidriera digital), F8.2.4 (ecommerce sync), F8.2.5 (programa fidelidad)
+Tag al cierre: v0.60.0-f8-2-completa  
 Costo estimado: 30-40h
 
 Cada vertical es independiente. Pueden correr en paralelo si hay capacidad.
@@ -263,22 +263,22 @@ Independientes del orden de fases, hay decisiones comerciales pendientes:
 H1 — Nombre del producto raíz  
 Estado: pendiente  
 Hoy: "ClubCore" referencia al vertical CCBP, no a la plataforma.  
-Decisión esperada: post FASE C, antes de FASE D.
+Decisión esperada: post F4, antes de F6.
 
 H2 — Pricing del marketplace de módulos  
 Estado: pendiente  
 Necesario para que ADR-043 (modelo modular comercial) funcione comercialmente.  
-Decisión esperada: post FASE C.
+Decisión esperada: post F4.
 
 H3 — Materiales de venta por vertical  
 Estado: pendiente  
 Sales decks, landing pages, casos de éxito.  
-Decisión esperada: durante FASE E, conforme se abre cada vertical.
+Decisión esperada: durante F8, conforme se abre cada vertical.
 
 REGLAS DE EJECUCIÓN  
 \====================
 
-1\. Mock-first universal (ADR-035) vigente hasta FASE C. Cualquier sprint que requiera servicio externo pago se difiere o se mockea.
+1\. Mock-first universal (ADR-035) vigente hasta F4. Cualquier sprint que requiera servicio externo pago se difiere o se mockea.
 
 2\. Reportes vía MCP, no CLI local (ADR-039). Code reporta vía Supabase MCP, GitHub MCP, Vercel MCP.
 
@@ -288,17 +288,17 @@ REGLAS DE EJECUCIÓN
 
 5\. Cada FASE cierra con cierre ejecutivo en Drive \+ ARCHITECTURE.md revisado \+ ADRs nuevos si los hay.
 
-6\. No se contratan servicios pagos hasta validación de FASE C aprobada.
+6\. No se contratan servicios pagos hasta validación de F4 aprobada.
 
-7\. No se carga más data productiva de Hindu durante FASE A y B. La carga es FASE C.
+7\. No se carga más data productiva de Hindu durante F1 y F2. La carga es F4.
 
 ESTADO ACTUAL (al 13 de mayo de 2026\)  
 \======================================
 
-FASE 1-5 del modelo viejo: CERRADAS (Hindu en producción).  
-FASE A: planificada, sprints documentados, pendiente arrancar Sprint A1.  
-FASE B: parcialmente preparada (RFC-003 \+ prompt 6.1 listo, ahora será B1).  
-FASE C-E: planificación futura.
+F0 (Base / Infra del modelo viejo): CERRADA (Hindu en producción).
+F1: planificada, sprints documentados, pendiente arrancar Sprint A1.
+F2: parcialmente preparada (RFC-003 \+ prompt 6.1 listo, ahora será B1).
+F4–F8: planificación futura.
 
 Próximo paso: ejecutar Sprint A1.
 
@@ -306,4 +306,4 @@ Próximo paso: ejecutar Sprint A1.
 \=====================
 
 13 de mayo de 2026\. Versión 2.0.  
-Próxima revisión: al cierre de cada FASE.  
+Próxima revisión: al cierre de cada fase.  

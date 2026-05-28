@@ -61,7 +61,7 @@
 | reportes-deportivos | v_comparativa_equipos, v_performance_jugadores, v_stats_equipo | DONE (read-only por diseno) |
 | salud-lesiones | personas_lesiones, tipos_lesion, v_personas_lesionadas_activas | DONE |
 | disciplinas | personas_disciplinas, catalogo_disciplinas | HUERFANO (sin UI conectada) |
-| talles | personas_talles, catalogo_tipos_talle | HUERFANO (validar uso post FASE C) |
+| talles | personas_talles, catalogo_tipos_talle | HUERFANO (validar uso post F4) |
 
 ---
 
@@ -82,7 +82,7 @@
 |---|---|---|
 | disciplinas | Sin UI conectada | Decidir si absorber en equipos o mantener standalone |
 | proveedores | Posible duplicado con entidades | Decidir absorcion en entidades |
-| talles | Necesidad incierta | Validar uso post FASE C |
+| talles | Necesidad incierta | Validar uso post F4 |
 | socios | Huerfano hasta B5 | Convertir en suscripciones_membresia (B5) |
 
 Los 6 modulos que estaban sin module.json (atributos-custom, diagramacion-club, historial-deportivo, membresias, reportes-deportivos, salud-lesiones) fueron formalizados el 26-may-2026 con module.json v0.1.0 basado en evidencia del codigo.

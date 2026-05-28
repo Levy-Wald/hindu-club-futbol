@@ -22,10 +22,10 @@
 |---|---|
 | Tag actual | `v0.35.3-loading-selectivo` |
 | Último sprint cerrado | A4.5 (paridad eventos planificadores) + D (loading selectivo) |
-| Próximo sprint | **C0** — Cierre fase pre-launch |
-| Roadmap | 17 fases por dependencias (`docs/ROADMAP.md` v2.0). Fase A y Fase B completas. Próxima: Fase 6 Portal Cliente. |
+| Próximo sprint | **F3** — Portal Cliente |
+| Roadmap | 11 fases F0–F10 (`docs/PHASES.md` + `docs/ROADMAP.md`). F0, F1 y F2 completas. Próxima: F3 Portal Cliente. |
 | Score arquitectónico | **8.5/10** (post Tier 1 hardening 26-may-2026) |
-| Cliente activo | Hindu Club Fútbol (2.739 personas cargadas, en validación post-FASE 15) |
+| Cliente activo | Hindu Club Fútbol (2.739 personas cargadas, en validación post-F4) |
 | Vertical activa | **CCBP** (Clubes, Countries y Barrios Privados) |
 | Verticales catalogadas | Arq, Abog, Pub, Retail |
 
@@ -38,7 +38,7 @@
 - **Capa 0 — Troncal:** CRM, ERP, PIM, Plataforma. Universal, siempre activa.
 - **Capa 1 — Módulos:** 18 built-in, portables, declaran contrato en `module.json`.
 - **Capa 2 — Verticales:** presets (CCBP, Arq, Abog, Pub, Retail). Configuración, no código.
-- **Capa 3 — Conectores:** integraciones externas (Resend, MercadoPago, WhatsApp — todos mock hasta FASE 16).
+- **Capa 3 — Conectores:** integraciones externas (Resend, MercadoPago, WhatsApp — todos mock hasta F5).
 
 **Vocabulario canónico:** si hay ambigüedad terminológica entre dos términos, **`docs/GLOSSARY.md` gana**.
 
@@ -135,7 +135,9 @@
 | `docs/00-START-HERE.md` | Entry point único |
 | **`docs/ARCHITECTURE.md`** | **Canónico v3 (Sprint H4)** |
 | **`docs/SYSTEM-DESIGN.md`** | **Diseño de sistema v2.0 (post RFC-004)** |
-| **`docs/ROADMAP.md`** | **Roadmap v2.0 (17 fases por dependencias)** |
+| **`docs/ROADMAP.md`** | **Roadmap v2.0 (fases F0–F10)** |
+| **`docs/PHASES.md`** | **Fases F0–F10 + Rosetta Stone vocabulario viejo→nuevo** |
+| **`docs/OPERATING-MODEL.md`** | **Manual operativo del cuarteto Zoho + Drive + Repo + Raíz** |
 | **`docs/GLOSSARY.md`** | **Vocabulario canónico (este documento gana ante ambigüedad)** |
 | `docs/MODULE-CATALOG.md` | Catálogo de módulos físicos |
 | `docs/DATA-MODEL.md` | Modelo de datos por familia |
@@ -202,6 +204,9 @@
 | ADR-058 | Migraciones SQL versionadas + reversibles |
 | ADR-061 | Drift TS-BD silenciado Supabase |
 | ADR-062 | Modelado subtipos CCBP (supersedes ADR-055) |
+| ADR-063 | Modelo invitados, notificaciones, control acceso, asistencias eventos |
+| ADR-064 | Killer Machine: Operating Model del cuarteto |
+| ADR-065 | Migración nomenclatura fases F0–F10 (Rosetta Stone) |
 
 Lista completa: `docs/DECISIONS.md` (consolidado ADR-001 a ADR-046) + `docs/adr/` (individuales).
 
@@ -222,8 +227,8 @@ Lista completa: `docs/DECISIONS.md` (consolidado ADR-001 a ADR-046) + `docs/adr/
 | Bloqueante | Impacta | ETA estimada |
 |---|---|---|
 | CUIT SCL en trámite IGJ | Pre-launch productivo, F4 Zoho | Depende IGJ |
-| Resend (transactional email) | Confirmaciones, recovery de password | Setup post-CUIT (FASE 16) |
-| MercadoPago integración | Cuotas con cobro automático | Setup post-CUIT (FASE 16) |
+| Resend (transactional email) | Confirmaciones, recovery de password | Setup post-CUIT (F5) |
+| MercadoPago integración | Cuotas con cobro automático | Setup post-CUIT (F5) |
 | CUIT Hindu Club | Facturación Hindu | Cliente debe gestionar |
 | Dominios Hindu | Email + portal cliente para Hindu | Cliente debe gestionar |
 
@@ -236,7 +241,7 @@ Lista completa: `docs/DECISIONS.md` (consolidado ADR-001 a ADR-046) + `docs/adr/
 ### Datos productivos (CRÍTICO)
 
 - **NUNCA** correr smoke tests, blasts, ni queries destructivas contra las **2.390 personas reales de Hindu** cargadas en Supabase.
-- **NUNCA** pedir más datos al usuario hasta que pase la FASE 15 de validación.
+- **NUNCA** pedir más datos al usuario hasta que pase F4 (Validación Hindu).
 - Usar `tenant_id` de prueba (`tenant_demo_xxx`) para tests.
 
 ### Sincronización local ↔ GitHub ↔ Drive

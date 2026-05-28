@@ -259,7 +259,7 @@ Reglas:
 \- Server actions únicamente, NO endpoints REST (excepto si está justificado en ADR).  
 \- Soft-delete vía deleted\_at (ADR-030).  
 \- Permission checks contra catálogo en dot-notation (ADR-036).  
-\- Mock-first: cualquier integración externa va mockeada hasta FASE C (ADR-035).  
+\- Mock-first: cualquier integración externa va mockeada hasta F5 (ADR-035).  
 \- Reportar vía MCP, NO CLI local (ADR-039).
 
 BLOQUE H — PARTE 4: INTEGRACIONES (SI APLICA)  
@@ -580,7 +580,7 @@ REGLAS DURAS (NO negociables)
 1\. PARTE 0 (pre-mortem) y PARTE 1 (verificación) son obligatorias antes de codear.  
 2\. NO crear tablas nuevas sin justificación explícita en el ALCANCE.  
 3\. Permission slugs SIEMPRE en dot-notation (ADR-036). Matchear contra catálogo exacto, sin transformaciones.  
-4\. Mock-first universal hasta FASE C (ADR-035). Cualquier integración externa va mockeada.  
+4\. Mock-first universal hasta F5 (ADR-035). Cualquier integración externa va mockeada.  
 5\. Soft-delete vía deleted\_at (ADR-030). NO DELETE real desde la app.  
 6\. Cleanup en E2E con try/finally garantizado (ADR-038).  
 7\. NO romper tests previos. Target verbatim N → N+M.  

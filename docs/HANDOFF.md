@@ -29,12 +29,12 @@ Este documento define qué debe verificar una sesión IA nueva antes de empezar 
 | Branch | `main` |
 | Git status | Limpio (3 archivos sueltos en .gitignore) |
 | Sprints cerrados hoy | A4.5 (paridad eventos planificadores), D (loading selectivo) |
-| Próximo sprint | C0 (cierre fase pre-launch) |
+| Próximo sprint | F3 Portal Cliente |
 | Vercel | READY (deploy automático en push a main) |
 
 ---
 
-## Deuda técnica conocida (no bloquea C0)
+## Deuda técnica conocida (no bloquea F3)
 
 - `modules/planificadores/ui/crear-evento-dialog.tsx` — dead code, ya no se importa (reemplazado por `modules/eventos/ui/crear-evento-dialog.tsx`)
 - Links rotos "Ver detalle completo" en modals de evento (ruta `/admin/{tenant}/operaciones/eventos/{id}` no existe aún)

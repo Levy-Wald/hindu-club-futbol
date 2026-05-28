@@ -2,7 +2,7 @@
 
 > Ultima actualizacion: 15 de mayo de 2026 (Sprint H4)
 
-## ADRs 001-039 (FASES 1-5)
+## ADRs 001-039 (F0 — Base / Infra)
 
 | ADR | Titulo | Status |
 |---|---|---|
@@ -46,7 +46,7 @@
 | ADR-038 | E2E real obligatorio para triggers/jobs/flujos asincronicos | Accepted |
 | ADR-039 | Verificacion de produccion solo via MCP | Accepted |
 
-## ADRs 040-046 (RFC-004, FASE A)
+## ADRs 040-046 (RFC-004, F1)
 
 | ADR | Titulo | Status |
 |---|---|---|
@@ -75,7 +75,7 @@
 |---|---|---|---|
 | ADR-053 | E2E tests excluidos de CI | Accepted | `ADR-053-e2e-no-en-ci.md` |
 
-## ADRs 054-061 (FASE B + Bloque B12)
+## ADRs 054-061 (F2 + Bloque B12)
 
 | ADR | Titulo | Status | Archivo |
 |---|---|---|---|
@@ -86,3 +86,12 @@
 | ADR-058 | Correccion sidebar catalog completo | Accepted | `ADR-058-correccion-sidebar-catalog-completo.md` |
 | ADR-060 | Sidebar 3 capas estado | Accepted | `ADR-060-sidebar-3-capas-estado.md` |
 | ADR-061 | Drift TS-BD silenciado por Supabase client | Accepted | `ADR-061-drift-ts-bd-silenciado-supabase.md` |
+| ADR-062 | Modelado subtipos CCBP (supersedes ADR-055) | Accepted | `ADR-062-modelado-subtipos-ccbp.md` |
+
+## ADRs 063-065 (Operating Model + Nomenclatura F0–F10)
+
+| ADR | Titulo | Status | Archivo |
+|---|---|---|---|
+| ADR-063 | Modelo invitados, notificaciones, control acceso, asistencias eventos | Accepted | `ADR-063-modelo-invitados-notificaciones-control-acceso-asistencias-eventos.md` |
+| ADR-064 | Killer Machine: Operating Model del cuarteto | Accepted | `ADR-064-killer-machine-operating-model.md` |
+| ADR-065 | Migracion nomenclatura fases F0-F10 (Rosetta Stone) | Accepted | `ADR-065-migracion-nomenclatura-fases-rosetta-stone.md` |

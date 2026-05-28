@@ -2079,18 +2079,18 @@ operativas que no siempre están disponibles cuando un sprint los necesita.
 ### Decisión
 
 Todos los integradores externos se desarrollan en modo **mock-first universal**.
-El switch a producción real es una operación centralizada en FASE 16.
+El switch a producción real es una operación centralizada en F5.
 
 Reglas:
 1. Cada integrador se modela como `Adapter` pattern: interface tipada + `MockAdapter`.
 2. El default operativo (sin env var explícita) es siempre mock.
 3. Los módulos consumidores importan la API tipada, no conocen el adapter activo.
-4. FASE 16 es donde se crean adapters reales y se configura el switch vía env var.
+4. F5 es donde se crean adapters reales y se configura el switch vía env var.
 5. La demo a Hindu puede ejecutarse 100% en modo mock.
 
 ### Consecuencias
 
-- Sprint FASE 2.2 original (Adapter Resend) se movió a FASE 16. FASE 2 queda con 5 sprints.
+- Sprint FASE 2.2 original (Adapter Resend) se movió a F5. FASE 2 queda con 5 sprints.
 - El sistema puede operarse y demostrarse con cero dependencias externas activas.
 - Sprint 2.1 implementó el patrón de referencia: `ComunicacionAdapter` + `MockAdapter` + `resolveAdapter()`.
 
@@ -2455,7 +2455,7 @@ Positivas:
 Negativas:  
 \- Requiere reclasificar módulos hoy clasificados como "deportivos" (asistencias, reservas, acceso, etc.) a cross-vertical.  
 \- Necesita disciplina arquitectónica: cada PR debe declarar capa explícitamente para evitar acoplamientos cruzados.  
-\- Hay deuda técnica heredada (3 tablas paralelas de productos) que se difiere a FASE D.
+\- Hay deuda técnica heredada (3 tablas paralelas de productos) que se difiere a F6.
 
 References  
 \==========
@@ -2509,7 +2509,7 @@ Positivas:
 
 Negativas:  
 \- El troncal mínimo no está 100% construido hoy (PIM Nivel 1 falta, Proyectos & Tareas falta).  
-\- FASE A está dedicada a completar estos 9 bloques antes de avanzar a verticales.
+\- F1 está dedicada a completar estos 9 bloques antes de avanzar a verticales.
 
 References  
 \==========
@@ -2554,7 +2554,7 @@ Nivel 3 — Stock & Movimientos (CROSS-VERTICAL OPCIONAL):
 \- Stock real por producto x ubicación x estado calculado en tiempo real  
 \- Reservas temporales, lotes, series, fechas de vencimiento (premium)
 
-Nivel 1 se construye en Sprint A2. Niveles 2 y 3 se construyen en FASE D según demanda real.
+Nivel 1 se construye en Sprint A2. Niveles 2 y 3 se construyen en F6 según demanda real.
 
 Alternatives considered  
 \=======================
@@ -2574,7 +2574,7 @@ Positivas:
 
 Negativas:  
 \- Decisión de qué nivel activar es del cliente; mal asesoramiento puede frustrar.  
-\- Migración paulatina de tablas paralelas a Nivel 3 es FASE D.
+\- Migración paulatina de tablas paralelas a Nivel 3 es F6.
 
 References  
 \==========
@@ -2652,41 +2652,41 @@ Decision
 
 El plan de ejecución se reorganiza en 5 fases macro:
 
-FASE A — Cerrar troncal mínimo (6 sprints A1-A6, costo \~55-62h):  
+F1 — Troncal núcleo ERP+CRM (6 sprints A1-A6, costo \~55-62h):
 A1 Fix Base Operativa, A2 PIM Nivel 1, A3 Finanzas, A4 CRM avanzado, A5 Comunicaciones cierre, A6 Proyectos & Tareas.
 
-FASE B — Cerrar vertical CCBP (6 sprints B1-B6, costo \~30h):  
+F2 — Vertical CCBP (6 sprints B1-B6, costo \~30h):
 B1 Lesiones, B2 Historial, B3 Scouting, B4 Reportes deportivos, B5 Socios, B6 Cuerpo Técnico \+ Diagramación.
 
-FASE C — Demo a Hindu (validación end-to-end sin nuevas features):  
+F4 — Validación Hindu (demo real 30–60 días, sin nuevas features):
 Reset DB \+ carga de cero por Yair \+ workflow real durante una semana.
 
-FASE D — Cross-vertical extra (6 sprints D1-D6):  
+F6 — Premium ERP (6 sprints D1-D6):
 Documentos/Firma, Tickets, Pricing avanzado (PIM Nivel 2), Stock & Movimientos (PIM Nivel 3), Espacios físicos, Consolidación de tablas paralelas.
 
-FASE E — Abrir otros verticales (orden comercial sugerido):  
-E1 Estudios de Arquitectura, E2 Estudios de Abogacía, E3 Agencias de Publicidad, E4 Retailers PyME.
+F8 — Verticales nuevas (orden comercial sugerido):
+F8.1 Estudios de Arquitectura, F8.4 Estudios de Abogacía, F8.5 Agencias de Publicidad, F8.2 Retailers PyME.
 
-Las fases anteriores 1-17 quedan como historial. Las que estaban completas (1-5) se preservan. Las que estaban planificadas (6-17) se reorganizan según el nuevo plan: parte va a FASE B, parte a FASE D, parte se reclasifica como satélite de otras fases.
+Las fases anteriores 1-17 quedan como historial. Las que estaban completas (1-5) se preservan. Las que estaban planificadas (6-17) se reorganizan según el nuevo plan: parte va a F2, parte a F6, parte se reclasifica como satélite de otras fases.
 
 Alternatives considered  
 \=======================
 
 Continuar el plan lineal 1-17 después de RFC-004: se descartó porque mantiene el modelo monolítico vertical y no aprovecha la nueva arquitectura para abrir verticales nuevos.
 
-Saltar FASE B y arrancar otros verticales antes de cerrar CCBP: se descartó porque Hindu es el cliente piloto real y necesita producto completo para validar. Sin validación end-to-end, abrir más verticales aumenta el riesgo de errores arquitectónicos no detectados.
+Saltar F2 y arrancar otros verticales antes de cerrar CCBP: se descartó porque Hindu es el cliente piloto real y necesita producto completo para validar. Sin validación end-to-end, abrir más verticales aumenta el riesgo de errores arquitectónicos no detectados.
 
 Consequences  
 \============
 
 Positivas:  
 \- Orden basado en dependencias técnicas y comerciales reales.  
-\- FASE C (demo Hindu) es el quality gate antes de abrir más verticales.  
+\- F4 (validación Hindu) es el quality gate antes de abrir más verticales.  
 \- Cada fase tiene un objetivo claro y entregable demostrable.
 
 Negativas:  
-\- FASE 6 que estaba planificada (lesiones, scouting, etc.) se pospone hasta FASE B (después de cerrar troncal).  
-\- Los sprints ya armados de FASE 6 se reutilizan en FASE B (sin retrabajo, solo reubicación).
+\- FASE 6 que estaba planificada (lesiones, scouting, etc.) se pospone hasta F2 (después de cerrar troncal).
+\- Los sprints ya armados de FASE 6 se reutilizan en F2 (sin retrabajo, solo reubicación).
 
 References  
 \==========
@@ -2720,26 +2720,26 @@ Los siguientes módulos se reclasifican a Capa 1 cross-vertical:
 \- concesiones (renombrar conceptualmente a pos; CCBP: buffet. Retail: caja. Restaurant: comanda)  
 \- socios (renombrar conceptualmente a suscripciones\_membresia; CCBP: socios. Coworking: miembros. Gym: abonos)
 
-Los renombres FÍSICOS de carpetas modules/X y de tablas se difieren a FASE D. En FASE A solo se reclasifica conceptualmente vía la columna catalogo\_modulos.capa, sin romper el código existente.
+Los renombres FÍSICOS de carpetas modules/X y de tablas se difieren a F6. En F1 solo se reclasifica conceptualmente vía la columna catalogo\_modulos.capa, sin romper el código existente.
 
 Notificaciones se mantiene como sub-bloque del Motor de Comunicaciones (no es módulo independiente).
 
 Alternatives considered  
 \=======================
 
-Mantener como deportivos hasta FASE E (cuando se abra primer vertical no-CCBP): se descartó porque la clasificación correcta debe estar disponible desde el comienzo para que MODULE-CATALOG, ROADMAP y oferta comercial sean precisos.
+Mantener como deportivos hasta F8 (cuando se abra primer vertical no-CCBP): se descartó porque la clasificación correcta debe estar disponible desde el comienzo para que MODULE-CATALOG, ROADMAP y oferta comercial sean precisos.
 
-Renombrar físicamente las carpetas en FASE A: se descartó porque rompería imports en cientos de archivos y aumentaría el riesgo del sprint A1. Mejor reclasificación conceptual ahora, renombre físico en FASE D.
+Renombrar físicamente las carpetas en F1: se descartó porque rompería imports en cientos de archivos y aumentaría el riesgo del sprint A1. Mejor reclasificación conceptual ahora, renombre físico en F6.
 
 Consequences  
 \============
 
 Positivas:  
-\- Cuando se abre otro vertical (FASE E), estos módulos están listos para reutilizarse.  
+\- Cuando se abre otro vertical (F8), estos módulos están listos para reutilizarse.  
 \- MODULE-CATALOG refleja la arquitectura real desde el comienzo.
 
 Negativas:  
-\- Inconsistencia temporal entre nombres físicos (carpetas como modules/utileria) y nombres conceptuales (Inventario). Se resuelve en FASE D.
+\- Inconsistencia temporal entre nombres físicos (carpetas como modules/utileria) y nombres conceptuales (Inventario). Se resuelve en F6.
 
 References  
 \==========
@@ -2763,7 +2763,7 @@ Hoy existen tres tablas paralelas de productos en la DB:
 \- utileria\_items (Utilería)  
 \- concesion\_productos (Concesiones/POS)
 
-Las tres tienen estructura similar pero divergente. Esto es deuda técnica heredada. Una consolidación física implica reescribir importantes partes de los módulos utileria y concesiones, con alto riesgo durante FASE A.
+Las tres tienen estructura similar pero divergente. Esto es deuda técnica heredada. Una consolidación física implica reescribir importantes partes de los módulos utileria y concesiones, con alto riesgo durante F1.
 
 El bloque PIM del troncal (Sprint A2) necesita una vista unificada del catálogo de productos para que cualquier módulo o pantalla pueda consultar "qué productos existen en el tenant".
 
@@ -2784,7 +2784,7 @@ CREATE VIEW v\_productos\_catalogo AS
 
 La UI del PIM (Sprint A2) lee de esta vista. Cada módulo origen sigue usando su tabla nativa para operaciones de escritura.
 
-La consolidación física (migración de utileria\_items y concesion\_productos a productos\_servicios \+ columnas adicionales) se difiere a FASE D, Sprint D5 (Consolidación de tablas paralelas), una vez que Hindu haya validado el sistema en FASE C.
+La consolidación física (migración de utileria\_items y concesion\_productos a productos\_servicios \+ columnas adicionales) se difiere a F6, Sprint D5 (Consolidación de tablas paralelas), una vez que Hindu haya validado el sistema en F4.
 
 Alternatives considered  
 \=======================
@@ -2799,11 +2799,11 @@ Consequences
 Positivas:  
 \- Sprint A2 puede entregarse sin riesgo de romper módulos existentes.  
 \- La UI del PIM ve un catálogo unificado desde día 1\.  
-\- Consolidación física queda planificada para FASE D con bajo riesgo (Hindu ya validado).
+\- Consolidación física queda planificada para F6 con bajo riesgo (Hindu ya validado).
 
 Negativas:  
 \- La vista es solo lectura; escrituras siguen siendo por tabla nativa. Esto puede confundir a desarrolladores nuevos.  
-\- Deuda técnica visible hasta FASE D.
+\- Deuda técnica visible hasta F6.
 
 References  
 \==========
