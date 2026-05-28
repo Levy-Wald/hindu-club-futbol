@@ -369,7 +369,7 @@ export function PersonaEditor({ persona, catalogoAtributos, catalogoVinculos, pa
 
         {/* FICHA TOTAL — read-only overview */}
         <TabsContent value="ficha" className="mt-4">
-          <SeccionFichaTotal form={form} persona={persona} />
+          <SeccionFichaTotal form={form} persona={persona} personaId={persona.id as string} tenantId={persona.tenant_id as string} />
         </TabsContent>
       </Tabs>
 
