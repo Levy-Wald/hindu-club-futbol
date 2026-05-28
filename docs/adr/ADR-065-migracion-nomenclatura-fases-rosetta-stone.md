@@ -1,5 +1,7 @@
 # ADR-065 — Migración a nomenclatura única F0–F10 (Rosetta Stone)
 
+> Espejo de Drive `_Arquitectura/ADR-065-migracion-nomenclatura-fases-rosetta-stone`. Fuente de verdad allí.
+
 **Estado**: Accepted
 **Fecha**: 28-may-2026
 **Fuente de verdad**: Drive `_Arquitectura/ADR-065-migracion-nomenclatura-fases-rosetta-stone`

@@ -344,7 +344,7 @@ PROHIBIDAS:
 MODO OSCURO  
 \============
 
-Status: planificado post FASE C.  
+Status: planificado post F4 (Validación Hindu).  
 Estrategia: variables CSS con light-dark(), toggle en settings persistente en localStorage, default según prefers-color-scheme.  
 Hasta entonces: solo modo claro.
 

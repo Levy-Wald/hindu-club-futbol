@@ -1,45 +1,55 @@
-ROADMAP-MASTER — Plataforma SaaS Multimodal  
+ROADMAP-MASTER — Plataforma SaaS Multimodal
 \================================================
 
-Versión: 2.0 (re-escrito post RFC-004)  
-Fecha: 13 de mayo de 2026  
-Status: Accepted  
-Supersedes: ROADMAP.md v1 (17 fases lineales del modelo vertical único)  
-Path esperado en repo: docs/ROADMAP.md  
-Referencias: RFC-004, ADR-040, ADR-041, ADR-044
+Versión: 3.0 (actualizado post ADR-064/065 — nomenclatura F0–F10)
+Fecha: 28 de mayo de 2026
+Status: Accepted
+Supersedes: ROADMAP.md v2.0
+Path esperado en repo: docs/ROADMAP.md
+Estado vivo del trabajo: Zoho Projects → LE-8 SaaS Empresarial (portal serviciosclevel, portal_id 918690668, project_id 2651844000000411004)
+Referencias: RFC-004, ADR-040, ADR-041, ADR-044, ADR-064, ADR-065
 
-CRITERIO DE ORDENAMIENTO  
+CRITERIO DE ORDENAMIENTO
 \=========================
 
 El roadmap no tiene fechas. Las fases se ordenan por DEPENDENCIAS TÉCNICAS Y COMERCIALES, no por calendario.
 
-Una fase no se considera completa si:  
-\- Sus sprints no están todos en DONE  
-\- Su criterio de cierre no se cumple  
+Una fase no se considera completa si:
+\- Sus sprints no están todos en DONE
+\- Su criterio de cierre no se cumple
 \- No hay tag en el repo correspondiente al cierre
 
 Una fase posterior no arranca si la anterior no está completa, excepto cuando se declara paralelización explícita.
 
-VISIÓN GENERAL  
+Nomenclatura oficial: F0–F10 (ver `docs/PHASES.md` para tabla completa + Rosetta Stone vocabulario viejo→nuevo).
+
+VISIÓN GENERAL
 \===============
 
-Hay 5 fases macro. Cada una con un objetivo claro y un criterio de cierre verificable.
+Hay 5 fases macro de ejecución. Cada una con un objetivo claro y un criterio de cierre verificable.
 
-F1 — Cerrar troncal mínimo (objetivo: 9 bloques del troncal funcionando)
-F2 — Cerrar vertical CCBP (objetivo: Hindu Club Fútbol con producto completo)
+F1 — Cerrar troncal mínimo (objetivo: 9 bloques del troncal funcionando) — COMPLETA
+F2 — Cerrar vertical CCBP (objetivo: Hindu Club Fútbol con producto completo) — COMPLETA
+F3 — Portal Cliente (objetivo: front del socio mobile)
 F4 — Validación Hindu (objetivo: validación end-to-end con cliente real)
+F5 — Switch a producción (objetivo: conectores reales, salida de mocks)
 F6 — Premium ERP (objetivo: nivelar capacidades para vender a otros verticales)
+F7 — Premium Socio (objetivo: engagement y revenue)
 F8 — Abrir otros verticales (objetivo: clientes pagando en cada vertical)
+F9 — IA y Plataforma SaaS
+F10 — Backlog futuro
 
-F1 — CERRAR TRONCAL MÍNIMO
+F1 — CERRAR TRONCAL MÍNIMO (COMPLETA)
 \================================
+
+> Estado: COMPLETA. Tag de cierre: v0.27.0-fase-a-completa
 
 Objetivo: tener los 9 bloques del troncal universal (ADR-041) funcionando con UI completa, listos para soportar cualquier vertical.
 
-Criterio de cierre:  
-\- Los 9 bloques del troncal pasan smoke test funcional  
-\- 0 bugs 404 conocidos en rutas troncal  
-\- Sidebar reorganizado refleja taxonomía de 4 capas  
+Criterio de cierre:
+\- Los 9 bloques del troncal pasan smoke test funcional
+\- 0 bugs 404 conocidos en rutas troncal
+\- Sidebar reorganizado refleja taxonomía de 4 capas
 \- Tag v0.27.0-fase-a-completa
 
 Sprints (6 sprints, costo \~55-62 horas Code):
@@ -86,20 +96,22 @@ Tag esperado: v0.27.0-fase-a-sprint-6
 Costo estimado: 12-15h  
 Dependencias: A1, A4 (personas/entidades pulidas para tab "Proyectos")
 
-F2 — CERRAR VERTICAL CCBP
+F2 — CERRAR VERTICAL CCBP (COMPLETA)
 \================================
+
+> Estado: COMPLETA. Tag de cierre: v0.30.0-fase-b-completa
 
 Objetivo: dejar el vertical CCBP 100% productivo para Hindu y vendible a otros clubes/countries/barrios privados.
 
-Criterio de cierre:  
-\- Todos los submódulos del vertical CCBP del MODULE-CATALOG están en estado Productivo  
-\- Hindu Club Fútbol puede operar end-to-end en modo mock  
+Criterio de cierre:
+\- Todos los submódulos del vertical CCBP del MODULE-CATALOG están en estado Productivo
+\- Hindu Club Fútbol puede operar end-to-end en modo mock
 \- Tag v0.30.0-fase-b-completa
 
 Sprints (6 sprints, costo \~30 horas Code):
 
 SPRINT B1 — Salud / Lesiones operativas  
-Tema: activar tabla personas\_lesiones, UI de carga y listado, notificación automática al CT, indicador "LESIONADO" en convocatoria. Prompt ya armado (originalmente FASE 6.1, retomado en F2).  
+Tema: activar tabla personas\_lesiones, UI de carga y listado, notificación automática al CT, indicador "LESIONADO" en convocatoria. Prompt ya armado (retomado en F2).  
 Capas: BD (atributos \+ plantillas), Código, UI/UX, Estilos  
 Tag esperado: v0.28.0-fase-b-sprint-1  
 Costo estimado: 5h  
@@ -146,7 +158,7 @@ Dependencias: A1 (espacios), B1-B5
 
 PARALELIZACIÓN: B1-B4 pueden correr secuencialmente. B5 y B6 pueden correr en paralelo si hay capacidad.
 
-F4 — VALIDACIÓN HINDU
+F4 — VALIDACIÓN HINDU (PENDIENTE)
 \========================
 
 Objetivo: validación end-to-end del producto completo con Hindu Club Fútbol en modo mock.
@@ -168,7 +180,7 @@ Actividades (no son sprints técnicos):
 
 NO se construyen features nuevas en F4. Solo bugs críticos si bloquean validación.
 
-F6 — PREMIUM ERP
+F6 — PREMIUM ERP (PENDIENTE)
 \================================
 
 Objetivo: nivelar los módulos cross-vertical que más demandan los 5 verticales en hoja de ruta, antes de abrir el primero.
@@ -220,7 +232,7 @@ Tag esperado: v0.36.0-fase-d-sprint-6
 Costo estimado: 8h  
 Dependencias: B6 (versión CCBP-específica, ahora generalizada)
 
-F8 — ABRIR OTROS VERTICALES
+F8 — ABRIR OTROS VERTICALES (PENDIENTE)
 \=================================
 
 Objetivo: vender la plataforma a verticales adicionales y validar la arquitectura multi-vertical con clientes reales.
@@ -292,18 +304,19 @@ REGLAS DE EJECUCIÓN
 
 7\. No se carga más data productiva de Hindu durante F1 y F2. La carga es F4.
 
-ESTADO ACTUAL (al 13 de mayo de 2026\)  
+ESTADO ACTUAL (al 28 de mayo de 2026)
 \======================================
 
-F0 (Base / Infra del modelo viejo): CERRADA (Hindu en producción).
-F1: planificada, sprints documentados, pendiente arrancar Sprint A1.
-F2: parcialmente preparada (RFC-003 \+ prompt 6.1 listo, ahora será B1).
-F4–F8: planificación futura.
+F0 (Base / Infra): COMPLETA (Hindu en producción).
+F1 (Troncal núcleo ERP+CRM): COMPLETA. Tag: v0.27.0-fase-a-completa.
+F2 (Vertical CCBP): COMPLETA. Tag: v0.30.0-fase-b-completa.
+F3 (Portal Cliente): próxima fase a ejecutar.
+F4–F10: planificación futura.
 
-Próximo paso: ejecutar Sprint A1.
+Estado vivo del trabajo en Zoho Projects → LE-8 SaaS Empresarial.
 
-ÚLTIMA ACTUALIZACIÓN  
+ÚLTIMA ACTUALIZACIÓN
 \=====================
 
-13 de mayo de 2026\. Versión 2.0.  
-Próxima revisión: al cierre de cada fase.  
+28 de mayo de 2026. Versión 3.0 (post ADR-064/065, nomenclatura F0–F10).
+Próxima revisión: al cierre de cada fase.

@@ -2,7 +2,7 @@
 
 > **Vigente desde**: 28-may-2026
 > **Canonizado en**: ADR-065 (Drive `_Arquitectura/ADR-065-migracion-nomenclatura-fases`)
-> **Estado vivo del trabajo**: Zoho Projects → proyecto "SaaS Empresarial"
+> **Estado vivo del trabajo**: Zoho Projects → proyecto LE-8 SaaS Empresarial (portal serviciosclevel, portal_id 918690668, project_id 2651844000000411004)
 
 Este documento define la nomenclatura **única y oficial** de fases del roadmap. Reemplaza todos los vocabularios anteriores (FASE A–E, C0, Fase 6, Fase 9, Fase 16). Cualquier documento o conversación que use el vocabulario viejo se traduce con la Rosetta Stone al final.
 

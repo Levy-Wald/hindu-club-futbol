@@ -81,6 +81,30 @@
 
 ---
 
+## Killer Machine — Operating Model (ADR-064)
+
+El proyecto opera con un **cuarteto de superficies**, cada una fuente de verdad de algo distinto:
+
+| Superficie | Fuente de verdad de |
+|---|---|
+| **Zoho Projects** → LE-8 SaaS Empresarial (portal serviciosclevel, portal_id 918690668, project_id 2651844000000411004) | Tareas, estados, sprints |
+| **Google Drive** → `1cZVm440-tL7qgCmqe6ONDu26qvyprj98` | Documentación larga (ADRs, RFCs, specs) |
+| **Repo GitHub** → `Levy-Wald/hindu-club-futbol` | Código + docs técnicos |
+| **Raíz compu** → `/Users/yamirolw/hindu-v2` | Copia local (no es fuente de verdad propia) |
+
+**Tridente operativo:**
+- **Yair**: decisión + QA humano + aprobación. Escribe en todas las superficies.
+- **Opus**: especificación, ADRs, prompts. Escribe en Drive y Zoho vía MCP. NO escribe en repo.
+- **Code**: implementación, código, docs técnicos. Escribe SOLO en repo. NO escribe en Drive ni Zoho.
+
+**Regla DONE**: DONE técnico (build + tests OK) ≠ terminado. Solo DONE visual de Yair marca `terminado`.
+
+**Nomenclatura oficial**: F0–F10 (ver `docs/PHASES.md` para tabla completa + Rosetta Stone vocabulario viejo→nuevo).
+
+Detalle completo en `docs/OPERATING-MODEL.md`.
+
+---
+
 ## Reglas vinculantes para cualquier IA que ejecute en este repo
 
 ### Antes de tocar código

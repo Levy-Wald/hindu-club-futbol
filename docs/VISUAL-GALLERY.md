@@ -223,14 +223,14 @@ CAPA CROSS-VERTICAL
 
 Asistencias, Reservas, POS/Concesiones, Inventario, Acceso, Pre-inscripciones: pantallas productivas, necesitan screenshots históricos en próxima captura masiva.
 
-Documentos/Firma, Tickets, Pricing avanzado, Stock & Movimientos: a crear en FASE D.
+Documentos/Firma, Tickets, Pricing avanzado, Stock & Movimientos: a crear en F6 (Premium ERP).
 
 VERTICAL CCBP  
 ──────────────
 
 Equipos, Planificadores, Entrenamientos, Táctica, Amistosos, Competencias: pantallas productivas, necesitan screenshots históricos.
 
-Salud, Historial, Scouting, Reportes deportivos: a crear en FASE B (Sprints B1-B4).
+Salud, Historial, Scouting, Reportes deportivos: creados en F2 (Sprints B1-B4).
 
 Socios membresía: a crear en Sprint B5.
 
@@ -239,10 +239,10 @@ Cuerpo Técnico operativo \+ Diagramación del Club: a crear en Sprint B6.
 VERTICALES FUTUROS  
 ───────────────────
 
-Vertical Arq (FASE E1): pantallas por crear.  
-Vertical Abog (FASE E2): pantallas por crear.  
-Vertical Pub (FASE E3): pantallas por crear.  
-Vertical Retail (FASE E4): pantallas por crear.
+Vertical Arq (F8.1): pantallas por crear.
+Vertical Abog (F8.4): pantallas por crear.
+Vertical Pub (F8.5): pantallas por crear.
+Vertical Retail (F8.2): pantallas por crear.
 
 PANTALLAS DE PLATAFORMA  
 ────────────────────────
@@ -260,7 +260,7 @@ CAPTURA INICIAL MASIVA
 
 En Sprint A1 (Fix Base Operativa), se incluye una tarea adicional: capturar screenshot histórico de TODAS las pantallas productivas existentes (estado ✅ Productivo) y poblar este índice con sus paths.
 
-Esto sienta la línea base visual del estado de la plataforma a inicio de FASE A, contra la cual se compararán los cambios futuros.
+Esto sienta la línea base visual del estado de la plataforma a inicio de F1, contra la cual se compararán los cambios futuros.
 
 CUÁNDO SE ACTUALIZA  
 \====================

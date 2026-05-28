@@ -295,8 +295,8 @@ CUÁNDO ESTE DOC SE ACTUALIZA
 \- Cuando se defina el nombre del producto raíz (hito H1).  
 \- Cuando se contrate diseñador para logo e identidad visual.  
 \- Cuando se traduzca la plataforma a otros idiomas.  
-\- Cuando se abra el primer vertical distinto a CCBP (FASE E).  
-\- Cuando se reciba feedback sustantivo en FASE C (Demo Hindu).
+\- Cuando se abra el primer vertical distinto a CCBP (F8).
+\- Cuando se reciba feedback sustantivo en F4 (Validación Hindu).
 
 ÚLTIMA ACTUALIZACIÓN  
 \=====================

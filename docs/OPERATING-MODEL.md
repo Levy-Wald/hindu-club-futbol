@@ -11,7 +11,7 @@ Este documento define **cómo opera el proyecto SaaS Empresarial** en términos 
 
 | Superficie | Rol | Qué vive aquí |
 |---|---|---|
-| **Zoho Projects** | Fuente de verdad de **tareas** | Tareas, estados, sprints, dependencias, subtareas, problemas. Lo que se está construyendo y validando. Proyecto único: **"SaaS Empresarial"** |
+| **Zoho Projects** | Fuente de verdad de **tareas** | Tareas, estados, sprints, dependencias, subtareas, problemas. Lo que se está construyendo y validando. Proyecto único: **LE-8 SaaS Empresarial** (portal serviciosclevel, portal_id 918690668, project_id 2651844000000411004) |
 | **Google Drive** | Fuente de verdad de **documentación larga** | ADRs, RFCs, manuales, especificaciones, decisiones, cierres, matrices visuales, boot prompts, handoffs |
 | **Repo GitHub** (`github.com/Levy-Wald/hindu-club-futbol`) | Fuente de verdad de **código + docs técnicos** | `CLAUDE.md`, `docs/*.md`, `docs/adr/*` (espejos de Drive), migraciones, código, tests |
 | **Raíz compu** (`/Users/yamirolw/hindu-v2`) | Copia local del repo | Donde Code trabaja. Se sincroniza con repo vía git. No es fuente de verdad propia |
@@ -85,7 +85,7 @@ Quien se sume al sistema lee, en este orden:
 2. **ADR-065** (Drive `_Arquitectura/ADR-065-migracion-nomenclatura-fases-rosetta-stone`) — entiende por qué los docs viejos usan otro vocabulario.
 3. **`docs/PHASES.md`** — conoce la nomenclatura F0–F10.
 4. **`docs/MODULE-CATALOG.md`** — conoce los módulos del producto.
-5. **Zoho Projects → "SaaS Empresarial"** — ve el estado actual de trabajo.
+5. **Zoho Projects → LE-8 SaaS Empresarial** — ve el estado actual de trabajo.
 6. **`docs/HANDOFF.md`** — ve dónde quedó la sesión anterior si está retomando.
 
 Recién después de eso, opera dentro de las reglas. No escribe en superficies que no le corresponden. Respeta DONE técnico vs visual.
@@ -117,4 +117,4 @@ El estado vivo siempre se ve en Zoho. El sheet `Matriz-Modulos-SMV-ClubCore-v7.x
 - `docs/HANDOFF.md` — handoff entre sesiones
 - Drive raíz → `Matriz-Modulos-SMV-ClubCore-v7.xlsx`
 - Drive raíz → `Matriz-Modulos-SMV-ClubCore-ZOHO.xlsx`
-- Zoho Projects → proyecto "SaaS Empresarial"
+- Zoho Projects → proyecto LE-8 SaaS Empresarial

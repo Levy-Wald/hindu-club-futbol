@@ -1,5 +1,7 @@
 # ADR-064 — Killer Machine: Operating Model del cuarteto
 
+> Espejo de Drive `_Arquitectura/ADR-064-killer-machine-operating-model`. Fuente de verdad allí.
+
 **Estado**: Accepted
 **Fecha**: 28-may-2026
 **Fuente de verdad**: Drive `_Arquitectura/ADR-064-killer-machine-operating-model`
