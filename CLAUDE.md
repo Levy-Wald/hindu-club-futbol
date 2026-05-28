@@ -1,10 +1,18 @@
 # CLAUDE.md — Contexto Operativo para IA Ejecutora
 
-**Producto:** Hindu Club Fútbol / **Plataforma SaaS Multimodal** / Vertical CCBP  
-**Propietario:** Servicios cLevel SRL (CUIT en trámite IGJ)  
-**Repo:** github.com/yamiro12/hindu-club-futbol  
-**URL producción:** https://hindu-club.vercel.app  
-**Última actualización:** 27-may-2026
+**Producto:** Hindu Club Fútbol / **Plataforma SaaS Multimodal** / Vertical CCBP
+**Propietario:** Servicios cLevel SRL (CUIT en trámite IGJ)
+**Organización GitHub:** Levy-Wald (grupo Servicios cLevel SRL)
+**Repo:** github.com/Levy-Wald/hindu-club-futbol
+**URL producción:** https://hindu-club.vercel.app
+**Vercel:** serviciosclevel/hindu-club
+**Supabase project:** hkoizqbptwhnepzbmjql
+**Path local canónico:** /Users/yamirolw/Projects/hindu-v2
+**Última actualización:** 28-may-2026
+
+> **Nota:** Este proyecto es el piloto del SaaS Empresarial (vertical CCBP — Clubes, Countries y Barrios Privados), bundle ClubCore, cliente Hindu Club Fútbol.
+> Repo migrado de `yamiro12/hindu-club-futbol` → `Levy-Wald/hindu-club-futbol` el 28-05-2026.
+> `yamiro12/hindu-club-futbol-v1-legacy` es la versión 1 archivada — no tocar.
 
 ---
 

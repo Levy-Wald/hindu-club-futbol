@@ -3,8 +3,20 @@
 **Plataforma multi-tenant** multi-vertical para gestionar personas, finanzas, comunicaciones, operaciones y más, sobre una base común extensible por módulos. Primer vertical productivo: **CCBP** (Clubes, Countries y Barrios Privados). Primer cliente productivo: **Hindu Club Fútbol** (Buenos Aires, 2.390 socios activos).
 
 [![Deploy Status](https://img.shields.io/badge/deploy-production-green)](https://hindu-club.vercel.app)
-[![Tag](https://img.shields.io/badge/tag-v0.30.24.2-blue)](https://github.com/yamiro12/hindu-club-futbol/tags)
+[![Tag](https://img.shields.io/badge/tag-v0.30.24.2-blue)](https://github.com/Levy-Wald/hindu-club-futbol/tags)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licencia)
+
+| Campo | Valor |
+|---|---|
+| **Organización GitHub** | [Levy-Wald](https://github.com/Levy-Wald) (grupo Servicios cLevel SRL) |
+| **Repo** | [Levy-Wald/hindu-club-futbol](https://github.com/Levy-Wald/hindu-club-futbol) |
+| **Vercel** | serviciosclevel/hindu-club |
+| **Supabase project** | hkoizqbptwhnepzbmjql |
+| **Path local canónico** | `/Users/yamirolw/Projects/hindu-v2` |
+| **Migración** | Repo migrado de `yamiro12/hindu-club-futbol` → `Levy-Wald/hindu-club-futbol` el 28-05-2026 |
+| **Legacy** | `yamiro12/hindu-club-futbol-v1-legacy` — versión 1 archivada, no tocar |
+
+> **Piloto SaaS Empresarial:** vertical CCBP (Clubes, Countries y Barrios Privados), bundle ClubCore, cliente Hindu Club Fútbol.
 
 ---
 
@@ -103,7 +115,7 @@ Para el modelo conceptual completo, ver `docs/ARCHITECTURE.md` (canónico v3) y 
 
 ```bash
 # Clonar
-git clone https://github.com/yamiro12/hindu-club-futbol.git
+git clone https://github.com/Levy-Wald/hindu-club-futbol.git
 cd hindu-club-futbol
 
 # Instalar dependencias

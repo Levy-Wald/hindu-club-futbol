@@ -187,7 +187,7 @@ v0.27.9                       A3.5 4 reportes contables
 v0.28.0                       A3.6 Conciliación bancaria
 ```
 
-**Verificación**: `git tag -l "v0.27.*"` y `git tag -l "v0.28.0"` desde repo `yamiro12/hindu-club-futbol`.
+**Verificación**: `git tag -l "v0.27.*"` y `git tag -l "v0.28.0"` desde repo `Levy-Wald/hindu-club-futbol`.
 
 ---
 

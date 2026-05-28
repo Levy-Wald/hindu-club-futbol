@@ -69,7 +69,7 @@ secret es riesgo innecesario. Se corren localmente antes de cada release.
 
 ### Paso 1: Verificar que el repositorio esta en GitHub
 
-1. Abri https://github.com/yamiro12/hindu-club-futbol en tu navegador
+1. Abri https://github.com/Levy-Wald/hindu-club-futbol en tu navegador
 2. Si ves el repo con archivos, perfecto — seguí al Paso 2
 3. Si dice "404" o no existe, decile al arquitecto antes de seguir
 
@@ -91,7 +91,7 @@ Una vez que pushees este commit (que incluye `.github/workflows/ci.yml`), GitHub
 
 ### Paso 4: Ver el badge en README
 
-1. Anda a la pagina principal del repo: https://github.com/yamiro12/hindu-club-futbol
+1. Anda a la pagina principal del repo: https://github.com/Levy-Wald/hindu-club-futbol
 2. Abajo del nombre del repo vas a ver un badge verde que dice "CI: passing" (o rojo si falla)
 3. Hace click en el badge para ver los detalles del ultimo run
 
