@@ -75,7 +75,7 @@ export async function editarPersona(id: string, input: EditarPersonaInput) {
   const v = parsed.data
 
   function str(val: string | undefined) { return val?.trim() || null }
-  function num(val: number | undefined) { return val || null }
+  function num(val: number | undefined) { return val != null ? val : null }
   function bool(val: boolean | undefined) { return val ?? null }
 
   const clean = {
