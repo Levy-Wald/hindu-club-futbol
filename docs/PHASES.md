@@ -2,7 +2,7 @@
 
 > **Vigente desde**: 28-may-2026
 > **Canonizado en**: ADR-065 (Drive `_Arquitectura/ADR-065-migracion-nomenclatura-fases`)
-> **Estado vivo del trabajo**: Zoho Projects → proyecto "SMV - ClubCore"
+> **Estado vivo del trabajo**: Zoho Projects → proyecto "SaaS Empresarial"
 
 Este documento define la nomenclatura **única y oficial** de fases del roadmap. Reemplaza todos los vocabularios anteriores (FASE A–E, C0, Fase 6, Fase 9, Fase 16). Cualquier documento o conversación que use el vocabulario viejo se traduce con la Rosetta Stone al final.
 
@@ -57,7 +57,7 @@ Cada módulo de F1 en adelante puede dividirse en dos entregas:
 - **Mejoras** — extensiones post-MVP, no bloquean primera venta
 - **Total** — módulos que no se subdividen (ya construidos completos o demasiado chicos)
 
-Ver Zoho "SMV - ClubCore" para el alcance asignado a cada tarea.
+Ver Zoho "SaaS Empresarial" para el alcance asignado a cada tarea.
 
 ---
 
@@ -103,5 +103,5 @@ Ver Zoho "SMV - ClubCore" para el alcance asignado a cada tarea.
 - ADR-064 — Killer Machine: Operating Model del cuarteto Zoho + Drive + Repo + Raíz compu
 - ADR-065 — Migración a nomenclatura única F0–F10 (decisión formal)
 - `docs/OPERATING-MODEL.md` — manual operativo del cuarteto
-- Zoho Projects → "SMV - ClubCore" — estado vivo
+- Zoho Projects → "SaaS Empresarial" — estado vivo
 - Drive raíz → `Matriz-Modulos-SMV-ClubCore-v7.xlsx` — vista inicial congelada
