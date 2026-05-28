@@ -44,7 +44,7 @@ export default async function MiPerfilPage() {
           {miEquipo ? (
             <TarjetaJugadorMiPerfil
               persona={persona}
-              asignacion={miEquipo.asignaciones[0] as unknown as Record<string, unknown>}
+              asignaciones={miEquipo.asignaciones as never[]}
             />
           ) : null}
         </div>
