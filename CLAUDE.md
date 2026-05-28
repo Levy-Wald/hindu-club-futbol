@@ -107,6 +107,12 @@ Detalle completo en `docs/OPERATING-MODEL.md`.
 
 ## Reglas vinculantes para cualquier IA que ejecute en este repo
 
+### Antes de arrancar cualquier sesión
+
+1. Leer `docs/OPENING.md` — cómo arrancar según quién sos.
+2. Leer `docs/CURRENT-STATE.md` — estado vivo del proyecto (tag actual, sprint activo, bloqueos).
+3. Si la sesión va a ser estratégica, leer también el último archivo en `docs/handoffs/`.
+
 ### Antes de tocar código
 
 1. Leer este `CLAUDE.md` completo.
@@ -156,6 +162,8 @@ Detalle completo en `docs/OPERATING-MODEL.md`.
 
 | Path | Qué contiene |
 |---|---|
+| **`docs/OPENING.md`** | **Cómo arrancar una sesión (leer siempre al inicio)** |
+| **`docs/CURRENT-STATE.md`** | **Estado vivo del proyecto (tag, sprint, bloqueos)** |
 | `docs/00-START-HERE.md` | Entry point único |
 | **`docs/ARCHITECTURE.md`** | **Canónico v3 (Sprint H4)** |
 | **`docs/SYSTEM-DESIGN.md`** | **Diseño de sistema v2.0 (post RFC-004)** |
@@ -179,7 +187,8 @@ Detalle completo en `docs/OPERATING-MODEL.md`.
 | `docs/MENORES-TUTORES.md` | Spec de negocio (menores + tutores) |
 | `docs/CURRENT-STATE.md` | Estado actual concreto |
 | `docs/CONVENTIONS.md` | Convenciones operativas (tags, versionado Drive, etc.) |
-| `docs/HANDOFF.md` | Checklist de continuidad entre sesiones IA |
+| `docs/handoffs/` | Handoffs de sesiones estratégicas |
+| `docs/templates/HANDOFF-TEMPLATE.md` | Plantilla para handoffs |
 | `docs/DECISIONS.md` | ADR-001 a ADR-046 consolidados |
 | `docs/adr/` | ADRs individuales (ADR-047+) |
 | `docs/rfcs/` | RFC-001 a RFC-005 |

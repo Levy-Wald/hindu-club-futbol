@@ -98,7 +98,41 @@ El estado vivo siempre se ve en Zoho. El sheet `Matriz-Modulos-SMV-ClubCore-v7.x
 
 ---
 
-## 10. Lo que NO se hace (anti-patrones)
+## 10. SOP de cierre de sprint
+
+### 10.1 Code — al cerrar un sprint técnico
+
+1. Auditoría arquitectónica pre-tag (3 checks de ADR-061):
+   - FKs solo a troncal/catálogo
+   - RLS + triggers + soft-delete completos
+   - Drift TS<->BD verificado
+2. Smoke funcional real en producción (`hindu-club.vercel.app`), no solo happy path
+3. `pnpm typecheck` + `pnpm build` verdes
+4. Commit + push a `main`
+5. Actualizar `docs/CURRENT-STATE.md` con el nuevo estado
+6. Git tag (`vX.Y.Z-descripcion`) + push tag
+7. Avisar a Yair para smoke humano (DONE técnico, esperando DONE visual)
+
+### 10.2 Opus — al cerrar sesión estratégica
+
+1. Mover tareas en Zoho al estado correspondiente (en qa, QA humano, terminado)
+2. Si fue sesión estratégica (criterios en `docs/templates/HANDOFF-TEMPLATE.md`), crear HANDOFF nuevo en Drive `_Cierre Ejecutivo/`
+3. Actualizar CURRENT-STATE vía prompt a Code (o vía edición directa de la copia Drive)
+4. Si se generaron ADRs nuevos, asegurar que Code los espeje en `docs/adr/`
+
+### 10.3 Criterios para crear HANDOFF (vs solo actualizar CURRENT-STATE)
+
+- Cierre de fase del roadmap (F0, F1, F2... completada)
+- Decisión arquitectónica grande (ADR nuevo, refactor mayor)
+- Sesión >2 horas con múltiples decisiones acumuladas
+- Resolución de bloqueo importante
+- Cambio en operating model
+
+Para sesiones de implementación rutinaria, basta con commit + tag + actualizar CURRENT-STATE.
+
+---
+
+## 11. Lo que NO se hace (anti-patrones)
 
 - Mantener el mismo estado en dos lugares (rompe el modelo de fuente de verdad única).
 - Tocar docs históricos para "modernizar el vocabulario" (son snapshots de su época; ver Rosetta Stone en `PHASES.md`).
@@ -114,7 +148,9 @@ El estado vivo siempre se ve en Zoho. El sheet `Matriz-Modulos-SMV-ClubCore-v7.x
 - ADR-065 — Migración nomenclatura fases (decisión formal en Drive)
 - `docs/PHASES.md` — fuente de verdad de fases
 - `docs/MODULE-CATALOG.md` — catálogo de módulos
-- `docs/HANDOFF.md` — handoff entre sesiones
-- Drive raíz → `Matriz-Modulos-SMV-ClubCore-v7.xlsx`
-- Drive raíz → `Matriz-Modulos-SMV-ClubCore-ZOHO.xlsx`
+- `docs/OPENING.md` — cómo arrancar una sesión
+- `docs/CURRENT-STATE.md` — estado vivo del proyecto
+- `docs/handoffs/` — handoffs de sesiones estratégicas
+- `docs/templates/HANDOFF-TEMPLATE.md` — plantilla para handoffs
+- `docs/_assets/Matriz-Modulos-SaaS-Empresarial-bulk-load-2026-05-28.xlsx` — XLSX fuente del bulk load
 - Zoho Projects → proyecto LE-8 SaaS Empresarial

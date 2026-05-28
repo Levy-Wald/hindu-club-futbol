@@ -1,263 +1,131 @@
-# CURRENT STATE — Estado actual del producto
+# CURRENT-STATE — Estado vivo del proyecto SaaS Empresarial
 
-**Última actualización:** 26-may-2026
-**Tag asociado:** `v0.30.24.4-final-alignment`
-**Versión documento:** v3.4
+**Última actualización**: 2026-05-28
+**Sesión que la generó**: Housekeeping post bulk load Zoho (Code)
+**Fuente de verdad**: este archivo. Drive es espejo de referencia.
 
-Este documento describe **qué está hecho hoy, qué falta y qué está bloqueado** en la Plataforma SaaS Multimodal. Lectura estimada: 20 min.
-
-> **Vocabulario:** este doc usa los términos canónicos definidos en `docs/GLOSSARY.md`. Si hay ambigüedad, GLOSSARY gana.
+> Este archivo se sobreescribe en cada cierre de sprint. Para histórico ver `docs/handoffs/` o Drive `_Cierre Ejecutivo/HANDOFF-YYYY-MM-DD`.
 
 ---
 
-## TL;DR
+## 1. Snapshot ejecutivo
 
-| Item | Estado |
+| Indicador | Valor |
 |---|---|
-| **Producto** | Plataforma SaaS Multimodal |
-| **Vertical activa** | CCBP (Clubes, Countries y Barrios Privados) |
-| **Cliente productivo** | Hindu Club Fútbol (2.739 personas cargadas) |
-| **URL producción** | https://hindu-club.vercel.app |
-| **Tag actual** | `v0.30.24.5-tier1-hardening` |
-| **Próximo sprint** | B18 — Sidebar BO Universal 7 espacios |
-| **Roadmap** | F0, F1 y F2 completas. Próxima: F3 (Portal Cliente). Ver `docs/PHASES.md`. |
-| **Score arquitectónico** | 8.5/10 (post Tier 1 hardening 26-may-2026) |
-| **Bloqueante crítico** | CUIT SCL en trámite IGJ (legal, no técnico) |
+| Tag git actual | `v0.37.0-housekeeping-killer-machine` |
+| Próximo tag esperado | post F1.4.2 hotfix buscador Personas |
+| Sprint activo | F1.4.2 — Hotfix buscador Personas server-side |
+| Sesión última cerrada | 2026-05-28 — Killer Machine + Zoho bulk load + housekeeping repo |
+| Fase actual del roadmap | F1 (Troncal núcleo ERP+CRM), módulo F1.4 (Eventos & Calendario) |
 
 ---
 
-## Modelo conceptual (resumen)
+## 2. Tareas en cada estado (snapshot Zoho LE-8)
 
-**4 capas** definidas en ADR-031:
+### En desarrollo (1)
+- **F1.4.2** — SE1-T21 — A4.5.1 Hotfix buscador Personas server-side (50%, owner Code)
+  - Bug raíz: prefetch con `limit(500)` deja 2.239 personas fuera. Combobox client-side.
+  - Issue Zoho asociado: I-001 / SE1-I1
 
-- **Capa 0 — Troncal:** CRM, ERP, PIM, Plataforma. Universal.
-- **Capa 1 — Módulos:** 18 built-in, portables, declaran contrato en `module.json`.
-- **Capa 2 — Verticales:** presets (CCBP activo, Arq/Abog/Pub/Retail catalogados).
-- **Capa 3 — Conectores:** Resend, MercadoPago, WhatsApp (todos mock hasta F5).
+### En QA técnico (0)
+- (vacío)
 
-Detalle completo: `docs/ARCHITECTURE.md` (canónico v3) + `docs/SYSTEM-DESIGN.md` (v2.0 post RFC-004).
+### QA humano — esperando smoke de Yair (1)
+- **F1.4.1** — SE1-T20 — A4.5 Paridad eventos/planificadores (90%, Round 2)
 
----
+### Analizado, listo para arrancar (86)
+- Distribución por phase:
+  - F0 Base/Infra: 5 tareas
+  - F1 Troncal restantes (sin contar F1.4.x): 13 tareas
+  - F2 Vertical CCBP: 26 tareas
+  - F3 Portal Cliente: 1 tarea
+  - F5 Switch producción: 11 tareas
+  - F6 Premium ERP: 6 tareas
+  - F7 Premium Socio: 9 tareas
+  - F8 Verticales nuevas: 7 tareas
+  - F9 IA y Plataforma SaaS: 2 tareas
+  - F10 Backlog futuro: 7 tareas
 
-## Métricas técnicas
+### Diseño sin código (2)
+- **F9.2** — SE1-T83 — Plataforma SaaS (30%)
+- **F10.2** — SE1-T85 — Planificador de Partido (30%)
 
-### Snapshot al 6-may-2026 (DATA-MODEL.md + MODULE-CATALOG.md)
+### Operacional humana (0 técnicas)
+- F4 — Validación Hindu — no tiene tareas técnicas, es ciclo de validación con cliente piloto
 
-| Métrica | Valor |
-|---|---|
-| Tablas Supabase | **140** |
-| Vistas SQL | **27** |
-| Funciones SQL | **~45** |
-| Módulos físicos en `modules/` | **29** (snapshot original pre-audit) |
-| Módulos built-in canónicos | **18** |
-
-### Snapshot al 26-may-2026 (snapshot vivo Supabase + audit + module catalog sync)
-
-| Métrica | Valor |
-|---|---|
-| Tablas Supabase | **174** (174 con RLS = 100% coverage) |
-| Políticas RLS activas | **355** |
-| Funciones SQL | **~126** (creció por funciones helper de sprints recientes) |
-| Triggers | **97** |
-| LOC totales | **~128.764** |
-| Archivos código | **834** |
-| Tests unit passing | **137** |
-| Módulos físicos en `modules/` | **37** (30 DONE, 2 PARCIAL, 4 HUÉRFANO, 1 NO UI) |
-| Módulos con `module.json` formal | **34** de 37 |
-| Personas Hindu (tabla personas) | **2.739** (socios activos, dependientes, contactos, padrones) |
-| Rows en audit_log | **47.017** |
-
-> **Discrepancia 6-may vs 26-may explicada:** los docs canónicos (`DATA-MODEL.md`, `POSTGRES.md`) reflejan el schema al 6-may (140 tablas). El snapshot vivo 26-may registra 175 tablas (+35 por sprints B13-B17 + A4.2). `DATA-MODEL.md` fue actualizado con las cifras vivas y la lista de 10 tablas sin RLS. Para snapshot del día, consultar Supabase directamente.
-
-### Deploy
-
-| Métrica | Valor |
-|---|---|
-| Status producción | ✅ READY |
-| URL | https://hindu-club.vercel.app |
-| Team Vercel | `team_clOmQCObDDN8okRHBc4wRhZ9` |
-| CI / Actions | Verde en main |
-| Deploys recientes | Auto-deploy en cada push a main |
+**Total**: 88 tareas raíz + 2 subtareas + 1 issue cargadas el 28-may-2026.
 
 ---
 
-## Qué funciona hoy (productivo en `hindu-club.vercel.app`)
+## 3. Bloqueos vigentes
 
-### Back Office (BO) — Capa 0 Troncal + Módulos Capa 1
-
-| Área | Status | Notas |
+| Bloqueo | Impacto | Resolución |
 |---|---|---|
-| **Auth + Login** | ✅ | Funcional, falta MFA |
-| **Listado de personas** | ✅ | 2.739 personas cargadas, búsqueda funcional |
-| **Detalle de persona** | ✅ | Edición + historial |
-| **Familias y dependientes** | ✅ | Vínculos tutor-menor (ver `docs/MENORES-TUTORES.md`) |
-| **Gestión de cuotas** | ✅ | Generación masiva + ajustes individuales |
-| **Eventos básicos** | ✅ | Crear + listar |
-| **Contabilidad básica** | 🟡 | Plan de cuentas + asientos manuales. Falta automatización. |
-| **Reportes** | 🟡 | Listas básicas. Faltan dashboards. |
-| **Usuarios y roles BO** | ✅ | Multi-rol funcional |
-| **Configuración tenant** | 🟡 | Parcial. Falta wizard onboarding. |
-| **Audit trail** | ✅ | Inmutable, accesible via SQL. Falta UI. |
-| **Sidebar BO** | ⚠️ | Antiguo, será refactorizado en B18 a 7 espacios universales (ADR-039) |
-
-### Portal del Cliente (PC) — Pendiente F3
-
-| Módulo PC | Status | Fase |
-|---|---|---|
-| Layout PC mobile-first | ⚪ | F3 |
-| Login + signup socio | 🟡 Parcial | F3 |
-| Dashboard socio | ⚪ | F3 |
-| Pago de cuotas | 🔴 Bloqueado (MercadoPago) | F3 + F5 |
-| Inscripción a eventos | ⚪ | F3 |
-| Perfil + dependientes | ⚪ | F3 |
-| Notificaciones | ⚪ | F3 |
-
-### Multi-tenancy
-
-- ✅ Schema unificado con `tenant_id` en todas las tablas productivas.
-- ✅ 355+ políticas RLS validadas (+ 8 nuevas del Tier 1 hardening).
-- ✅ 174/174 tablas con RLS habilitada (100% coverage post hardening 26-may).
-- ✅ Auth JWT propaga `tenant_id` correctamente.
-- ✅ Tests E2E validan aislamiento entre tenants demo.
+| Credenciales Resend, MercadoPago, AFIP, dominios Hindu, emails Hindu | F5 (switch a producción) bloqueado | Mock-first activo. Switch real al arrancar F4 con Yair coordinando con Hindu. |
+| Smoke real con personas Hindu prohibido | No se pueden lanzar campañas reales hasta F4 | Datos sintéticos. F4 es el momento. |
+| No carga adicional de data Hindu | Yair ya cargó todo lo disponible | Resto se carga durante F4 con el equipo de Hindu directo. |
+| Sync repo->Drive manual | Opus replica vía MCP, no es automático | TODO post-F4. |
 
 ---
 
-## Qué falta — según nomenclatura F0–F10
+## 4. Próximo paso natural
 
-El roadmap canónico (`docs/PHASES.md` + `docs/ROADMAP.md`) ordena por **dependencias técnicas y comerciales**, no por calendario.
+**Inmediato (días)**:
+1. Code completa F1.4.2 hotfix buscador (50% -> 100%).
+2. Code marca DONE técnico, pushea, avisa a Yair.
+3. Yair smoke-testea crear-evento con búsqueda completa en `hindu-club.vercel.app`.
+4. Opus mueve F1.4.2 a "terminado" en Zoho, cierra issue I-001.
+5. Opus mueve F1.4.1 a "terminado" si el smoke de paridad también pasa.
 
-### Fases cerradas
+**Corto plazo (semanas)**:
+1. Auditoría módulo por módulo de las tareas en estado "analizado" en F0 + F1 + F2. Decidir prioridad de ataque.
 
-- ✅ **F0** — Base / Infra (auth, tenant routing, layout, front público).
-- ✅ **F1** — Troncal núcleo ERP+CRM.
-- ✅ **F2** — Vertical CCBP (Hindu deportivo).
-
-### En curso / próximas
-
-| Fase | Descripción | Estado |
-|---|---|---|
-| **F3** | Portal Cliente (front del socio mobile) | Próxima fase mayor |
-| **F4** | Validación Hindu (demo real 30–60 días) | Post-F3 |
-| **F5** | Switch a producción (Resend, MercadoPago, AFIP, WhatsApp) | Bloqueado por CUIT |
-| **F6** | Premium ERP (documentos, BI, stock mejoras) | Post-F5 |
-| **F7** | Premium Socio (engagement y revenue) | Post-F5 |
-| **F8** | Verticales nuevas (Arq, Retail, Country, Abog, Pub) | Post-Hindu validado |
-| **F9** | IA embebida (F9.1) + Plataforma SaaS marketplace (F9.2) | Catalogado |
-| **F10** | Backlog futuro / sin priorizar | — |
-
-Detalle por fase: `docs/ROADMAP.md`.
+**Mediano plazo (meses)**:
+1. Completar tareas F0, F1, F2 hasta llegar a F4 (validación Hindu real).
+2. F4 dispara F5 (switch a producción con credenciales reales).
 
 ---
 
-## Bloqueantes activos
+## 5. Identifiers críticos (referencia rápida)
 
-| Bloqueante | Impacta | ETA fix |
-|---|---|---|
-| **CUIT SCL en trámite IGJ** | Pre-launch productivo, F5 entera | Depende IGJ |
-| **Resend (transactional email)** | Confirmaciones, recovery password, comunicados | Setup post-CUIT |
-| **MercadoPago integración** | Pago de cuotas productivo (F3 + F5) | Setup post-CUIT |
-| **CUIT Hindu Club** | Facturación a Hindu | Cliente debe gestionar |
-| **Dominios Hindu** | Email + portal cliente con dominio propio | Cliente debe gestionar |
+```
+Zoho proyecto:   LE-8 "SaaS Empresarial"
+Zoho URL:        https://projects.zoho.com/portal/serviciosclevel#zp/projects/2651844000000411004/
+portal_id:       918690668
+project_id:      2651844000000411004
+owner zpuid:     2651844000000088003 (Yair)
 
-**Mientras tanto:** ADR-035 mock-first universal vigente — todo se desarrolla contra mocks.
+Supabase:        hkoizqbptwhnepzbmjql
+Vercel:          prj_sH5WIGNfNGo5tXxyTVvQaEfBDyBk (team team_clOmQCObDDN8okRHBc4wRhZ9)
+Repo:            github.com/Levy-Wald/hindu-club-futbol
+Raíz local:      /Users/yamirolw/hindu-v2
+Producción:      https://hindu-club.vercel.app
 
----
-
-## Deuda técnica resumida (auditoría 26-may-2026)
-
-**Score:** 8.5/10 (post Tier 1 hardening).  
-**Total acciones identificadas:** 14, en 4 tiers.
-
-### Tier 1 — Crítico, ~4-6h fix
-
-| Acción | Estimación |
-|---|---|
-| Fix vitest alias `@/` | 15 min |
-| Eliminar dead deps `react-hook-form` | 10 min |
-| ~~Habilitar RLS en 10 tablas faltantes~~ | ~~30 min~~ ✅ CERRADO 26-may |
-| ~~Drop `eventos_backup_20260522`~~ | ~~5 min~~ ✅ CERRADO 26-may |
-| Fix 541 errores TS strict (mecánicos, 0% lógica) | ~10h fix |
-
-### Tier 2-4
-
-- Refactor de patrones detectados (`docs/audits/AUDIT-PATRONES-ARQUITECTONICOS-2026-05-26.md`).
-- Mejoras de testing (`docs/audits/AUDIT-TESTING-CODEHEALTH-2026-05-26.md`).
-
-**Detalle completo:** `docs/audits/AUDIT-ARQUITECTONICA-2026-05-26.md`.
+Tenant Hindu:    11111111-1111-1111-1111-111111111111
+Yair persona_id: 3d2d5902-9c10-4154-8086-316b0fbe081e
+E2E user:        e2e-test@levywald.com / Hindu2026!
+```
 
 ---
 
-## Cambios recientes (últimos 30 días)
+## 6. Links a docs relacionados
 
-| Fecha | Cambio | Tag |
-|---|---|---|
-| 26-may | PR #9 docs alignment con sistema canónico | `v0.30.24.3-docs-alignment` (próximo) |
-| 26-may | PR #8 docs content update (resultó parcialmente desalineado) | `v0.30.24.2-docs-sync` |
-| 26-may | PR #7 reorganización física de docs | `v0.30.24.1-docs-reorg` |
-| 26-may | Auditoría arquitectónica completa — 4 docs en `audits/` | — |
-| 22-may | B17 cierre | `v0.30.24-b17` |
-| 21-may | ROADMAP post-B17 creado en Drive | — |
-| 18-may | RFC-005 v2.0 (FUENTE DE VERDAD estratégica) | — |
-| 15-may | ARCHITECTURE.md v3 canónico (Sprint H4 Hardening) | — |
-| 13-may | ROADMAP.md v2.0 + SYSTEM-DESIGN.md v2.0 + GLOSSARY actualizado (post RFC-004) | — |
-| 13-may | BRAND-PLATFORM.md + DESIGN-SYSTEM.md v2.0 + UI-UX-PATTERNS.md + VISUAL-GALLERY.md | — |
-| 11-may | UI-UX.md + PERFORMANCE.md + SECURITY.md + E2E-TESTING.md | — |
-| 12-may | SYSTEM-PROMPTS.md | — |
-| 7-may | API.md | — |
-| 6-may | DATA-MODEL.md + POSTGRES.md snapshot | — |
-| 5-may | MENORES-TUTORES.md | — |
+- **Último HANDOFF**: `docs/handoffs/HANDOFF-2026-05-28-killer-machine-bulk-load.md`
+- **OPENING**: `docs/OPENING.md`
+- **ADR-064**: `docs/adr/ADR-064-killer-machine-operating-model.md`
+- **ADR-065**: `docs/adr/ADR-065-migracion-nomenclatura-fases-rosetta-stone.md`
+- **PHASES**: `docs/PHASES.md`
 
 ---
 
-## Drive del proyecto
+## 7. Quién actualiza este archivo
 
-**Raíz:** https://drive.google.com/drive/folders/1cZVm440-tL7qgCmqe6ONDu26qvyprj98
+- **Code** lo actualiza después de cada commit que cierre un sprint (parte del flow pre-tag).
+- **Opus** lo actualiza vía prompt a Code o vía edición directa de la copia Drive cuando hay cambios estratégicos (ej: nueva fase iniciada, bloqueo nuevo, decisión grande).
+- **Yair** lo lee al arrancar cualquier sesión. Si encuentra discrepancia con la realidad de Zoho o producción, levanta la mano.
 
-**Documentos vivos en raíz Drive:**
-
-- `00-MASTER-INDEX-v2.2.md`
-- `BOOT-CONTINUIDAD-26-MAY-2026-v3.md`
-- `COMO-SEGUIMOS-v1.1.md`
-- `CURRENT-STATE-v3.2-26-MAY-2026.md`
-
-**Carpetas principales:**
-
-- `_Arquitectura/` (RFCs)
-- `_Auditorias/`
-- `_Cierre Ejecutivo/`
-- `_Decisiones/` (ADRs copia desde repo)
-- `_Materiales-Comerciales/`
-- `_Roadmap/` (ROADMAP v2.0, post-B17, deuda técnica)
-- `_Sprints/` (prompts de sprints)
-- `_Verticales/`
-- `_Archivo/`
+Regla: si la última actualización es de hace más de 7 días y hubo actividad, está desactualizado. Pedirle a Code que lo refresque.
 
 ---
 
-## Persona / Contacto
-
-| Rol | Persona |
-|---|---|
-| **CEO + Product Owner** | Yair Ricardo Levy Wald |
-| **Arquitecto (IA)** | Claude Opus 4.x |
-| **Ejecutor código (IA)** | Claude Code (sesiones por sprint) |
-| **Legal** | Kate Feldman (CPACF) |
-
-**Email:** yair@levywald.com  
-**Tel:** +54 9 11 5014 8932
-
----
-
-## Para profundizar
-
-- **Modelo conceptual:** `docs/ARCHITECTURE.md` (v3) + `docs/SYSTEM-DESIGN.md` (v2.0)
-- **Roadmap táctico:** `docs/ROADMAP.md` (v2.0)
-- **Modelo de datos:** `docs/DATA-MODEL.md` + `docs/POSTGRES.md`
-- **Catálogo de módulos:** `docs/MODULE-CATALOG.md`
-- **Vocabulario:** `docs/GLOSSARY.md` (canónico)
-- **Decisiones técnicas:** `docs/DECISIONS.md` + `docs/adr/`
-- **Operación en producción:** `docs/RUNBOOK.md`
-- **Seguridad:** `docs/SECURITY.md`
-- **Performance:** `docs/PERFORMANCE.md`
-- **Auditorías:** `docs/audits/`
-- **Entry point para nuevos:** `docs/00-START-HERE.md`
+Fin de CURRENT-STATE.

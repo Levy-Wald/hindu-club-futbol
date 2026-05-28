@@ -1,3 +1,5 @@
+> SUPERSEDED — Reemplazado por el sistema OPENING + CURRENT-STATE + handoffs/ (ver ADR-064 y docs/OPENING.md). Conservado solo como referencia histórica.
+
 # HANDOFF.md — Checklist de continuidad entre sesiones IA
 
 **Última actualización:** 27-may-2026
