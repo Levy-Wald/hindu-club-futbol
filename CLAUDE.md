@@ -20,8 +20,8 @@
 
 | Campo | Valor |
 |---|---|
-| Tag actual | `v0.35.3-loading-selectivo` |
-| Último sprint cerrado | A4.5 (paridad eventos planificadores) + D (loading selectivo) |
+| Tag actual | `v0.36.0-nomenclatura-f0f10` |
+| Último sprint cerrado | Nomenclatura F0–F10 (ADR-064 + ADR-065) |
 | Próximo sprint | **F3** — Portal Cliente |
 | Roadmap | 11 fases F0–F10 (`docs/PHASES.md` + `docs/ROADMAP.md`). F0, F1 y F2 completas. Próxima: F3 Portal Cliente. |
 | Score arquitectónico | **8.5/10** (post Tier 1 hardening 26-may-2026) |
