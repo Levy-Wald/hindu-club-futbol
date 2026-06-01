@@ -8,7 +8,7 @@
 **Vercel:** serviciosclevel/hindu-club
 **Supabase project:** hkoizqbptwhnepzbmjql
 **Path local canónico:** /Users/yamirolw/Projects/hindu-v2
-**Última actualización:** 28-may-2026
+**Última actualización:** 01-jun-2026
 
 > **Nota:** Este proyecto es el piloto del SaaS Empresarial (vertical CCBP — Clubes, Countries y Barrios Privados), bundle ClubCore, cliente Hindu Club Fútbol.
 > Repo migrado de `yamiro12/hindu-club-futbol` → `Levy-Wald/hindu-club-futbol` el 28-05-2026.
@@ -20,10 +20,11 @@
 
 | Campo | Valor |
 |---|---|
-| Tag actual | `v0.36.0-nomenclatura-f0f10` |
-| Último sprint cerrado | Nomenclatura F0–F10 (ADR-064 + ADR-065) |
-| Próximo sprint | **F3** — Portal Cliente |
-| Roadmap | 11 fases F0–F10 (`docs/PHASES.md` + `docs/ROADMAP.md`). F0, F1 y F2 completas. Próxima: F3 Portal Cliente. |
+| Tag actual | `v0.37.1-opening-handoffs-system` |
+| Último sprint cerrado | Sistema OPENING + CURRENT-STATE + handoffs (Killer Machine) |
+| Fase activa | **F1.4** — Eventos & Calendario |
+| Sprint activo | **F1.4.2** — Hotfix buscador Personas server-side (DONE técnico, esperando smoke de Yair) |
+| Roadmap | 11 fases F0–F10 (`docs/PHASES.md` + `docs/ROADMAP.md`). Ver `docs/CURRENT-STATE.md` para estado vivo. |
 | Score arquitectónico | **8.5/10** (post Tier 1 hardening 26-may-2026) |
 | Cliente activo | Hindu Club Fútbol (2.739 personas cargadas, en validación post-F4) |
 | Vertical activa | **CCBP** (Clubes, Countries y Barrios Privados) |

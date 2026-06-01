@@ -68,6 +68,16 @@
 
 ---
 
+## 3.5. Issues latentes (no bloqueantes, sin asignar a sprint)
+
+| Issue | Detalle | Estado |
+|---|---|---|
+| Anti-patrón `limit(500)` residual | Sigue vivo en `modules/pim/lib/queries.ts` y en 3 pages de Finanzas. Mismo patrón que el bug raíz de F1.4.2 (prefetch tope 500 + filtrado client-side), pero fuera del módulo Eventos. **NO es F1.4.2** (Eventos ya está limpio: `buscarPersonasEvento` server-side + dialog con debounce, sin `limit(500)` residual). | Detectado 01-jun-2026 (Code). Pendiente de materializar como issue en Zoho (Opus) + asignar a sprint. No tocar ahora. |
+
+> Code detecta y anota acá; Opus lo replica a Zoho como issue formal. No se toca código fuera de scope del sprint activo.
+
+---
+
 ## 4. Próximo paso natural
 
 **Inmediato (días)**:
