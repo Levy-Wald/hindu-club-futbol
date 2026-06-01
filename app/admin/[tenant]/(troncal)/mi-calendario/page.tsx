@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { obtenerEventosPersonales } from '@/modules/eventos/lib/queries'
+import { obtenerEventosPersonales, obtenerEventosCalendario } from '@/modules/eventos/lib/queries'
+import { hasCapability } from '@/lib/permissions/capabilities'
 import { CalendarioGlobal } from '@/modules/eventos/ui/calendario-global'
 import { ToolbarCalendario } from '@/modules/eventos/ui/toolbar-calendario'
 
@@ -33,13 +34,17 @@ export default async function MiCalendarioPage(props: {
 
   const service = createServiceRoleClient()
 
+  // Admin de eventos ve todos los eventos del tenant; el resto ve solo los suyos
+  // (responsable + equipos donde juega + invitaciones).
+  const esAdminEventos = await hasCapability(persona.id, 'eventos.admin')
+
+  const desdeStr = fechaDesde.toISOString().slice(0, 10)
+  const hastaStr = fechaHasta.toISOString().slice(0, 10)
+
   const [eventos, sedesRes, equiposRes, entidadesRes, espaciosRes] = await Promise.all([
-    obtenerEventosPersonales(
-      persona.id,
-      tenantId,
-      fechaDesde.toISOString().slice(0, 10),
-      fechaHasta.toISOString().slice(0, 10),
-    ),
+    esAdminEventos
+      ? obtenerEventosCalendario(tenantId, desdeStr, hastaStr)
+      : obtenerEventosPersonales(persona.id, tenantId, desdeStr, hastaStr),
     service.from('sedes').select('id, nombre').eq('tenant_id', tenantId).is('deleted_at', null).order('nombre'),
     service.from('equipos').select('id, nombre').eq('tenant_id', tenantId).is('deleted_at', null).order('nombre'),
     service.from('entidades').select('id, nombre').eq('tenant_id', tenantId).is('deleted_at', null).order('nombre'),
@@ -54,7 +59,11 @@ export default async function MiCalendarioPage(props: {
   return (
     <div className="container mx-auto p-4 space-y-4">
       <h1 className="text-2xl font-bold">Mi Calendario</h1>
-      <p className="text-sm text-muted-foreground">Eventos donde sos responsable</p>
+      <p className="text-sm text-muted-foreground">
+        {esAdminEventos
+          ? 'Todos los eventos del club'
+          : 'Tus eventos: donde sos responsable, de tus equipos y donde te invitaron'}
+      </p>
       <ToolbarCalendario sedes={sedes} equipos={equipos} entidades={entidades} espacios={espacios} personaId={persona.id} tenantId={tenantId} />
       <CalendarioGlobal
         eventos={eventos}

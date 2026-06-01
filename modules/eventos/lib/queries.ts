@@ -61,7 +61,10 @@ export async function obtenerEventosCalendario(
   }))
 }
 
-// ── Mi calendario: eventos donde el usuario es responsable ──
+// ── Mi calendario: eventos personales del usuario ──
+// Incluye eventos donde la persona: (a) es responsable, (b) juega/integra el
+// equipo del evento (personas_equipos), o (c) figura como invitado
+// (evento_invitados: directo, por equipo o por entidad).
 
 export async function obtenerEventosPersonales(
   personaId: string,
@@ -70,6 +73,26 @@ export async function obtenerEventosPersonales(
   fechaHasta: string,
 ) {
   const supabase = createServiceRoleClient()
+
+  // Equipos donde la persona es integrante (jugador/staff)
+  const { data: miembros } = await supabase
+    .from('personas_equipos')
+    .select('equipo_id')
+    .eq('persona_id', personaId)
+    .eq('activo', true)
+  const equipoIds = [...new Set((miembros ?? []).map(m => m.equipo_id).filter(Boolean))] as string[]
+
+  // Eventos donde figura como invitado (directo, por equipo o por entidad)
+  const { data: invitaciones } = await supabase
+    .from('evento_invitados')
+    .select('evento_id')
+    .eq('persona_id', personaId)
+  const eventoInvitadoIds = [...new Set((invitaciones ?? []).map(i => i.evento_id).filter(Boolean))] as string[]
+
+  // OR de las tres vías de relación. responsable siempre presente; equipo/invitado solo si hay ids.
+  const orConds = [`responsables_persona_id.cs.{${personaId}}`]
+  if (equipoIds.length > 0) orConds.push(`equipo_id.in.(${equipoIds.join(',')})`)
+  if (eventoInvitadoIds.length > 0) orConds.push(`id.in.(${eventoInvitadoIds.join(',')})`)
 
   const { data, error } = await supabase
     .from('eventos')
@@ -82,7 +105,7 @@ export async function obtenerEventosPersonales(
     `)
     .eq('tenant_id', tenantId)
     .is('deleted_at', null)
-    .contains('responsables_persona_id', [personaId])
+    .or(orConds.join(','))
     .gte('fecha_inicio', fechaDesde)
     .lte('fecha_inicio', fechaHasta)
     .order('fecha_inicio', { ascending: true })
@@ -91,10 +114,10 @@ export async function obtenerEventosPersonales(
   if (error) throw error
   if (!data || data.length === 0) return []
 
-  const equipoIds = [...new Set(data.map(e => e.equipo_id).filter(Boolean))] as string[]
+  const equipoIdsEventos = [...new Set(data.map(e => e.equipo_id).filter(Boolean))] as string[]
   const equiposMap = new Map<string, string>()
-  if (equipoIds.length > 0) {
-    const { data: equipos } = await supabase.from('equipos').select('id, nombre').in('id', equipoIds)
+  if (equipoIdsEventos.length > 0) {
+    const { data: equipos } = await supabase.from('equipos').select('id, nombre').in('id', equipoIdsEventos)
     for (const eq of equipos ?? []) equiposMap.set(eq.id, eq.nombre)
   }
 
