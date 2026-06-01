@@ -1,8 +1,8 @@
 # CURRENT-STATE — Estado vivo del proyecto SaaS Empresarial
 
-**Última actualización**: 2026-05-28
-**Sesión que la generó**: Housekeeping post bulk load Zoho (Code)
-**Fuente de verdad**: este archivo. Drive es espejo de referencia.
+**Última actualización**: 2026-06-01
+**Sesión que la generó**: Cierre bloque F1.4 — fixes buscador Personas + Agenda + Mi Calendario (Code)
+**Fuente de verdad**: este archivo. Drive es espejo de referencia (lo sincroniza Opus).
 
 > Este archivo se sobreescribe en cada cierre de sprint. Para histórico ver `docs/handoffs/` o Drive `_Cierre Ejecutivo/HANDOFF-YYYY-MM-DD`.
 
@@ -12,26 +12,28 @@
 
 | Indicador | Valor |
 |---|---|
-| Tag git actual | `v0.37.0-housekeeping-killer-machine` |
-| Próximo tag esperado | post F1.4.2 hotfix buscador Personas |
-| Sprint activo | F1.4.2 — Hotfix buscador Personas server-side |
-| Sesión última cerrada | 2026-05-28 — Killer Machine + Zoho bulk load + housekeeping repo |
+| Tag git actual | `v0.37.1-opening-handoffs-system` |
+| Próximo tag esperado | sin definir (los fixes del 01-jun son correcciones sobre `main`, **sin tag nuevo**) |
+| Sprint activo | bloque F1.4 cerrado en sub-tareas (ver §2); padre F1.4 (SE1-T9) sigue abierto al 90% |
+| Sesión última cerrada | 2026-06-01 — fixes buscador Personas + Agenda legible + Mi Calendario alcance personal/admin |
 | Fase actual del roadmap | F1 (Troncal núcleo ERP+CRM), módulo F1.4 (Eventos & Calendario) |
 
 ---
 
 ## 2. Tareas en cada estado (snapshot Zoho LE-8)
 
-### En desarrollo (1)
-- **F1.4.2** — SE1-T21 — A4.5.1 Hotfix buscador Personas server-side (50%, owner Code)
-  - Bug raíz: prefetch con `limit(500)` deja 2.239 personas fuera. Combobox client-side.
-  - Issue Zoho asociado: I-001 / SE1-I1
+### Terminado — DONE visual Yair 01-jun-2026 (3)
+- **F1.4.1** — SE1-T20 — A4.5 Paridad eventos/planificadores. Smoke OK.
+- **F1.4.2** — SE1-T21 — Buscador Personas en crear-evento. Smoke OK. **I-001 / SE1-I1 resuelto.**
+  - **Causa raíz real** (corrige el diagnóstico inicial): contrato del `Combobox` — solo emitía `onChange` al tipear con `allowCreate=true`, y Personas usa `allowCreate=false`, así que la búsqueda server-side nunca se disparaba. **NO era el `limit(500)`** (el backend siempre estuvo OK). Fix: prop `onInputChange` (commit `d832da8`).
+  - Bonus del mismo commit: vista Agenda del calendario legible (puntos de color sobre fondo blanco en vez de fondo pleno).
+- **F1.4.3** — SE1-T91 (nuevo) — Mi Calendario: alcance personal (responsable ∪ equipo donde juega ∪ invitado) + admin (`eventos.admin`) ve todos los del tenant. Commit `abb40dd`. **Scope surgido durante el smoke, fuera del F1.4.2 original.**
 
-### En QA técnico (0)
+### Abierto — backlog interno (1)
+- **F1.4** — SE1-T9 (padre) — Eventos & Calendario al **90%**. Pendiente: RRULE completo, flujo de invitaciones, recordatorios.
+
+### En desarrollo (0)
 - (vacío)
-
-### QA humano — esperando smoke de Yair (1)
-- **F1.4.1** — SE1-T20 — A4.5 Paridad eventos/planificadores (90%, Round 2)
 
 ### Analizado, listo para arrancar (86)
 - Distribución por phase:
@@ -53,7 +55,10 @@
 ### Operacional humana (0 técnicas)
 - F4 — Validación Hindu — no tiene tareas técnicas, es ciclo de validación con cliente piloto
 
-**Total**: 88 tareas raíz + 2 subtareas + 1 issue cargadas el 28-may-2026.
+### Deployadas pero pendientes de smoke (no confirmadas DONE visual)
+- Features de **Personas** del 28-may: ficha total / export y **Mi Tarjeta**. Están en producción pero Yair todavía no las validó visualmente → **no contar como terminado** hasta el smoke.
+
+**Total**: carga base 88 tareas raíz + 2 subtareas + 1 issue (28-may) **+ SE1-T91 (F1.4.3) + SE1-I2 (I-002)** creadas 01-jun.
 
 ---
 
@@ -72,7 +77,7 @@
 
 | Issue | Detalle | Estado |
 |---|---|---|
-| Anti-patrón `limit(500)` residual | Sigue vivo en `modules/pim/lib/queries.ts` y en 3 pages de Finanzas. Mismo patrón que el bug raíz de F1.4.2 (prefetch tope 500 + filtrado client-side), pero fuera del módulo Eventos. **NO es F1.4.2** (Eventos ya está limpio: `buscarPersonasEvento` server-side + dialog con debounce, sin `limit(500)` residual). | Detectado 01-jun-2026 (Code). Pendiente de materializar como issue en Zoho (Opus) + asignar a sprint. No tocar ahora. |
+| Anti-patrón `limit(500)` residual (**SE1-I2 / I-002**) | Cap de 500 filas en `modules/pim/lib/queries.ts:426` + 3 pages de Finanzas (`finanzas/cajas/[id]/page.tsx:109`, `finanzas/cajas/page.tsx:91`, `finanzas/reportes/libro-mayor/page.tsx:22`). Misma *forma* que I-001 pero **estado de defecto sin confirmar**: hay que revisar caso por caso si arriba del cap hay un buscador que asume el universo completo (→ bug) o si 500 es un cap legítimo de reporte paginado (→ no es bug). Eventos NO está afectado (ya limpio). | **Trackeado en Zoho como SE1-I2 (triage).** Asignar a sprint F1/F6 según triage. |
 
 > Code detecta y anota acá; Opus lo replica a Zoho como issue formal. No se toca código fuera de scope del sprint activo.
 
@@ -81,11 +86,11 @@
 ## 4. Próximo paso natural
 
 **Inmediato (días)**:
-1. Code completa F1.4.2 hotfix buscador (50% -> 100%).
-2. Code marca DONE técnico, pushea, avisa a Yair.
-3. Yair smoke-testea crear-evento con búsqueda completa en `hindu-club.vercel.app`.
-4. Opus mueve F1.4.2 a "terminado" en Zoho, cierra issue I-001.
-5. Opus mueve F1.4.1 a "terminado" si el smoke de paridad también pasa.
+1. Opus refleja en Zoho: F1.4.1 (SE1-T20), F1.4.2 (SE1-T21) y F1.4.3 (SE1-T91) → terminado/Closed; **cerrar I-001 (SE1-I1)** con el status `is_closed_type=true`.
+2. Yair smoke de las features de Personas del 28-may (ficha total/export + Mi Tarjeta) → confirmar o devolver.
+3. Triage de SE1-I2 (limit500 PIM+Finanzas): decidir caso por caso bug vs cap legítimo.
+
+> **Nota Zoho — estados custom**: el proyecto NO tiene configurado el workflow de estados custom (en desarrollo / qa / qa humano / etc.). Se opera con **Open/Closed** nativo (100% → Closed automático). Los sub-estados viven embebidos en la descripción de cada tarea.
 
 **Corto plazo (semanas)**:
 1. Auditoría módulo por módulo de las tareas en estado "analizado" en F0 + F1 + F2. Decidir prioridad de ataque.
