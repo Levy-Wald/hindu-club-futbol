@@ -2216,3 +2216,14 @@ INSERT INTO catalogo_modulos (slug, nombre, categoria, precio_usd_mensual, orden
   ('padron_consolidacion', 'Consolidación con padrón externo', 'integracion', 20, 60),
   ('pre_inscripcion_landing', 'Landing pre-inscripción', 'tronco_extension', 10, 61);
 
+-- F1.5 (SE1-I3): este INSERT no setea `capa`; los slugs CCBP quedaban NULL en un
+-- reseed. Alineado aquí para que un fresh reset deje la capa correcta de entrada.
+-- Idempotente (guard capa IS NULL). vertical_ccbp es valor válido del set.
+UPDATE catalogo_modulos
+SET capa = 'vertical_ccbp'
+WHERE slug IN (
+  'disciplina_basquet', 'disciplina_futbol', 'disciplina_golf', 'disciplina_hockey',
+  'disciplina_padel', 'disciplina_rugby', 'disciplina_tenis', 'federacion_hub', 'polo_educativo'
+)
+AND capa IS NULL;
+

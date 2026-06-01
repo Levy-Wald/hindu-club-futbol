@@ -80,6 +80,11 @@ INSERT INTO catalogo_modulos (slug, nombre, descripcion, categoria, precio_usd_m
   ('caja_multiarea', 'Cajas múltiples por área', 'Cajas separadas con consolidación', 'integracion', 10)
 ON CONFLICT (slug) DO NOTHING;
 
+-- F1.5 (SE1-I3): este INSERT no setea `capa`. disciplina_futbol es CCBP; lo
+-- alineamos para que un reseed no reintroduzca NULL. Idempotente (guard IS NULL).
+UPDATE catalogo_modulos SET capa = 'vertical_ccbp'
+WHERE slug = 'disciplina_futbol' AND capa IS NULL;
+
 -- 9. Activar módulos para Hindu
 INSERT INTO tenant_modulos (tenant_id, modulo_slug, activo) VALUES
   ('11111111-1111-1111-1111-111111111111', 'disciplina_futbol', true),
