@@ -525,9 +525,9 @@ export function CrearEventoDialog({
                   value={personaSearch}
                   onChange={(v) => {
                     const match = personaOptions.find(o => o.value === v)
-                    if (match) { addInvitadoPersona(match.value, match.label); return }
-                    handlePersonaSearchChange(v)
+                    if (match) addInvitadoPersona(match.value, match.label)
                   }}
+                  onInputChange={handlePersonaSearchChange}
                   options={personaOptions}
                   placeholder={personaSearching ? 'Buscando...' : 'Buscar persona (min 2 caracteres)...'}
                   allowCreate={false}

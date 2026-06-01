@@ -18,6 +18,12 @@ interface ComboboxProps {
   allowCreate?: boolean
   className?: string
   disabled?: boolean
+  /**
+   * Dispara en cada tecla con el texto tipeado, sin importar allowCreate.
+   * Pensado para búsqueda server-side (debounce externo). Separa "tipear" de
+   * "seleccionar": onChange queda solo para selección de una opción.
+   */
+  onInputChange?: (text: string) => void
 }
 
 export function Combobox({
@@ -28,6 +34,7 @@ export function Combobox({
   allowCreate = true,
   className,
   disabled,
+  onInputChange,
 }: ComboboxProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState(value)
@@ -63,6 +70,7 @@ export function Combobox({
   function handleInputChange(val: string) {
     setSearch(val)
     setOpen(true)
+    onInputChange?.(val)
     if (allowCreate) {
       onChange(val)
     }

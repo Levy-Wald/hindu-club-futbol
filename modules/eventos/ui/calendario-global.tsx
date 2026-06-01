@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
-import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
+import { Calendar, dateFnsLocalizer, type View } from 'react-big-calendar'
 import { format, parse, startOfWeek, getDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -46,6 +46,7 @@ export function CalendarioGlobal({
   const router = useRouter()
   const searchParams = useSearchParams()
   const [seleccionado, setSeleccionado] = useState<EventoCalendarioItem | null>(null)
+  const [view, setView] = useState<View>('month')
 
   const defaultDate = useMemo(() => new Date(year, month - 1), [year, month])
 
@@ -58,6 +59,13 @@ export function CalendarioGlobal({
   }, [eventosIniciales])
 
   const eventPropGetter = useCallback((event: EventoCalendarioItem & { start: Date; end: Date }) => {
+    // En la vista Agenda, react-big-calendar aplica este style al <tr> completo
+    // (ver Agenda.js), lo que inunda la fila de color y vuelve el texto ilegible.
+    // Ahí el color lo muestra AgendaEvent como punto; la fila queda con fondo blanco.
+    if (view === 'agenda') {
+      return { style: { fontSize: '13px' } }
+    }
+
     const isPending = event.mi_invitacion === 'pendiente'
     const isRejected = event.mi_invitacion === 'rechazado'
     const baseColor = event.color ?? COLORES_TIPO[event.tipo_evento_slug] ?? '#6b7280'
@@ -72,6 +80,32 @@ export function CalendarioGlobal({
         textDecoration: isRejected ? 'line-through' : 'none',
       },
     }
+  }, [view])
+
+  // Evento custom para la vista Agenda: punto/borde de color + texto legible
+  // sobre fondo blanco, en vez del fondo pleno que inunda la fila.
+  const AgendaEvent = useCallback(({ event }: { event: EventoCalendarioItem }) => {
+    const isPending = event.mi_invitacion === 'pendiente'
+    const isRejected = event.mi_invitacion === 'rechazado'
+    const baseColor = event.color ?? COLORES_TIPO[event.tipo_evento_slug] ?? '#6b7280'
+
+    return (
+      <span className="flex items-center gap-2">
+        <span
+          className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+          style={{ backgroundColor: baseColor, opacity: isRejected ? 0.4 : isPending ? 0.6 : 1 }}
+        />
+        <span
+          style={{
+            textDecoration: isRejected ? 'line-through' : 'none',
+            opacity: isRejected ? 0.5 : isPending ? 0.7 : 1,
+          }}
+        >
+          {event.titulo ?? '(sin titulo)'}
+          {isPending && <span className="ml-1 text-xs text-muted-foreground">(pendiente)</span>}
+        </span>
+      </span>
+    )
   }, [])
 
   const handleNavigate = useCallback((date: Date) => {
@@ -105,11 +139,13 @@ export function CalendarioGlobal({
         titleAccessor={(e) => (e as EventoCalendarioItem).titulo ?? '(sin titulo)'}
         startAccessor="start"
         endAccessor="end"
-        defaultView="month"
+        view={view}
+        onView={setView}
         views={['month', 'week', 'agenda']}
         defaultDate={defaultDate}
         onSelectEvent={(event) => setSeleccionado(event as EventoCalendarioItem & { start: Date; end: Date })}
         eventPropGetter={eventPropGetter as never}
+        components={{ agenda: { event: AgendaEvent as never } }}
         onNavigate={handleNavigate}
         messages={messages}
         culture="es"
