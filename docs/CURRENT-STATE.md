@@ -1,7 +1,7 @@
 # CURRENT-STATE — Estado vivo del proyecto SaaS Empresarial
 
 **Última actualización**: 2026-06-01
-**Sesión que la generó**: Cierre bloque F1.4 — fixes buscador Personas + Agenda + Mi Calendario (Code)
+**Sesión que la generó**: Cierre F1.5 + F1.6 + F1.8 — housekeeping auditoría + navegación data-driven (Code)
 **Fuente de verdad**: este archivo. Drive es espejo de referencia (lo sincroniza Opus).
 
 > Este archivo se sobreescribe en cada cierre de sprint. Para histórico ver `docs/handoffs/` o Drive `_Cierre Ejecutivo/HANDOFF-YYYY-MM-DD`.
@@ -12,11 +12,12 @@
 
 | Indicador | Valor |
 |---|---|
-| Tag git actual | `v0.37.1-opening-handoffs-system` |
-| Próximo tag esperado | sin definir (los fixes del 01-jun son correcciones sobre `main`, **sin tag nuevo**) |
-| Sprint activo | bloque F1.4 cerrado en sub-tareas (ver §2); padre F1.4 (SE1-T9) sigue abierto al 90% |
-| Sesión última cerrada | 2026-06-01 — fixes buscador Personas + Agenda legible + Mi Calendario alcance personal/admin |
-| Fase actual del roadmap | F1 (Troncal núcleo ERP+CRM), módulo F1.4 (Eventos & Calendario) |
+| Tag git actual | `v0.40.0-menu-mundo-club` (F1.8). Previo: `v0.39.0-sidebar-data-driven` (F1.6), `v0.38.0-housekeeping-auditoria-f1` (F1.5) |
+| Próximo tag esperado | sin definir (próximo sprint F1.7 Actor/Roles) |
+| Sprint activo | ninguno — F1.5/F1.6/F1.8 cerrados y validados en prod. Próximo: F1.7 |
+| Sesión última cerrada | 2026-06-01 — F1.5 housekeeping + F1.6 sidebar data-driven + F1.8 árbol de menú ADR-066 |
+| Fase actual del roadmap | F1 (Troncal núcleo ERP+CRM) |
+| Navegación | **Data-driven desde `catalogo_modulos`** (RFC-006 v2 + ADR-066). El sidebar BO ya no es hardcodeado. |
 
 ---
 
@@ -28,6 +29,20 @@
   - **Causa raíz real** (corrige el diagnóstico inicial): contrato del `Combobox` — solo emitía `onChange` al tipear con `allowCreate=true`, y Personas usa `allowCreate=false`, así que la búsqueda server-side nunca se disparaba. **NO era el `limit(500)`** (el backend siempre estuvo OK). Fix: prop `onInputChange` (commit `d832da8`).
   - Bonus del mismo commit: vista Agenda del calendario legible (puntos de color sobre fondo blanco en vez de fondo pleno).
 - **F1.4.3** — SE1-T91 (nuevo) — Mi Calendario: alcance personal (responsable ∪ equipo donde juega ∪ invitado) + admin (`eventos.admin`) ve todos los del tenant. Commit `abb40dd`. **Scope surgido durante el smoke, fuera del F1.4.2 original.**
+
+### Terminado — DONE visual Yair 01-jun-2026 (navegación + housekeeping)
+- **F1.5** — Housekeeping auditoría F0+F1. Tag `v0.38.0-housekeeping-auditoria-f1`.
+  - SE1-I3: capa NULL en `catalogo_modulos` (9 filas CCBP) corregida (migración + seed/init alineados).
+  - SE1-I4: `modules/finanzas/module.json` creado (shape troncal, sin overlap).
+  - SE1-I5: NO incluido — el stub `eventos_calendario` no es rm seguro (owner ADR-042); diferido a **I-005**.
+- **F1.6** — Sidebar BO **data-driven** desde `catalogo_modulos` (RFC-006). Tag `v0.39.0-sidebar-data-driven` (merge `10053d6`).
+  - Migraciones: columnas `ruta_bo/icono/capability_requerida/sidebar_subitems` + población.
+  - Filtros server-side: (a) módulo activo (troncal siempre), (b) capability (admin ve todo).
+  - Items core no-módulo (Inicio, Mi perfil, Personas, admin Config) viven en código (`sidebar-data.ts`).
+- **F1.8** — Árbol de menú **ADR-066** (áreas por mundo-del-club). Tag `v0.40.0-menu-mundo-club` (merge `73cb5d1`).
+  - CHECK + reasignación: `comercial`/`operaciones`/`comunicacion` reemplazan `recursos`/`marketing`. 91 módulos, 0 huérfanos.
+  - Orden áreas: inicio, personas, actividad, comercial, operaciones, finanzas, comunicacion, configuracion.
+  - **Pricing queda en Finanzas** (decisión Yair, no se movió a Comercial).
 
 ### Abierto — backlog interno (1)
 - **F1.4** — SE1-T9 (padre) — Eventos & Calendario al **90%**. Pendiente: RRULE completo, flujo de invitaciones, recordatorios.
@@ -77,7 +92,9 @@
 
 | Issue | Detalle | Estado |
 |---|---|---|
-| Anti-patrón `limit(500)` residual (**SE1-I2 / I-002**) | Cap de 500 filas en `modules/pim/lib/queries.ts:426` + 3 pages de Finanzas (`finanzas/cajas/[id]/page.tsx:109`, `finanzas/cajas/page.tsx:91`, `finanzas/reportes/libro-mayor/page.tsx:22`). Misma *forma* que I-001 pero **estado de defecto sin confirmar**: hay que revisar caso por caso si arriba del cap hay un buscador que asume el universo completo (→ bug) o si 500 es un cap legítimo de reporte paginado (→ no es bug). Eventos NO está afectado (ya limpio). | **Trackeado en Zoho como SE1-I2 (triage).** Asignar a sprint F1/F6 según triage. |
+| Anti-patrón `limit(500)` residual (**I-002 / SE1-I2**) | Cap de 500 filas en `modules/pim/lib/queries.ts:426` + 3 pages de Finanzas. Misma *forma* que I-001 pero defecto sin confirmar (buscador sobre cap → bug; reporte paginado → no es bug). Eventos ya limpio. | Trackeado en Zoho (triage). Asignar a F1/F6 según triage. |
+| Refactor renames + ownership (**I-005**) | Rename de dirs kebab→snake (`atributos-custom`, `diagramacion-club`, `historial-deportivo`, `reportes-deportivos`) + alineación de slug en catálogo, **y** borrado del stub `eventos_calendario` (que es el owner declarativo ADR-042 de las tablas de eventos: requiere mover ownership a `eventos/module.json` + limpiar `depends_on` en asistencias/planificadores/partidos + slug en nav). Refactor multi-archivo con barrido de imports + build. | Diferido a su propia sesión. No tocar suelto. |
+| FKs cross-módulo / Finanzas trunk (**I-006**) | **Bloqueado** — pendiente de decisión de Yair. No tocar. | Bloqueado. |
 
 > Code detecta y anota acá; Opus lo replica a Zoho como issue formal. No se toca código fuera de scope del sprint activo.
 
@@ -86,9 +103,11 @@
 ## 4. Próximo paso natural
 
 **Inmediato (días)**:
-1. Opus refleja en Zoho: F1.4.1 (SE1-T20), F1.4.2 (SE1-T21) y F1.4.3 (SE1-T91) → terminado/Closed; **cerrar I-001 (SE1-I1)** con el status `is_closed_type=true`.
-2. Yair smoke de las features de Personas del 28-may (ficha total/export + Mi Tarjeta) → confirmar o devolver.
-3. Triage de SE1-I2 (limit500 PIM+Finanzas): decidir caso por caso bug vs cap legítimo.
+1. **F1.7 — Actor/Roles**: próximo sprint (modelo de actores y roles del tenant).
+2. **Barrido visual** del nuevo menú data-driven (ADR-066) área por área: confirmar rutas, labels e íconos de cada módulo en prod, y completar `ruta_bo` de los módulos que hoy quedaron sin página (no se renderizan).
+3. Opus refleja en Zoho: F1.5 (SE1-I3/I-004), F1.6, F1.8 → terminado/Closed; **cerrar I-001 (SE1-I1)** con el status `is_closed_type=true`.
+4. Triage de **I-002** (limit500 PIM+Finanzas). Programar **I-005** (renames + stub ownership). **I-006** sigue bloqueado.
+5. Yair smoke de las features de Personas del 28-may (ficha total/export + Mi Tarjeta) → confirmar o devolver.
 
 > **Nota Zoho — estados custom**: el proyecto NO tiene configurado el workflow de estados custom (en desarrollo / qa / qa humano / etc.). Se opera con **Open/Closed** nativo (100% → Closed automático). Los sub-estados viven embebidos en la descripción de cada tarea.
 
