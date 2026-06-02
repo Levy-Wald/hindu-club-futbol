@@ -16,14 +16,17 @@
 
 import type { CatalogSidebarRow, SidebarItem, SpaceId } from './types'
 
-// Orden de las áreas (espacios). Constante única — no vive en la base.
+// F1.8 (ADR-066): orden canónico de áreas del club. Constante única — no vive en
+// la base. recursos/marketing salieron (reasignadas a comercial/operaciones/
+// comunicacion). admin_scl queda al final pero se excluye del render de BO.
 export const AREA_ORDER: string[] = [
   'inicio',
   'personas',
   'actividad',
-  'recursos',
-  'marketing',
+  'comercial',
+  'operaciones',
   'finanzas',
+  'comunicacion',
   'configuracion',
   'admin_scl',
 ]

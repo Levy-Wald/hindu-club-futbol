@@ -1,4 +1,17 @@
-export type SpaceId = 'inicio' | 'personas' | 'actividad' | 'marketing' | 'finanzas' | 'recursos' | 'configuracion'
+// F1.8 (ADR-066): áreas del club. comercial/operaciones/comunicacion reemplazan
+// a recursos/marketing en el render; marketing y recursos quedan como legacy
+// (compat de tipos) pero ya no tienen tab.
+export type SpaceId =
+  | 'inicio'
+  | 'personas'
+  | 'actividad'
+  | 'comercial'
+  | 'operaciones'
+  | 'finanzas'
+  | 'comunicacion'
+  | 'configuracion'
+  | 'marketing'
+  | 'recursos'
 
 export type SidebarCapa =
   | 'troncal'
