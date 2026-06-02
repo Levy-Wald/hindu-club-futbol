@@ -49,3 +49,26 @@ export interface ModuleSidebarMeta {
   prioridad_fase_c: string
   activo_global: boolean
 }
+
+// F1.6 (RFC-006): render data-driven del sidebar BO desde catalogo_modulos.
+export interface SidebarSubitem {
+  label: string
+  ruta_bo: string
+  icono?: string | null
+  capability_requerida?: string | null
+  orden?: number | null
+}
+
+export interface CatalogSidebarRow {
+  slug: string
+  nombre: string
+  nombre_display: string | null
+  area_sidebar_bo: string
+  sub_area_sidebar_bo: string
+  orden: number | null
+  capa: string | null
+  ruta_bo: string | null
+  icono: string | null
+  capability_requerida: string | null
+  sidebar_subitems: SidebarSubitem[] | null
+}

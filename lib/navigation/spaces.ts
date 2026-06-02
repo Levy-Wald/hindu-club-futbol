@@ -1,12 +1,15 @@
 import type { Space, SpaceId, SpaceVisibilityRule } from './types'
 
+// F1.6: orden de áreas/espacios — alineado con AREA_ORDER (sidebar-data.ts).
+// inicio, personas, actividad, recursos, marketing, finanzas, configuracion.
+// (admin_scl no tiene tab de BO en este sprint).
 export const SPACES: Space[] = [
   { id: 'inicio', label: 'Inicio', icon: 'Home' },
   { id: 'personas', label: 'Personas', icon: 'Users' },
   { id: 'actividad', label: 'Actividad', icon: 'Calendar' },
+  { id: 'recursos', label: 'Recursos', icon: 'Package' },
   { id: 'marketing', label: 'Marketing', icon: 'Megaphone' },
   { id: 'finanzas', label: 'Finanzas', icon: 'TrendingUp' },
-  { id: 'recursos', label: 'Recursos', icon: 'Package' },
   { id: 'configuracion', label: 'Configuracion', icon: 'Settings' },
 ]
 

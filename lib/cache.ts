@@ -1,6 +1,6 @@
 import { unstable_cache } from 'next/cache'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import type { ModuleSidebarMeta } from '@/lib/navigation/types'
+import type { ModuleSidebarMeta, CatalogSidebarRow } from '@/lib/navigation/types'
 
 /**
  * Cached: tenant_modulos activos (cambia ~1x cada 3 meses)
@@ -42,6 +42,29 @@ export const getCachedSidebarModules = unstable_cache(
     return record
   },
   ['sidebar-modules'],
+  { tags: ['sidebar-modules'], revalidate: 600 }
+)
+
+/**
+ * F1.6 (RFC-006): filas completas de catalogo_modulos para render data-driven
+ * del sidebar de back office. Incluye ruta_bo / icono / capability_requerida /
+ * sidebar_subitems. Solo módulos con area_sidebar_bo (agrupables).
+ * Revalidate: 10 min | Tag: sidebar-modules
+ */
+export const getCachedSidebarCatalog = unstable_cache(
+  async (): Promise<CatalogSidebarRow[]> => {
+    const supabase = createServiceRoleClient()
+    const { data, error } = await supabase
+      .from('catalogo_modulos')
+      .select('slug, nombre, nombre_display, area_sidebar_bo, sub_area_sidebar_bo, orden, capa, ruta_bo, icono, capability_requerida, sidebar_subitems')
+      .not('area_sidebar_bo', 'is', null)
+    if (error) {
+      console.error('getCachedSidebarCatalog error:', error)
+      return []
+    }
+    return (data ?? []) as CatalogSidebarRow[]
+  },
+  ['sidebar-catalog'],
   { tags: ['sidebar-modules'], revalidate: 600 }
 )
 
