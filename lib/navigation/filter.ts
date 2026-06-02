@@ -58,6 +58,12 @@ export interface SidebarGroup {
   items: SidebarItem[]
 }
 
+// F1.6: los items ya vienen filtrados server-side (módulo activo + capability).
+// El cliente solo recorta por el espacio activo.
+export function filterItemsByEspacio(items: SidebarItem[], espacio: SpaceId): SidebarItem[] {
+  return items.filter(item => item.espacio === espacio)
+}
+
 export function groupSidebarItems(items: SidebarItem[]): SidebarGroup[] {
   const byGrupo = new Map<string, SidebarItem[]>()
 
@@ -68,7 +74,8 @@ export function groupSidebarItems(items: SidebarItem[]): SidebarGroup[] {
 
   const groups: SidebarGroup[] = []
   for (const [grupo, groupItems] of byGrupo) {
-    groups.push({ grupo, items: groupItems.sort((a, b) => a.orden - b.orden) })
+    // Dentro de cada sub-área: por orden (asc), alfabético como desempate.
+    groups.push({ grupo, items: groupItems.sort((a, b) => a.orden - b.orden || a.label.localeCompare(b.label)) })
   }
 
   // Sort groups by the minimum orden of their items (deterministic ordering)

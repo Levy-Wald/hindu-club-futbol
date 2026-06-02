@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import type { SidebarItem, Space, SpaceId } from '@/lib/navigation/types'
-import { getVisibleSidebarItems, groupSidebarItems, type SidebarGroup } from '@/lib/navigation/filter'
+import { filterItemsByEspacio, groupSidebarItems, type SidebarGroup } from '@/lib/navigation/filter'
 
 interface NavigationContextValue {
   activeSpace: SpaceId
@@ -66,14 +66,9 @@ export function NavigationProvider({
     []
   )
 
-  const filteredItems = getVisibleSidebarItems(
-    userCapabilities,
-    tenantModulos,
-    tenantVerticales,
-    activeSpace,
-    userAttributes,
-    allItems
-  )
+  // F1.6: allItems ya viene filtrado server-side (módulo activo + capability).
+  // Acá solo recortamos por el espacio activo y agrupamos.
+  const filteredItems = filterItemsByEspacio(allItems, activeSpace)
 
   const sidebarGroups = groupSidebarItems(filteredItems)
 

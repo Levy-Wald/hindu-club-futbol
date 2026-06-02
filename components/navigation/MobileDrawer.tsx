@@ -25,7 +25,7 @@ import { useNavigation } from './navigation-provider'
 import { SidebarGroup } from './SidebarGroup'
 import { useTenant } from '@/lib/contexts/tenant-context'
 import type { SpaceId } from '@/lib/navigation/types'
-import { getVisibleSidebarItems, groupSidebarItems } from '@/lib/navigation/filter'
+import { filterItemsByEspacio, groupSidebarItems } from '@/lib/navigation/filter'
 
 const SPACE_ICONS: Record<SpaceId, LucideIcon> = {
   inicio: Home,
@@ -42,24 +42,14 @@ export function MobileDrawer() {
     visibleSpaces,
     activeSpace,
     setActiveSpace,
-    userCapabilities,
-    userAttributes,
-    tenantModulos,
-    tenantVerticales,
     allItems,
   } = useNavigation()
   const { tenantId } = useTenant()
   const [open, setOpen] = useState(false)
   const [mobileSpace, setMobileSpace] = useState<SpaceId>(activeSpace)
 
-  const items = getVisibleSidebarItems(
-    userCapabilities,
-    tenantModulos,
-    tenantVerticales,
-    mobileSpace,
-    userAttributes,
-    allItems
-  )
+  // F1.6: allItems ya viene filtrado server-side; solo recortamos por espacio.
+  const items = filterItemsByEspacio(allItems, mobileSpace)
   const groups = groupSidebarItems(items)
 
   function handleSpaceSelect(space: SpaceId) {
