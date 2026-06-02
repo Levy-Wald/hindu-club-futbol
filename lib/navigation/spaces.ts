@@ -1,15 +1,17 @@
 import type { Space, SpaceId, SpaceVisibilityRule } from './types'
 
-// F1.6: orden de áreas/espacios — alineado con AREA_ORDER (sidebar-data.ts).
-// inicio, personas, actividad, recursos, marketing, finanzas, configuracion.
-// (admin_scl no tiene tab de BO en este sprint).
+// F1.8 (ADR-066): áreas del club por mundo-del-club, en orden canónico:
+// inicio, personas, actividad, comercial, operaciones, finanzas, comunicacion,
+// configuracion. (admin_scl no tiene tab de BO del club; recursos/marketing
+// quedaron vacías y se retiran de los tabs.)
 export const SPACES: Space[] = [
   { id: 'inicio', label: 'Inicio', icon: 'Home' },
   { id: 'personas', label: 'Personas', icon: 'Users' },
   { id: 'actividad', label: 'Actividad', icon: 'Calendar' },
-  { id: 'recursos', label: 'Recursos', icon: 'Package' },
-  { id: 'marketing', label: 'Marketing', icon: 'Megaphone' },
+  { id: 'comercial', label: 'Comercial', icon: 'ShoppingCart' },
+  { id: 'operaciones', label: 'Operaciones', icon: 'Boxes' },
   { id: 'finanzas', label: 'Finanzas', icon: 'TrendingUp' },
+  { id: 'comunicacion', label: 'Comunicación', icon: 'Megaphone' },
   { id: 'configuracion', label: 'Configuracion', icon: 'Settings' },
 ]
 
@@ -46,7 +48,27 @@ export const SPACE_VISIBILITY_RULES: Record<SpaceId, SpaceVisibilityRule> = {
       'ccbp.plantel.read',
     ],
   },
-  marketing: {
+  // F1.8 (ADR-066): comercial + operaciones reemplazan a recursos; comunicacion a marketing.
+  comercial: {
+    visible_if_has_any: [
+      'pim.read',
+      'pim.admin',
+      'ecommerce.read',
+      'ecommerce.admin',
+    ],
+  },
+  operaciones: {
+    visible_if_has_any: [
+      'inventario.read',
+      'inventario.write',
+      'reservas.read',
+      'ccbp.utileria.admin',
+      'ccbp.mapa.admin',
+      'proyectos.read',
+      'proyectos.admin',
+    ],
+  },
+  comunicacion: {
     visible_if_has_any: [
       'comunicaciones.send',
       'personas.write',
@@ -61,20 +83,12 @@ export const SPACE_VISIBILITY_RULES: Record<SpaceId, SpaceVisibilityRule> = {
       'caja.operar',
     ],
   },
+  // Legacy (sin tab; mantenidas por completitud de tipos Record<SpaceId>).
+  marketing: {
+    visible_if_has_any: ['comunicaciones.send', 'personas.write'],
+  },
   recursos: {
-    visible_if_has_any: [
-      'pim.read',
-      'pim.admin',
-      'inventario.read',
-      'inventario.write',
-      'reservas.read',
-      'ccbp.utileria.admin',
-      'ccbp.mapa.admin',
-      'proyectos.read',
-      'proyectos.admin',
-      'ecommerce.read',
-      'ecommerce.admin',
-    ],
+    visible_if_has_any: ['pim.read', 'pim.admin', 'inventario.read', 'reservas.read', 'proyectos.read'],
   },
   configuracion: {
     visible_if_has_any: [

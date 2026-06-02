@@ -12,6 +12,8 @@ import {
   Package,
   Settings,
   Menu,
+  ShoppingCart,
+  Boxes,
   type LucideIcon,
 } from 'lucide-react'
 import {
@@ -31,10 +33,14 @@ const SPACE_ICONS: Record<SpaceId, LucideIcon> = {
   inicio: Home,
   personas: Users,
   actividad: Calendar,
-  marketing: Megaphone,
+  comercial: ShoppingCart,
+  operaciones: Boxes,
   finanzas: TrendingUp,
-  recursos: Package,
+  comunicacion: Megaphone,
   configuracion: Settings,
+  // legacy (sin tab)
+  marketing: Megaphone,
+  recursos: Package,
 }
 
 export function MobileDrawer() {
