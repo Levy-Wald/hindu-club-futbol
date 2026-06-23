@@ -53,7 +53,9 @@
 
 ### Terminado — F1.7 estructura (PR #13 merged + tag v0.41.0, 23-jun)
 - **F1.7** — SE1-T93 (Actor/Roles, RFC-007). Tablas `actores` (supertipo persona XOR entidad), `catalogo_roles_actor` (13 roles seed), `actor_roles` (asignación declarativa con vigencia + scope). Backfill 1:1 → **2.743 actores** (2.739 persona + 4 entidad = personas/entidades vivas). RLS multi-tenant + soft-delete, advisor limpio, typecheck verde, aplicado a prod y verificado. Mergeado y taggeado por decisión de Yair (sin UI → no requiere smoke visual).
-  - **Pendiente incremental (RFC-007 §9, sprints posteriores, NO eran de esta tarea):** migración de lectura módulo-por-módulo (queries leen `actor_roles` en vez de inferir rol), UI, seed de asignaciones reales.
+  - **Decisiones de fondo canonizadas (23-jun):** **ADR-067** (Finanzas = trunk financiero, resuelve I-006) + **ADR-068** (frontera B: atributos = permisos dot-notation/flags; `actor_roles` = roles de negocio persona+entidad).
+  - **Piloto incremental hecho (23-jun, aplicado a prod + paridad OK):** seed de roles `jugador` (165, espejo del atributo) y `proveedor` (1 entidad; camino persona-proveedor habilitado) en `actor_roles`, + vista canónica de lectura **`v_actores_roles`** (security_invoker, respeta RLS). Hallazgo: el sistema de atributos ya se usaba fuerte como roles (`socio_padron`=2347, `jugador`=165, `suscriptor`=51).
+  - **Pendiente incremental (RFC-007 §9, sprints posteriores):** seguir migrando roles pesados (`socio`/`socio_padron` 2347), enriquecer scope (jugador→equipo/disciplina desde `personas_equipos`), y swap de lectura en las pages/módulos (con smoke). Deprecación de los role-atributos una vez migrados (coexistencia mientras tanto, ADR-068).
 
 ### Analizado, listo para arrancar (86)
 - Distribución por phase:
