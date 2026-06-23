@@ -12,8 +12,9 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { ArrowLeft } from 'lucide-react'
-import { fetchOrdenCompraDetalle } from '../../_lib/queries'
+import { fetchOrdenCompraDetalle, fetchProductosSelect } from '../../_lib/queries'
 import { OcAcciones } from './_components/oc-acciones'
+import { EditarItemsOcDialog } from './_components/editar-items-oc-dialog'
 
 const ESTADO_VARIANT: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
   borrador: 'secondary',
@@ -38,14 +39,15 @@ interface PageProps {
 export default async function OrdenCompraDetallePage({ params }: PageProps) {
   const { id } = await params
 
-  let detalle
+  let detalle, productos
   try {
-    detalle = await fetchOrdenCompraDetalle(id)
+    ;[detalle, productos] = await Promise.all([fetchOrdenCompraDetalle(id), fetchProductosSelect()])
   } catch {
     notFound()
   }
 
   const { oc, items, recepciones } = detalle
+  const esBorrador = oc.estado === 'borrador'
   const proveedor = oc.proveedor as { id: string; nombre: string; cuit: string | null } | null
   const solicitud = oc.solicitud as { id: string; numero: string } | null
   const moneda = oc.moneda as string
@@ -106,8 +108,22 @@ export default async function OrdenCompraDetallePage({ params }: PageProps) {
 
       {/* Ítems */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Ítems</CardTitle>
+          {esBorrador && (
+            <EditarItemsOcDialog
+              ocId={oc.id}
+              moneda={moneda}
+              itemsActuales={items.map((i) => ({
+                id: i.id,
+                descripcion: i.descripcion,
+                cantidad: i.cantidad,
+                precio_unitario: i.precio_unitario,
+                producto: i.producto ? { id: i.producto.id } : null,
+              }))}
+              productos={productos}
+            />
+          )}
         </CardHeader>
         <CardContent>
           <div className="rounded-md border overflow-x-auto">

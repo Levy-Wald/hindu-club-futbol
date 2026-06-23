@@ -189,6 +189,45 @@ export async function crearOrdenCompra(input: {
   return formatResult(true, 'Orden de compra creada', oc)
 }
 
+// Reemplaza los ítems de una OC en borrador (setear precios, cantidades, agregar
+// o quitar). Sólo borrador: una vez emitida/recibida los ítems quedan firmes.
+export async function actualizarItemsOC(ocId: string, items: OcItemInput[]) {
+  const supabase = await createClient()
+
+  const { data: oc, error: ocErr } = await supabase
+    .from('ordenes_compra')
+    .select('estado')
+    .eq('id', ocId)
+    .single()
+  if (ocErr) return formatResult(false, ocErr.message)
+  if (oc.estado !== 'borrador') return formatResult(false, 'Solo se pueden editar los ítems de una OC en borrador.')
+
+  const validos = items.filter((i) => i.descripcion.trim() && i.cantidad > 0)
+  if (validos.length === 0) return formatResult(false, 'La OC debe tener al menos un ítem.')
+
+  // En borrador no hay recepciones, así que el reemplazo total es seguro.
+  const { error: delErr } = await supabase.from('oc_items').delete().eq('oc_id', ocId)
+  if (delErr) return formatResult(false, delErr.message)
+
+  const { error: insErr } = await supabase.from('oc_items').insert(
+    validos.map((i) => ({
+      tenant_id: TENANT_ID,
+      oc_id: ocId,
+      producto_id: i.producto_id || null,
+      descripcion: i.descripcion.trim(),
+      cantidad: i.cantidad,
+      precio_unitario: i.precio_unitario || 0,
+    })),
+  )
+  if (insErr) return formatResult(false, insErr.message)
+
+  await recalcularTotalOC(supabase, ocId)
+
+  revalidatePath('/admin/compras')
+  revalidatePath(`/admin/compras/ordenes/${ocId}`)
+  return formatResult(true, 'Ítems actualizados')
+}
+
 export async function emitirOrdenCompra(id: string) {
   const supabase = await createClient()
   const { error } = await supabase
