@@ -251,6 +251,7 @@ Detalle completo en `docs/OPERATING-MODEL.md`.
 | ADR-065 | Migración nomenclatura fases F0–F10 (Rosetta Stone) |
 | ADR-066 | Arquitectura de Información del menú (mundo-del-club) |
 | ADR-067 | Finanzas como trunk financiero cross-vertical (resuelve I-006) |
+| ADR-068 | Frontera atributos (permisos) vs actor_roles (roles de negocio) |
 
 Lista completa: `docs/DECISIONS.md` (consolidado ADR-001 a ADR-046) + `docs/adr/` (individuales).
 
