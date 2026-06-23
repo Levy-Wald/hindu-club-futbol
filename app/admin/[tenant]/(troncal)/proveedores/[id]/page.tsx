@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ArrowLeft, Info, Wallet, Package, ShoppingCart } from 'lucide-react'
 import {
@@ -10,9 +9,11 @@ import {
   fetchProveedorCuentaCorriente,
   fetchProveedorProductos,
 } from '../_lib/queries'
+import { fetchOrdenesCompraByProveedor } from '../../compras/_lib/queries'
 import { ProveedorInfo } from './_components/proveedor-info'
 import { ProveedorCuentaCorriente } from './_components/proveedor-cuenta-corriente'
 import { ProveedorProductos } from './_components/proveedor-productos'
+import { ProveedorCompras } from './_components/proveedor-compras'
 import { EliminarProveedorButton } from './_components/eliminar-proveedor-button'
 
 interface PageProps {
@@ -22,12 +23,13 @@ interface PageProps {
 export default async function ProveedorDetallePage({ params }: PageProps) {
   const { id } = await params
 
-  let proveedor, cuenta, productos
+  let proveedor, cuenta, productos, ordenes
   try {
-    ;[proveedor, cuenta, productos] = await Promise.all([
+    ;[proveedor, cuenta, productos, ordenes] = await Promise.all([
       fetchProveedorDetalle(id),
       fetchProveedorCuentaCorriente(id),
       fetchProveedorProductos(id),
+      fetchOrdenesCompraByProveedor(id),
     ])
   } catch {
     notFound()
@@ -118,12 +120,7 @@ export default async function ProveedorDetallePage({ params }: PageProps) {
 
         <TabsContent value="compras">
           <div className="pt-4">
-            <Card>
-              <CardContent className="py-10 text-center text-sm text-muted-foreground">
-                <ShoppingCart className="h-8 w-8 mx-auto mb-3 opacity-40" />
-                El historial de compras (solicitud → OC → recepción) llega con el módulo de Compras (F1.14).
-              </CardContent>
-            </Card>
+            <ProveedorCompras ordenes={ordenes} />
           </div>
         </TabsContent>
       </Tabs>
