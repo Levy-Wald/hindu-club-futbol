@@ -225,8 +225,10 @@ Detalle completo en `docs/OPERATING-MODEL.md`.
 - `00-MASTER-INDEX-v2.2.md` — único que sigue vivo en raíz.
 
 > Los otros 3 (`BOOT-CONTINUIDAD-26-MAY-2026-v3.md`, `COMO-SEGUIMOS-v1.1.md`, `CURRENT-STATE-v3.2-26-MAY-2026.md`) fueron archivados en `ZZ_Archivo/` y están **superados** por los cierres del 01-jun (ver `_Cierre Ejecutivo/`) y por `docs/CURRENT-STATE.md` (fuente de verdad del estado vivo).
->
-> **Pendiente de Opus (sync repo→Drive, TODO post-F4):** espejar a Drive el CURRENT-STATE post-01-jun, subir ADRs 059/063/064/065 a `_Decisiones/`, renombrar/archivar las matrices "SMV", deduplicar `ZZ_Archivo/`.
+
+**Nota de ubicación de ADRs/RFCs en Drive (verificado 23-jun):** los ADRs/RFCs están **repartidos** entre `_Decisiones/` (ADR-039, 042, 047–062, 066) y `_Arquitectura/` (ADR-063/064/065, RFC-006, RFC-006v2, RFC-007). No es un gap — existen, solo están en dos carpetas. Convención a futuro: unificar dónde viven.
+
+> **Pendiente (sync Drive, requiere mover/borrar — fuera del alcance de Code):** espejar a Drive el CURRENT-STATE post-01-jun, renombrar/archivar las matrices "SMV", deduplicar `ZZ_Archivo/`. (El gap inverso —ADR-066 + RFC-006/007 que faltaban en el repo— ya se resolvió: espejados a `docs/` el 23-jun.)
 
 ---
 
@@ -247,6 +249,7 @@ Detalle completo en `docs/OPERATING-MODEL.md`.
 | ADR-063 | Modelo invitados, notificaciones, control acceso, asistencias eventos |
 | ADR-064 | Killer Machine: Operating Model del cuarteto |
 | ADR-065 | Migración nomenclatura fases F0–F10 (Rosetta Stone) |
+| ADR-066 | Arquitectura de Información del menú (mundo-del-club) |
 
 Lista completa: `docs/DECISIONS.md` (consolidado ADR-001 a ADR-046) + `docs/adr/` (individuales).
 
@@ -258,7 +261,9 @@ Lista completa: `docs/DECISIONS.md` (consolidado ADR-001 a ADR-046) + `docs/adr/
 |---|---|
 | RFC-001 a RFC-003 | (ver `docs/rfcs/`) |
 | **RFC-004** | **Reorganización modular en 4 capas — supersedes modelo vertical único** |
-| RFC-005 | (ver `docs/rfcs/`) |
+| RFC-005 | Plan de ejecución completo |
+| **RFC-006** | **Navegación data-driven (tabla `sidebar_items`) — implementado F1.6** |
+| **RFC-007** | **Modelo Actor + Roles + Capabilities — próximo F1.7** |
 
 ---
 

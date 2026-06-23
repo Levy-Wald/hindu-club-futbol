@@ -88,10 +88,13 @@
 | ADR-061 | Drift TS-BD silenciado por Supabase client | Accepted | `ADR-061-drift-ts-bd-silenciado-supabase.md` |
 | ADR-062 | Modelado subtipos CCBP (supersedes ADR-055) | Accepted | `ADR-062-modelado-subtipos-ccbp.md` |
 
-## ADRs 063-065 (Operating Model + Nomenclatura F0–F10)
+## ADRs 063-066 (Operating Model + Nomenclatura F0–F10 + Navegación)
 
 | ADR | Titulo | Status | Archivo |
 |---|---|---|---|
 | ADR-063 | Modelo invitados, notificaciones, control acceso, asistencias eventos | Accepted | `ADR-063-modelo-invitados-notificaciones-control-acceso-asistencias-eventos.md` |
 | ADR-064 | Killer Machine: Operating Model del cuarteto | Accepted | `ADR-064-killer-machine-operating-model.md` |
 | ADR-065 | Migracion nomenclatura fases F0-F10 (Rosetta Stone) | Accepted | `ADR-065-migracion-nomenclatura-fases-rosetta-stone.md` |
+| ADR-066 | Arquitectura de Información del menú (mundo-del-club) | Aprobado (árbol pend. validación visual) | `ADR-066-arquitectura-informacion-menu-mundo-del-club.md` |
+
+> Nota: ADR-059 no existe (número salteado). Espejo a repo de ADR-066 + RFC-006/007 hecho el 23-jun-2026 (estaban solo en Drive).
