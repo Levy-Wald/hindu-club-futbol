@@ -12,9 +12,9 @@
 
 | Indicador | Valor |
 |---|---|
-| Tag git actual | `v0.40.0-menu-mundo-club` (F1.8). Previo: `v0.39.0-sidebar-data-driven` (F1.6), `v0.38.0-housekeeping-auditoria-f1` (F1.5) |
-| Próximo tag esperado | `v0.41.0-actor-roles` (al cerrar F1.7) |
-| Sprint activo | **F1.7 — Actor/Roles (RFC-007)**. Primera migración (actores + catalogo_roles_actor + actor_roles + backfill 2.743) **aplicada a prod y verificada** el 23-jun. En branch `feature/f1.7-actor-roles` (PR abierto). |
+| Tag git actual | `v0.41.0-actor-roles` (F1.7). Previo: `v0.40.0-menu-mundo-club` (F1.8), `v0.39.0-sidebar-data-driven` (F1.6) |
+| Próximo tag esperado | sin definir (continuación F1.7 lectura por módulo, o nuevo sprint) |
+| Sprint activo | ninguno — **F1.7 estructura Actor/Roles cerrada** (PR #13 merged + tag `v0.41.0`, 23-jun). Pendiente incremental: lectura de `actor_roles` por módulo (RFC-007 §9). |
 | Sesión última cerrada | 2026-06-01 — F1.5 housekeeping + F1.6 sidebar data-driven + F1.8 árbol de menú ADR-066 |
 | Fase actual del roadmap | F1 (Troncal núcleo ERP+CRM) |
 | Navegación | **Data-driven desde `catalogo_modulos`** (RFC-006 v2 + ADR-066). El sidebar BO ya no es hardcodeado. |
@@ -48,8 +48,12 @@
 - **F1.4** — SE1-T9 (padre) — Eventos & Calendario al **90%**. Pendiente: RRULE completo, flujo de invitaciones, recordatorios.
   - **Reabierto en Zoho el 23-jun-2026** (decisión Yair): se había cerrado al 100% por arrastre al completar las subtareas F1.4.1/F1.4.2/F1.4.3, pero el DoD del módulo sigue al ~90%. Vuelve a Open para no perder los pendientes. Cerrar solo cuando RRULE + invitaciones + recordatorios estén DONE.
 
-### En desarrollo (1)
-- **F1.7** — SE1-T (Actor/Roles, RFC-007). **Primera migración aplicada a prod y verificada (23-jun)**: tablas `actores` (supertipo persona XOR entidad), `catalogo_roles_actor` (13 roles seed), `actor_roles` (asignación declarativa con vigencia + scope). Backfill 1:1 OK → 2.739 actores-persona + 4 actores-entidad = 2.743 (conteos = personas/entidades vivas). RLS multi-tenant + soft-delete, advisor limpio, typecheck verde. **Pendiente (sprints incrementales, RFC-007 §9):** migración de lectura módulo-por-módulo (que las queries lean `actor_roles` en vez de inferir rol), UI, y seed de asignaciones reales. Branch `feature/f1.7-actor-roles`, PR abierto. NO requiere smoke visual (es backend).
+### En desarrollo (0)
+- (vacío)
+
+### Terminado — F1.7 estructura (PR #13 merged + tag v0.41.0, 23-jun)
+- **F1.7** — SE1-T93 (Actor/Roles, RFC-007). Tablas `actores` (supertipo persona XOR entidad), `catalogo_roles_actor` (13 roles seed), `actor_roles` (asignación declarativa con vigencia + scope). Backfill 1:1 → **2.743 actores** (2.739 persona + 4 entidad = personas/entidades vivas). RLS multi-tenant + soft-delete, advisor limpio, typecheck verde, aplicado a prod y verificado. Mergeado y taggeado por decisión de Yair (sin UI → no requiere smoke visual).
+  - **Pendiente incremental (RFC-007 §9, sprints posteriores, NO eran de esta tarea):** migración de lectura módulo-por-módulo (queries leen `actor_roles` en vez de inferir rol), UI, seed de asignaciones reales.
 
 ### Analizado, listo para arrancar (86)
 - Distribución por phase:
