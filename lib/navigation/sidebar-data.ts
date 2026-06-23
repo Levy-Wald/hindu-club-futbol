@@ -50,6 +50,7 @@ const CORE_ITEMS: Omit<SidebarItem, 'capa'>[] = [
   { id: 'personas', label: 'Personas', href: '/admin/personas', icon: 'Users', estado: 'activo', espacio: 'personas', grupo: 'Padrón', orden: 0, capability_requerida: 'personas.read' },
   { id: 'entidades', label: 'Entidades', href: '/admin/entidades', icon: 'Building2', estado: 'activo', espacio: 'personas', grupo: 'Padrón', orden: 1, capability_requerida: 'entidades.read' },
   { id: 'padrones', label: 'Padrones', href: '/admin/padrones', icon: 'UsersRound', estado: 'activo', espacio: 'personas', grupo: 'Padrón', orden: 2, capability_requerida: 'personas.read' },
+  { id: 'tutores', label: 'Tutores', href: '/admin/tutores', icon: 'UserCheck', estado: 'activo', espacio: 'personas', grupo: 'Padrón', orden: 3, capability_requerida: 'personas.read' },
   // configuración (admin del tenant — no son módulos)
   { id: 'usuarios', label: 'Usuarios y permisos', href: '/admin/configuracion/usuarios', icon: 'UserCog', estado: 'activo', espacio: 'configuracion', grupo: 'Usuarios y permisos', orden: 0, capability_requerida: 'setup.users' },
   { id: 'atributos-custom', label: 'Atributos custom', href: '/admin/configuracion/atributos-custom', icon: 'Settings2', estado: 'activo', espacio: 'configuracion', grupo: 'Usuarios y permisos', orden: 1, capability_requerida: 'setup.tenant' },
