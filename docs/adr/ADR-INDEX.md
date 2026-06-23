@@ -99,4 +99,4 @@
 | ADR-067 | Finanzas como trunk financiero cross-vertical (resuelve I-006) | Accepted | `ADR-067-finanzas-trunk-financiero-cross-vertical.md` |
 | ADR-068 | Frontera atributos (permisos/estados) vs actor_roles (roles de negocio) | Accepted | `ADR-068-frontera-atributos-vs-actor-roles.md` |
 
-> Nota: ADR-059 no existe (número salteado). Espejo a repo de ADR-066 + RFC-006/007 hecho el 23-jun-2026 (estaban solo en Drive). ADR-067 nace en repo (Opus caído); espejar a Drive al volver.
+> Nota: ADR-059 no existe (número salteado). Espejo a repo de ADR-066 + RFC-006/007 hecho el 23-jun-2026 (estaban solo en Drive). ADR-067 y ADR-068 nacieron en repo (Opus caído) y fueron espejados a Drive `_Decisiones/` el 23-jun-2026.

@@ -1,6 +1,6 @@
 # ADR-068 — Frontera entre atributos (permisos/estados) y actor_roles (roles de negocio)
 
-> Origen: repo (canonizado por Code en cobertura de Opus, 23-jun-2026). Espejar a Drive `_Decisiones/` cuando Opus vuelva.
+> Origen: repo (canonizado por Code en cobertura de Opus, 23-jun-2026). Espejado a Drive `_Decisiones/` el 23-jun-2026.
 
 **Estado**: Accepted
 **Fecha**: 23-jun-2026
