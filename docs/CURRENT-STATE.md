@@ -12,7 +12,9 @@
 
 | Indicador | Valor |
 |---|---|
-| Tag git actual | `v0.45.2-menu-pasada` (cierre fino F1: edición ítems OC borrador + pasada de menú). Previo: `v0.45.1-oc-editar-items`, `v0.45.0-compras-mvp`, `v0.44.0-proveedores-ui`, serie seguridad v0.43.x, serie F1.4 v0.42.x, serie F1.7 v0.41.x |
+| Tag git actual | `v0.46.0-portal-fundacion` (F3.1a — fundación Portal Cliente). Previo: serie cierre-fino-F1 v0.45.x, `v0.44.0-proveedores-ui`, serie seguridad v0.43.x, serie F1.4 v0.42.x, serie F1.7 v0.41.x |
+| Fase activa | **F3 — Portal Cliente** (front del socio mobile). F1 (Troncal) y F2 (Vertical CCBP) cerrados. |
+| F3.1a Portal fundación (23-jun) | **DONE técnico.** Route group `/portal/[tenant]` paralelo a `/admin` (middleware protege /portal/* + tenant injection). Shell mobile-first con bottom-nav (Inicio/Cuenta/Agenda/Perfil) + dashboard del socio con datos reales (membresía, saldo CC, próxima cuota). Cuenta/Agenda/Perfil son placeholders. SE1-T48 → 30%. Sub-sprints siguientes: Mi cuenta (cuotas+pago mock), Agenda (eventos+inscripción), Perfil+dependientes, Notificaciones, login-branching socio↔admin. |
 | Cierre fino F1 (23-jun) | **(1)** OC borrador: nuevo diálogo "Editar ítems" para setear precios/cantidades (cierra el cabo suelto de F1.14: OCs convertidas desde solicitud entraban con precio 0). **(2)** Pasada del menú data-driven área por área: las rutas del catálogo se cruzaron contra el filesystem → **1 ruta rota encontrada y arreglada** (`solicitudes`→/admin/solicitudes inexistente, ruta_bo nulleada). Pendiente menor para Yair: 4 pares de entradas duplicadas al mismo destino (torneos/competencias, rrhh/rrhh_basico, cuotas/socios→membresías, campañas/mensajería→comunicaciones) — decisión visual de qué label dejar. |
 | F1.13 Proveedores UI (23-jun) | **DONE técnico (90%), esperando smoke.** Gestor `/admin/proveedores` (un proveedor = entidad tipo='proveedor'; reutiliza entidades + cuentas_corrientes + producto_proveedores). Lista con saldo CC + #productos, alta/edición/baja, ficha con tabs Info/Cuenta corriente/Productos/Compras (ahora lista OCs reales). Sidebar data-driven completado. SE1-T18 → 90%. |
 | F1.14 Compras MVP (23-jun) | **DONE técnico (90%), esperando smoke.** Ciclo `solicitud → OC → recepción → factura` en `/admin/compras`. 6 tablas nuevas (compras_solicitudes/ordenes_compra/oc_items/compras_recepciones + items), RLS tenant, numero correlativo por secuencia, subtotal generado. Recepción parcial/total recalcula estado de la OC. Sin aprobaciones multinivel (MVP). Posteo a stock = diferido a F6 (PIM). SE1-T19 → 90%. |
@@ -23,7 +25,7 @@
 | Flujo de deploy | **Commit directo a `main`** (pre-F4, nadie usa prod) — sin ramas/PRs/preview. `typecheck`+`build` verdes antes de pushear. Ver memoria `flujo-commit-directo-main`. |
 | Higiene git (23-jun) | Auditoría deploy: todo el trabajo confirmado en prod (main = deployment prod; PRs #13-24 merged; 7 migraciones F1.7 aplicadas). **8 ramas viejas borradas** (solo queda `main`). La rama `sprint-5` (obsoleta, 382 commits atrás) tenía la vieja página de Tutores → **rearmada fresca** (`v0.43.0`); el resto de su contenido ya estaba en prod por el refactor multi-tenant. |
 | Sesión última cerrada | 2026-06-01 — F1.5 housekeeping + F1.6 sidebar data-driven + F1.8 árbol de menú ADR-066 |
-| Fase actual del roadmap | F1 (Troncal núcleo ERP+CRM) |
+| Fase actual del roadmap | **F3 (Portal Cliente)** — F1 (Troncal) y F2 (Vertical CCBP) cerrados |
 | Navegación | **Data-driven desde `catalogo_modulos`** (RFC-006 v2 + ADR-066). El sidebar BO ya no es hardcodeado. |
 
 ---
