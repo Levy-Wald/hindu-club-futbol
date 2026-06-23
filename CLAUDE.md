@@ -250,6 +250,7 @@ Detalle completo en `docs/OPERATING-MODEL.md`.
 | ADR-064 | Killer Machine: Operating Model del cuarteto |
 | ADR-065 | Migración nomenclatura fases F0–F10 (Rosetta Stone) |
 | ADR-066 | Arquitectura de Información del menú (mundo-del-club) |
+| ADR-067 | Finanzas como trunk financiero cross-vertical (resuelve I-006) |
 
 Lista completa: `docs/DECISIONS.md` (consolidado ADR-001 a ADR-046) + `docs/adr/` (individuales).
 

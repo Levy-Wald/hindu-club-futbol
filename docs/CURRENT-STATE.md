@@ -99,7 +99,8 @@
 |---|---|---|
 | Anti-patrón `limit(500)` residual (**I-002 / SE1-I2**) | Cap de 500 filas en `modules/pim/lib/queries.ts:426` + 3 pages de Finanzas. Misma *forma* que I-001 pero defecto sin confirmar (buscador sobre cap → bug; reporte paginado → no es bug). Eventos ya limpio. | Trackeado en Zoho (triage). Asignar a F1/F6 según triage. |
 | Refactor renames + ownership (**I-005**) | Rename de dirs kebab→snake (`atributos-custom`, `diagramacion-club`, `historial-deportivo`, `reportes-deportivos`) + alineación de slug en catálogo, **y** borrado del stub `eventos_calendario` (que es el owner declarativo ADR-042 de las tablas de eventos: requiere mover ownership a `eventos/module.json` + limpiar `depends_on` en asistencias/planificadores/partidos + slug en nav). Refactor multi-archivo con barrido de imports + build. | Diferido a su propia sesión. No tocar suelto. |
-| FKs cross-módulo / Finanzas trunk (**I-006**) | **Bloqueado** — pendiente de decisión de Yair. No tocar. | Bloqueado. |
+| FKs cross-módulo / Finanzas trunk (**I-006**) | **RESUELTO (23-jun)**: Yair ratificó Finanzas como trunk financiero cross-vertical (ya era `troncal`; las FKs cuotas/rrhh/concesiones/pim→Finanzas son legales, patrón Stripe/Shopify). Canonizado en **ADR-067**. | **Cerrado.** |
+| Inversión de capa eventos→canchas (**I-007 / SE1-I7**) | Carve-out de I-006: `eventos` (troncal) → `canchas` (cross_vertical) es inversión leve. Mitigante: `eventos.cancha_id` es **nullable** (soft-FK). Opciones: subir espacios a troncal / aceptar soft-FK / tabla puente. | Open, no bloqueante. Resolver al tocar dominio espacios o junto a I-005. |
 
 > Code detecta y anota acá; Opus lo replica a Zoho como issue formal. No se toca código fuera de scope del sprint activo.
 
