@@ -12,9 +12,10 @@
 
 | Indicador | Valor |
 |---|---|
-| Tag git actual | `v0.43.0-tutores` (página de Tutores). Previo: serie F1.4 v0.42.x (Eventos), serie F1.7 v0.41.x (Actor/Roles) |
-| Próximo tag esperado | sin definir (próximo módulo F1: F1.3 Comunicaciones 50%, o cierre/smoke de los ~10 al 95%) |
-| Sprint activo | ninguno — **F1.4 Eventos CERRADO** + **F1.7 Actor/Roles CERRADO**. Convergiendo para cerrar F1 troncal. |
+| Tag git actual | `v0.43.1-comunicaciones-cierre` (F1.3 cierre). Previo: `v0.43.0-tutores`, serie F1.4 v0.42.x (Eventos), serie F1.7 v0.41.x (Actor/Roles) |
+| Próximo tag esperado | sin definir (cierre/smoke de los módulos F1 al 95%) |
+| Sprint activo | ninguno — **F1.4 Eventos** + **F1.7 Actor/Roles** CERRADOS; **F1.3 Comunicaciones DONE técnico** (esperando smoke). Convergiendo para cerrar F1 troncal. |
+| F1.3 Comunicaciones (23-jun) | Estaba marcado 50% pero el motor mock-first ya estaba ~90% hecho y funcionando. Cierre: drift reconciliado (`com_jobs_log`+`com_plantilla_versiones` capturadas a migraciones), **fix RLS hardcode** de com_jobs_log (DEFAULT_TENANT_ID → get_tenant_actual), 11 unit tests. SE1-T8 → 90% DONE técnico, esperando smoke. Adapters reales = F5. |
 | Flujo de deploy | **Commit directo a `main`** (pre-F4, nadie usa prod) — sin ramas/PRs/preview. `typecheck`+`build` verdes antes de pushear. Ver memoria `flujo-commit-directo-main`. |
 | Higiene git (23-jun) | Auditoría deploy: todo el trabajo confirmado en prod (main = deployment prod; PRs #13-24 merged; 7 migraciones F1.7 aplicadas). **8 ramas viejas borradas** (solo queda `main`). La rama `sprint-5` (obsoleta, 382 commits atrás) tenía la vieja página de Tutores → **rearmada fresca** (`v0.43.0`); el resto de su contenido ya estaba en prod por el refactor multi-tenant. |
 | Sesión última cerrada | 2026-06-01 — F1.5 housekeeping + F1.6 sidebar data-driven + F1.8 árbol de menú ADR-066 |
