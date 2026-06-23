@@ -88,7 +88,36 @@ export async function fetchPersonas(params: PersonasQueryParams) {
     )
   }
 
-  return { data: filtered, total: count ?? 0 }
+  // ADR-068: adjuntar los roles de negocio (actor_roles, vía v_actores_roles) por
+  // persona, y dejar en personas_atributos solo permisos/flags (sin los slugs que
+  // ya son roles). Así la columna muestra roles "lindos" + atributos no duplicados.
+  const personaIds = filtered.map((p) => p.id)
+  const rolesPorPersona: Record<string, { rol_slug: string; rol_nombre: string }[]> = {}
+  if (personaIds.length > 0) {
+    const { data: rolesRows } = await supabase
+      .from('v_actores_roles')
+      .select('persona_id, rol_slug, rol_nombre')
+      .in('persona_id', personaIds)
+    for (const r of (rolesRows ?? []) as { persona_id: string; rol_slug: string; rol_nombre: string }[]) {
+      const arr = (rolesPorPersona[r.persona_id] ??= [])
+      if (!arr.some((x) => x.rol_slug === r.rol_slug)) arr.push({ rol_slug: r.rol_slug, rol_nombre: r.rol_nombre })
+    }
+  }
+  const { data: roleSlugRows } = await supabase.from('catalogo_roles_actor').select('slug')
+  const esRolSlug = new Set<string>([
+    ...(roleSlugRows ?? []).map((r: { slug: string }) => r.slug),
+    'socio_padron', 'staff_medico', 'staff_utileria',
+  ])
+
+  const dataConRoles = filtered.map((p) => ({
+    ...p,
+    roles: rolesPorPersona[p.id] ?? [],
+    personas_atributos: (p.personas_atributos ?? []).filter(
+      (a: { atributo_slug: string }) => !esRolSlug.has(a.atributo_slug)
+    ),
+  }))
+
+  return { data: dataConRoles, total: count ?? 0 }
 }
 
 export async function fetchPersonaById(id: string) {
