@@ -12,9 +12,9 @@
 
 | Indicador | Valor |
 |---|---|
-| Tag git actual | `v0.41.5-filtro-rol-personas` (F1.7 read-swap). Serie F1.7: v0.41.0 estructura → v0.41.1/2/3/4 roles → v0.41.5 primer read-swap. Previo: `v0.40.0-menu-mundo-club` (F1.8) |
-| Próximo tag esperado | sin definir (continuación F1.7 lectura por módulo, o nuevo sprint) |
-| Sprint activo | ninguno — **F1.7 estructura Actor/Roles cerrada** (PR #13 merged + tag `v0.41.0`, 23-jun). Pendiente incremental: lectura de `actor_roles` por módulo (RFC-007 §9). |
+| Tag git actual | `v0.42.2-eventos-recordatorios` (F1.4 cerrado). Serie F1.4: v0.42.0 recurrencia → v0.42.1 invitaciones UI → v0.42.2 recordatorios. Previo: serie F1.7 v0.41.x (Actor/Roles) |
+| Próximo tag esperado | sin definir (próximo módulo F1: F1.3 Comunicaciones 50%, o cierre/smoke de los ~10 al 95%) |
+| Sprint activo | ninguno — **F1.4 Eventos CERRADO** (DONE visual Yair, 23-jun) y **F1.7 Actor/Roles CERRADO**. Convergiendo para cerrar F1 troncal. |
 | Sesión última cerrada | 2026-06-01 — F1.5 housekeeping + F1.6 sidebar data-driven + F1.8 árbol de menú ADR-066 |
 | Fase actual del roadmap | F1 (Troncal núcleo ERP+CRM) |
 | Navegación | **Data-driven desde `catalogo_modulos`** (RFC-006 v2 + ADR-066). El sidebar BO ya no es hardcodeado. |
@@ -44,13 +44,12 @@
   - Orden áreas: inicio, personas, actividad, comercial, operaciones, finanzas, comunicacion, configuracion.
   - **Pricing queda en Finanzas** (decisión Yair, no se movió a Comercial).
 
-### DONE técnico — esperando smoke de Yair (1)
-- **F1.4** — SE1-T9 — Eventos & Calendario al **95% (DONE técnico, 23-jun)**. Los 3 pendientes cerrados vía loop autónomo (tags v0.42.0/1/2, todos additivos, sin migración; 76 unit tests + typecheck + build verdes):
+### Terminado — F1.4 Eventos & Calendario (DONE visual Yair, 23-jun) ✅
+- **F1.4** — SE1-T9 **CERRADO 100%**. Los 3 pendientes que lo tenían al 90% cerrados vía loop autónomo (tags v0.42.0/1/2, additivos, sin migración; 76 unit tests + typecheck + build verdes), validados por Yair en prod:
   - **Recurrencia** (v0.42.0): motor que genera los eventos hijos de la serie (`modules/eventos/lib/recurrencia.ts`, 14 tests).
   - **Invitaciones UI** (v0.42.1): `PanelInvitacionesPendientes` en `/mi-calendario` (Aceptar/Rechazar in-app) + estado en el modal.
   - **Recordatorios** (v0.42.2): input en el dialog + cron horario `/api/cron/recordatorios-eventos` → notificación in-app (dedup 24h, sin tabla de log).
-  - **Scope out** (F5 conectores): sync Google/Outlook/iCloud (stub a propósito).
-  - **Falta para terminar:** smoke visual de Yair (ver checklist en SE1-T9). Cerrar al 100% cuando valide.
+  - **Scope out** (F5 conectores): sync Google/Outlook/iCloud (stub a propósito). Limitación MVP: dedup 24h → un recordatorio efectivo por evento/persona en esa ventana.
 
 ### En desarrollo (0)
 - (vacío)
