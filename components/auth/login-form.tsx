@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Mail, Loader2, KeyRound } from 'lucide-react'
 import { DEFAULT_TENANT_ID } from '@/lib/tenant'
+import { resolveLandingPath } from '@/app/(public)/login/_actions'
 
 type Mode = 'magic-link' | 'password'
 
@@ -56,7 +57,9 @@ export function LoginForm() {
       return
     }
 
-    router.push(`/admin/${DEFAULT_TENANT_ID}`)
+    // Login-branching (F3): admin → back office, socio → portal.
+    const destino = await resolveLandingPath().catch(() => `/admin/${DEFAULT_TENANT_ID}`)
+    router.push(destino)
     router.refresh()
   }
 

@@ -2,17 +2,18 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, Wallet, Calendar, User, LogOut } from 'lucide-react'
+import { Home, Wallet, Calendar, User, LogOut, Bell } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface PortalShellProps {
   tenantId: string
   clubNombre: string
   saludo: string
+  unreadCount: number
   children: React.ReactNode
 }
 
-export function PortalShell({ tenantId, clubNombre, saludo, children }: PortalShellProps) {
+export function PortalShell({ tenantId, clubNombre, saludo, unreadCount, children }: PortalShellProps) {
   const pathname = usePathname()
   const router = useRouter()
   const base = `/portal/${tenantId}`
@@ -43,13 +44,23 @@ export function PortalShell({ tenantId, clubNombre, saludo, children }: PortalSh
             <p className="text-xs text-muted-foreground leading-none">{clubNombre}</p>
             <p className="text-sm font-semibold truncate">{saludo}</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground shrink-0"
-            aria-label="Cerrar sesión"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-3 shrink-0">
+            <Link href={`${base}/notificaciones`} className="relative text-muted-foreground hover:text-foreground" aria-label="Notificaciones">
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+              aria-label="Cerrar sesión"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </header>
 

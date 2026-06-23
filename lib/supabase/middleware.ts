@@ -44,10 +44,27 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Si hay usuario y esta en /login, redirigir a /admin/[tenant]
+  // Si hay usuario y esta en /login, redirigir segun rol (login-branching F3):
+  // admin del tenant → back office; resto (socios) → portal.
   if (user && request.nextUrl.pathname === '/login') {
+    let destino = `/admin/${DEFAULT_TENANT_ID}`
+    const { data: persona } = await supabase
+      .from('personas')
+      .select('id')
+      .eq('user_id', user.id)
+      .is('deleted_at', null)
+      .maybeSingle()
+    if (persona) {
+      const { data: attrs } = await supabase
+        .from('personas_atributos')
+        .select('atributo_slug')
+        .eq('persona_id', persona.id)
+        .eq('activo', true)
+        .in('atributo_slug', ['tenant.admin', 'sistema.admin'])
+      destino = attrs && attrs.length > 0 ? `/admin/${DEFAULT_TENANT_ID}` : `/portal/${DEFAULT_TENANT_ID}`
+    }
     const url = request.nextUrl.clone()
-    url.pathname = `/admin/${DEFAULT_TENANT_ID}`
+    url.pathname = destino
     return NextResponse.redirect(url)
   }
 
