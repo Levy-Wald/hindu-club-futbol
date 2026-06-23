@@ -12,7 +12,9 @@
   "owns_tables": [
     "com_mensajes",
     "com_envios",
-    "com_plantillas"
+    "com_plantillas",
+    "com_plantilla_versiones",
+    "com_jobs_log"
   ],
   "owns_catalogs": [],
   "permissions_required": [
