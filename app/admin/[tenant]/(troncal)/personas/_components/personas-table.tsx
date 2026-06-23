@@ -35,6 +35,11 @@ interface Atributo {
   activo: boolean
 }
 
+interface Rol {
+  rol_slug: string
+  rol_nombre: string
+}
+
 interface Persona {
   id: string
   nombre: string
@@ -70,6 +75,7 @@ interface Persona {
   deleted_at: string | null
   created_at: string
   personas_atributos: Atributo[]
+  roles?: Rol[]
 }
 
 interface PersonasTableProps {
@@ -152,6 +158,15 @@ function renderCellValue(p: Persona, colId: string): React.ReactNode {
     case 'roles':
       return (
         <div className="flex flex-wrap gap-1">
+          {p.roles?.map((r) => (
+            <Badge
+              key={`rol-${r.rol_slug}`}
+              variant="default"
+              className="bg-primary/10 text-primary hover:bg-primary/20"
+            >
+              {r.rol_nombre}
+            </Badge>
+          ))}
           {p.personas_atributos
             ?.filter((a) => a.activo)
             .map((a) => (
@@ -208,7 +223,10 @@ function getCellValueString(p: Persona, colId: string): string {
     case 'nivel_actividad_actual': return p.nivel_actividad_actual ?? ''
     case 'fecha_primera_relacion_club': return p.fecha_primera_relacion_club ?? ''
     case 'roles':
-      return p.personas_atributos?.filter((a) => a.activo).map((a) => a.atributo_slug).join(', ') ?? ''
+      return [
+        ...(p.roles?.map((r) => r.rol_nombre) ?? []),
+        ...(p.personas_atributos?.filter((a) => a.activo).map((a) => a.atributo_slug) ?? []),
+      ].join(', ')
     case 'estado': return p.deleted_at ? 'eliminada' : p.estado
     default: return ''
   }
