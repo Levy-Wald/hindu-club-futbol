@@ -12,7 +12,8 @@
 
 | Indicador | Valor |
 |---|---|
-| Tag git actual | `v0.43.3-tier2-rls-dataholes` (pasada de cierre F1 — hardening seguridad). Previo: `v0.43.2-tier2-views-rls`, `v0.43.1-comunicaciones-cierre`, `v0.43.0-tutores`, serie F1.4 v0.42.x, serie F1.7 v0.41.x |
+| Tag git actual | `v0.44.0-proveedores-ui` (F1.13 — UI gestor proveedores). Previo: `v0.43.3-tier2-rls-dataholes`, `v0.43.2-tier2-views-rls`, `v0.43.1-comunicaciones-cierre`, `v0.43.0-tutores`, serie F1.4 v0.42.x, serie F1.7 v0.41.x |
+| F1.13 Proveedores UI (23-jun) | **DONE técnico (90%), esperando smoke.** Gestor `/admin/proveedores` (un proveedor = entidad tipo='proveedor'; reutiliza entidades + cuentas_corrientes + producto_proveedores). Lista con saldo CC + #productos, alta/edición/baja, ficha con tabs Info/Cuenta corriente/Productos/Compras(stub F1.14). Sidebar data-driven completado (ruta_bo en catalogo_modulos área comercial + activación en tenant_modulos). SE1-T18 → 90%. |
 | Próximo tag esperado | sin definir (smoke de Yair de los módulos F1; o Tier 3 hardening si se prioriza) |
 | Pasada de cierre F1 — seguridad (23-jun) | Vía Supabase advisor. **(1)** 31 vistas con `SECURITY DEFINER` que bypasseaban RLS → `security_invoker=on` (`v0.43.2`). **(2)** 3 tablas de datos con RLS `USING(true)` disfrazada de "tenant_isolation" (`acceso_logs`, `nominas_externas`, `nomina_externa_items`) → tenant-scoped (`v0.43.3`); seguro porque todos los paths usan service-role. **Resultado: 0 ERRORs de seguridad** (eran 31). Quedan 125 WARNs de menor severidad = **Tier 3 backlog** (ver §3.5). |
 | Sprint activo | ninguno — **F1.4 Eventos** + **F1.7 Actor/Roles** CERRADOS; **F1.3 Comunicaciones DONE técnico** (esperando smoke). Convergiendo para cerrar F1 troncal. |
@@ -130,7 +131,7 @@
 ## 4. Próximo paso natural
 
 **Inmediato (días)** — _F1.7 Actor/Roles CERRADO 23-jun (v0.41.8). Convergir para cerrar F1 troncal:_
-1. **Cerrar los gaps de F1**: F1.3 Comunicaciones (50%, el más atrasado), F1.4 Eventos (90% — RRULE/invitaciones/recordatorios), F1.13 Proveedores UI (10%), F1.14 Compras MVP (10%).
+1. **Cerrar los gaps de F1**: ~~F1.3 Comunicaciones~~ (DONE técnico), ~~F1.4 Eventos~~ (cerrado), ~~F1.13 Proveedores UI~~ (DONE técnico 90%, v0.44.0). Queda **F1.14 Compras MVP** (SE1-T19, 10%) — solicitud→OC→recepción; la ficha de proveedor ya tiene el tab Compras listo como punto de enganche.
 2. **Pasada de cierre/smoke** de los ~10 módulos troncales al 95% (PIM, Finanzas, CRM, RRHH, Cobranza, Notificaciones, Atributos Custom, Proyectos, Nóminas, Proveedores-modelo).
 3. **Barrido visual** del menú data-driven (ADR-066) área por área: confirmar rutas/labels/íconos y completar `ruta_bo` de módulos sin página.
 3. ~~Opus refleja en Zoho: F1.5/F1.6/F1.8 → Closed; cerrar I-001~~ **HECHO (verificado 23-jun)**: tareas F1.4.x/F1.6/F1.8 en Closed 100%, e **I-001 (SE1-I1), I-003 (SE1-I4 housekeeping), I-004** ya están formalmente Closed (`is_closed_type=true`). El estado Closed de issues sí quedó configurado.
