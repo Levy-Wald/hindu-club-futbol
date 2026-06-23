@@ -6,7 +6,8 @@ import { revalidatePath } from 'next/cache'
 import { EventoCreateSchema, EventoUpdateSchema, ResponderInvitacionSchema } from './types'
 import type { EventoCreateInput, EventoUpdateInput, EstadoInvitacion, InvitadoInput, CalendarioTipo, SyncResult } from './types'
 import { crearNotificacion } from '@/modules/notificaciones/lib/crear'
-import { randomBytes } from 'crypto'
+import { fechasDeRecurrencia, diaSemanaDe, sumarDias, duracionDias } from './recurrencia'
+import { randomBytes, randomUUID } from 'crypto'
 
 type ActionResult<T = unknown> =
   | { ok: true; data: T }
@@ -41,6 +42,69 @@ function generateToken(): string {
 // Generate a random alphanumeric code
 function generateCodigoAcceso(): string {
   return randomBytes(6).toString('base64url').slice(0, 10).toUpperCase()
+}
+
+type EventoParsed = ReturnType<typeof EventoCreateSchema.parse>
+
+// ── Recurrencia: generar los eventos hijos de una serie ──
+// Si el evento es recurrente, expande periodicidad -> fechas hijas y las inserta
+// como eventos con evento_padre_id + serie_uuid (periodicidad 'nunca' para no
+// re-expandir). El padre queda marcado con el mismo serie_uuid. Aditivo.
+async function expandirRecurrencia(
+  service: ReturnType<typeof createServiceRoleClient>,
+  tenantId: string,
+  parentId: string,
+  d: EventoParsed,
+  personaId: string,
+): Promise<number> {
+  const fechas = fechasDeRecurrencia(
+    d.fecha_inicio,
+    d.periodicidad ?? 'nunca',
+    d.dias_semana ?? null,
+    d.fecha_fin_recurrencia ?? null,
+  )
+  if (fechas.length === 0) return 0
+
+  const serieUuid = randomUUID()
+  await service.from('eventos').update({ serie_uuid: serieUuid }).eq('id', parentId)
+
+  const dur = duracionDias(d.fecha_inicio, d.fecha_fin)
+  const rows = fechas.map((f) => ({
+    tenant_id: tenantId,
+    titulo: d.titulo,
+    tipo_evento_slug: d.tipo_evento_slug,
+    fecha_inicio: f,
+    fecha_fin: d.fecha_fin ? sumarDias(f, dur) : null,
+    hora_inicio: normalizeHora(d.hora_inicio),
+    hora_fin: normalizeHora(d.hora_fin),
+    hora_citacion: normalizeHora(d.hora_inicio),
+    dia_semana: diaSemanaDe(f),
+    modulo_origen: d.modulo_origen ?? 'manual',
+    entidad_origen_id: d.entidad_origen_id ?? null,
+    equipo_id: d.equipo_id ?? null,
+    sede_id: d.sede_id ?? null,
+    cancha_id: d.cancha_id ?? null,
+    espacio_id: d.espacio_id ?? null,
+    descripcion: d.descripcion?.trim() || null,
+    responsables_persona_id: d.responsables_persona_id,
+    visible_para_atributos: d.visible_para_atributos ?? null,
+    espacio_virtual_tipo: d.espacio_virtual_tipo ?? null,
+    espacio_virtual_link: d.espacio_virtual_link ?? null,
+    etiquetas: d.etiquetas ?? [],
+    color: d.color ?? null,
+    periodicidad: 'nunca' as const,
+    evento_padre_id: parentId,
+    serie_uuid: serieUuid,
+    portada_url: d.portada_url ?? null,
+    lugar_encuentro: d.lugar_encuentro ?? null,
+    contacto: d.contacto ?? null,
+    estado: 'programado',
+    created_by: personaId,
+    updated_by: personaId,
+  }))
+
+  await service.from('eventos').insert(rows)
+  return rows.length
 }
 
 // ── Buscar personas para combobox de invitados (server-side) ──
@@ -128,6 +192,9 @@ export async function crearEventoAction(
 
   if (error || !data) return { ok: false, error: error?.message ?? 'Error creando evento' }
 
+  // Si es recurrente, generar los eventos hijos de la serie.
+  await expandirRecurrencia(service, tenantId, data.id, d, persona.id)
+
   revalidatePath(`/admin/${tenantId}/calendario`)
   revalidatePath(`/admin/${tenantId}/mi-calendario`)
   return { ok: true, data: { id: data.id } }
@@ -197,6 +264,9 @@ export async function crearEventoConInvitacionesAction(input: {
   if (evError || !evento) return { ok: false, error: evError?.message ?? 'Error creando evento' }
 
   const eventoId = evento.id
+
+  // 1.5 Si es recurrente, generar los eventos hijos de la serie.
+  await expandirRecurrencia(service, tenantId, eventoId, d, persona.id)
 
   // 2. Generate or save access code
   const codigoAcceso = input.codigo_acceso_manual || generateCodigoAcceso()
