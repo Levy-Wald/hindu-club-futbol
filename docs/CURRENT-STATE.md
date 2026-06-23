@@ -121,9 +121,10 @@
 
 ## 4. Próximo paso natural
 
-**Inmediato (días)**:
-1. **F1.7 — Actor/Roles**: próximo sprint (modelo de actores y roles del tenant).
-2. **Barrido visual** del nuevo menú data-driven (ADR-066) área por área: confirmar rutas, labels e íconos de cada módulo en prod, y completar `ruta_bo` de los módulos que hoy quedaron sin página (no se renderizan).
+**Inmediato (días)** — _F1.7 Actor/Roles CERRADO 23-jun (v0.41.8). Convergir para cerrar F1 troncal:_
+1. **Cerrar los gaps de F1**: F1.3 Comunicaciones (50%, el más atrasado), F1.4 Eventos (90% — RRULE/invitaciones/recordatorios), F1.13 Proveedores UI (10%), F1.14 Compras MVP (10%).
+2. **Pasada de cierre/smoke** de los ~10 módulos troncales al 95% (PIM, Finanzas, CRM, RRHH, Cobranza, Notificaciones, Atributos Custom, Proyectos, Nóminas, Proveedores-modelo).
+3. **Barrido visual** del menú data-driven (ADR-066) área por área: confirmar rutas/labels/íconos y completar `ruta_bo` de módulos sin página.
 3. ~~Opus refleja en Zoho: F1.5/F1.6/F1.8 → Closed; cerrar I-001~~ **HECHO (verificado 23-jun)**: tareas F1.4.x/F1.6/F1.8 en Closed 100%, e **I-001 (SE1-I1), I-003 (SE1-I4 housekeeping), I-004** ya están formalmente Closed (`is_closed_type=true`). El estado Closed de issues sí quedó configurado.
 4. Triage de **I-002** (limit500 PIM+Finanzas) — sigue Open. Programar **I-005** (renames + stub ownership) — sigue Open. **I-006** sigue Open/bloqueado esperando decisión de Yair.
 5. Yair smoke de las features de Personas del 28-may (ficha total/export + Mi Tarjeta) → confirmar o devolver.
