@@ -1,7 +1,7 @@
 # CURRENT-STATE — Estado vivo del proyecto SaaS Empresarial
 
-**Última actualización**: 2026-06-01
-**Sesión que la generó**: Cierre F1.5 + F1.6 + F1.8 — housekeeping auditoría + navegación data-driven (Code)
+**Última actualización**: 2026-06-23
+**Sesión que la generó**: Reconciliación Zoho ↔ doc — reapertura F1.4 padre + confirmación de cierres (Code). Cierre previo: F1.5 + F1.6 + F1.8 (01-jun)
 **Fuente de verdad**: este archivo. Drive es espejo de referencia (lo sincroniza Opus).
 
 > Este archivo se sobreescribe en cada cierre de sprint. Para histórico ver `docs/handoffs/` o Drive `_Cierre Ejecutivo/HANDOFF-YYYY-MM-DD`.
@@ -46,6 +46,7 @@
 
 ### Abierto — backlog interno (1)
 - **F1.4** — SE1-T9 (padre) — Eventos & Calendario al **90%**. Pendiente: RRULE completo, flujo de invitaciones, recordatorios.
+  - **Reabierto en Zoho el 23-jun-2026** (decisión Yair): se había cerrado al 100% por arrastre al completar las subtareas F1.4.1/F1.4.2/F1.4.3, pero el DoD del módulo sigue al ~90%. Vuelve a Open para no perder los pendientes. Cerrar solo cuando RRULE + invitaciones + recordatorios estén DONE.
 
 ### En desarrollo (0)
 - (vacío)
@@ -105,8 +106,8 @@
 **Inmediato (días)**:
 1. **F1.7 — Actor/Roles**: próximo sprint (modelo de actores y roles del tenant).
 2. **Barrido visual** del nuevo menú data-driven (ADR-066) área por área: confirmar rutas, labels e íconos de cada módulo en prod, y completar `ruta_bo` de los módulos que hoy quedaron sin página (no se renderizan).
-3. Opus refleja en Zoho: F1.5 (SE1-I3/I-004), F1.6, F1.8 → terminado/Closed; **cerrar I-001 (SE1-I1)** con el status `is_closed_type=true`.
-4. Triage de **I-002** (limit500 PIM+Finanzas). Programar **I-005** (renames + stub ownership). **I-006** sigue bloqueado.
+3. ~~Opus refleja en Zoho: F1.5/F1.6/F1.8 → Closed; cerrar I-001~~ **HECHO (verificado 23-jun)**: tareas F1.4.x/F1.6/F1.8 en Closed 100%, e **I-001 (SE1-I1), I-003 (SE1-I4 housekeeping), I-004** ya están formalmente Closed (`is_closed_type=true`). El estado Closed de issues sí quedó configurado.
+4. Triage de **I-002** (limit500 PIM+Finanzas) — sigue Open. Programar **I-005** (renames + stub ownership) — sigue Open. **I-006** sigue Open/bloqueado esperando decisión de Yair.
 5. Yair smoke de las features de Personas del 28-may (ficha total/export + Mi Tarjeta) → confirmar o devolver.
 
 > **Nota Zoho — estados custom**: el proyecto NO tiene configurado el workflow de estados custom (en desarrollo / qa / qa humano / etc.). Se opera con **Open/Closed** nativo (100% → Closed automático). Los sub-estados viven embebidos en la descripción de cada tarea.

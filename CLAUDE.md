@@ -8,7 +8,7 @@
 **Vercel:** serviciosclevel/hindu-club
 **Supabase project:** hkoizqbptwhnepzbmjql
 **Path local canónico:** /Users/yamirolw/Projects/hindu-v2
-**Última actualización:** 01-jun-2026
+**Última actualización:** 23-jun-2026
 
 > **Nota:** Este proyecto es el piloto del SaaS Empresarial (vertical CCBP — Clubes, Countries y Barrios Privados), bundle ClubCore, cliente Hindu Club Fútbol.
 > Repo migrado de `yamiro12/hindu-club-futbol` → `Levy-Wald/hindu-club-futbol` el 28-05-2026.
@@ -20,10 +20,10 @@
 
 | Campo | Valor |
 |---|---|
-| Tag actual | `v0.37.1-opening-handoffs-system` |
-| Último sprint cerrado | Sistema OPENING + CURRENT-STATE + handoffs (Killer Machine) |
-| Fase activa | **F1.4** — Eventos & Calendario |
-| Sprint activo | **F1.4.2** — Hotfix buscador Personas server-side (DONE técnico, esperando smoke de Yair) |
+| Tag actual | `v0.40.0-menu-mundo-club` (F1.8) |
+| Último sprint cerrado | F1.5 + F1.6 + F1.8 — navegación data-driven (RFC-006 v2 + ADR-066) + housekeeping auditoría |
+| Fase activa | **F1** — Troncal núcleo (ERP + CRM) |
+| Sprint activo | Ninguno — F1.5/F1.6/F1.8 cerrados y validados en prod. Próximo: **F1.7** — Actor/Roles (RFC-007) |
 | Roadmap | 11 fases F0–F10 (`docs/PHASES.md` + `docs/ROADMAP.md`). Ver `docs/CURRENT-STATE.md` para estado vivo. |
 | Score arquitectónico | **8.5/10** (post Tier 1 hardening 26-may-2026) |
 | Cliente activo | Hindu Club Fútbol (2.739 personas cargadas, en validación post-F4) |
@@ -213,14 +213,20 @@ Detalle completo en `docs/OPERATING-MODEL.md`.
 - `_Roadmap/` — ROADMAP v2.0, post-B17, deuda técnica
 - `_Sprints/` — prompts de sprints
 - `_Verticales/` — documentación específica por vertical
-- `_Archivo/` — material histórico
+- `ZZ_Archivo/` — material histórico (queda al fondo por orden alfabético). Antes referido como `_Archivo`.
 
-**Documentos ejecutivos vivos en raíz Drive:**
+**Archivos sueltos en raíz Drive (a reubicar/renombrar — naming viejo "SMV"):**
 
-- `00-MASTER-INDEX-v2.2.md`
-- `BOOT-CONTINUIDAD-26-MAY-2026-v3.md`
-- `COMO-SEGUIMOS-v1.1.md`
-- `CURRENT-STATE-v3.2-26-MAY-2026.md`
+- `Matriz-Modulos-SMV-ClubCore-v7` (Sheet)
+- `Matriz-Modulos-SMV-ClubCore-ZOHO` (Sheet)
+
+**Documentos ejecutivos en raíz Drive:**
+
+- `00-MASTER-INDEX-v2.2.md` — único que sigue vivo en raíz.
+
+> Los otros 3 (`BOOT-CONTINUIDAD-26-MAY-2026-v3.md`, `COMO-SEGUIMOS-v1.1.md`, `CURRENT-STATE-v3.2-26-MAY-2026.md`) fueron archivados en `ZZ_Archivo/` y están **superados** por los cierres del 01-jun (ver `_Cierre Ejecutivo/`) y por `docs/CURRENT-STATE.md` (fuente de verdad del estado vivo).
+>
+> **Pendiente de Opus (sync repo→Drive, TODO post-F4):** espejar a Drive el CURRENT-STATE post-01-jun, subir ADRs 059/063/064/065 a `_Decisiones/`, renombrar/archivar las matrices "SMV", deduplicar `ZZ_Archivo/`.
 
 ---
 
