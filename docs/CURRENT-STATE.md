@@ -44,9 +44,13 @@
   - Orden áreas: inicio, personas, actividad, comercial, operaciones, finanzas, comunicacion, configuracion.
   - **Pricing queda en Finanzas** (decisión Yair, no se movió a Comercial).
 
-### Abierto — backlog interno (1)
-- **F1.4** — SE1-T9 (padre) — Eventos & Calendario al **90%**. Pendiente: RRULE completo, flujo de invitaciones, recordatorios.
-  - **Reabierto en Zoho el 23-jun-2026** (decisión Yair): se había cerrado al 100% por arrastre al completar las subtareas F1.4.1/F1.4.2/F1.4.3, pero el DoD del módulo sigue al ~90%. Vuelve a Open para no perder los pendientes. Cerrar solo cuando RRULE + invitaciones + recordatorios estén DONE.
+### DONE técnico — esperando smoke de Yair (1)
+- **F1.4** — SE1-T9 — Eventos & Calendario al **95% (DONE técnico, 23-jun)**. Los 3 pendientes cerrados vía loop autónomo (tags v0.42.0/1/2, todos additivos, sin migración; 76 unit tests + typecheck + build verdes):
+  - **Recurrencia** (v0.42.0): motor que genera los eventos hijos de la serie (`modules/eventos/lib/recurrencia.ts`, 14 tests).
+  - **Invitaciones UI** (v0.42.1): `PanelInvitacionesPendientes` en `/mi-calendario` (Aceptar/Rechazar in-app) + estado en el modal.
+  - **Recordatorios** (v0.42.2): input en el dialog + cron horario `/api/cron/recordatorios-eventos` → notificación in-app (dedup 24h, sin tabla de log).
+  - **Scope out** (F5 conectores): sync Google/Outlook/iCloud (stub a propósito).
+  - **Falta para terminar:** smoke visual de Yair (ver checklist en SE1-T9). Cerrar al 100% cuando valide.
 
 ### En desarrollo (0)
 - (vacío)
