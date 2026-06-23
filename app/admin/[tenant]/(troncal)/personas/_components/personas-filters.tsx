@@ -16,6 +16,7 @@ interface FilterOption {
 
 interface PersonasFiltersProps {
   atributos: FilterOption[]
+  roles: FilterOption[]
 }
 
 const ESTADOS: FilterOption[] = [
@@ -26,19 +27,21 @@ const ESTADOS: FilterOption[] = [
   { value: 'pendiente_revision', label: 'Pendiente revisión' },
 ]
 
-export function PersonasFilters({ atributos }: PersonasFiltersProps) {
+export function PersonasFilters({ atributos, roles }: PersonasFiltersProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
   const currentEstados = searchParams.get('estados')?.split(',').filter(Boolean) ?? []
   const currentAtributos = searchParams.get('atributos')?.split(',').filter(Boolean) ?? []
+  const currentRoles = searchParams.get('roles')?.split(',').filter(Boolean) ?? []
   const verEliminadas = searchParams.get('eliminadas') === '1'
 
   const [estados, setEstados] = useState<string[]>(currentEstados)
   const [atributosSelected, setAtributosSelected] = useState<string[]>(currentAtributos)
+  const [rolesSelected, setRolesSelected] = useState<string[]>(currentRoles)
   const [eliminadas, setEliminadas] = useState(verEliminadas)
 
-  const activeCount = estados.length + atributosSelected.length + (eliminadas ? 1 : 0)
+  const activeCount = estados.length + atributosSelected.length + rolesSelected.length + (eliminadas ? 1 : 0)
 
   const applyFilters = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString())
@@ -50,15 +53,19 @@ export function PersonasFilters({ atributos }: PersonasFiltersProps) {
     if (atributosSelected.length > 0) params.set('atributos', atributosSelected.join(','))
     else params.delete('atributos')
 
+    if (rolesSelected.length > 0) params.set('roles', rolesSelected.join(','))
+    else params.delete('roles')
+
     if (eliminadas) params.set('eliminadas', '1')
     else params.delete('eliminadas')
 
     router.push(`/admin/personas?${params.toString()}`)
-  }, [estados, atributosSelected, eliminadas, searchParams, router])
+  }, [estados, atributosSelected, rolesSelected, eliminadas, searchParams, router])
 
   const clearFilters = useCallback(() => {
     setEstados([])
     setAtributosSelected([])
+    setRolesSelected([])
     setEliminadas(false)
     router.push('/admin/personas')
   }, [router])
@@ -108,6 +115,23 @@ export function PersonasFilters({ atributos }: PersonasFiltersProps) {
                       onCheckedChange={() => setAtributosSelected(toggleValue(atributosSelected, a.value))}
                     />
                     {a.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <Separator />
+
+            <div>
+              <h4 className="font-medium text-sm mb-2">Rol</h4>
+              <div className="space-y-1.5 max-h-32 overflow-y-auto">
+                {roles.map((r) => (
+                  <label key={r.value} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <Checkbox
+                      checked={rolesSelected.includes(r.value)}
+                      onCheckedChange={() => setRolesSelected(toggleValue(rolesSelected, r.value))}
+                    />
+                    {r.label}
                   </label>
                 ))}
               </div>
