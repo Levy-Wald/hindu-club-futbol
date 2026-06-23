@@ -43,6 +43,16 @@ Por cada rol de negocio: espejar las filas de `personas_atributos` (rol-atributo
 - Ambiguos a clasificar caso por caso: `staff`, `admin_concesiones`, `comision_directiva`, `dirigente`, `voluntario`, `instructor_externo` (¿rol de negocio o permiso operativo?).
 - Atributos `dt`/`jugador`/`alumno`/`sponsor`/`proveedor` coexisten como slug en `catalogo_atributos` Y en `catalogo_roles_actor`: el de negocio gana en `actor_roles`; el atributo se deprecia o queda como permiso si aplica.
 
+## Resoluciones (decisiones de Yair, 23-jun-2026)
+
+- **`socio`**: unificado — `socio_padron` (2347) + `socio` (1) → rol `socio` (2348), scope global. (tag v0.41.2)
+- **Clasificación de ambiguos (principio: ¿qué *es* → rol; qué *puede/accede* → permiso):**
+  - **Oficios → rol** (migrados a `actor_roles`): `staff_medico` → rol `medico`; `staff_utileria` → rol `utilero`.
+  - **Accesos/admin → permiso** (quedan como atributo): `admin_concesiones`, `staff_acceso_total_salud`, y todos los dot-notation (`x.y`).
+  - **`staff` genérico**: queda como atributo (demasiado vago para rol de negocio).
+  - Otros roles institucionales con uso ya migrados como roles: `dirigente`, `comision_directiva`, `representante_federacion`, `suscriptor`, `capitan`. (tag v0.41.3)
+- **`jugador` — scope (decisión B: ambos):** se mantiene el rol `jugador` **global** (165, del atributo) Y se agregan los **scoped** por `equipo_id`+`disciplina_slug` desde `personas_equipos` (202, roster real). Contar jugadores = `count(DISTINCT actor_id)` (166: 165 atributo + 1 roster-only). (tag v0.41.4)
+
 ## Consecuencias
 
 - ADR-036 (dot-notation = permiso) sigue vigente y ahora es también el criterio de frontera.
