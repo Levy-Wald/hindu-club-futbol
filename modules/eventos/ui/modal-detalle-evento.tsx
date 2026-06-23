@@ -75,6 +75,18 @@ export function ModalDetalleEvento({
               <dd className="text-blue-600">Evento recurrente</dd>
             </div>
           )}
+          {evento.mi_invitacion && (
+            <div className="flex gap-2">
+              <dt className="font-medium text-muted-foreground w-28">Tu invitación</dt>
+              <dd className="capitalize">
+                {evento.mi_invitacion === 'pendiente' ? (
+                  <span className="text-amber-600">Pendiente — respondé en &quot;Invitaciones pendientes&quot;</span>
+                ) : (
+                  evento.mi_invitacion
+                )}
+              </dd>
+            </div>
+          )}
         </dl>
 
         <div className="mt-6 flex gap-3 justify-end">

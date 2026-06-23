@@ -1,10 +1,11 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { obtenerEventosPersonales, obtenerEventosCalendario } from '@/modules/eventos/lib/queries'
+import { obtenerEventosPersonales, obtenerEventosCalendario, obtenerInvitacionesPendientes } from '@/modules/eventos/lib/queries'
 import { hasCapability } from '@/lib/permissions/capabilities'
 import { CalendarioGlobal } from '@/modules/eventos/ui/calendario-global'
 import { ToolbarCalendario } from '@/modules/eventos/ui/toolbar-calendario'
+import { PanelInvitacionesPendientes } from '@/modules/eventos/ui/panel-invitaciones-pendientes'
 
 export default async function MiCalendarioPage(props: {
   params: Promise<{ tenant: string }>
@@ -56,6 +57,8 @@ export default async function MiCalendarioPage(props: {
   const entidades = (entidadesRes.data ?? []) as { id: string; nombre: string }[]
   const espacios = (espaciosRes.data ?? []) as { id: string; nombre: string }[]
 
+  const invitacionesPendientes = await obtenerInvitacionesPendientes(persona.id, tenantId)
+
   return (
     <div className="container mx-auto p-4 space-y-4">
       <h1 className="text-2xl font-bold">Mi Calendario</h1>
@@ -64,6 +67,7 @@ export default async function MiCalendarioPage(props: {
           ? 'Todos los eventos del club'
           : 'Tus eventos: donde sos responsable, de tus equipos y donde te invitaron'}
       </p>
+      <PanelInvitacionesPendientes invitaciones={invitacionesPendientes} />
       <ToolbarCalendario sedes={sedes} equipos={equipos} entidades={entidades} espacios={espacios} personaId={persona.id} tenantId={tenantId} />
       <CalendarioGlobal
         eventos={eventos}
