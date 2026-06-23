@@ -51,6 +51,14 @@
 ### En desarrollo (0)
 - (vacío)
 
+### Terminado — F1.7 completo (Actor/Roles, RFC-007 + ADR-068) — 23-jun
+- **Modelo Actor + Roles 100% del scope de SE1-T93/T95.** `actores` (persona XOR entidad, 2.743), `catalogo_roles_actor` (20 roles), `actor_roles` (**5.829 filas**, 10 roles poblados con scope), vista `v_actores_roles`. Todo en prod, paridad verificada en cada paso.
+  - Roles: socio (2.348 global + 3.054 scoped por padrón = 2.731 actores), jugador (165 global + 202 scoped por equipo/disciplina), suscriptor 51, dirigente 2, utilero 2, proveedor 1, capitan 1, comision_directiva 1, representante_federacion 1, medico 1.
+  - Scope dimensions: `disciplina_slug`/`equipo_id`/`sede_id`/`padron_id`. Decisión B (global + scoped) para jugador y socio.
+  - **2 read-swaps en `/admin/personas` validados por Yair en prod:** filtro "por Rol" + columna que muestra roles desde `v_actores_roles` (y "Atributo" ya solo permisos/flags).
+  - **Único pendiente (gated, futuro):** deprecar los role-atributos de `personas_atributos` — recién cuando TODOS los módulos lean `actor_roles` (hoy solo personas). Coexistencia mientras tanto (ADR-068). NO bloquea.
+- Tags: v0.41.0 (estructura) → v0.41.1–8 (roles + scope + read-swaps).
+
 ### Terminado — F1.7 estructura (PR #13 merged + tag v0.41.0, 23-jun)
 - **F1.7** — SE1-T93 (Actor/Roles, RFC-007). Tablas `actores` (supertipo persona XOR entidad), `catalogo_roles_actor` (13 roles seed), `actor_roles` (asignación declarativa con vigencia + scope). Backfill 1:1 → **2.743 actores** (2.739 persona + 4 entidad = personas/entidades vivas). RLS multi-tenant + soft-delete, advisor limpio, typecheck verde, aplicado a prod y verificado. Mergeado y taggeado por decisión de Yair (sin UI → no requiere smoke visual).
   - **Decisiones de fondo canonizadas (23-jun):** **ADR-067** (Finanzas = trunk financiero, resuelve I-006) + **ADR-068** (frontera B: atributos = permisos dot-notation/flags; `actor_roles` = roles de negocio persona+entidad).
