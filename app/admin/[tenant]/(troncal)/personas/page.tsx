@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { fetchPersonas, fetchCatalogoAtributos } from './_lib/queries'
+import { fetchPersonas, fetchCatalogoAtributos, fetchRolesActor } from './_lib/queries'
 import { PersonasTable } from './_components/personas-table'
 import { SearchBar } from './_components/search-bar'
 import { PersonasFilters } from './_components/personas-filters'
@@ -26,11 +26,13 @@ export default async function PersonasPage({ searchParams }: PageProps) {
   const sortDir = (params.dir ?? 'asc') as 'asc' | 'desc'
   const estados = params.estados?.split(',').filter(Boolean) ?? []
   const atributos = params.atributos?.split(',').filter(Boolean) ?? []
+  const roles = params.roles?.split(',').filter(Boolean) ?? []
   const verEliminadas = params.eliminadas === '1'
 
-  const [{ data: personas, total }, catalogoAtributos] = await Promise.all([
-    fetchPersonas({ search, page, pageSize, sortBy, sortDir, estados, atributos, verEliminadas }),
+  const [{ data: personas, total }, catalogoAtributos, rolesActor] = await Promise.all([
+    fetchPersonas({ search, page, pageSize, sortBy, sortDir, estados, atributos, roles, verEliminadas }),
     fetchCatalogoAtributos(),
+    fetchRolesActor(),
   ])
 
   return (
@@ -66,6 +68,7 @@ export default async function PersonasPage({ searchParams }: PageProps) {
         <Suspense>
           <PersonasFilters
             atributos={catalogoAtributos.map((a) => ({ value: a.slug, label: a.nombre }))}
+            roles={rolesActor.map((r) => ({ value: r.slug, label: r.nombre }))}
           />
         </Suspense>
       </div>

@@ -8,6 +8,7 @@ export interface PersonasQueryParams {
   sortDir?: 'asc' | 'desc'
   estados?: string[]
   atributos?: string[]
+  roles?: string[]
   verEliminadas?: boolean
 }
 
@@ -20,6 +21,7 @@ export async function fetchPersonas(params: PersonasQueryParams) {
     sortDir = 'asc',
     estados = [],
     atributos = [],
+    roles = [],
     verEliminadas = false,
   } = params
 
@@ -55,6 +57,18 @@ export async function fetchPersonas(params: PersonasQueryParams) {
 
   if (estados.length > 0) {
     query = query.in('estado', estados)
+  }
+
+  // Filtro por rol de negocio (actor_roles, vía vista canónica v_actores_roles). ADR-068.
+  // Server-side: resuelve las persona_id que tienen el/los rol(es) y filtra antes de paginar.
+  if (roles.length > 0) {
+    const { data: roleRows } = await supabase
+      .from('v_actores_roles')
+      .select('persona_id')
+      .in('rol_slug', roles)
+      .not('persona_id', 'is', null)
+    const personaIds = [...new Set((roleRows ?? []).map((r: { persona_id: string }) => r.persona_id))]
+    query = query.in('id', personaIds)
   }
 
   query = query.order(sortBy, { ascending: sortDir === 'asc' })
@@ -115,6 +129,18 @@ export async function fetchCatalogoAtributos() {
     .select('slug, nombre, categoria')
     .eq('activo', true)
     .order('categoria')
+
+  if (error) throw error
+  return data ?? []
+}
+
+export async function fetchRolesActor() {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('catalogo_roles_actor')
+    .select('slug, nombre, categoria')
+    .eq('activo', true)
+    .order('orden')
 
   if (error) throw error
   return data ?? []
