@@ -12,7 +12,7 @@
 
 | Indicador | Valor |
 |---|---|
-| Tag git actual | `v0.41.0-actor-roles` (F1.7). Previo: `v0.40.0-menu-mundo-club` (F1.8), `v0.39.0-sidebar-data-driven` (F1.6) |
+| Tag git actual | `v0.41.5-filtro-rol-personas` (F1.7 read-swap). Serie F1.7: v0.41.0 estructura → v0.41.1/2/3/4 roles → v0.41.5 primer read-swap. Previo: `v0.40.0-menu-mundo-club` (F1.8) |
 | Próximo tag esperado | sin definir (continuación F1.7 lectura por módulo, o nuevo sprint) |
 | Sprint activo | ninguno — **F1.7 estructura Actor/Roles cerrada** (PR #13 merged + tag `v0.41.0`, 23-jun). Pendiente incremental: lectura de `actor_roles` por módulo (RFC-007 §9). |
 | Sesión última cerrada | 2026-06-01 — F1.5 housekeeping + F1.6 sidebar data-driven + F1.8 árbol de menú ADR-066 |
@@ -57,7 +57,8 @@
   - **Piloto incremental hecho (23-jun, aplicado a prod + paridad OK):** seed de roles `jugador` (165, espejo del atributo) y `proveedor` (1 entidad; camino persona-proveedor habilitado) en `actor_roles`, + vista canónica de lectura **`v_actores_roles`** (security_invoker, respeta RLS). Hallazgo: el sistema de atributos ya se usaba fuerte como roles (`socio_padron`=2347, `jugador`=165, `suscriptor`=51).
   - **Roles migrados a `actor_roles` (prod, paridad OK) — 10 roles, 2.775 filas:** `socio`=2.348, `jugador`=367 (165 global + 202 scoped por equipo/disciplina; 166 actores distintos), `suscriptor`=51, `dirigente`=2, `utilero`=2, `proveedor`=1, `capitan`=1, `comision_directiva`=1, `representante_federacion`=1, `medico`=1. Catálogo `catalogo_roles_actor`=20 roles. Vista `v_actores_roles`=2.775. Trackeado en **SE1-T95**.
   - **Decisiones resueltas (Yair, 23-jun, en ADR-068):** scope jugador = ambos (global + scoped por roster); clasificación ambiguos = oficios→rol (`medico`/`utilero`), accesos→permiso (`admin_concesiones`/`staff_acceso_total_salud`/dot-notation quedan atributos), `staff` genérico queda atributo.
-  - **Pendiente incremental (RFC-007 §9):** socio→scope padrón (evaluar columna/metadata), **swap de lectura en pages/módulos (requiere smoke de Yair)**, deprecar role-atributos migrados (coexistencia mientras tanto, ADR-068).
+  - **Primer read-swap hecho (v0.41.5, en prod):** filtro "por Rol" en `/admin/personas` que lee de `v_actores_roles` server-side (additivo, junto al de Atributo). Una página real ya consume `actor_roles`. Patrón probado.
+  - **Pendiente incremental (RFC-007 §9):** más read-swaps en otros módulos/pages (con smoke), socio→scope padrón (evaluar columna/metadata), deprecar role-atributos migrados (coexistencia mientras tanto, ADR-068).
 
 ### Analizado, listo para arrancar (86)
 - Distribución por phase:
