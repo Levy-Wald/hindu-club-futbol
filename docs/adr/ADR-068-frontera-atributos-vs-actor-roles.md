@@ -52,6 +52,8 @@ Por cada rol de negocio: espejar las filas de `personas_atributos` (rol-atributo
   - **`staff` genérico**: queda como atributo (demasiado vago para rol de negocio).
   - Otros roles institucionales con uso ya migrados como roles: `dirigente`, `comision_directiva`, `representante_federacion`, `suscriptor`, `capitan`. (tag v0.41.3)
 - **`jugador` — scope (decisión B: ambos):** se mantiene el rol `jugador` **global** (165, del atributo) Y se agregan los **scoped** por `equipo_id`+`disciplina_slug` desde `personas_equipos` (202, roster real). Contar jugadores = `count(DISTINCT actor_id)` (166: 165 atributo + 1 roster-only). (tag v0.41.4)
+- **`socio` — scope (decisión B: ambos):** se agregó la dimensión de scope **`padron_id`** a `actor_roles` (columna FK nullable, como disciplina/equipo/sede). Se mantiene el `socio` **global** (2.348, del atributo) Y se agregan los **scoped** por `padron_id` desde `personas_padrones` (3.054 membresías activas). `count(DISTINCT actor_id socio)` = 2.731 (reconcilia al padrón real: suma ~383 que estaban en padrón sin el atributo `socio_padron`). (tag v0.41.8)
+- **Read-swaps en `/admin/personas` (consumo de `actor_roles` desde UI):** filtro "por Rol" (v0.41.5) + columna que muestra roles lindos y excluye los slugs-rol de "Atributo" (v0.41.6/v0.41.7). El listado filtra y muestra desde `v_actores_roles`.
 
 ## Consecuencias
 
