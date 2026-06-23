@@ -124,6 +124,18 @@ export async function fetchPersonaById(id: string) {
 
 export async function fetchCatalogoAtributos() {
   const supabase = await createClient()
+
+  // ADR-068: los roles de negocio viven ahora en actor_roles (filtro "Rol").
+  // El filtro "Atributo" muestra solo permisos/flags -> excluimos los slugs que
+  // son roles (catalogo_roles_actor) + los atributos-fuente que se migraron a un
+  // rol con OTRO slug (remapeo: socio_padron->socio, staff_medico->medico, etc.).
+  const { data: roleSlugs } = await supabase.from('catalogo_roles_actor').select('slug')
+  const remapeados = ['socio_padron', 'staff_medico', 'staff_utileria']
+  const esRol = new Set([
+    ...(roleSlugs ?? []).map((r: { slug: string }) => r.slug),
+    ...remapeados,
+  ])
+
   const { data, error } = await supabase
     .from('catalogo_atributos')
     .select('slug, nombre, categoria')
@@ -131,7 +143,7 @@ export async function fetchCatalogoAtributos() {
     .order('categoria')
 
   if (error) throw error
-  return data ?? []
+  return (data ?? []).filter((a: { slug: string }) => !esRol.has(a.slug))
 }
 
 export async function fetchRolesActor() {
