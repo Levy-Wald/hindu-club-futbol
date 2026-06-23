@@ -113,6 +113,7 @@ export function CrearEventoDialog({
   const [periodicidad, setPeriodicidad] = useState('nunca')
   const [diasSemana, setDiasSemana] = useState<boolean[]>([false, false, false, false, false, false, false])
   const [fechaFinRecurrencia, setFechaFinRecurrencia] = useState('')
+  const [recordatoriosMin, setRecordatoriosMin] = useState<number[]>([])
 
   // Access code
   const [codigoManual, setCodigoManual] = useState('')
@@ -298,6 +299,7 @@ export function CrearEventoDialog({
           periodicidad: periodicidad as 'nunca',
           dias_semana: periodicidad === 'dias_semana' ? diasSemana : undefined,
           fecha_fin_recurrencia: periodicidad !== 'nunca' && fechaFinRecurrencia ? fechaFinRecurrencia : undefined,
+          recordatorios: recordatoriosMin.map((m) => ({ minutos_antes: m, habilitado: true, notificacion_tipo: 'in_app' as const })),
           responsables_persona_id: [personaId],
           sede_id: sedeId || undefined,
           descripcion: descripcion.trim() || undefined,
@@ -445,6 +447,26 @@ export function CrearEventoDialog({
                   <Input type="date" value={fechaFinRecurrencia} onChange={e => setFechaFinRecurrencia(e.target.value)} min={fechaFin} />
                 </div>
               )}
+            </fieldset>
+
+            {/* Recordatorios */}
+            <fieldset className="border rounded-md p-3 space-y-2">
+              <legend className="text-sm font-medium px-1">Recordatorios</legend>
+              <p className="text-xs text-muted-foreground">Avisar a responsables e invitados antes del evento (notificación in-app).</p>
+              <div className="flex gap-1 flex-wrap">
+                {[{ min: 10, label: '10 min' }, { min: 30, label: '30 min' }, { min: 60, label: '1 hora' }, { min: 1440, label: '1 día' }].map((r) => (
+                  <Button
+                    key={r.min}
+                    type="button"
+                    size="sm"
+                    variant={recordatoriosMin.includes(r.min) ? 'default' : 'outline'}
+                    className="h-8 text-xs"
+                    onClick={() => setRecordatoriosMin((prev) => prev.includes(r.min) ? prev.filter((m) => m !== r.min) : [...prev, r.min])}
+                  >
+                    {r.label} antes
+                  </Button>
+                ))}
+              </div>
             </fieldset>
 
             {/* Location: Sede + Lugar de encuentro (espacios) */}

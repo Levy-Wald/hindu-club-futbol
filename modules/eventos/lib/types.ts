@@ -240,6 +240,11 @@ export const EventoCreateSchema = z.object({
   lugar_encuentro: z.string().max(500).optional(),
   codigo_acceso: z.string().max(100).optional(),
   contacto: z.string().max(500).optional(),
+  recordatorios: z.array(z.object({
+    minutos_antes: z.number().int().min(0).max(60 * 24 * 30),
+    habilitado: z.boolean(),
+    notificacion_tipo: z.enum(['email', 'slack', 'in_app']).optional(),
+  })).optional(),
 }).refine(
   (d) => d.fecha_fin >= d.fecha_inicio,
   { message: 'Fecha fin debe ser >= fecha inicio', path: ['fecha_fin'] }
