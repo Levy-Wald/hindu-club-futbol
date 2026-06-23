@@ -34,10 +34,10 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Solo proteger rutas /admin/*. Todo lo demas es publico.
+  // Proteger rutas /admin/* (back office) y /portal/* (front del socio).
   if (
     !user &&
-    request.nextUrl.pathname.startsWith('/admin')
+    (request.nextUrl.pathname.startsWith('/admin') || request.nextUrl.pathname.startsWith('/portal'))
   ) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'

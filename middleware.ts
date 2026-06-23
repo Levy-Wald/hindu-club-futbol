@@ -33,9 +33,22 @@ export async function middleware(request: NextRequest) {
   }
 
   // Skip auth (getUser) para rutas que no lo necesitan
-  // Solo /admin/* y /login requieren verificacion de sesion
-  if (!pathname.startsWith('/admin') && pathname !== '/login') {
+  // Solo /admin/*, /portal/* y /login requieren verificacion de sesion
+  if (!pathname.startsWith('/admin') && !pathname.startsWith('/portal') && pathname !== '/login') {
     return NextResponse.next()
+  }
+
+  // --- Tenant routing for /portal/* (front del socio, F3) ---
+  if (pathname === '/portal') {
+    const url = request.nextUrl.clone()
+    url.pathname = `/portal/${DEFAULT_TENANT_ID}`
+    return NextResponse.redirect(url)
+  }
+  const portalMatch = pathname.match(/^\/portal\/([^/]+)/)
+  if (portalMatch && !isValidTenantId(portalMatch[1])) {
+    const url = request.nextUrl.clone()
+    url.pathname = `/portal/${DEFAULT_TENANT_ID}${pathname.slice(7)}`
+    return NextResponse.redirect(url)
   }
 
   // --- Tenant routing for /admin/* ---
