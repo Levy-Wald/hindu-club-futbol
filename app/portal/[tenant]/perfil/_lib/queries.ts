@@ -8,6 +8,7 @@ export interface PerfilSocio {
   numero_documento: string | null
   email_principal: string | null
   telefono_principal: string | null
+  whatsapp: string | null
   foto_perfil_url: string | null
   fecha_nacimiento: string | null
 }
@@ -23,7 +24,7 @@ export async function fetchMiPerfil(personaId: string): Promise<{ perfil: Perfil
 
   const { data: perfil } = await supabase
     .from('personas')
-    .select('id, nombre, apellido, numero_documento, email_principal, telefono_principal, foto_perfil_url, fecha_nacimiento')
+    .select('id, nombre, apellido, numero_documento, email_principal, telefono_principal, whatsapp, foto_perfil_url, fecha_nacimiento')
     .eq('id', personaId)
     .is('deleted_at', null)
     .maybeSingle()

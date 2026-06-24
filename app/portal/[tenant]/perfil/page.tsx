@@ -1,9 +1,10 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { Mail, Phone, IdCard, Cake, Users } from 'lucide-react'
+import { Mail, Phone, IdCard, Cake, Users, MessageCircle } from 'lucide-react'
 import { getCurrentPersonaId } from '@/lib/permissions/capabilities'
 import { fetchMiPerfil } from './_lib/queries'
+import { EditarContactoDialog } from './_components/editar-contacto-dialog'
 
 function tipoLabel(slug: string): string {
   return slug.replace(/_/g, ' ')
@@ -33,6 +34,7 @@ export default async function PortalPerfilPage() {
     { icon: IdCard, label: 'Documento', value: perfil.numero_documento },
     { icon: Mail, label: 'Email', value: perfil.email_principal },
     { icon: Phone, label: 'Teléfono', value: perfil.telefono_principal },
+    { icon: MessageCircle, label: 'WhatsApp', value: perfil.whatsapp },
     {
       icon: Cake,
       label: 'Nacimiento',
@@ -58,23 +60,31 @@ export default async function PortalPerfilPage() {
         </CardContent>
       </Card>
 
-      {/* Datos de contacto */}
-      {datos.length > 0 && (
+      {/* Datos de contacto (editables) */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <p className="text-sm font-medium text-muted-foreground">Datos de contacto</p>
+          <EditarContactoDialog email={perfil.email_principal} telefono={perfil.telefono_principal} whatsapp={perfil.whatsapp} />
+        </div>
         <Card>
           <CardContent className="p-0 divide-y">
-            {datos.map((d) => {
-              const Icon = d.icon
-              return (
-                <div key={d.label} className="flex items-center gap-3 p-3">
-                  <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="text-sm text-muted-foreground flex-1">{d.label}</span>
-                  <span className="text-sm font-medium text-right truncate">{d.value}</span>
-                </div>
-              )
-            })}
+            {datos.length === 0 ? (
+              <p className="p-4 text-sm text-muted-foreground text-center">Tocá «Editar» para cargar tus datos de contacto.</p>
+            ) : (
+              datos.map((d) => {
+                const Icon = d.icon
+                return (
+                  <div key={d.label} className="flex items-center gap-3 p-3">
+                    <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="text-sm text-muted-foreground flex-1">{d.label}</span>
+                    <span className="text-sm font-medium text-right truncate">{d.value}</span>
+                  </div>
+                )
+              })
+            )}
           </CardContent>
         </Card>
-      )}
+      </div>
 
       {/* Familia / dependientes */}
       <div className="space-y-2">
@@ -106,7 +116,7 @@ export default async function PortalPerfilPage() {
       </div>
 
       <p className="text-xs text-muted-foreground px-1">
-        La edición de datos desde el portal llega en una próxima actualización.
+        Podés editar tus datos de contacto. Para cambios de identidad o membresía, contactá a administración.
       </p>
     </div>
   )
