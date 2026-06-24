@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { TENANT_ID } from '@/lib/tenant'
+import { slugify } from '@/lib/slugify'
 
 // F1.13 — Proveedores. Un proveedor es una `entidad` tipo='proveedor'. El alta
 // crea además su cuenta corriente (tipo 'proveedor', saldo 0) para que la ficha
@@ -10,15 +11,6 @@ import { TENANT_ID } from '@/lib/tenant'
 
 function formatResult(ok: boolean, message: string, data?: unknown) {
   return { ok, message, data }
-}
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
 }
 
 interface DireccionInput {

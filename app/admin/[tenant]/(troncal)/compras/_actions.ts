@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { TENANT_ID } from '@/lib/tenant'
+import { estadoOCPorRecepcion, excedePendiente } from './_lib/calculos'
 
 // F1.14 — Compras MVP. Sin aprobaciones multinivel ni workflows complejos.
 // El gating fino por rol (Compras/Tesorería/Admin) es a nivel de UI/capability;
@@ -296,7 +297,7 @@ export async function registrarRecepcion(
   for (const r of recibidos) {
     const it = porId.get(r.oc_item_id)
     if (!it) return formatResult(false, 'Ítem inválido en la recepción.')
-    if (it.recibida + r.cantidad_recibida > it.cantidad) {
+    if (excedePendiente({ cantidad: it.cantidad, cantidad_recibida: it.recibida }, r.cantidad_recibida)) {
       return formatResult(false, 'No se puede recibir más de lo pendiente en un ítem.')
     }
   }
@@ -329,12 +330,15 @@ export async function registrarRecepcion(
   }
 
   // Recalcular estado de la OC.
-  const totalmente = [...porId.values()].every((it) => it.recibida >= it.cantidad)
-  const algo = [...porId.values()].some((it) => it.recibida > 0)
-  const nuevoEstado = totalmente ? 'recibida_total' : algo ? 'recibida_parcial' : 'emitida'
+  const nuevoEstado = estadoOCPorRecepcion(
+    [...porId.values()].map((it) => ({ cantidad: it.cantidad, cantidad_recibida: it.recibida })),
+  )
   await supabase.from('ordenes_compra').update({ estado: nuevoEstado }).eq('id', ocId)
 
   revalidatePath('/admin/compras')
   revalidatePath(`/admin/compras/ordenes/${ocId}`)
-  return formatResult(true, totalmente ? 'Recepción registrada — OC completa' : 'Recepción parcial registrada')
+  return formatResult(
+    true,
+    nuevoEstado === 'recibida_total' ? 'Recepción registrada — OC completa' : 'Recepción parcial registrada',
+  )
 }
