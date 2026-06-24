@@ -1,36 +1,17 @@
+import { resolveEmailAdapter } from './email-adapter'
+
+// F5 pre-cableado: enviarEmail ahora delega en el EmailAdapter (mock-first,
+// ADR-035). Misma firma → callers (notificar.ts, etc.) no cambian. Pre-CUIT
+// resuelve a MockEmailAdapter (loguea, no envía); con RESEND_API_KEY o
+// EMAIL_MODE=resend usa Resend real. El \n→<br> se mantiene acá para no cambiar
+// el contrato de entrada (cuerpo en texto plano con saltos de línea).
 export async function enviarEmail(
   destinatario: string,
   asunto: string,
   cuerpo: string
 ): Promise<{ success: boolean; message_id?: string; error?: string }> {
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) return { success: false, error: 'RESEND_API_KEY no configurada' }
-
-  try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: process.env.RESEND_FROM || 'ClubCore <onboarding@resend.dev>',
-        to: [destinatario],
-        subject: asunto,
-        html: cuerpo.replace(/\n/g, '<br>'),
-      }),
-    })
-
-    if (!res.ok) {
-      const err = await res.json()
-      return { success: false, error: err.message || 'Error de Resend' }
-    }
-
-    const data = await res.json()
-    return { success: true, message_id: data.id }
-  } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : 'Error desconocido' }
-  }
+  const adapter = resolveEmailAdapter()
+  return adapter.send(destinatario, asunto, cuerpo.replace(/\n/g, '<br>'))
 }
 
 export function renderPlantilla(cuerpo: string, variables: Record<string, string>): string {

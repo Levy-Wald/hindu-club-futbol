@@ -67,7 +67,13 @@ export default async function PortalCuentaPage() {
                     <p className="font-semibold tabular-nums">{formatMoneda(c.monto_final, c.moneda)}</p>
                     {pendiente && (
                       <div className="mt-1">
-                        <PagarCuotaButton periodo={c.periodo} monto={formatMoneda(c.monto_final, c.moneda)} />
+                        <PagarCuotaButton
+                          cuotaId={c.id}
+                          periodo={c.periodo}
+                          monto={c.monto_final}
+                          moneda={c.moneda}
+                          montoLabel={formatMoneda(c.monto_final, c.moneda)}
+                        />
                       </div>
                     )}
                   </div>
