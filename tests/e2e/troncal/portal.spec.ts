@@ -16,4 +16,16 @@ test.describe('Portal Cliente (F3)', () => {
     await expect(page.locator('nav').getByText('Agenda')).toBeVisible()
     await expect(page.locator('nav').getByText('Perfil')).toBeVisible()
   })
+
+  test('navegación a las sub-páginas del portal', async ({ page }) => {
+    await page.goto('/portal')
+    await page.locator('nav').getByText('Mi cuenta').click()
+    await expect(page.getByRole('heading', { name: /mi cuenta/i })).toBeVisible({ timeout: 5000 })
+
+    await page.locator('nav').getByText('Agenda').click()
+    await expect(page.getByRole('heading', { name: /mi agenda/i })).toBeVisible({ timeout: 5000 })
+
+    await page.locator('nav').getByText('Perfil').click()
+    await expect(page.getByRole('heading', { name: /mi perfil/i })).toBeVisible({ timeout: 5000 })
+  })
 })
