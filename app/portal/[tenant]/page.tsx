@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Wallet, Calendar, User, IdCard, ArrowRight, AlertCircle, ShieldHalf } from 'lucide-react'
+import { Wallet, Calendar, User, IdCard, ArrowRight, AlertCircle, ShieldHalf, LandPlot } from 'lucide-react'
 import { getCurrentPersonaId } from '@/lib/permissions/capabilities'
 import { fetchSocioResumen } from './_lib/queries'
 
@@ -84,6 +84,7 @@ export default async function PortalDashboard({ params }: PageProps) {
         {[
           { href: `${base}/cuenta`, label: 'Mi cuenta y cuotas', icon: Wallet },
           { href: `${base}/equipo`, label: 'Mi equipo y partidos', icon: ShieldHalf },
+          { href: `${base}/reservas`, label: 'Reservar un espacio', icon: LandPlot },
           { href: `${base}/agenda`, label: 'Mi agenda de eventos', icon: Calendar },
           { href: `${base}/perfil`, label: 'Mi perfil y familia', icon: User },
         ].map((item) => {
