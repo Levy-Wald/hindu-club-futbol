@@ -9,6 +9,7 @@ export interface ConvocadoEvento {
 }
 
 export interface ResponsableEvento {
+  persona_id: string
   nombre: string
   apellido: string
   telefono: string | null
@@ -35,6 +36,8 @@ export interface EventoDetalle {
   mi_invitacion_id: string | null
   mi_invitacion_estado: string | null
   mi_convocatoria: string | null
+  mi_respuesta: string | null
+  mi_motivo_respuesta: string | null
   convocados: ConvocadoEvento[]
   responsables: ResponsableEvento[]
 }
@@ -61,10 +64,10 @@ export async function fetchEventoDetalle(eventoId: string, personaId: string): P
 
   const [invRes, convRes, convocadosRes, responsablesRes] = await Promise.all([
     supabase.from('evento_invitados').select('id, estado_invitacion').eq('evento_id', eventoId).eq('persona_id', personaId).maybeSingle(),
-    supabase.from('evento_convocados').select('estado').eq('evento_id', eventoId).eq('persona_id', personaId).maybeSingle(),
+    supabase.from('evento_convocados').select('estado, respuesta, motivo_respuesta').eq('evento_id', eventoId).eq('persona_id', personaId).maybeSingle(),
     supabase.from('evento_convocados').select('estado, persona:personas!persona_id(nombre, apellido)').eq('evento_id', eventoId),
     responsablesIds.length > 0
-      ? supabase.from('personas').select('nombre, apellido, telefono_principal, whatsapp, email_principal').in('id', responsablesIds)
+      ? supabase.from('personas').select('id, nombre, apellido, telefono_principal, whatsapp, email_principal').in('id', responsablesIds)
       : Promise.resolve({ data: [] as unknown[] }),
   ])
 
@@ -76,9 +79,9 @@ export async function fetchEventoDetalle(eventoId: string, personaId: string): P
     })
     .sort((a, b) => (ordenEstado[a.estado] ?? 9) - (ordenEstado[b.estado] ?? 9) || a.apellido.localeCompare(b.apellido))
 
-  const responsables: ResponsableEvento[] = ((responsablesRes.data ?? []) as Array<{ nombre: string; apellido: string; telefono_principal: string | null; whatsapp: string | null; email_principal: string | null }>)
+  const responsables: ResponsableEvento[] = ((responsablesRes.data ?? []) as Array<{ id: string; nombre: string; apellido: string; telefono_principal: string | null; whatsapp: string | null; email_principal: string | null }>)
     .map((p) => ({
-      nombre: p.nombre, apellido: p.apellido,
+      persona_id: p.id, nombre: p.nombre, apellido: p.apellido,
       telefono: p.telefono_principal, whatsapp: p.whatsapp, email: p.email_principal,
     }))
 
@@ -101,6 +104,8 @@ export async function fetchEventoDetalle(eventoId: string, personaId: string): P
     mi_invitacion_id: invRes.data?.id ?? null,
     mi_invitacion_estado: invRes.data?.estado_invitacion ?? null,
     mi_convocatoria: convRes.data?.estado ?? null,
+    mi_respuesta: (convRes.data as { respuesta?: string } | null)?.respuesta ?? null,
+    mi_motivo_respuesta: (convRes.data as { motivo_respuesta?: string | null } | null)?.motivo_respuesta ?? null,
     convocados,
     responsables,
   }

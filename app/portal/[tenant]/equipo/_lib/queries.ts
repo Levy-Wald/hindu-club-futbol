@@ -73,6 +73,7 @@ export async function fetchPlantel(equipoId: string): Promise<CompaneroPlantel[]
 }
 
 export interface ReferenteEquipo {
+  persona_id: string
   nombre: string
   apellido: string
   rol: string
@@ -88,7 +89,7 @@ export async function fetchReferentesEquipo(equipoId: string): Promise<Referente
   const supabase = await createClient()
   const { data } = await supabase
     .from('personas_equipos')
-    .select('rol_equipo_slug, persona:personas!persona_id(nombre, apellido, telefono_principal, whatsapp, email_principal)')
+    .select('rol_equipo_slug, persona_id, persona:personas!persona_id(nombre, apellido, telefono_principal, whatsapp, email_principal)')
     .eq('tenant_id', TENANT_ID)
     .eq('equipo_id', equipoId)
     .eq('activo', true)
@@ -96,6 +97,7 @@ export async function fetchReferentesEquipo(equipoId: string): Promise<Referente
   return (data ?? []).map((pe) => {
     const p = pe.persona as unknown as { nombre: string; apellido: string; telefono_principal: string | null; whatsapp: string | null; email_principal: string | null } | null
     return {
+      persona_id: pe.persona_id as string,
       nombre: p?.nombre ?? '',
       apellido: p?.apellido ?? '',
       rol: pe.rol_equipo_slug,

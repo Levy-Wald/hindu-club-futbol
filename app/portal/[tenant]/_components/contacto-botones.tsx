@@ -1,7 +1,8 @@
 import { MessageCircle, Phone, Mail } from 'lucide-react'
+import { MensajeInternoBtn } from './mensaje-interno-btn'
 
-// Botones de contacto reutilizables (WhatsApp / llamar / mail). "Mensaje" = WhatsApp
-// hasta que exista mensajería interna (F5). Acepta números con cualquier formato.
+// Botones de contacto reutilizables: mensajería interna del club (si hay
+// personaId) + WhatsApp + llamar + mail. Acepta números con cualquier formato.
 function soloDigitos(s: string | null | undefined): string | null {
   if (!s) return null
   const d = s.replace(/\D/g, '')
@@ -13,12 +14,16 @@ export function ContactoBotones({
   telefono,
   email,
   mensajeWhatsapp,
+  personaId,
+  nombre,
   size = 'sm',
 }: {
   whatsapp?: string | null
   telefono?: string | null
   email?: string | null
   mensajeWhatsapp?: string
+  personaId?: string | null
+  nombre?: string
   size?: 'sm' | 'md'
 }) {
   const wa = soloDigitos(whatsapp ?? telefono)
@@ -29,12 +34,16 @@ export function ContactoBotones({
     ? `https://wa.me/${wa}${mensajeWhatsapp ? `?text=${encodeURIComponent(mensajeWhatsapp)}` : ''}`
     : null
 
-  if (!wa && !tel && !email) {
+  const puedeMensaje = !!personaId
+  if (!wa && !tel && !email && !puedeMensaje) {
     return <span className="text-xs text-muted-foreground">Sin contacto cargado</span>
   }
 
   return (
     <div className="flex gap-1.5 shrink-0">
+      {puedeMensaje && (
+        <MensajeInternoBtn destinatarioPersonaId={personaId!} destinatarioNombre={nombre ?? 'esta persona'} size={size} />
+      )}
       {waHref && (
         <a href={waHref} target="_blank" rel="noopener noreferrer" aria-label="Enviar mensaje por WhatsApp"
           className={`${dim} rounded-md border flex items-center justify-center text-primary hover:bg-accent`}>

@@ -14,6 +14,8 @@ export type NotificacionTipo =
   | 'concesion_canon_pendiente_cobro' | 'concesion_stock_minimo'
   | 'invitacion_evento' | 'evento_confirmado' | 'evento_rechazado'
   | 'evento_recordatorio' | 'evento_cancelado'
+  | 'convocatoria_recibida' | 'convocatoria_respondida'
+  | 'mensaje_directo'
 
 export interface CrearNotificacionInput {
   tenant_id: string

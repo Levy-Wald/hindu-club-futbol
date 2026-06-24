@@ -35,6 +35,8 @@ export async function fetchPartidos(): Promise<PartidoRow[]> {
   }))
 }
 
+export type RespuestaJugador = 'pendiente' | 'aceptado' | 'rechazado' | 'tentativa'
+
 export interface JugadorConvocatoria {
   persona_id: string
   nombre: string
@@ -42,6 +44,8 @@ export interface JugadorConvocatoria {
   dorsal: number | null
   posicion: string | null
   estado: 'titular' | 'suplente' | 'convocado' | null // null = no convocado
+  respuesta: RespuestaJugador
+  motivo_respuesta: string | null
 }
 
 export async function fetchConvocatoria(eventoId: string) {
@@ -67,24 +71,27 @@ export async function fetchConvocatoria(eventoId: string) {
           .eq('equipo_id', equipoId)
           .eq('activo', true)
       : Promise.resolve({ data: [] as unknown[] }),
-    supabase.from('evento_convocados').select('persona_id, estado').eq('evento_id', eventoId),
+    supabase.from('evento_convocados').select('persona_id, estado, respuesta, motivo_respuesta').eq('evento_id', eventoId),
   ])
 
-  const estadoPorPersona = new Map<string, 'titular' | 'suplente' | 'convocado'>()
-  for (const c of (convocadosRes.data ?? []) as { persona_id: string; estado: 'titular' | 'suplente' | 'convocado' }[]) {
-    estadoPorPersona.set(c.persona_id, c.estado)
+  const convPorPersona = new Map<string, { estado: 'titular' | 'suplente' | 'convocado'; respuesta: RespuestaJugador; motivo_respuesta: string | null }>()
+  for (const c of (convocadosRes.data ?? []) as Array<{ persona_id: string; estado: 'titular' | 'suplente' | 'convocado'; respuesta: RespuestaJugador; motivo_respuesta: string | null }>) {
+    convPorPersona.set(c.persona_id, { estado: c.estado, respuesta: c.respuesta ?? 'pendiente', motivo_respuesta: c.motivo_respuesta })
   }
 
   const jugadores: JugadorConvocatoria[] = ((plantelRes.data ?? []) as Array<Record<string, unknown>>)
     .map((pe) => {
       const persona = pe.persona as unknown as { nombre: string; apellido: string } | null
+      const conv = convPorPersona.get(pe.persona_id as string)
       return {
         persona_id: pe.persona_id as string,
         nombre: persona?.nombre ?? '',
         apellido: persona?.apellido ?? '',
         dorsal: (pe.dorsal as number | null) ?? null,
         posicion: (pe.posicion as string | null) ?? null,
-        estado: estadoPorPersona.get(pe.persona_id as string) ?? null,
+        estado: conv?.estado ?? null,
+        respuesta: conv?.respuesta ?? 'pendiente',
+        motivo_respuesta: conv?.motivo_respuesta ?? null,
       }
     })
     .sort((a, b) => a.apellido.localeCompare(b.apellido))

@@ -7,6 +7,7 @@ import { ArrowLeft, Clock, MapPin, Users, CalendarDays, Navigation, Headset } fr
 import { getCurrentPersonaId } from '@/lib/permissions/capabilities'
 import { fetchEventoDetalle } from './_lib/queries'
 import { ResponderInvitacion } from './_components/responder-invitacion'
+import { ResponderConvocatoria } from './_components/responder-convocatoria'
 import { ContactoBotones } from '../../_components/contacto-botones'
 
 const CONV_LABEL: Record<string, string> = { titular: 'Titular', suplente: 'Suplente', convocado: 'Convocado' }
@@ -93,6 +94,19 @@ export default async function PortalEventoPage({ params }: PageProps) {
 
       {ev.descripcion && <p className="text-sm text-muted-foreground border rounded-md p-3 whitespace-pre-line">{ev.descripcion}</p>}
 
+      {/* Convocatoria (partido) — confirmar disponibilidad al cuerpo técnico */}
+      {ev.mi_convocatoria && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-muted-foreground px-1">Tu disponibilidad (podés cambiarla cuando quieras)</p>
+          <ResponderConvocatoria
+            eventoId={ev.id}
+            estadoConvocatoria={ev.mi_convocatoria}
+            respuestaInicial={ev.mi_respuesta}
+            motivoInicial={ev.mi_motivo_respuesta}
+          />
+        </div>
+      )}
+
       {/* Invitación — se puede cambiar la respuesta en cualquier momento */}
       {ev.mi_invitacion_id && (
         <div className="space-y-2">
@@ -113,6 +127,7 @@ export default async function PortalEventoPage({ params }: PageProps) {
                 <div key={i} className="flex items-center gap-3 p-2.5">
                   <span className="text-sm flex-1 truncate">{r.apellido}, {r.nombre}</span>
                   <ContactoBotones whatsapp={r.whatsapp} telefono={r.telefono} email={r.email}
+                    personaId={r.persona_id} nombre={`${r.nombre} ${r.apellido}`}
                     mensajeWhatsapp={`Hola ${r.nombre}, te consulto por el evento "${ev.titulo ?? 'del club'}".`} />
                 </div>
               ))}

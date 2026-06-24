@@ -150,6 +150,8 @@ export function MisEquiposView({ tenantId, equipos }: { tenantId: string; equipo
                           whatsapp={r.whatsapp}
                           telefono={r.telefono}
                           email={r.email}
+                          personaId={r.persona_id}
+                          nombre={`${r.nombre} ${r.apellido}`}
                           mensajeWhatsapp={`Hola ${r.nombre}, te escribo desde el portal del club.`}
                         />
                       </div>

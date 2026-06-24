@@ -7,8 +7,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { guardarConvocatoria } from '../../_actions'
-import { resumenConvocatoria, type EstadoConvocatoria } from '../../_lib/calculos'
-import type { JugadorConvocatoria } from '../../_lib/queries'
+import { resumenConvocatoria, resumenRespuestas, type EstadoConvocatoria } from '../../_lib/calculos'
+import type { JugadorConvocatoria, RespuestaJugador } from '../../_lib/queries'
 
 const OPCIONES: { value: EstadoConvocatoria; label: string }[] = [
   { value: null, label: 'No' },
@@ -16,6 +16,13 @@ const OPCIONES: { value: EstadoConvocatoria; label: string }[] = [
   { value: 'suplente', label: 'Supl.' },
   { value: 'titular', label: 'Titular' },
 ]
+
+const RESPUESTA_META: Record<RespuestaJugador, { label: string; cls: string }> = {
+  aceptado: { label: '✓ Confirmó', cls: 'text-green-700 bg-green-100' },
+  rechazado: { label: '✗ No va', cls: 'text-red-700 bg-red-100' },
+  tentativa: { label: '? Duda', cls: 'text-amber-700 bg-amber-100' },
+  pendiente: { label: 'Sin responder', cls: 'text-muted-foreground bg-muted' },
+}
 
 export function ConvocatoriaBuilder({ eventoId, jugadores }: { eventoId: string; jugadores: JugadorConvocatoria[] }) {
   const router = useRouter()
@@ -25,6 +32,9 @@ export function ConvocatoriaBuilder({ eventoId, jugadores }: { eventoId: string;
   )
 
   const resumen = resumenConvocatoria(jugadores.map((j) => ({ estado: estados[j.persona_id] ?? null })))
+  const respuestas = resumenRespuestas(
+    jugadores.map((j) => ({ estado: estados[j.persona_id] ?? null, respuesta: j.respuesta })),
+  )
 
   function set(personaId: string, estado: EstadoConvocatoria) {
     setEstados((prev) => ({ ...prev, [personaId]: estado }))
@@ -57,12 +67,21 @@ export function ConvocatoriaBuilder({ eventoId, jugadores }: { eventoId: string;
 
   return (
     <div className="space-y-4">
-      {/* Resumen */}
+      {/* Resumen citación */}
       <div className="flex flex-wrap items-center gap-3 text-sm">
         <span className="font-medium">Citados: {resumen.total}</span>
         <span className="text-muted-foreground">Titulares {resumen.titulares}</span>
         <span className="text-muted-foreground">Suplentes {resumen.suplentes}</span>
         <span className="text-muted-foreground">Convocados {resumen.convocados}</span>
+      </div>
+
+      {/* Resumen de respuestas de los jugadores */}
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <span className="font-medium text-muted-foreground">Respuestas:</span>
+        <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ {respuestas.aceptados} confirmaron</span>
+        <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700">✗ {respuestas.rechazados} no van</span>
+        <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">? {respuestas.tentativa} en duda</span>
+        <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{respuestas.pendientes} sin responder</span>
       </div>
 
       {/* Plantel */}
@@ -76,7 +95,15 @@ export function ConvocatoriaBuilder({ eventoId, jugadores }: { eventoId: string;
                   {j.dorsal != null && <span className="text-muted-foreground mr-1">#{j.dorsal}</span>}
                   {j.apellido}, {j.nombre}
                 </p>
-                {j.posicion && <p className="text-xs text-muted-foreground">{j.posicion}</p>}
+                <div className="flex items-center gap-2">
+                  {j.posicion && <p className="text-xs text-muted-foreground">{j.posicion}</p>}
+                  {estado != null && (
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${RESPUESTA_META[j.respuesta].cls}`}
+                      title={j.motivo_respuesta ?? undefined}>
+                      {RESPUESTA_META[j.respuesta].label}
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="flex gap-1 shrink-0">
                 {OPCIONES.map((o) => (
