@@ -1,0 +1,107 @@
+// F3 portal — Mi equipo + Mis partidos. Reutiliza el modelo de personas_equipos
+// + eventos (partidos) + evento_convocados. Filtrado por la persona propia.
+import { createClient } from '@/lib/supabase/server'
+import { TENANT_ID } from '@/lib/tenant'
+
+export interface MiEquipo {
+  equipo_id: string
+  nombre: string
+  disciplina_slug: string | null
+  categoria: string | null
+  rol: string | null
+  dorsal: number | null
+  posicion: string | null
+}
+
+export interface CompaneroPlantel {
+  nombre: string
+  apellido: string
+  dorsal: number | null
+  rol: string | null
+}
+
+export interface MiPartido {
+  id: string
+  titulo: string | null
+  fecha_inicio: string | null
+  hora_inicio: string | null
+  equipo_nombre: string | null
+  mi_convocatoria: 'titular' | 'suplente' | 'convocado' | null
+}
+
+function ymd(d: Date): string {
+  return d.toISOString().slice(0, 10)
+}
+
+export async function fetchMisEquipos(personaId: string): Promise<MiEquipo[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('personas_equipos')
+    .select('rol_equipo_slug, dorsal, posicion, equipo:equipos!equipo_id(id, nombre, disciplina_slug, categoria:categorias_equipo!categoria_id(nombre_display))')
+    .eq('tenant_id', TENANT_ID)
+    .eq('persona_id', personaId)
+    .eq('activo', true)
+  if (error) throw error
+  return (data ?? []).map((pe) => {
+    const eq = pe.equipo as unknown as { id: string; nombre: string; disciplina_slug: string | null; categoria: { nombre_display: string } | null } | null
+    return {
+      equipo_id: eq?.id ?? '',
+      nombre: eq?.nombre ?? '',
+      disciplina_slug: eq?.disciplina_slug ?? null,
+      categoria: eq?.categoria?.nombre_display ?? null,
+      rol: pe.rol_equipo_slug,
+      dorsal: pe.dorsal,
+      posicion: pe.posicion,
+    }
+  }).filter((e) => e.equipo_id)
+}
+
+export async function fetchPlantel(equipoId: string): Promise<CompaneroPlantel[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('personas_equipos')
+    .select('rol_equipo_slug, dorsal, persona:personas!persona_id(nombre, apellido)')
+    .eq('tenant_id', TENANT_ID)
+    .eq('equipo_id', equipoId)
+    .eq('activo', true)
+  return (data ?? [])
+    .map((pe) => {
+      const p = pe.persona as unknown as { nombre: string; apellido: string } | null
+      return { nombre: p?.nombre ?? '', apellido: p?.apellido ?? '', dorsal: pe.dorsal, rol: pe.rol_equipo_slug }
+    })
+    .sort((a, b) => a.apellido.localeCompare(b.apellido))
+}
+
+export async function fetchMisPartidos(personaId: string, equipoIds: string[]): Promise<MiPartido[]> {
+  if (equipoIds.length === 0) return []
+  const supabase = await createClient()
+  const hoy = ymd(new Date())
+
+  const [partidosRes, convocatoriasRes] = await Promise.all([
+    supabase
+      .from('eventos')
+      .select('id, titulo, fecha_inicio, hora_inicio, equipo:equipos!equipo_id(nombre)')
+      .eq('tenant_id', TENANT_ID)
+      .in('tipo_evento_slug', ['partido', 'amistoso'])
+      .in('equipo_id', equipoIds)
+      .is('deleted_at', null)
+      .gte('fecha_inicio', hoy)
+      .order('fecha_inicio', { ascending: true })
+      .limit(20),
+    supabase.from('evento_convocados').select('evento_id, estado').eq('persona_id', personaId),
+  ])
+
+  const miEstado = new Map<string, 'titular' | 'suplente' | 'convocado'>()
+  for (const c of (convocatoriasRes.data ?? []) as { evento_id: string; estado: 'titular' | 'suplente' | 'convocado' }[]) {
+    miEstado.set(c.evento_id, c.estado)
+  }
+
+  return (partidosRes.data ?? []).map((e) => ({
+    id: e.id,
+    titulo: e.titulo,
+    fecha_inicio: e.fecha_inicio,
+    hora_inicio: e.hora_inicio,
+    equipo_nombre: (e.equipo as unknown as { nombre: string } | null)?.nombre ?? null,
+    mi_convocatoria: miEstado.get(e.id) ?? null,
+  }))
+}
