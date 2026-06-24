@@ -72,6 +72,37 @@ export async function fetchPlantel(equipoId: string): Promise<CompaneroPlantel[]
     .sort((a, b) => a.apellido.localeCompare(b.apellido))
 }
 
+export interface ReferenteEquipo {
+  nombre: string
+  apellido: string
+  rol: string
+  telefono: string | null
+  whatsapp: string | null
+}
+
+// Referentes contactables del equipo (cuerpo técnico + capitanes): todos menos
+// los jugadores. Con su teléfono/WhatsApp para que el socio pueda contactarlos.
+export async function fetchReferentesEquipo(equipoId: string): Promise<ReferenteEquipo[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('personas_equipos')
+    .select('rol_equipo_slug, persona:personas!persona_id(nombre, apellido, telefono_principal, whatsapp)')
+    .eq('tenant_id', TENANT_ID)
+    .eq('equipo_id', equipoId)
+    .eq('activo', true)
+    .neq('rol_equipo_slug', 'jugador')
+  return (data ?? []).map((pe) => {
+    const p = pe.persona as unknown as { nombre: string; apellido: string; telefono_principal: string | null; whatsapp: string | null } | null
+    return {
+      nombre: p?.nombre ?? '',
+      apellido: p?.apellido ?? '',
+      rol: pe.rol_equipo_slug,
+      telefono: p?.telefono_principal ?? null,
+      whatsapp: p?.whatsapp ?? null,
+    }
+  })
+}
+
 export async function fetchMisPartidos(personaId: string, equipoIds: string[]): Promise<MiPartido[]> {
   if (equipoIds.length === 0) return []
   const supabase = await createClient()

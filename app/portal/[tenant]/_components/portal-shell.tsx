@@ -36,7 +36,9 @@ export function PortalShell({ tenantId, clubNombre, saludo, unreadCount, childre
   }
 
   return (
-    <div className="min-h-dvh flex flex-col bg-muted/20">
+    // Los colores del tenant llegan como --primary-500 (branding, layout raíz);
+    // acá los enganchamos al token --primary que usan los componentes del portal.
+    <div className="min-h-dvh flex flex-col bg-muted/20" style={{ '--primary': 'var(--primary-500)' } as React.CSSProperties}>
       {/* Top bar */}
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto w-full max-w-lg flex items-center justify-between gap-3 px-4 h-14">

@@ -1,8 +1,8 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Users, Clock, ShieldHalf } from 'lucide-react'
+import { Users, Clock, ShieldHalf, Phone, MessageCircle, Headset } from 'lucide-react'
 import { getCurrentPersonaId } from '@/lib/permissions/capabilities'
-import { fetchMisEquipos, fetchPlantel, fetchMisPartidos } from './_lib/queries'
+import { fetchMisEquipos, fetchPlantel, fetchMisPartidos, fetchReferentesEquipo } from './_lib/queries'
 
 const CONV_LABEL: Record<string, string> = { titular: 'Titular', suplente: 'Suplente', convocado: 'Convocado' }
 
@@ -24,10 +24,17 @@ export default async function PortalEquipoPage() {
     )
   }
 
-  const [planteles, partidos] = await Promise.all([
+  const [planteles, referentes, partidos] = await Promise.all([
     Promise.all(equipos.map((e) => fetchPlantel(e.equipo_id))),
+    Promise.all(equipos.map((e) => fetchReferentesEquipo(e.equipo_id))),
     fetchMisPartidos(personaId!, equipos.map((e) => e.equipo_id)),
   ])
+
+  function soloDigitos(s: string | null): string | null {
+    if (!s) return null
+    const d = s.replace(/\D/g, '')
+    return d.length >= 8 ? d : null
+  }
 
   return (
     <div className="space-y-5">
@@ -69,6 +76,45 @@ export default async function PortalEquipoPage() {
               ))}
             </CardContent>
           </Card>
+
+          {/* Contacto del equipo (cuerpo técnico + capitanes) */}
+          {referentes[idx].length > 0 && (
+            <>
+              <p className="text-xs font-medium text-muted-foreground px-1 flex items-center gap-1">
+                <Headset className="h-3.5 w-3.5" /> Contacto del equipo
+              </p>
+              <Card>
+                <CardContent className="p-0 divide-y">
+                  {referentes[idx].map((r, i) => {
+                    const wa = soloDigitos(r.whatsapp ?? r.telefono)
+                    const tel = soloDigitos(r.telefono ?? r.whatsapp)
+                    return (
+                      <div key={i} className="flex items-center gap-3 p-2.5">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{r.apellido}, {r.nombre}</p>
+                          <Badge variant="outline" className="capitalize text-[10px] mt-0.5">{r.rol.replace(/_/g, ' ')}</Badge>
+                        </div>
+                        <div className="flex gap-1.5 shrink-0">
+                          {wa && (
+                            <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"
+                              className="h-8 w-8 rounded-md border flex items-center justify-center text-primary hover:bg-accent">
+                              <MessageCircle className="h-4 w-4" />
+                            </a>
+                          )}
+                          {tel && (
+                            <a href={`tel:${tel}`} aria-label="Llamar"
+                              className="h-8 w-8 rounded-md border flex items-center justify-center text-muted-foreground hover:bg-accent">
+                              <Phone className="h-4 w-4" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
       ))}
 
