@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { getCurrentPersonaId } from '@/lib/permissions/capabilities'
 import { fetchMiCuentaResumen } from './_lib/queries'
 import { PagarCuotaButton } from './_components/pagar-cuota-button'
+import { DescargarResumen } from './_components/descargar-resumen'
 
 function formatMoneda(amount: number, moneda = 'ARS'): string {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: moneda }).format(amount)
@@ -26,7 +27,10 @@ export default async function PortalCuentaPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-bold">Mi cuenta</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-lg font-bold">Mi cuenta</h1>
+        <DescargarResumen cuotas={resumen.cuotas} movimientos={resumen.movimientos} />
+      </div>
 
       {/* Saldo */}
       <Card>
