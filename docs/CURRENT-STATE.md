@@ -1,7 +1,7 @@
 # CURRENT-STATE — Estado vivo del proyecto SaaS Empresarial
 
-**Última actualización**: 2026-06-23
-**Sesión que la generó**: Reconciliación Zoho ↔ doc — reapertura F1.4 padre + confirmación de cierres (Code). Cierre previo: F1.5 + F1.6 + F1.8 (01-jun)
+**Última actualización**: 2026-06-24
+**Sesión que la generó**: Portal smoke #3/#4 (iterativo con Yair) + confirmación de convocatoria (DT↔jugador) + mensajería interna (Code, cubre Opus). Cierre previo: F1.5 + F1.6 + F1.8 (01-jun)
 **Fuente de verdad**: este archivo. Drive es espejo de referencia (lo sincroniza Opus).
 
 > Este archivo se sobreescribe en cada cierre de sprint. Para histórico ver `docs/handoffs/` o Drive `_Cierre Ejecutivo/HANDOFF-YYYY-MM-DD`.
@@ -13,7 +13,7 @@
 | Indicador | Valor |
 |---|---|
 | Tag git actual | `v0.51.0-consolidador-padrones` (batch F6 zero-dep). Previo: `v0.50.0-federaciones`, `v0.49.0-planificador-partido`, `v0.48.0-rendiciones`, `v0.47.0-bi-ejecutivo`, serie portal v0.46.x, cierre-fino-F1 v0.45.x |
-| Portal buildout + bug fix (24-jun) | Tras el smoke de Yair (portal flaco + bug). **Bug fix:** aceptar invitaciones fallaba (CHECK femenino vs código masculino) → alineado, ahora funciona. **Secciones nuevas del portal:** Mi equipo+partidos, Reservar espacio, Detalle de evento (clickeable, aceptar inline), Descargar resumen de pagos (CSV), Mensajes (→notificaciones), El club (sedes+Maps). SE1-T48 → 75%. Pendiente: edición ficha completa, torneos/posiciones. |
+| Portal smoke #3/#4 + convocatoria + mensajería (24-jun) | Iteración con Yair sobre el portal del socio. **Perfil propio del socio** (`MiFicha`) con regla candado: identidad/contacto ya cargado → "Solicitar cambio" (tabla `solicitudes`); vacío + resto → edición directa self-scoped (sin permisos de admin). **Branding:** header link a home + logo del tenant + color (`--primary` hex literal). **Mi cuenta:** membresía (padrón/tipo socio/Nº socio) + contactar administración. **Mi equipo:** filtro por disciplina, "Próximo evento", calendario con partidos+entrenamientos, staff contactable; **dashboard:** calendario global. **Agenda:** detalle máximo (cómo llegar, convocados, responsables). **El club:** detalle de sede + reservar desde el espacio. **Bug fix reservas:** `eventos.fecha`→`fecha_inicio`. **Confirmación de convocatoria** (DT↔jugador): migración `evento_convocados` (respuesta/respuesta_at/motivo), lógica pura + 12 unit tests, jugador confirma/rechaza/duda en el portal, DT ve respuestas + `guardarConvocatoria` con DIFF que preserva respuestas, notificaciones ambos lados. **Mensajería interna** (`mensaje_directo` vía notificaciones) + WhatsApp. Commits `017c6cc5`→`cc07f9c`, todo en prod. Fix bonus: `tenants.plan`→`plan_slug` (spam de logs). |
 | Batch F6 zero-dependency (24-jun) | **5 features DONE técnico** sin tocar el CUIT: BI Ejecutivo (`v0.47.0`), Rendición de gastos (`v0.48.0`), Planificador de Partido (`v0.49.0`), Federaciones (`v0.50.0`), Consolidador de Padrones (`v0.51.0`). + tests (suite 212/212) + pre-cableado F5 (4 conectores) + hardening. **Todo esperando smoke/DONE-visual de Yair.** |
 | F6.7 Consolidador de Padrones (24-jun) | **DONE técnico (70%).** `/admin/padrones/consolidado` — vista cenital read-only de todo el registro (padrones + entidades + proveedores + solapamiento de personas). Acciones de merge = pendiente. Tag `v0.51.0`. SE1-T84 → 70%. |
 | F6.9 Federaciones (24-jun) | **DONE técnico (70%).** `/admin/federaciones` — directorio read-only de federaciones + sus equipos afiliados (vía `equipos.entidad_id`), disciplinas/torneos. Cero schema nuevo. Vínculos explícitos torneos/eventos = pendiente. Tag `v0.50.0`. SE1-T86 → 70%. |
