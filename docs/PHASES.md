@@ -18,11 +18,11 @@ Este documento define la nomenclatura **única y oficial** de fases del roadmap.
 | **F3** | Portal Cliente (front del socio mobile) | Layout PC, login socio, dashboard, perfil + dependientes, inscripción a eventos, notificaciones al socio, pago de cuotas |
 | **F4** | Validación Hindu (demo real) | Operación real de Hindu durante 30–60 días en producción; curva de bugs reales; aprobación de DONE visual de todos los módulos F0–F2 |
 | **F5** | Switch a producción (conectores reales) | Salida de mocks: Resend, MercadoPago, AFIP, WhatsApp, Cloudflare R2 (core) + Google Calendar, Microsoft Outlook, iCloud/CalDAV (sync) + Login con Google/Microsoft/Apple (OAuth social) |
-| **F6** | Premium ERP (ciclo completo) | Documentos / Drive del club, BI ejecutivo, Rendición de gastos, Stock mejoras, Compras mejoras, Proveedores mejoras |
+| **F6** | Premium ERP (ciclo completo) | Documentos / Drive del club, BI ejecutivo, Rendición de gastos, Stock mejoras, Compras mejoras, Proveedores mejoras, Consolidador de Padrones (F6.7), Planificador de Partido (F6.8), Federaciones (F6.9) |
 | **F7** | Premium Socio (engagement y revenue) | Salones, Tienda propia, Asambleas / Votaciones, Convenios, Encuestas / NPS, Clases con cupo + Waitlist, Loyalty / Referidos, Patrocinadores, App móvil nativa |
 | **F8** | Verticales nuevas (otros rubros) | Arquitectura (F8.1), Retail (F8.2), Country (F8.3), Abogacía (F8.4), Publicidad (F8.5) + Tiendanube / Shopify |
 | **F9** | IA y Plataforma SaaS | IA embebida (F9.1), Plataforma SaaS — marketplace, white-label, API REST pública, Webhooks, Agent Connector (F9.2) |
-| **F10** | Backlog futuro / sin priorizar | Consolidador de Padrones, Federaciones, Planificador de Partido, Stripe, Google Document AI, Brevo, Telegram |
+| **F10** | Backlog futuro / sin priorizar | Stripe, Google Document AI, Brevo, Telegram (conectores alternativos/opcionales). _Nota: Consolidador de Padrones, Planificador de Partido y Federaciones se movieron a F6 el 23-jun-2026 por decisión de Yair._ |
 
 ---
 
