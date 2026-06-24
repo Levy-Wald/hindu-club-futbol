@@ -12,7 +12,9 @@
 
 | Indicador | Valor |
 |---|---|
-| Tag git actual | `v0.46.5-portal-editar-contacto` + loop paralelo (sin tag: dedup menú, hardening search_path, pre-cableado F5). Previo: serie portal v0.46.x, cierre-fino-F1 v0.45.x |
+| Tag git actual | `v0.51.0-consolidador-padrones` (batch F6 zero-dep). Previo: `v0.50.0-federaciones`, `v0.49.0-planificador-partido`, `v0.48.0-rendiciones`, `v0.47.0-bi-ejecutivo`, serie portal v0.46.x, cierre-fino-F1 v0.45.x |
+| Batch F6 zero-dependency (24-jun) | **5 features DONE técnico** sin tocar el CUIT: BI Ejecutivo (`v0.47.0`), Rendición de gastos (`v0.48.0`), Planificador de Partido (`v0.49.0`), Federaciones (`v0.50.0`), Consolidador de Padrones (`v0.51.0`). + tests (suite 212/212) + pre-cableado F5 (4 conectores) + hardening. **Todo esperando smoke/DONE-visual de Yair.** |
+| F6.7 Consolidador de Padrones (24-jun) | **DONE técnico (70%).** `/admin/padrones/consolidado` — vista cenital read-only de todo el registro (padrones + entidades + proveedores + solapamiento de personas). Acciones de merge = pendiente. Tag `v0.51.0`. SE1-T84 → 70%. |
 | F6.9 Federaciones (24-jun) | **DONE técnico (70%).** `/admin/federaciones` — directorio read-only de federaciones + sus equipos afiliados (vía `equipos.entidad_id`), disciplinas/torneos. Cero schema nuevo. Vínculos explícitos torneos/eventos = pendiente. Tag `v0.50.0`. SE1-T86 → 70%. |
 | F6.8 Planificador de Partido (24-jun) | **DONE técnico (80%).** `/admin/convocatorias` — convocatoria de partidos desde el plantel (titular/suplente/convocado), resumen en vivo, 3 unit tests. Vínculo profundo con táctica/resultado = pendiente. Tag `v0.49.0`. SE1-T85 → 80%. |
 | F6.6 Rendición de gastos (24-jun) | **DONE técnico (80%).** `/admin/finanzas/rendiciones` — ciclo borrador→presentada→aprobada/rechazada→liquidada, imputable a centro de costo, máquina de estados con 9 unit tests. Anticipos + liquidación contable real = pendiente. Tag `v0.48.0`. SE1-T65 → 80%. |
