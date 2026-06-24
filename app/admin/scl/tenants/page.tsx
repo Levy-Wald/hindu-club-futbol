@@ -10,7 +10,7 @@ export default async function TenantsPage() {
 
   const { data: tenants } = await supabase
     .from('tenants')
-    .select('id, nombre, slug, plan, activo, created_at')
+    .select('id, nombre, slug, plan_slug, activo, created_at')
     .order('created_at', { ascending: true })
 
   return (
@@ -32,7 +32,7 @@ export default async function TenantsPage() {
                 <p className="font-medium">{t.nombre ?? t.slug ?? t.id}</p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span className="font-mono">{t.id}</span>
-                  {t.plan && <Badge variant="outline">{t.plan}</Badge>}
+                  {t.plan_slug && <Badge variant="outline">{t.plan_slug}</Badge>}
                   <Badge variant={t.activo !== false ? 'default' : 'secondary'}>
                     {t.activo !== false ? 'activo' : 'inactivo'}
                   </Badge>

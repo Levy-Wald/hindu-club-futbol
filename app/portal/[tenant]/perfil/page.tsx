@@ -3,16 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { TENANT_ID } from '@/lib/tenant'
 import { fetchMiPersonaCompleta } from '@/app/admin/[tenant]/(troncal)/mi-perfil/_lib/queries'
 import { fetchMiEquipo } from '@/app/admin/[tenant]/(troncal)/mi-equipo/_lib/queries'
-import {
-  fetchCatalogoAtributos,
-  fetchCatalogoVinculos,
-  fetchPadrones,
-  fetchEstadosPadron,
-  fetchTiposSocio,
-  fetchCategoriasEquipo,
-} from '@/app/admin/[tenant]/(troncal)/personas/_lib/queries'
 import { TarjetaJugadorMiPerfil } from '@/app/admin/[tenant]/(troncal)/mi-perfil/_components/tarjeta-mi-perfil'
-import { PersonaEditor } from '@/app/admin/[tenant]/(troncal)/personas/[id]/_components/persona-editor'
+import { MiFicha } from './_components/mi-ficha'
 
 export default async function PortalPerfilPage() {
   const persona = await fetchMiPersonaCompleta()
@@ -28,13 +20,7 @@ export default async function PortalPerfilPage() {
     )
   }
 
-  const [catalogoAtributos, catalogoVinculos, padrones, estadosPadron, tiposSocio, categoriasEquipo, miEquipo, branding] = await Promise.all([
-    fetchCatalogoAtributos(),
-    fetchCatalogoVinculos(),
-    fetchPadrones(),
-    fetchEstadosPadron(),
-    fetchTiposSocio(),
-    fetchCategoriasEquipo(),
+  const [miEquipo, branding] = await Promise.all([
     fetchMiEquipo(),
     (async () => {
       const supabase = await createClient()
@@ -49,9 +35,10 @@ export default async function PortalPerfilPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-lg font-bold">Mi perfil</h1>
-        {miEquipo ? (
+      <h1 className="text-lg font-bold">Mi perfil</h1>
+
+      {miEquipo ? (
+        <div className="flex justify-center">
           <TarjetaJugadorMiPerfil
             persona={persona}
             asignaciones={miEquipo.asignaciones as never[]}
@@ -62,19 +49,15 @@ export default async function PortalPerfilPage() {
               color_secundario: branding.color_secundario,
             } : undefined}
           />
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
-      <PersonaEditor
-        persona={persona}
-        catalogoAtributos={catalogoAtributos}
-        catalogoVinculos={catalogoVinculos}
-        padronesDisponibles={padrones}
-        estadosPadron={estadosPadron}
-        tiposSocio={tiposSocio}
-        categoriasEquipo={categoriasEquipo}
-        modo="mi-perfil"
-      />
+      <p className="text-xs text-muted-foreground px-1">
+        Completá los campos vacíos y guardá. Los datos de identidad ya cargados
+        (nombre, DNI, etc.) se cambian con <b>“Solicitar cambio”</b>.
+      </p>
+
+      <MiFicha persona={persona as Record<string, unknown>} />
     </div>
   )
 }

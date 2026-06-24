@@ -31,9 +31,18 @@ export default async function PortalLayout({ children, params }: LayoutProps) {
 
   const saludo = persona ? `Hola, ${persona.nombre}` : 'Hola'
   const clubNombre = (config?.nombre_display as string | undefined) ?? 'Mi club'
+  const logoUrl = (config?.logo_url as string | null | undefined) ?? null
+  const colorPrimario = (config?.color_primario as string | null | undefined) ?? null
 
   return (
-    <PortalShell tenantId={tenantId} clubNombre={clubNombre} saludo={saludo} unreadCount={conteo.cant_total ?? 0}>
+    <PortalShell
+      tenantId={tenantId}
+      clubNombre={clubNombre}
+      logoUrl={logoUrl}
+      colorPrimario={colorPrimario}
+      saludo={saludo}
+      unreadCount={conteo.cant_total ?? 0}
+    >
       {children}
     </PortalShell>
   )
