@@ -36,6 +36,7 @@ const CAMPOS_LIBRES_TEXTO = [
   'email_secundario',
   'telefono_secundario',
   'whatsapp',
+  'whatsapp_emergencia',
   'direccion_calle',
   'direccion_numero',
   'direccion_piso',
@@ -50,6 +51,10 @@ const CAMPOS_LIBRES_TEXTO = [
   'profesion_ocupacion',
   'empresa_actual',
   'cargo_actual',
+  'nivel_educativo_max',
+  'titulo_carrera',
+  'institucion_titulo',
+  'idioma_nativo',
 ] as const
 
 // Campos numéricos de edición libre.

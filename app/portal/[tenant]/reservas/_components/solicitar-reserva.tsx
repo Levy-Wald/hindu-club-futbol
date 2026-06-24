@@ -16,10 +16,12 @@ interface CanchaOption {
   sede_nombre: string | null
 }
 
-export function SolicitarReserva({ canchas }: { canchas: CanchaOption[] }) {
+export function SolicitarReserva({ canchas, canchaInicial }: { canchas: CanchaOption[]; canchaInicial?: string }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [canchaId, setCanchaId] = useState('')
+  const [canchaId, setCanchaId] = useState(
+    canchaInicial && canchas.some((c) => c.id === canchaInicial) ? canchaInicial : '',
+  )
   const [fecha, setFecha] = useState('')
   const [inicio, setInicio] = useState('')
   const [fin, setFin] = useState('')

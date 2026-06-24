@@ -1,9 +1,13 @@
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Wallet, Calendar, User, IdCard, ArrowRight, AlertCircle, ShieldHalf, LandPlot, Bell, Building2 } from 'lucide-react'
+import { Wallet, Calendar, User, IdCard, ArrowRight, AlertCircle, ShieldHalf, LandPlot, Bell, Building2, Swords, Dumbbell, ChevronRight } from 'lucide-react'
 import { getCurrentPersonaId } from '@/lib/permissions/capabilities'
 import { fetchSocioResumen } from './_lib/queries'
+import { fetchMisEquipos, fetchEventosEquipo } from './equipo/_lib/queries'
+
+const TIPO_ICON: Record<string, typeof Swords> = { partido: Swords, amistoso: Swords, entrenamiento: Dumbbell }
+const TIPO_LABEL: Record<string, string> = { partido: 'Partido', amistoso: 'Amistoso', entrenamiento: 'Entrenamiento' }
 
 function formatARS(amount: number, moneda = 'ARS'): string {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: moneda }).format(amount)
@@ -18,6 +22,13 @@ export default async function PortalDashboard({ params }: PageProps) {
   const personaId = await getCurrentPersonaId()
   const resumen = personaId ? await fetchSocioResumen(personaId) : null
   const base = `/portal/${tenant}`
+
+  // Calendario global: próximos eventos de todos mis equipos/disciplinas
+  const misEquipos = personaId ? await fetchMisEquipos(personaId) : []
+  const equiposById = new Map(misEquipos.map((e) => [e.equipo_id, e]))
+  const eventos = personaId && misEquipos.length > 0
+    ? (await fetchEventosEquipo(personaId, misEquipos.map((e) => e.equipo_id))).slice(0, 5)
+    : []
 
   return (
     <div className="space-y-4">
@@ -77,6 +88,43 @@ export default async function PortalDashboard({ params }: PageProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Calendario global: próximos eventos de todos mis equipos */}
+      {eventos.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <p className="text-sm font-medium text-muted-foreground">Próximos eventos</p>
+            <Link href={`${base}/agenda`} className="text-xs text-primary hover:underline">Ver agenda</Link>
+          </div>
+          {eventos.map((e) => {
+            const Icon = TIPO_ICON[e.tipo] ?? Calendar
+            const eq = equiposById.get(e.equipo_id)
+            const d = e.fecha_inicio ? new Date(e.fecha_inicio + 'T00:00:00') : null
+            return (
+              <Link key={e.id} href={`${base}/agenda/${e.id}`}>
+                <Card className="hover:bg-muted/40 transition-colors">
+                  <CardContent className="p-3 flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-md bg-muted flex flex-col items-center justify-center shrink-0 text-[10px] font-semibold leading-none">
+                      <span>{d ? d.getDate() : '--'}</span>
+                      <span className="uppercase">{d ? d.toLocaleDateString('es-AR', { month: 'short' }).replace('.', '') : ''}</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate flex items-center gap-1.5">
+                        <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        {TIPO_LABEL[e.tipo] ?? e.tipo}{e.titulo ? ` · ${e.titulo}` : ''}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {eq?.nombre ?? ''}{e.hora_inicio ? ` · ${e.hora_inicio.slice(0, 5)}` : ''}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </CardContent>
+                </Card>
+              </Link>
+            )
+          })}
+        </div>
+      )}
 
       {/* Accesos rápidos */}
       <div className="space-y-2">

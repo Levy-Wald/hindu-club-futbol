@@ -79,3 +79,65 @@ export async function fetchMiCuentaResumen(personaId: string): Promise<MiCuentaR
     })),
   }
 }
+
+// Membresía del socio: padrón(es) donde está, tipo de socio, estado y nº de socio.
+export interface MembresiaSocio {
+  padron: string | null
+  tipo_socio: string | null
+  estado: string | null
+  numero_socio: string | null
+  categoria: string | null
+  actividad: string | null
+}
+
+export async function fetchMiMembresia(personaId: string): Promise<MembresiaSocio[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('personas_padrones')
+    .select(`
+      numero_socio, categoria_club, actividad_club,
+      padron:padrones(nombre),
+      tipo:catalogo_tipos_socio(nombre),
+      estado:catalogo_estados_padron(nombre)
+    `)
+    .eq('tenant_id', TENANT_ID)
+    .eq('persona_id', personaId)
+    .eq('activo', true)
+
+  return (data ?? []).map((p) => {
+    const padron = p.padron as unknown as { nombre: string } | null
+    const tipo = p.tipo as unknown as { nombre: string } | null
+    const estado = p.estado as unknown as { nombre: string } | null
+    return {
+      padron: padron?.nombre ?? null,
+      tipo_socio: tipo?.nombre ?? null,
+      estado: estado?.nombre ?? null,
+      numero_socio: p.numero_socio ?? null,
+      categoria: p.categoria_club ?? null,
+      actividad: p.actividad_club ?? null,
+    }
+  })
+}
+
+// Datos de contacto del club (administración) desde el branding público.
+export interface ContactoClub {
+  telefono: string | null
+  whatsapp: string | null
+  email: string | null
+  direccion: string | null
+}
+
+export async function fetchContactoClub(): Promise<ContactoClub> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('tenant_config_publica')
+    .select('telefono, whatsapp, email_contacto, direccion')
+    .eq('tenant_id', TENANT_ID)
+    .maybeSingle()
+  return {
+    telefono: data?.telefono ?? null,
+    whatsapp: data?.whatsapp ?? null,
+    email: data?.email_contacto ?? null,
+    direccion: data?.direccion ?? null,
+  }
+}

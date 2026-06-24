@@ -1,14 +1,17 @@
+import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { MapPin, ExternalLink, Building2 } from 'lucide-react'
+import { MapPin, Building2, ChevronRight, LandPlot } from 'lucide-react'
+import { TENANT_ID } from '@/lib/tenant'
 import { fetchSedesClub } from './_lib/queries'
 
 export default async function PortalClubPage() {
   const sedes = await fetchSedesClub()
+  const base = `/portal/${TENANT_ID}`
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-bold">El club</h1>
+      <h1 className="text-lg font-bold">El club y sus sedes</h1>
 
       {sedes.length === 0 ? (
         <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">
@@ -17,36 +20,35 @@ export default async function PortalClubPage() {
         </CardContent></Card>
       ) : (
         sedes.map((s) => (
-          <Card key={s.id}>
-            <CardContent className="p-4 space-y-3">
-              <div>
-                <p className="font-bold">{s.nombre}</p>
-                {s.direccion && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-sm text-muted-foreground flex-1">{s.direccion}</span>
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.direccion)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline shrink-0"
-                    >
-                      Maps <ExternalLink className="h-3 w-3" />
-                    </a>
+          <Link key={s.id} href={`${base}/club/${s.id}`} className="block">
+            <Card className="hover:bg-muted/40 transition-colors">
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold">{s.nombre}</p>
+                    {s.direccion && (
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        <span className="text-xs text-muted-foreground truncate">{s.direccion}</span>
+                      </div>
+                    )}
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
+                </div>
+                {s.espacios.length > 0 && (
+                  <div className="flex items-center gap-1.5 pt-2 border-t text-xs text-muted-foreground">
+                    <LandPlot className="h-3.5 w-3.5" /> {s.espacios.length} espacio{s.espacios.length !== 1 ? 's' : ''}
+                    <span className="ml-auto flex flex-wrap gap-1 justify-end">
+                      {s.espacios.slice(0, 3).map((e, i) => (
+                        <Badge key={i} variant="secondary" className="capitalize text-[10px]">{e.nombre}</Badge>
+                      ))}
+                      {s.espacios.length > 3 && <Badge variant="outline" className="text-[10px]">+{s.espacios.length - 3}</Badge>}
+                    </span>
                   </div>
                 )}
-              </div>
-              {s.espacios.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1 border-t">
-                  {s.espacios.map((e, i) => (
-                    <Badge key={i} variant="secondary" className="capitalize">
-                      {e.nombre}{e.tipo ? ` · ${e.tipo}` : ''}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
         ))
       )}
     </div>

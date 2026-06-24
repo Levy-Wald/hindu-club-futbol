@@ -78,29 +78,80 @@ export interface ReferenteEquipo {
   rol: string
   telefono: string | null
   whatsapp: string | null
+  email: string | null
 }
 
-// Referentes contactables del equipo (cuerpo técnico + capitanes): todos menos
-// los jugadores. Con su teléfono/WhatsApp para que el socio pueda contactarlos.
+// Referentes contactables del equipo (cuerpo técnico + capitanes/subcapitanes/
+// delegados): todos menos los jugadores. Con teléfono/WhatsApp/email para que el
+// socio pueda contactarlos por mensaje, llamada o mail.
 export async function fetchReferentesEquipo(equipoId: string): Promise<ReferenteEquipo[]> {
   const supabase = await createClient()
   const { data } = await supabase
     .from('personas_equipos')
-    .select('rol_equipo_slug, persona:personas!persona_id(nombre, apellido, telefono_principal, whatsapp)')
+    .select('rol_equipo_slug, persona:personas!persona_id(nombre, apellido, telefono_principal, whatsapp, email_principal)')
     .eq('tenant_id', TENANT_ID)
     .eq('equipo_id', equipoId)
     .eq('activo', true)
     .neq('rol_equipo_slug', 'jugador')
   return (data ?? []).map((pe) => {
-    const p = pe.persona as unknown as { nombre: string; apellido: string; telefono_principal: string | null; whatsapp: string | null } | null
+    const p = pe.persona as unknown as { nombre: string; apellido: string; telefono_principal: string | null; whatsapp: string | null; email_principal: string | null } | null
     return {
       nombre: p?.nombre ?? '',
       apellido: p?.apellido ?? '',
       rol: pe.rol_equipo_slug,
       telefono: p?.telefono_principal ?? null,
       whatsapp: p?.whatsapp ?? null,
+      email: p?.email_principal ?? null,
     }
   })
+}
+
+export interface EventoEquipo {
+  id: string
+  titulo: string | null
+  tipo: string
+  fecha_inicio: string | null
+  hora_inicio: string | null
+  equipo_id: string
+  mi_convocatoria: 'titular' | 'suplente' | 'convocado' | null
+}
+
+// Calendario del equipo: partidos + amistosos + entrenamientos futuros (incluye
+// hoy), ordenados por fecha. Se usa para "próximo evento" y el calendario total.
+export async function fetchEventosEquipo(personaId: string, equipoIds: string[]): Promise<EventoEquipo[]> {
+  if (equipoIds.length === 0) return []
+  const supabase = await createClient()
+  const hoy = ymd(new Date())
+
+  const [eventosRes, convocatoriasRes] = await Promise.all([
+    supabase
+      .from('eventos')
+      .select('id, titulo, tipo_evento_slug, fecha_inicio, hora_inicio, equipo_id')
+      .eq('tenant_id', TENANT_ID)
+      .in('tipo_evento_slug', ['partido', 'amistoso', 'entrenamiento'])
+      .in('equipo_id', equipoIds)
+      .is('deleted_at', null)
+      .gte('fecha_inicio', hoy)
+      .order('fecha_inicio', { ascending: true })
+      .order('hora_inicio', { ascending: true })
+      .limit(60),
+    supabase.from('evento_convocados').select('evento_id, estado').eq('persona_id', personaId),
+  ])
+
+  const miEstado = new Map<string, 'titular' | 'suplente' | 'convocado'>()
+  for (const c of (convocatoriasRes.data ?? []) as { evento_id: string; estado: 'titular' | 'suplente' | 'convocado' }[]) {
+    miEstado.set(c.evento_id, c.estado)
+  }
+
+  return (eventosRes.data ?? []).map((e) => ({
+    id: e.id,
+    titulo: e.titulo,
+    tipo: e.tipo_evento_slug,
+    fecha_inicio: e.fecha_inicio,
+    hora_inicio: e.hora_inicio,
+    equipo_id: e.equipo_id as string,
+    mi_convocatoria: miEstado.get(e.id) ?? null,
+  }))
 }
 
 export async function fetchMisPartidos(personaId: string, equipoIds: string[]): Promise<MiPartido[]> {

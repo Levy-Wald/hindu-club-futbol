@@ -16,8 +16,9 @@ function ars(n: number): string {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(n)
 }
 
-export default async function PortalReservasPage() {
+export default async function PortalReservasPage({ searchParams }: { searchParams: Promise<{ cancha?: string }> }) {
   const personaId = await getCurrentPersonaId()
+  const { cancha: canchaInicial } = await searchParams
   const [canchas, misReservas] = await Promise.all([
     fetchCanchas(),
     personaId ? fetchMisReservas(personaId) : Promise.resolve([]),
@@ -30,7 +31,7 @@ export default async function PortalReservasPage() {
         <p className="text-sm text-muted-foreground">Elegí espacio, día y horario. El club confirma tu reserva.</p>
       </div>
 
-      <SolicitarReserva canchas={canchas} />
+      <SolicitarReserva canchas={canchas} canchaInicial={canchaInicial} />
 
       <div className="space-y-2">
         <p className="text-sm font-medium text-muted-foreground px-1">Mis reservas</p>

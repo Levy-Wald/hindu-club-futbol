@@ -1,9 +1,11 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { IdCard, Headset } from 'lucide-react'
 import { getCurrentPersonaId } from '@/lib/permissions/capabilities'
-import { fetchMiCuentaResumen } from './_lib/queries'
+import { fetchMiCuentaResumen, fetchMiMembresia, fetchContactoClub } from './_lib/queries'
 import { PagarCuotaButton } from './_components/pagar-cuota-button'
 import { DescargarResumen } from './_components/descargar-resumen'
+import { ContactoBotones } from '../_components/contacto-botones'
 
 function formatMoneda(amount: number, moneda = 'ARS'): string {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: moneda }).format(amount)
@@ -21,9 +23,11 @@ const PENDIENTES = new Set(['pendiente', 'emitida', 'vencida'])
 
 export default async function PortalCuentaPage() {
   const personaId = await getCurrentPersonaId()
-  const resumen = personaId
-    ? await fetchMiCuentaResumen(personaId)
-    : { saldo: 0, saldo_usd: 0, cuotas: [], movimientos: [] }
+  const [resumen, membresias, contacto] = await Promise.all([
+    personaId ? fetchMiCuentaResumen(personaId) : Promise.resolve({ saldo: 0, saldo_usd: 0, cuotas: [], movimientos: [] }),
+    personaId ? fetchMiMembresia(personaId) : Promise.resolve([]),
+    fetchContactoClub(),
+  ])
 
   return (
     <div className="space-y-4">
@@ -31,6 +35,37 @@ export default async function PortalCuentaPage() {
         <h1 className="text-lg font-bold">Mi cuenta</h1>
         <DescargarResumen cuotas={resumen.cuotas} movimientos={resumen.movimientos} />
       </div>
+
+      {/* Membresía: tipo de socio, padrón, nº de socio */}
+      <Card>
+        <CardContent className="p-4 space-y-3">
+          <p className="text-sm font-semibold flex items-center gap-2">
+            <IdCard className="h-4 w-4 text-primary" /> Mi membresía
+          </p>
+          {membresias.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No figurás en ningún padrón activo.</p>
+          ) : (
+            <div className="space-y-3">
+              {membresias.map((m, i) => (
+                <div key={i} className="rounded-md border bg-muted/30 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-medium text-sm">{m.padron ?? 'Padrón'}</p>
+                    {m.numero_socio && (
+                      <Badge variant="outline" className="tabular-nums">Socio Nº {m.numero_socio}</Badge>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {m.tipo_socio && <Badge variant="secondary">{m.tipo_socio}</Badge>}
+                    {m.estado && <Badge variant="default">{m.estado}</Badge>}
+                    {m.actividad && <Badge variant="outline">{m.actividad}</Badge>}
+                    {m.categoria && <Badge variant="outline">{m.categoria}</Badge>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Saldo */}
       <Card>
@@ -40,6 +75,25 @@ export default async function PortalCuentaPage() {
           {resumen.saldo_usd !== 0 && (
             <p className="text-xs text-muted-foreground tabular-nums">{formatMoneda(resumen.saldo_usd, 'USD')}</p>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Contactar administración */}
+      <Card>
+        <CardContent className="p-4 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold flex items-center gap-2">
+              <Headset className="h-4 w-4 text-primary" /> Administración
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">¿Dudas con tu cuenta o cuotas? Escribinos.</p>
+          </div>
+          <ContactoBotones
+            whatsapp={contacto.whatsapp}
+            telefono={contacto.telefono}
+            email={contacto.email}
+            mensajeWhatsapp="Hola, soy socio y tengo una consulta sobre mi cuenta."
+            size="md"
+          />
         </CardContent>
       </Card>
 

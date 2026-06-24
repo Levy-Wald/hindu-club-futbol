@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { User, Phone, MapPin, Activity, Briefcase, Lock, Check, X, Pencil } from 'lucide-react'
+import { User, Phone, MapPin, Activity, Briefcase, GraduationCap, Lock, Check, X, Pencil } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -29,6 +29,7 @@ const SECCIONES: { titulo: string; icon: typeof User; campos: Campo[] }[] = [
       { k: 'email_secundario', label: 'Email secundario', type: 'email' },
       { k: 'telefono_secundario', label: 'Teléfono secundario', type: 'tel' },
       { k: 'whatsapp', label: 'WhatsApp', type: 'tel' },
+      { k: 'whatsapp_emergencia', label: 'WhatsApp de emergencia', type: 'tel' },
     ],
   },
   {
@@ -57,6 +58,14 @@ const SECCIONES: { titulo: string; icon: typeof User; campos: Campo[] }[] = [
       { k: 'profesion_ocupacion', label: 'Profesión / Ocupación' },
       { k: 'empresa_actual', label: 'Empresa' },
       { k: 'cargo_actual', label: 'Cargo' },
+    ],
+  },
+  {
+    titulo: 'Educación', icon: GraduationCap, campos: [
+      { k: 'nivel_educativo_max', label: 'Nivel educativo' },
+      { k: 'titulo_carrera', label: 'Título / Carrera' },
+      { k: 'institucion_titulo', label: 'Institución' },
+      { k: 'idioma_nativo', label: 'Idioma nativo' },
     ],
   },
 ]
