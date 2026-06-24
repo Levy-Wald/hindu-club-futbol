@@ -1,6 +1,7 @@
+import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, Clock, Users } from 'lucide-react'
+import { Calendar, Clock, Users, ChevronRight } from 'lucide-react'
 import { getCurrentPersonaId } from '@/lib/permissions/capabilities'
 import { obtenerEventosPersonales, obtenerInvitacionesPendientes } from '@/modules/eventos/lib/queries'
 import { PanelInvitacionesPendientes } from '@/modules/eventos/ui/panel-invitaciones-pendientes'
@@ -59,7 +60,8 @@ export default async function PortalAgendaPage({ params }: PageProps) {
         ) : (
           <div className="space-y-2">
             {eventos.map((e) => (
-              <Card key={e.id}>
+              <Link key={e.id} href={`/portal/${tenant}/agenda/${e.id}`}>
+              <Card className="hover:bg-muted/30 transition-colors">
                 <CardContent className="p-3 flex items-start gap-3">
                   <div
                     className="mt-1 h-9 w-9 rounded-md flex flex-col items-center justify-center shrink-0 text-[10px] font-semibold leading-none"
@@ -95,8 +97,10 @@ export default async function PortalAgendaPage({ params }: PageProps) {
                       {String(e.tipo_evento_slug).replace(/_/g, ' ')}
                     </Badge>
                   )}
+                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 self-center" />
                 </CardContent>
               </Card>
+              </Link>
             ))}
           </div>
         )}
