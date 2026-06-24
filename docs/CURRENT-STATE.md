@@ -13,6 +13,7 @@
 | Indicador | Valor |
 |---|---|
 | Tag git actual | `v0.46.5-portal-editar-contacto` + loop paralelo (sin tag: dedup menú, hardening search_path, pre-cableado F5). Previo: serie portal v0.46.x, cierre-fino-F1 v0.45.x |
+| F6.9 Federaciones (24-jun) | **DONE técnico (70%).** `/admin/federaciones` — directorio read-only de federaciones + sus equipos afiliados (vía `equipos.entidad_id`), disciplinas/torneos. Cero schema nuevo. Vínculos explícitos torneos/eventos = pendiente. Tag `v0.50.0`. SE1-T86 → 70%. |
 | F6.8 Planificador de Partido (24-jun) | **DONE técnico (80%).** `/admin/convocatorias` — convocatoria de partidos desde el plantel (titular/suplente/convocado), resumen en vivo, 3 unit tests. Vínculo profundo con táctica/resultado = pendiente. Tag `v0.49.0`. SE1-T85 → 80%. |
 | F6.6 Rendición de gastos (24-jun) | **DONE técnico (80%).** `/admin/finanzas/rendiciones` — ciclo borrador→presentada→aprobada/rechazada→liquidada, imputable a centro de costo, máquina de estados con 9 unit tests. Anticipos + liquidación contable real = pendiente. Tag `v0.48.0`. SE1-T65 → 80%. |
 | Loop cero-dependencia (24-jun) | 3 puntos: **(1)** F6.5 **BI Ejecutivo** (`/admin/direccion`, v0.47.0) — KPIs read-only sobre vistas existentes (socios, cobranzas, ingresos, vencimientos, lesionados). **(2)** Tests/perf — E2E de BI + sub-páginas del portal; scan perf de módulos nuevos (sin problemas reales). **(3)** Polish — loading skeleton del portal (Android gama baja) + a11y. Tag `v0.47.0-bi-ejecutivo`. |
