@@ -50,3 +50,19 @@ Los archivos `.md` temporales (handoffs, borradores, fichas técnicas) **no debe
 - `feature/<sprint-id>-<descripcion-corta>` para sprints
 - `fix/<descripcion>` para hotfixes
 - Nunca pushear directo a `main`
+
+---
+
+## 6. Protocolo de cierre de sesión (OBLIGATORIO)
+
+Al cerrar **cualquier** sesión de trabajo, la IA ejecutora debe dejar todo documentado, ordenado y canonizado en las **tres superficies del tridente**, de modo que cualquier humano o IA sepa qué se hizo, cómo, y pueda seguir sin contexto previo. Cada superficie guarda **su** faceta (no se duplica — "un dato, un lugar"):
+
+1. **Drive (conocimiento estable)** → doc de **cierre de sesión** en `Z*_Cierres-de-Sesión` de la unidad, con **frontmatter YAML** canónico (`doc:`, `fecha:`, `entity:`, `rag_namespace:`, `naturaleza:`). Contiene: qué se hizo, decisiones tomadas, hallazgos, y pendientes. Es el registro narrativo estable.
+
+2. **Zoho (estado vivo)** → los **pendientes como tareas**, repartidas en el/los BPE que tocan, cada una con la coordenada **`[[clb-key: BPEnn.Snn.Fnn]]`** en la descripción y **asignadas a Yair** por defecto. El estado vivo NO va en Drive.
+
+3. **Repo (código + técnico)** → handoff técnico para la próxima sesión de desarrollo (en `docs/handoffs/` o `docs/cierres/`) y, si cambió el estado del producto, actualizar `docs/CURRENT-STATE.md` + el tag/estado en `CLAUDE.md`. Nunca duplicar en el repo lo que es estado vivo de Zoho o conocimiento estable de Drive.
+
+4. **Chat (continuidad)** → dejar **siempre**, como último mensaje, un **prompt de continuación** para la próxima sesión de Claude Code, con todo el contexto (qué se hizo, dónde quedó, qué sigue, IDs/coordenadas relevantes), para arrancar directo donde se dejó.
+
+Regla DONE (ADR-064): DONE técnico ≠ terminado. Solo el DONE visual de Yair marca `terminado`.
