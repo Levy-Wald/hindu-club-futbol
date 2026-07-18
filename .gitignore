@@ -40,7 +40,13 @@ yarn-error.log*
 
 # docs internos / prompts
 /SPRINT-*.md
+# AGENTS.md: el rol de "frenos + tridente" lo cumple CLAUDE.md (versionado). No se usa AGENTS.md.
 AGENTS.md
+
+# Claude Code harness (.claude/ SÍ se versiona: agents/commands/settings.json/metrics/.env.example)
+.claude/settings.local.json
+.claude/.env
+.claude/worktrees/
 
 # handoffs y borradores temporales
 *_handoff*

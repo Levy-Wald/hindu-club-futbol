@@ -8,7 +8,7 @@
 **Vercel:** serviciosclevel/hindu-club
 **Supabase project:** hkoizqbptwhnepzbmjql
 **Path local canónico:** /Users/yamirolw/Projects/hindu-v2
-**Última actualización:** 23-jun-2026
+**Última actualización:** 18-jul-2026
 
 > **Nota:** Este proyecto es el piloto del SaaS Empresarial (vertical CCBP — Clubes, Countries y Barrios Privados), bundle ClubCore, cliente Hindu Club Fútbol.
 > Repo migrado de `yamiro12/hindu-club-futbol` → `Levy-Wald/hindu-club-futbol` el 28-05-2026.
@@ -18,13 +18,17 @@
 
 ## Estado actual
 
+> **Fuente de verdad del estado vivo: `docs/CURRENT-STATE.md`** (tag, sprint, bloqueos). La cola
+> ejecutable de loops vive en `docs/ROADMAP-LOOPS.md`. Esta tabla es un resumen de referencia — si
+> discrepa con CURRENT-STATE, gana CURRENT-STATE (CONVENTIONS §1 y §6).
+
 | Campo | Valor |
 |---|---|
-| Tag actual | `v0.40.0-menu-mundo-club` (F1.8) |
-| Último sprint cerrado | F1.5 + F1.6 + F1.8 — navegación data-driven (RFC-006 v2 + ADR-066) + housekeeping auditoría |
-| Fase activa | **F1** — Troncal núcleo (ERP + CRM) |
-| Sprint activo | Ninguno — F1.5/F1.6/F1.8 cerrados y validados en prod. Próximo: **F1.7** — Actor/Roles (RFC-007) |
-| Roadmap | 11 fases F0–F10 (`docs/PHASES.md` + `docs/ROADMAP.md`). Ver `docs/CURRENT-STATE.md` para estado vivo. |
+| Tag actual | `v0.52.0-portal-convocatoria` (`git describe --tags --abbrev=0`) |
+| Último trabajo | F3 Portal — convocatoria (DT↔jugador) + mensajería interna + serie portal v0.46.x. Batch F6 zero-dep (BI/rendiciones/planificador/federaciones/padrones, v0.47–v0.51) DONE técnico esperando smoke |
+| Fase activa | **F3** — Portal Cliente (front del socio mobile). F0/F1/F2 cerrados |
+| Sprint activo | Ninguno — cierre de F3 gated por smoke de Yair. Ver `docs/ROADMAP-LOOPS.md` para el próximo loop |
+| Roadmap | 11 fases F0–F10 (`docs/PHASES.md` narrativa + `docs/ROADMAP.md` orden). Cola ejecutable: `docs/ROADMAP-LOOPS.md`. Estado vivo: `docs/CURRENT-STATE.md` |
 | Score arquitectónico | **8.5/10** (post Tier 1 hardening 26-may-2026) |
 | Cliente activo | Hindu Club Fútbol (2.739 personas cargadas, en validación post-F4) |
 | Vertical activa | **CCBP** (Clubes, Countries y Barrios Privados) |

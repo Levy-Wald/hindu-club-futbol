@@ -49,7 +49,10 @@ Los archivos `.md` temporales (handoffs, borradores, fichas técnicas) **no debe
 
 - `feature/<sprint-id>-<descripcion-corta>` para sprints
 - `fix/<descripcion>` para hotfixes
-- Nunca pushear directo a `main`
+- Nunca pushear directo a `main` — **override pre-F4:** mientras nadie use producción (pre-F4) se
+  commitea directo a `main` con `typecheck`+`build` verdes, sin ramas ni PRs (memoria
+  `flujo-commit-directo-main`; el harness opera así, ver `.claude/agents/orchestrator.md`). Este
+  punto vuelve a regir en F4.
 
 ---
 
