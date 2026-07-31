@@ -1,0 +1,74 @@
+name: buzon-inbox
+
+# Buzón por EVENTO del holding SCL: se dispara al ponerle el label `inbox`/`inbox:urgent`
+# a un issue. Costo idle ~cero (solo corre si hay algo). El robot trabaja dentro del sobre
+# de permisos de abajo y deja PR verde SIN mergear. Instalado por el orquestador SCL
+# (servicios-clevel-os) como parte del rollout de canal — 2026-07-31.
+#
+# ⚠️ INERTE sin el secreto ANTHROPIC_API_KEY (Settings → Secrets → Actions).
+# Setear SIN `--body -`:  printf %s "$K" | gh secret set ANTHROPIC_API_KEY --repo Levy-Wald/<repo>
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  buzon:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'inbox' || github.event.label.name == 'inbox:urgent'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: "--max-turns 30"
+          settings: |
+            {
+              "permissions": {
+                "defaultMode": "acceptEdits",
+                "allow": [
+                  "Read", "Grep", "Glob", "Edit", "Write",
+                  "Bash(git status *)", "Bash(git diff *)", "Bash(git log *)", "Bash(git branch *)",
+                  "Bash(git fetch *)", "Bash(git checkout *)", "Bash(git switch *)",
+                  "Bash(git add *)", "Bash(git commit *)",
+                  "Bash(git push origin *)", "Bash(git push -u origin *)",
+                  "Bash(gh pr create *)", "Bash(gh pr view *)", "Bash(gh pr diff *)",
+                  "Bash(gh issue view *)", "Bash(gh issue comment *)",
+                  "Bash(gh run list *)", "Bash(gh run view *)",
+                  "Bash(python3 *)", "Bash(bash -n *)"
+                ],
+                "deny": [
+                  "Bash(gh pr merge *)", "Bash(git merge *)",
+                  "Bash(git push * --force*)", "Bash(git push -f *)",
+                  "Bash(git reset --hard *)", "Bash(rm -rf *)",
+                  "Bash(gh issue close *)", "Bash(gh repo delete *)", "Bash(gh issue delete *)"
+                ]
+              }
+            }
+          prompt: |
+            Sos el BUZÓN autónomo del repo Levy-Wald/hindu-club-futbol (unidad de negocio · SaaS Empresarial), nodo del holding SCL.
+            Te disparó un issue con label inbox/inbox:urgent.
+
+            Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}
+
+            Body:
+            ${{ github.event.issue.body }}
+
+            Reglas (leé lo que exista para entender el repo y el sobre: CLAUDE.md / AGENTS.md / README + .claude/):
+            1. Entendé qué pide el issue y hacé el trabajo DENTRO del sobre de permisos de arriba.
+            2. Si el issue es una PREGUNTA / censo de estado (te piden datos, no un cambio): NO toques código,
+               NO abras PR. Respondé con un `gh issue comment` en ESTE issue, con evidencia de tus superficies.
+            3. Si el issue pide TRABAJO: rama `buzon/<slug-corto>`, commit con pathspec explícito, abrí un PR y
+               dejá que el CI valide. Comentá el link al PR en el issue y dejalo ABIERTO (mergear no es tuyo).
+            4. Si tu cambio es SOLO documentación y el repo tiene gate `automerge-docs`, creá el PR con
+               `--label automerge:docs`. Igual NO mergees vos.
+            5. Si el pedido no está claro, cae fuera del sobre, o necesita mergear código/borrar/mover plata/
+               mandar mensajes afuera: NO lo hagas. Comentá "bloqueado, necesito OK de Yair: <por qué>" y terminá.
+            6. Respondé y documentá en español.
