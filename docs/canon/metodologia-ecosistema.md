@@ -84,6 +84,26 @@ el árbol.** Cuando la respuesta baja, retoma donde dejó. Bloquear el nodo ente
 El **sobre de permisos es idéntico en todos los niveles**: esa uniformidad es lo que hace segura la autonomía full
 incluso en repos de clientes.
 
+## 4.bis QA final de producto — se corre en el holding
+
+Caso especial de "comunicación sube" (§3), **load-bearing**: el nodo hace su QA **técnica**; el
+holding hace la QA **final de producto**.
+
+- **QA técnica (del nodo):** tests, smoke, build, typecheck — el verde de máquina. Es del nodo y
+  no cambia.
+- **QA final / aceptación (del holding):** cuando un producto o servicio llega a *"listo para
+  probar de verdad"*, el nodo **NO se auto-aprueba**. Escala un pedido de **QA final** hacia
+  arriba (issue `qa-final`). El **equipo directivo** (Yair + el orquestador SCL) corre la **prueba
+  real de producto desde Empresa** — la validación de aceptación, no el smoke técnico — y **baja
+  una devolución**: aprobado / cambios / rechazado.
+- Recién con esa devolución el nodo marca el producto **"verde de aceptación"**. Sin ella, *"está
+  probado"* es declaración del nodo, no hecho — y el tablero lo trata así: **el `probado` que
+  prende verde lo enciende el holding, no el nodo**.
+
+Por qué: la prueba técnica dice *"funciona"*; la de producto dice *"sirve y está listo para un
+cliente"* — y ese juicio es del equipo directivo, no de quien lo construyó. Misma lógica que
+autoridad-baja/comunicación-sube: el nodo entrega y pide validación; el de arriba valida y decide.
+
 ## 5. Propagación — también fractal
 
 - **SCL** manda la alineación a los nodos del holding (incluida la agencia).
