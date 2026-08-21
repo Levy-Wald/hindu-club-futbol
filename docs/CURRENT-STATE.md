@@ -1,5 +1,45 @@
 # CURRENT-STATE — Estado vivo del proyecto SaaS Empresarial
 
+> ## 🧊 2026-08-21 · Cierre documental — congelado, y con el CI en rojo desde el 31/07
+>
+> **Qué entró hoy.** Nada. El último commit en `main` es del **31/07** — hace tres semanas.
+> ⚠️ Y ojo con lo que sigue abajo: **este doc está fechado el 18/07**. Es una foto vieja y hay que
+> leerla como tal, no como el estado de hoy.
+>
+> **Congelado a propósito.** El repo no se toca desde el 31/07. No está abandonado (la pausa es
+> decisión de cartera, no olvido) y el producto no está roto: lo que está roto es el **verde de
+> máquina**, que es otra cosa y va acá abajo.
+>
+> **🔴 El CI de `main` está en ROJO, y es un rojo VIEJO — no de hoy.** Falla el job
+> `Lint & Typecheck` con **`✖ 377 problems (2 errors, 375 warnings)`**. Los **2 errores** —lo
+> único que voltea el build— son los dos `@next/next/no-html-link-for-pages`: un `<a>` navegando
+> a `/` donde va un `<Link />` de `next/link`. Está así desde el último push del 31/07, y se
+> reprodujo **idéntico** hoy (mismo conteo, mismos dos errores) en el PR de este banner.
+> Consecuencia práctica: **cualquier PR contra este repo va a salir rojo por esto**, incluso uno
+> de sólo documentación. No es culpa del PR — es este rojo, esperando.
+>
+> **No tiene loop y no arranca solo.** Sólo hay `buzon.yml` + `ci.yml`; no hay `loop-trabajo.yml`,
+> no está en la lista de
+> [`harness/mando/repos.sh`](https://github.com/Levy-Wald/servicios-clevel-os/blob/main/harness/mando/repos.sh)
+> del repo de Empresa, y **no tiene variable `LOOP_PAUSA`** porque no hay loop que frenar. Lo único
+> que lo despierta es un issue con label `inbox` (el buzón), y eso lo dispara una persona.
+>
+> **🪤 Dato viejo, corregido — la llave de Anthropic YA ESTÁ.** Circulaba que a este nodo le
+> faltaba: el secret `ANTHROPIC_API_KEY` está cargado desde el **17/08**. Eso explica las dos
+> corridas del buzón que fallaron (03/08 y 13/08): las dos murieron con *"Either
+> ANTHROPIC_API_KEY... is required"* y las dos son **anteriores** a la llave. ⚠️ Pero el buzón
+> **no volvió a correr de verdad desde entonces** (lo del 21/08 son `skipped` por filtro de label),
+> así que **está puesta, no probada** — no cuenta como verde.
+>
+> **Qué queda pendiente y de quién depende:**
+>
+> | Pendiente | De quién |
+> |---|---|
+> | Limpiar los 2 errores de lint para devolver `main` a verde | del nodo, **cuando se descongele** — es código, no entra en una pasada documental |
+> | Descongelar, o confirmar que sigue congelado | **Yair** (decisión de cartera) |
+> | Probar que el buzón anda con la llave nueva | de nadie: se prueba **solo**, la primera vez que le entre un issue `inbox` real |
+
+
 **Última actualización**: 2026-07-18
 **Sesión que la generó**: Setup del harness multi-agente + reconciliación de estado (Code). Tag real reconciliado a `v0.52.0-portal-convocatoria` (era `v0.51.0` en el snapshot del 24-jun; la serie convocatoria/mensajería quedó taggeada después). Sesión previa: Portal smoke #3/#4 + convocatoria (DT↔jugador) + mensajería interna (24-jun).
 **Fuente de verdad**: este archivo (estado en prosa/bloqueos). La **cola ejecutable de loops** vive en `docs/ROADMAP-LOOPS.md`; el estado Open/Closed de tareas en Zoho LE-8. `CLAUDE.md` referencia este archivo. Drive es espejo de referencia (lo sincroniza Opus).
