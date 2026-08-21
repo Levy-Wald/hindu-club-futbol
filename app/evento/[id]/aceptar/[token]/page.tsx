@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { aceptarInvitacionAction } from '@/modules/eventos/lib/actions'
 import { redirect } from 'next/navigation'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
@@ -32,9 +33,9 @@ export default async function AceptarInvitacionPage(props: {
           <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
             {result.error}
           </div>
-          <a href="/" className="text-sm text-primary hover:underline">
+          <Link href="/" className="text-sm text-primary hover:underline">
             Volver al inicio
-          </a>
+          </Link>
         </div>
       </div>
     </div>
