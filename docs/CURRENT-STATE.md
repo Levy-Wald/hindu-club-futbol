@@ -11,8 +11,10 @@
 > máquina**, que es otra cosa y va acá abajo.
 >
 > **🔴 El CI de `main` está en ROJO, y es un rojo VIEJO — no de hoy.** Falla el job
-> `Lint & Typecheck`: **2 errores** + 375 warnings, del tipo `react-hooks/set-state-in-effect`
-> (`setState()` llamado dentro de un `useEffect`). Está así desde el último push del 31/07.
+> `Lint & Typecheck` con **`✖ 377 problems (2 errors, 375 warnings)`**. Los **2 errores** —lo
+> único que voltea el build— son los dos `@next/next/no-html-link-for-pages`: un `<a>` navegando
+> a `/` donde va un `<Link />` de `next/link`. Está así desde el último push del 31/07, y se
+> reprodujo **idéntico** hoy (mismo conteo, mismos dos errores) en el PR de este banner.
 > Consecuencia práctica: **cualquier PR contra este repo va a salir rojo por esto**, incluso uno
 > de sólo documentación. No es culpa del PR — es este rojo, esperando.
 >
