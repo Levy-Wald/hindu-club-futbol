@@ -1,6 +1,32 @@
 import { unstable_cache } from 'next/cache'
-import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import { createServiceRoleClient, hasServiceRoleCredentials } from '@/lib/supabase/service-role'
 import type { ModuleSidebarMeta, CatalogSidebarRow } from '@/lib/navigation/types'
+
+let avisoLlaveEmitido = false
+
+/**
+ * ¿Podemos leer de Supabase acá?
+ *
+ * El root layout (`app/layout.tsx`) llama a getCachedBranding(), y Next
+ * prerenderiza `/_not-found` en tiempo de build — o sea que este módulo corre
+ * en CI, donde el SUPABASE_SERVICE_ROLE_KEY no está ni debe estar cargado.
+ * Cuando falta, cada lectura devuelve su fallback vacío (el mismo que ya
+ * devuelve ante un error de query) en vez de voltear el build.
+ *
+ * Avisa una vez por proceso para que una credencial mal configurada en
+ * producción no pase en silencio.
+ */
+function puedeLeerSupabase(): boolean {
+  if (hasServiceRoleCredentials()) return true
+  if (!avisoLlaveEmitido) {
+    avisoLlaveEmitido = true
+    console.warn(
+      '[lib/cache] SUPABASE_SERVICE_ROLE_KEY ausente: las lecturas cacheadas ' +
+      'devuelven vacío. Esperable en build/CI; en producción es un error de config.'
+    )
+  }
+  return false
+}
 
 /**
  * Cached: tenant_modulos activos (cambia ~1x cada 3 meses)
@@ -8,6 +34,7 @@ import type { ModuleSidebarMeta, CatalogSidebarRow } from '@/lib/navigation/type
  */
 export const getCachedTenantModulos = unstable_cache(
   async (tenantId: string): Promise<string[]> => {
+    if (!puedeLeerSupabase()) return []
     const supabase = createServiceRoleClient()
     const { data } = await supabase
       .from('tenant_modulos')
@@ -26,6 +53,7 @@ export const getCachedTenantModulos = unstable_cache(
  */
 export const getCachedSidebarModules = unstable_cache(
   async (): Promise<Record<string, ModuleSidebarMeta>> => {
+    if (!puedeLeerSupabase()) return {}
     const supabase = createServiceRoleClient()
     const { data, error } = await supabase
       .from('catalogo_modulos')
@@ -53,6 +81,7 @@ export const getCachedSidebarModules = unstable_cache(
  */
 export const getCachedSidebarCatalog = unstable_cache(
   async (): Promise<CatalogSidebarRow[]> => {
+    if (!puedeLeerSupabase()) return []
     const supabase = createServiceRoleClient()
     const { data, error } = await supabase
       .from('catalogo_modulos')
@@ -74,6 +103,7 @@ export const getCachedSidebarCatalog = unstable_cache(
  */
 export const getCachedCatalogAtributos = unstable_cache(
   async () => {
+    if (!puedeLeerSupabase()) return []
     const supabase = createServiceRoleClient()
     const { data } = await supabase
       .from('catalogo_atributos')
@@ -90,6 +120,7 @@ export const getCachedCatalogAtributos = unstable_cache(
  */
 export const getCachedBranding = unstable_cache(
   async (tenantId: string) => {
+    if (!puedeLeerSupabase()) return null
     const supabase = createServiceRoleClient()
     const { data } = await supabase
       .from('tenant_config_publica')
@@ -108,6 +139,7 @@ export const getCachedBranding = unstable_cache(
  */
 export const getCachedUserCapabilities = unstable_cache(
   async (personaId: string): Promise<string[]> => {
+    if (!puedeLeerSupabase()) return []
     const supabase = createServiceRoleClient()
     const { data, error } = await supabase.rpc('get_user_capabilities', { p_persona_id: personaId })
     if (error) {
@@ -126,6 +158,7 @@ export const getCachedUserCapabilities = unstable_cache(
  */
 export const getCachedUserAttributes = unstable_cache(
   async (personaId: string, tenantId: string): Promise<string[]> => {
+    if (!puedeLeerSupabase()) return []
     const supabase = createServiceRoleClient()
     const { data } = await supabase
       .from('personas_atributos')
