@@ -28,6 +28,12 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Los issues que MANDAN LOS OTROS NODOS del árbol los crea el bot `claude`, no una
+          # persona. Por defecto el action rechaza todo actor no-humano ("Workflow initiated by
+          # non-human actor") y el buzón inter-nodo rebota entero. Se declara ESE bot, no `*`: el
+          # body del issue entra derecho al prompt, así que abrir a cualquier bot instalado es
+          # abrir el prompt.
+          allowed_bots: "claude"
           claude_args: "--max-turns 50"
           settings: |
             {
