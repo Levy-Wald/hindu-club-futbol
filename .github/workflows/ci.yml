@@ -57,6 +57,11 @@ jobs:
     env:
       NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key-for-build
+      # Faltaba la tercera. `lib/supabase/service-role.ts` la lee con `!` y algo del árbol de
+      # `/_not-found` construye ese cliente durante el prerender → `undefined` → el build moría
+      # con "supabaseKey is required". Placeholder igual que las dos de arriba: el build no habla
+      # con Supabase, sólo necesita poder construir el cliente.
+      SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role-key-for-build
     steps:
       - uses: actions/checkout@v4
 
