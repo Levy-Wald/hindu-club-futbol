@@ -8,6 +8,13 @@ name: buzon-inbox
 # ⚠️ INERTE sin el secreto ANTHROPIC_API_KEY (Settings → Secrets → Actions).
 # Setear SIN `--body -`:  printf %s "$K" | gh secret set ANTHROPIC_API_KEY --repo Levy-Wald/<repo>
 
+
+# Un mismo issue puede disparar dos corridas (verificado en vivo el 24/08: dos robots hicieron el
+# mismo trabajo con 22 segundos de diferencia). Se cancela la vieja y queda la nueva: trabaja UNA.
+concurrency:
+  group: buzon-issue-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
   pull-requests: write
@@ -16,18 +23,33 @@ permissions:
 
 on:
   issues:
-    types: [labeled]
+    # `labeled` NO alcanza: GitHub no emite ese evento por los labels que el issue ya trae al
+    # nacer, y `gh issue create --label inbox` es como emite el `cerrar-tarea §4↔`. El mensaje se
+    # entregaba sin tocar el timbre — y como el workflow no corría, no había nada que se pusiera
+    # rojo (103h en un caso real, 24/08). Por eso también entra `opened`.
+    types: [labeled, opened]
 
 jobs:
   buzon:
     runs-on: ubuntu-latest
-    if: github.event.label.name == 'inbox' || github.event.label.name == 'inbox:urgent'
+    # Dos caminos porque son dos eventos: en `labeled` el label viene en el evento; en `opened`
+    # hay que mirar los labels del issue. `contains(array, item)` compara elemento completo.
+    if: >-
+      github.event.label.name == 'inbox'
+      || github.event.label.name == 'inbox:urgent'
+      || (github.event.action == 'opened'
+          && (contains(github.event.issue.labels.*.name, 'inbox')
+              || contains(github.event.issue.labels.*.name, 'inbox:urgent')))
     steps:
       - uses: actions/checkout@v4
 
       - uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Dos bots, no uno: cuando el pedido lo abre la acción de Claude el actor es `claude`;
+          # cuando lo abre un paso de workflow del emisor (GITHUB_TOKEN) es `github-actions`.
+          # Los dos son NUESTROS: nunca `*`, el body del issue entra derecho al prompt.
+          allowed_bots: "claude,github-actions"
           claude_args: "--max-turns 50"
           settings: |
             {
